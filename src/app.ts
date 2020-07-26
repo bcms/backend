@@ -50,7 +50,7 @@ import { SwaggerMiddleware } from './swagger/middleware';
  */
 // @EnableMongoDB(dbConfig)
 @Application({
-  port: parseInt(process.env.PORT, 10),
+  port: parseInt(process.env.API_PORT, 10),
   controllers: [
     process.env.DEV === 'true' ? new SwaggerController() : undefined,
   ],
