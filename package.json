@@ -1,0 +1,68 @@
+{
+  "name": "@becomes/cms-backend",
+  "version": "2.0.0",
+  "description": "Backend for the BCMS",
+  "author": "becomes.co",
+  "license": "MIT",
+  "main": "index.js",
+  "scripts": {
+    "start": "node dist/main.js",
+    "dev": "env-cmd nodemon src/main.ts",
+    "bundle": "node tools.js --bundle",
+    "link": "node tools.js --link",
+    "unlink": "node tools.js --unlink",
+    "publish": "node tools.js --publish",
+    "build": "tsc -p .",
+    "generate-doc": "typedoc --theme minimal server"
+  },
+  "dependencies": {
+    "@becomes/purple-cheetah": "^2.0.5",
+    "bcrypt": "^3.0.8",
+    "esm": "^3.2.25",
+    "express": "^4.17.1",
+    "mongoose": "^5.9.24",
+    "multer": "^1.4.2",
+    "swagger-ui-express": "^4.1.4",
+    "yamljs": "^0.3.0",
+    "fs-extra": "^8.1.0"
+  },
+  "devDependencies": {
+    "@types/bcrypt": "^3.0.0",
+    "@types/express": "^4.17.7",
+    "@types/fs-extra": "^8.1.0",
+    "@types/mongoose": "5.5.31",
+    "@types/multer": "^1.4.2",
+    "@types/node": "^12.12.50",
+    "@types/swagger-ui-express": "^4.1.2",
+    "@types/yamljs": "^0.2.30",
+    "env-cmd": "^10.1.0",
+    "listr": "^0.14.3",
+    "nodemon": "^2.0.2",
+    "ts-node": "^8.10.2",
+    "tsconfig-paths": "^3.9.0",
+    "tslint": "^5.20.1",
+    "typedoc": "^0.17.8",
+    "typedoc-neo-theme": "^1.0.9",
+    "typescript": "^3.9.6"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+https://github.com/becomesco/cms-backend.git"
+  },
+  "bin": {
+    "bcms-backend": "bin/bcms-backend.js"
+  },
+  "keywords": [
+    "bcms-backend"
+  ],
+  "bugs": {
+    "url": "https://github.com/becomesco/cms-backend/issues"
+  },
+  "homepage": "https://github.com/becomesco/cms-backend#readme",
+  "nodemonConfig": {
+    "watch": [
+      "src"
+    ],
+    "ext": "ts"
+  }
+}

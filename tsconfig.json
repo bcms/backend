@@ -1,0 +1,36 @@
+{
+  "compilerOptions": {
+    "module": "commonjs",
+    "declaration": true,
+    "removeComments": true,
+    "emitDecoratorMetadata": true,
+    "experimentalDecorators": true,
+    "target": "es5",
+    "sourceMap": true,
+    "outDir": "./dist",
+    "baseUrl": "./",
+    "incremental": true
+  },
+  "include": ["src"],
+  "exclude": ["node_modules", "dist", "public"],
+  "typedocOptions": {
+    "name": "GetCV | SDK",
+    "theme": "./node_modules/typedoc-neo-theme/bin/default",
+    "plugin": "typedoc-neo-theme",
+    "mode": "file",
+    "out": "doc",
+    "outline": [
+      {
+        "Client SDK": {
+          "Overview": "interfaces/getcvclientprototype",
+          "User": "interfaces/userhandlerprototype",
+          "Company": "interfaces/companyhandlerprototype",
+          "Invitation": "interfaces/invitationhandlerprototype",
+          "Job": "interfaces/jobhandlerprototype",
+          "Candidate": "interfaces/candidatehandlerprototype",
+          "Socket": "interfaces/sockethandlerprototype"
+        }
+      }
+    ]
+  }
+}
