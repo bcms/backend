@@ -8,12 +8,12 @@
   "scripts": {
     "start": "node dist/main.js",
     "dev": "env-cmd nodemon src/main.ts",
+    "build": "tsc -p .",
     "bundle": "node tools.js --bundle",
     "link": "node tools.js --link",
     "unlink": "node tools.js --unlink",
     "publish": "node tools.js --publish",
-    "build": "tsc -p .",
-    "generate-doc": "typedoc --theme minimal server"
+    "generate-doc": "typedoc src"
   },
   "dependencies": {
     "@becomes/purple-cheetah": "^2.0.5",
