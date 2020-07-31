@@ -6,25 +6,24 @@
   "license": "MIT",
   "main": "index.js",
   "scripts": {
-    "start": "node dist/main.js",
-    "dev": "env-cmd nodemon src/main.ts",
+    "start": "node dist/bin/bcms-backend.js",
+    "dev": "env-cmd nodemon src/bin/bcms-backend.ts",
+    "build": "tsc -p .",
     "bundle": "node tools.js --bundle",
     "link": "node tools.js --link",
     "unlink": "node tools.js --unlink",
     "publish": "node tools.js --publish",
-    "build": "tsc -p .",
-    "generate-doc": "typedoc --theme minimal server"
+    "generate-doc": "typedoc"
   },
   "dependencies": {
-    "@becomes/purple-cheetah": "^2.0.5",
+    "@becomes/purple-cheetah": "^2.0.10",
     "bcrypt": "^3.0.8",
-    "esm": "^3.2.25",
     "express": "^4.17.1",
+    "fs-extra": "^8.1.0",
     "mongoose": "^5.9.24",
     "multer": "^1.4.2",
     "swagger-ui-express": "^4.1.4",
-    "yamljs": "^0.3.0",
-    "fs-extra": "^8.1.0"
+    "yamljs": "^0.3.0"
   },
   "devDependencies": {
     "@types/bcrypt": "^3.0.0",

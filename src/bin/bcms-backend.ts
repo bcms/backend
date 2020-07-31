@@ -1,6 +1,14 @@
 #!/usr/bin/env node
 
-// tslint:disable-next-line: no-var-requires
-require = require('esm')(module /*, options */);
-// tslint:disable-next-line: no-var-requires
-require('../cli.js').cli(process.argv);
+import { Config } from '../config';
+import { App } from '../app';
+
+Config.init()
+  .then(() => {
+    new App().listen();
+  })
+  .catch((error) => {
+    // tslint:disable-next-line: no-console
+    console.error(error);
+    process.exit(1);
+  });

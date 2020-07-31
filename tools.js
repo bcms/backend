@@ -7,18 +7,25 @@ const path = require('path');
 
 const exec = async (cmd, output) => {
   return new Promise((resolve, reject) => {
+    let err = '';
     const proc = childProcess.exec(cmd);
     if (output) {
       proc.stdout.on('data', (data) => {
         output('stdout', data);
       });
-      proc.stderr.on('data', (data) => {
-        output('stderr', data);
-      });
     }
+    proc.stderr.on('data', (data) => {
+      err += data;
+      if (output) {
+        output('stderr', data);
+      }
+    });
     proc.on('close', (code) => {
       if (code !== 0) {
-        reject(code);
+        reject({
+          code,
+          err,
+        });
       } else {
         resolve();
       }
@@ -61,6 +68,10 @@ const bundle = async () => {
       title: 'Compile Typescript.',
       task: async () => {
         await exec('npm run build');
+        await fse.copy(
+          path.join(__dirname, 'src', 'response-code', 'codes'),
+          path.join(__dirname, 'dist', 'response-code', 'codes'),
+        );
       },
     },
     // {

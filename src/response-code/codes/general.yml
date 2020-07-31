@@ -1,0 +1,6 @@
+g001: # JWT unauthorized
+  msg: '%msg%'
+g002: # Object compare failed
+  msg: '%msg%'
+g003:
+  msg: Nothing to update.
