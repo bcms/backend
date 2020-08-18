@@ -101,4 +101,27 @@ export class AuthRequestHandler {
       ),
     );
   }
+
+  static async logout(authorization: string): Promise<string> {
+    const error = HttpErrorFactory.instance('logout', this.logger);
+    if (!authorization) {
+      throw error.occurred(HttpStatus.FORBIDDEN, ResponseCode.get('a001'));
+    }
+    const refreshTokenValue = authorization.replace('Bearer ', '');
+    const user = await UserRepo.findByRefreshToken(refreshTokenValue);
+    if (!user) {
+      throw error.occurred(HttpStatus.UNAUTHORIZED, ResponseCode.get('a005'));
+    }
+    user.refreshTokens = user.refreshTokens.filter(
+      (e) => e.value !== refreshTokenValue,
+    );
+    const updateUserResult = await UserRepo.update(user as any);
+    if (updateUserResult === false) {
+      throw error.occurred(
+        HttpStatus.INTERNAL_SERVER_ERROR,
+        ResponseCode.get('a004'),
+      );
+    }
+    return 'Success.';
+  }
 }

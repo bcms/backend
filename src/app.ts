@@ -6,7 +6,6 @@ import * as fs from 'fs';
 import {
   Application,
   CORSMiddleware,
-  RequestLoggerMiddleware,
   BodyParserMiddleware,
   PurpleCheetah,
   MongoDBConfig,
@@ -15,6 +14,7 @@ import {
 import { SwaggerController } from './swagger/controller';
 import { SwaggerMiddleware } from './swagger/middleware';
 import { UserController } from './user';
+import { AuthController } from './auth/controller';
 
 let dbConfig: MongoDBConfig;
 if (process.env.DB_USE_FS) {
@@ -62,10 +62,10 @@ if (process.env.DB_USE_FS) {
   controllers: [
     process.env.DEV === 'true' ? new SwaggerController() : undefined,
     new UserController(),
+    new AuthController(),
   ],
   middleware: [
     new CORSMiddleware(),
-    new RequestLoggerMiddleware(),
     new BodyParserMiddleware(),
     process.env.DEV === 'true' ? new SwaggerMiddleware() : undefined,
   ],

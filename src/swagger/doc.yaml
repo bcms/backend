@@ -25,6 +25,67 @@ paths:
           description: OK
 
 components:
+  schemas:
+    Permission:
+      type: object
+      properties:
+        name:
+          type: string
+          enum:
+            - READ
+            - WRITE
+            - DELETE
+            - EXECUTE
+    Role:
+      type: object
+      properties:
+        name: 
+          type: string
+          enum:
+            - ADMIN
+            - USER
+    UserPersonal:
+      type: object
+      properties:
+        firstName:
+          type: string
+        lastName:
+          type: string
+        avatarUri:
+          type: string
+    UserAddress:
+    CustomPool:
+
+    User:
+      type: object
+      properties:
+        _id:
+          type: string
+        createdAt:
+          type: number
+        updatedAt:
+          type: number
+        username:
+          type: string
+        email:
+          type: string
+        password:
+          type: string
+          format: bcrypt
+        roles:
+          type: array
+          items:
+            $ref: '#/components/schemas/Role'
+        refreshTokens:
+          type: array
+          items:
+            type: object
+            properties:
+              value:
+                type: string
+              expAt:
+                type: number
+        
   securitySchemes:
     BasicAuth:
       type: http

@@ -10,7 +10,7 @@ export const RefreshTokenSchema: ObjectSchema = {
     __type: 'string',
     __required: true,
   },
-  extAt: {
+  expAt: {
     __type: 'number',
     __required: true,
   },

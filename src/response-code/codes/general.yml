@@ -4,3 +4,5 @@ g002: # Object compare failed
   msg: '%msg%'
 g003:
   msg: Nothing to update.
+g004:
+  msg: Invalid ID "%id%" was provided.

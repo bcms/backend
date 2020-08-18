@@ -1,0 +1,12 @@
+grp001:
+  msg: Group with ID "%id%" does not exist.
+grp002:
+  msg: Group with name "%name%" already exist.
+grp003:
+  msg: Failed to add Group to the database.
+grp004:
+  msg: Changes to prop "%prop%" are not valid --> %msg%
+grp005:
+  msg: Failed to update Group in the database.
+grp006:
+  msg: Failed to delete Group from the database.

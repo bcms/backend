@@ -19,6 +19,13 @@ export class UserController implements ControllerPrototype {
   router;
   initRouter: () => void;
 
+  @Get('/count')
+  async count(request: Request): Promise<{ count: number }> {
+    return {
+      count: await UserRequestHandler.count(request.headers.authorization),
+    };
+  }
+
   @Get('/is-initialized')
   async isInitialized(): Promise<{ initialized: boolean }> {
     return {
@@ -68,6 +75,16 @@ export class UserController implements ControllerPrototype {
       user: await UserRequestHandler.add(
         request.headers.authorization,
         request.body,
+      ),
+    };
+  }
+
+  @Post('/:id/make-an-admin')
+  async makeAnAdmin(request: Request): Promise<{ user: ProtectedUser }> {
+    return {
+      user: await UserRequestHandler.makeAnAdmin(
+        request.headers.authorization,
+        request.params.id,
       ),
     };
   }

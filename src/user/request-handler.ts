@@ -13,16 +13,17 @@ import {
   JWTEncoding,
   StringUtility,
 } from '@becomes/purple-cheetah';
-import { UserRepo } from './repositories';
 import { FSUser, User, ProtectedUser } from './models';
 import { UserFactory, RefreshTokenFactory } from './factories';
 import {
   UpdateUserData,
   UpdateUserDataSchema,
   AddUserData,
+  AddUserDataSchema,
 } from './interfaces';
 import { Types } from 'mongoose';
 import { ResponseCode } from '../response-code';
+import { CacheControl } from '../cache';
 
 export class UserRequestHandler {
   @CreateLogger(UserRequestHandler)
@@ -32,8 +33,26 @@ export class UserRequestHandler {
     code: '',
   };
 
+  static async count(authorization: string): Promise<number> {
+    const error = HttpErrorFactory.instance('count', this.logger);
+    const jwt = JWTSecurity.checkAndValidateAndGet(authorization, {
+      roles: [RoleName.ADMIN, RoleName.USER],
+      permission: PermissionName.READ,
+      JWTConfig: JWTConfigService.get('user-token-config'),
+    });
+    if (jwt instanceof Error) {
+      throw error.occurred(
+        HttpStatus.UNAUTHORIZED,
+        ResponseCode.get('g001', {
+          msg: jwt.message,
+        }),
+      );
+    }
+    return await CacheControl.user.count();
+  }
+
   static async isInitialized(): Promise<boolean> {
-    const userCount = await UserRepo.count();
+    const userCount = await CacheControl.user.count();
     return userCount > 0 ? true : false;
   }
 
@@ -52,7 +71,7 @@ export class UserRequestHandler {
         }),
       );
     }
-    const users = await UserRepo.findAll();
+    const users = await CacheControl.user.findAll();
     return (users as Array<FSUser | User>).map((user) => {
       return UserFactory.removeProtected(user);
     });
@@ -73,7 +92,7 @@ export class UserRequestHandler {
         }),
       );
     }
-    const user = await UserRepo.findById(jwt.payload.userId);
+    const user = await CacheControl.user.findById(jwt.payload.userId);
     if (!user || user === null) {
       throw error.occurred(
         HttpStatus.INTERNAL_SERVER_ERROR,
@@ -101,7 +120,7 @@ export class UserRequestHandler {
         }),
       );
     }
-    const user = await UserRepo.findById(id);
+    const user = await CacheControl.user.findById(id);
     if (!user || user === null) {
       throw error.occurred(
         HttpStatus.NOT_FOUNT,
@@ -147,7 +166,7 @@ export class UserRequestHandler {
     ) {
       throw error.occurred(HttpStatus.FORBIDDEN, ResponseCode.get('u003'));
     }
-    const user = await UserRepo.findById(data._id);
+    const user = await CacheControl.user.findById(data._id);
     if (!user || user === null) {
       if (jwt.payload.userId === data._id) {
         throw error.occurred(
@@ -165,7 +184,7 @@ export class UserRequestHandler {
     let change = false;
     if (typeof data.email !== 'undefined' && data.email !== user.email) {
       change = true;
-      const userWithSameEmail = await UserRepo.findByEmail(data.email);
+      const userWithSameEmail = await CacheControl.user.findByEmail(data.email);
       if (userWithSameEmail && userWithSameEmail !== null) {
         throw error.occurred(
           HttpStatus.FORBIDDEN,
@@ -202,6 +221,10 @@ export class UserRequestHandler {
           change = true;
           user.customPool.personal.firstName =
             data.customPool.personal.firstName;
+          user.username =
+            user.customPool.personal.firstName +
+            ' ' +
+            user.customPool.personal.lastName;
         }
         if (
           typeof data.customPool.personal.lastName !== 'undefined' &&
@@ -210,6 +233,10 @@ export class UserRequestHandler {
         ) {
           change = true;
           user.customPool.personal.lastName = data.customPool.personal.lastName;
+          user.username =
+            user.customPool.personal.firstName +
+            ' ' +
+            user.customPool.personal.lastName;
         }
       }
       if (typeof data.customPool.address !== 'undefined') {
@@ -288,7 +315,7 @@ export class UserRequestHandler {
     if (change === false) {
       throw error.occurred(HttpStatus.BAD_REQUEST, ResponseCode.get('g003'));
     }
-    const updateUserResult = await UserRepo.update(user as any);
+    const updateUserResult = await CacheControl.user.update(user as any);
     if (updateUserResult === false) {
       throw error.occurred(
         HttpStatus.INTERNAL_SERVER_ERROR,
@@ -304,7 +331,7 @@ export class UserRequestHandler {
   ): Promise<ProtectedUser> {
     const error = HttpErrorFactory.instance('add', this.logger);
     try {
-      ObjectUtility.compareWithSchema(data, UpdateUserDataSchema, 'data');
+      ObjectUtility.compareWithSchema(data, AddUserDataSchema, 'data');
     } catch (e) {
       throw error.occurred(
         HttpStatus.BAD_REQUEST,
@@ -327,8 +354,9 @@ export class UserRequestHandler {
       );
     }
     {
-      const userWithSameEmail = await UserRepo.findByEmail(data.email);
-      if (userWithSameEmail || userWithSameEmail !== null) {
+      const userWithSameEmail = await CacheControl.user.findByEmail(data.email);
+      this.logger.info('', userWithSameEmail);
+      if (userWithSameEmail) {
         throw error.occurred(
           HttpStatus.FORBIDDEN,
           ResponseCode.get('u006', {
@@ -347,11 +375,50 @@ export class UserRequestHandler {
       lastName: data.customPool.personal.lastName,
     });
     user.password = await bcrypt.hash(data.password, 10);
-    const addUserResult = await UserRepo.add(user as any);
+    const addUserResult = await CacheControl.user.add(user as any);
     if (addUserResult === false) {
       throw error.occurred(
         HttpStatus.INTERNAL_SERVER_ERROR,
         ResponseCode.get('u011'),
+      );
+    }
+    return UserFactory.removeProtected(user);
+  }
+
+  static async makeAnAdmin(authorization: string, id: string) {
+    const error = HttpErrorFactory.instance('makeAnAdmin', this.logger);
+    if (StringUtility.isIdValid(id) === false) {
+      throw error.occurred(
+        HttpStatus.BAD_REQUEST,
+        ResponseCode.get('u013', { id }),
+      );
+    }
+    const jwt = JWTSecurity.checkAndValidateAndGet(authorization, {
+      roles: [RoleName.ADMIN],
+      permission: PermissionName.WRITE,
+      JWTConfig: JWTConfigService.get('user-token-config'),
+    });
+    if (jwt instanceof Error) {
+      throw error.occurred(
+        HttpStatus.UNAUTHORIZED,
+        ResponseCode.get('g001', {
+          msg: jwt.message,
+        }),
+      );
+    }
+    const user = await CacheControl.user.findById(id);
+    if (!user) {
+      throw error.occurred(
+        HttpStatus.NOT_FOUNT,
+        ResponseCode.get('u002', { id }),
+      );
+    }
+    user.roles[0].name = RoleName.ADMIN;
+    const updateUserResult = await CacheControl.user.update(user as any);
+    if (updateUserResult === false) {
+      throw error.occurred(
+        HttpStatus.INTERNAL_SERVER_ERROR,
+        ResponseCode.get('u010'),
       );
     }
     return UserFactory.removeProtected(user);
@@ -418,7 +485,7 @@ export class UserRequestHandler {
     }
     this.aSecret.expAt = 0;
     {
-      const userWithSameEmail = await UserRepo.findByEmail(data.email);
+      const userWithSameEmail = await CacheControl.user.findByEmail(data.email);
       if (userWithSameEmail) {
         throw error.occurred(
           HttpStatus.FORBIDDEN,
@@ -437,7 +504,7 @@ export class UserRequestHandler {
     const refreshToken = RefreshTokenFactory.instance;
     user.password = await bcrypt.hash(data.password, 10);
     user.refreshTokens.push(refreshToken);
-    const addUserResult = await UserRepo.add(user as any);
+    const addUserResult = await CacheControl.user.add(user as any);
     if (addUserResult === false) {
       throw error.occurred(
         HttpStatus.INTERNAL_SERVER_ERROR,
@@ -488,7 +555,7 @@ export class UserRequestHandler {
     ) {
       throw error.occurred(HttpStatus.FORBIDDEN, ResponseCode.get('u014'));
     }
-    const user = await UserRepo.findById(id);
+    const user = await CacheControl.user.findById(id);
     if (!user) {
       throw error.occurred(
         HttpStatus.NOT_FOUNT,
@@ -497,7 +564,7 @@ export class UserRequestHandler {
         }),
       );
     }
-    const deleteUserResult = await UserRepo.deleteById(id);
+    const deleteUserResult = await CacheControl.user.deleteById(id);
     if (deleteUserResult === false) {
       throw error.occurred(
         HttpStatus.INTERNAL_SERVER_ERROR,

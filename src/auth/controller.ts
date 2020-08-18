@@ -31,5 +31,10 @@ export class AuthController implements ControllerPrototype {
     };
   }
 
-  // TODO: Add logout
+  @Post('/logout')
+  async logout(request: Request): Promise<{ message: string }> {
+    return {
+      message: await AuthRequestHandler.logout(request.headers.authorization),
+    };
+  }
 }

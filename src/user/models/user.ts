@@ -2,7 +2,6 @@ import {
   IEntity,
   Role,
   Entity,
-  FSDBEntity,
   ObjectSchema,
 } from '@becomes/purple-cheetah';
 import {
@@ -115,7 +114,10 @@ export const UserSchema: ObjectSchema = {
   refreshTokens: {
     __type: 'array',
     __required: true,
-    __child: RefreshTokenSchema,
+    __child: {
+      __type: 'object',
+      __content: RefreshTokenSchema,
+    },
   },
   customPool: {
     __type: 'object',
