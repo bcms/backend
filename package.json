@@ -16,6 +16,7 @@
     "generate-doc": "typedoc"
   },
   "dependencies": {
+    "@becomes/purple-cheetah": "^2.0.11",
     "bcrypt": "^3.0.8",
     "express": "^4.17.1",
     "fs-extra": "^8.1.0",
