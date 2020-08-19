@@ -1,12 +1,16 @@
 import { CacheHandler } from '../handler';
-import { FSGroup, Group, IGroup, GroupRepo } from '../../group';
+import { FSTemplate, Template, ITemplate, TemplateRepo } from '../../template';
 
-export class GroupCacheHandler extends CacheHandler<FSGroup, Group, IGroup> {
+export class TemplateCacheHandler extends CacheHandler<
+  FSTemplate,
+  Template,
+  ITemplate
+> {
   constructor() {
-    super(GroupRepo, ['findByName', 'count']);
+    super(TemplateRepo, ['findByName', 'count']);
   }
 
-  async findByName(name: string): Promise<Group | FSGroup> {
+  async findByName(name: string): Promise<Template | FSTemplate> {
     return (await this.queueable.exec(
       'findByName',
       'free_one_by_one',
@@ -14,7 +18,7 @@ export class GroupCacheHandler extends CacheHandler<FSGroup, Group, IGroup> {
         await this.checkCountLatch();
         return this.cache.find((e) => e.name === name);
       },
-    )) as Group | FSGroup;
+    )) as Template | FSTemplate;
   }
 
   async count(): Promise<number> {

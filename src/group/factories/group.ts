@@ -1,5 +1,6 @@
 import { Group, FSGroup } from '../models';
 import { Types } from 'mongoose';
+import { GroupLite } from '../interfaces';
 
 export class GroupFactory {
   static instance(): Group | FSGroup {
@@ -22,5 +23,16 @@ export class GroupFactory {
         [],
       );
     }
+  }
+
+  static toLite(group: Group | FSGroup): GroupLite {
+    return {
+      _id: typeof group._id === 'string' ? group._id : group._id.toHexString(),
+      createdAt: group.createdAt,
+      updatedAt: group.updatedAt,
+      desc: group.desc,
+      name: group.name,
+      propsCount: group.props.length,
+    };
   }
 }

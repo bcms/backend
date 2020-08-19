@@ -10,23 +10,24 @@ import {
   StringUtility,
   ObjectUtility,
 } from '@becomes/purple-cheetah';
-import { FSGroup, Group } from './models';
+import { Template, FSTemplate } from './models';
 import { ResponseCode } from '../response-code';
 import { CacheControl } from '../cache';
-import { GroupFactory } from './factories';
+import { AddTemplateData, AddTemplateDataSchema } from './interfaces';
+import { TemplateFactory } from './factories';
 import {
-  AddGroupData,
-  AddGroupDataSchema,
-  UpdateGroupData,
-  UpdateGroupDataSchema,
-} from './interfaces';
+  UpdateTemplateData,
+  UpdateTemplateDataSchema,
+} from './interfaces/update-data';
 import { PropHandler } from '../prop/handler';
 
-export class GroupRequestHandler {
-  @CreateLogger(GroupRequestHandler)
+export class TemplateRequestHandler {
+  @CreateLogger(TemplateRequestHandler)
   private static logger: Logger;
 
-  static async getAll(authorization: string): Promise<Array<Group | FSGroup>> {
+  static async getAll(
+    authorization: string,
+  ): Promise<Array<Template | FSTemplate>> {
     const error = HttpErrorFactory.instance('getAll', this.logger);
     const jwt = JWTSecurity.checkAndValidateAndGet(authorization, {
       roles: [RoleName.ADMIN, RoleName.USER],
@@ -41,14 +42,31 @@ export class GroupRequestHandler {
         }),
       );
     }
-    const groups = await CacheControl.group.findAll();
-    return groups;
+    return await CacheControl.template.findAll();
+  }
+
+  static async count(authorization: string): Promise<number> {
+    const error = HttpErrorFactory.instance('count', this.logger);
+    const jwt = JWTSecurity.checkAndValidateAndGet(authorization, {
+      roles: [RoleName.ADMIN, RoleName.USER],
+      permission: PermissionName.READ,
+      JWTConfig: JWTConfigService.get('user-token-config'),
+    });
+    if (jwt instanceof Error) {
+      throw error.occurred(
+        HttpStatus.UNAUTHORIZED,
+        ResponseCode.get('g001', {
+          msg: jwt.message,
+        }),
+      );
+    }
+    return await CacheControl.template.count();
   }
 
   static async getById(
     authorization: string,
     id: string,
-  ): Promise<Group | FSGroup> {
+  ): Promise<Template | FSTemplate> {
     const error = HttpErrorFactory.instance('getById', this.logger);
     if (StringUtility.isIdValid(id) === false) {
       throw error.occurred(
@@ -69,38 +87,20 @@ export class GroupRequestHandler {
         }),
       );
     }
-    const group = await CacheControl.group.findById(id);
-    if (!group) {
+    const template = await CacheControl.template.findById(id);
+    if (!template) {
       throw error.occurred(
         HttpStatus.NOT_FOUNT,
-        ResponseCode.get('grp001', { id }),
+        ResponseCode.get('tmp001', { id }),
       );
     }
-    return group;
-  }
-
-  static async count(authorization: string): Promise<number> {
-    const error = HttpErrorFactory.instance('count', this.logger);
-    const jwt = JWTSecurity.checkAndValidateAndGet(authorization, {
-      roles: [RoleName.ADMIN, RoleName.USER],
-      permission: PermissionName.READ,
-      JWTConfig: JWTConfigService.get('user-token-config'),
-    });
-    if (jwt instanceof Error) {
-      throw error.occurred(
-        HttpStatus.UNAUTHORIZED,
-        ResponseCode.get('g001', {
-          msg: jwt.message,
-        }),
-      );
-    }
-    return await CacheControl.group.count();
+    return template;
   }
 
   static async add(
     authorization: string,
-    data: AddGroupData,
-  ): Promise<Group | FSGroup> {
+    data: AddTemplateData,
+  ): Promise<Template | FSTemplate> {
     const error = HttpErrorFactory.instance('add', this.logger);
     const jwt = JWTSecurity.checkAndValidateAndGet(authorization, {
       roles: [RoleName.ADMIN],
@@ -116,7 +116,7 @@ export class GroupRequestHandler {
       );
     }
     try {
-      ObjectUtility.compareWithSchema(data, AddGroupDataSchema, 'data');
+      ObjectUtility.compareWithSchema(data, AddTemplateDataSchema, 'data');
     } catch (e) {
       throw error.occurred(
         HttpStatus.BAD_REQUEST,
@@ -125,32 +125,33 @@ export class GroupRequestHandler {
         }),
       );
     }
-    const group = GroupFactory.instance();
-    group.name = StringUtility.createSlug(data.name);
-    group.desc = data.desc;
-    if (await CacheControl.group.findByName(group.name)) {
+    const template = TemplateFactory.instance;
+    template.name = StringUtility.createSlug(data.name);
+    template.desc = data.desc;
+    template.singleEntry = data.singleEntry;
+    if (await CacheControl.template.findByName(template.name)) {
       throw error.occurred(
         HttpStatus.FORBIDDEN,
-        ResponseCode.get('grp002', { name: group.name }),
+        ResponseCode.get('tmp002', { name: template.name }),
       );
     }
-    const addGroupResult = await CacheControl.group.add(group);
-    if (addGroupResult === false) {
+    const addTemplateResult = await CacheControl.template.add(template);
+    if (addTemplateResult === false) {
       throw error.occurred(
         HttpStatus.INTERNAL_SERVER_ERROR,
-        ResponseCode.get('grp003'),
+        ResponseCode.get('tmp003'),
       );
     }
-    return group;
+    return template;
   }
 
   static async update(
     authorization: string,
-    data: UpdateGroupData,
-  ): Promise<Group | FSGroup> {
+    data: UpdateTemplateData,
+  ): Promise<Template | FSTemplate> {
     const error = HttpErrorFactory.instance('update', this.logger);
     try {
-      ObjectUtility.compareWithSchema(data, UpdateGroupDataSchema, 'data');
+      ObjectUtility.compareWithSchema(data, UpdateTemplateDataSchema, 'data');
     } catch (err) {
       throw error.occurred(
         HttpStatus.BAD_REQUEST,
@@ -178,34 +179,41 @@ export class GroupRequestHandler {
         }),
       );
     }
-    let group: Group | FSGroup;
+    let template: Template | FSTemplate;
     {
-      const g = await CacheControl.group.findById(data._id);
-      if (!g) {
+      const t = await CacheControl.template.findById(data._id);
+      if (!t) {
         throw error.occurred(
           HttpStatus.NOT_FOUNT,
-          ResponseCode.get('grp001', { id: data._id }),
+          ResponseCode.get('tmp001', { id: data._id }),
         );
       }
-      group = JSON.parse(JSON.stringify(g));
+      template = JSON.parse(JSON.stringify(t));
     }
     let changeDetected = false;
-    if (typeof data.name === 'undefined') {
+    if (typeof data.name !== 'undefined') {
       data.name = StringUtility.createSlug(data.name);
-      if (group.name !== data.name) {
+      if (data.name !== template.name) {
         changeDetected = true;
-        group.name = StringUtility.createSlug(data.name);
-        if (await CacheControl.group.findByName(group.name)) {
+        template.name = data.name;
+        if (await CacheControl.template.findByName(template.name)) {
           throw error.occurred(
             HttpStatus.FORBIDDEN,
-            ResponseCode.get('grp002', { name: group.name }),
+            ResponseCode.get('tmp002', { name: template.name }),
           );
         }
       }
     }
-    if (typeof data.desc === 'string' && data.desc !== group.desc) {
+    if (typeof data.desc !== 'undefined' && template.desc !== data.desc) {
       changeDetected = true;
-      group.desc = data.desc;
+      template.desc = data.desc;
+    }
+    if (
+      typeof data.singleEntry !== 'undefined' &&
+      template.singleEntry !== data.singleEntry
+    ) {
+      changeDetected = true;
+      template.singleEntry = data.singleEntry;
     }
     let updateEntries = false;
     if (typeof data.propChanges !== 'undefined') {
@@ -214,7 +222,9 @@ export class GroupRequestHandler {
         if (propChange.remove) {
           updateEntries = true;
           changeDetected = true;
-          group.props = group.props.filter((e) => e.name !== propChange.remove);
+          template.props = template.props.filter(
+            (e) => e.name !== propChange.remove,
+          );
         } else if (propChange.add) {
           updateEntries = true;
           changeDetected = true;
@@ -229,35 +239,35 @@ export class GroupRequestHandler {
               }),
             );
           }
-          group.props.push(propChange.add);
+          template.props.push(propChange.add);
         } else if (propChange.update) {
           updateEntries = true;
           changeDetected = true;
           // tslint:disable-next-line: prefer-for-of
-          for (let j = 0; j < group.props.length; j = j + 1) {
-            if (group.props[j].name === propChange.update.name.old) {
-              group.props[j].name = StringUtility.createSlug(
+          for (let j = 0; j < template.props.length; j = j + 1) {
+            if (template.props[j].name === propChange.update.name.old) {
+              template.props[j].name = StringUtility.createSlug(
                 propChange.update.name.new,
               ).replace(/-/g, '_');
-              group.props[j].required = propChange.update.required;
+              template.props[j].required = propChange.update.required;
             }
           }
         }
       }
     }
-    if (changeDetected === true) {
-      const updateResult = await CacheControl.group.update(group);
+    if (changeDetected) {
+      const updateResult = await CacheControl.template.update(template);
       if (updateResult === false) {
         throw error.occurred(
           HttpStatus.INTERNAL_SERVER_ERROR,
-          ResponseCode.get('grp005'),
+          ResponseCode.get('tmp005'),
         );
       }
     }
     if (updateEntries) {
-      // TODO: Update group in Entries.
+      // TODO: Update Entries props for this template.
     }
-    return group;
+    return template;
   }
 
   static async deleteById(authorization: string, id: string) {
@@ -281,20 +291,20 @@ export class GroupRequestHandler {
         }),
       );
     }
-    const group = await CacheControl.group.findById(id);
-    if (!group) {
+    const template = CacheControl.template.findById(id);
+    if (!template) {
       throw error.occurred(
         HttpStatus.NOT_FOUNT,
-        ResponseCode.get('grp001', { id }),
+        ResponseCode.get('tmp001', { id }),
       );
     }
-    const deleteResult = await CacheControl.group.deleteById(id);
+    const deleteResult = await CacheControl.template.deleteById(id);
     if (deleteResult === false) {
       throw error.occurred(
         HttpStatus.INTERNAL_SERVER_ERROR,
-        ResponseCode.get('grp006'),
+        ResponseCode.get('tmp006'),
       );
     }
-    // TODO: Remove group from the Entries.
+    // TODO: Delete all Entries for this Template.
   }
 }

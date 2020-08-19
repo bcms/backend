@@ -1,14 +1,14 @@
 import { PropChange, PropChangeSchema } from '../../prop';
 import { ObjectSchema } from '@becomes/purple-cheetah';
 
-export interface UpdateGroupData {
+export interface UpdateWidgetData {
   _id: string;
   name?: string;
   desc?: string;
   propChanges?: PropChange[];
 }
 
-export const UpdateGroupDataSchema: ObjectSchema = {
+export const UpdateWidgetDataSchema: ObjectSchema = {
   _id: {
     __type: 'string',
     __required: true,

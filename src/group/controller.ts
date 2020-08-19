@@ -10,6 +10,8 @@ import {
 import { Request } from 'express';
 import { GroupLite } from './interfaces';
 import { Group, FSGroup } from './models';
+import { GroupRequestHandler } from './request-handler';
+import { GroupFactory } from './factories';
 
 @Controller('/api/group')
 export class GroupController implements ControllerPrototype {
@@ -20,23 +22,68 @@ export class GroupController implements ControllerPrototype {
   initRouter: () => void;
 
   @Get('/all/lite')
-  async getAllLite(request: Request): Promise<{ groups: GroupLite[] }> {}
+  async getAllLite(request: Request): Promise<{ groups: GroupLite[] }> {
+    return {
+      groups: (
+        await GroupRequestHandler.getAll(request.headers.authorization)
+      ).map((e) => {
+        return GroupFactory.toLite(e);
+      }),
+    };
+  }
 
   @Get('/all')
-  async getAll(request: Request): Promise<{ groups: Array<Group | FSGroup> }> {}
-
-  @Get('/:id')
-  async getById(request: Request): Promise<{ group: Group | FSGroup }> {}
+  async getAll(request: Request): Promise<{ groups: Array<Group | FSGroup> }> {
+    return {
+      groups: await GroupRequestHandler.getAll(request.headers.authorization),
+    };
+  }
 
   @Get('/count')
-  async count(request: Request): Promise<{ count: number }> {}
+  async count(request: Request): Promise<{ count: number }> {
+    return {
+      count: await GroupRequestHandler.count(request.headers.authorization),
+    };
+  }
+
+  @Get('/:id')
+  async getById(request: Request): Promise<{ group: Group | FSGroup }> {
+    return {
+      group: await GroupRequestHandler.getById(
+        request.headers.authorization,
+        request.params.id,
+      ),
+    };
+  }
 
   @Post()
-  async add(request: Request): Promise<{ group: Group | FSGroup }> {}
+  async add(request: Request): Promise<{ group: Group | FSGroup }> {
+    return {
+      group: await GroupRequestHandler.add(
+        request.headers.authorization,
+        request.body,
+      ),
+    };
+  }
 
   @Put()
-  async update(request: Request): Promise<{ group: Group | FSGroup }> {}
+  async update(request: Request): Promise<{ group: Group | FSGroup }> {
+    return {
+      group: await GroupRequestHandler.update(
+        request.headers.authorization,
+        request.body,
+      ),
+    };
+  }
 
   @Delete('/:id')
-  async deleteById(request: Request): Promise<{ message: string }> {}
+  async deleteById(request: Request): Promise<{ message: string }> {
+    await GroupRequestHandler.deleteById(
+      request.headers.authorization,
+      request.params.id,
+    );
+    return {
+      message: 'Success.',
+    };
+  }
 }

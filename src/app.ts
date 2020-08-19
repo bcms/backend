@@ -11,10 +11,12 @@ import {
   MongoDBConfig,
   EnableMongoDB,
 } from '@becomes/purple-cheetah';
-import { SwaggerController } from './swagger/controller';
-import { SwaggerMiddleware } from './swagger/middleware';
+import { SwaggerController, SwaggerMiddleware } from './swagger';
 import { UserController } from './user';
-import { AuthController } from './auth/controller';
+import { AuthController } from './auth';
+import { GroupController } from './group';
+import { TemplateController } from './template';
+import { WidgetController } from './widget';
 
 let dbConfig: MongoDBConfig;
 if (process.env.DB_USE_FS) {
@@ -63,6 +65,9 @@ if (process.env.DB_USE_FS) {
     process.env.DEV === 'true' ? new SwaggerController() : undefined,
     new UserController(),
     new AuthController(),
+    new GroupController(),
+    new TemplateController(),
+    new WidgetController(),
   ],
   middleware: [
     new CORSMiddleware(),

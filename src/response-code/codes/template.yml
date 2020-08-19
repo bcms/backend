@@ -1,0 +1,12 @@
+tmp001:
+  msg: Template with ID "%id%" does not exist.
+tmp002:
+  msg: Template with name "%name%" already exist.
+tmp003:
+  msg: Failed to add Template to the database.
+tmp004:
+  msg: Changes to prop "%prop%" are not valid --> %msg%
+tmp005:
+  msg: Failed to update Template in the database.
+tmp006:
+  msg: Failed to delete Template from the database.

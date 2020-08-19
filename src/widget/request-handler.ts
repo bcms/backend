@@ -10,23 +10,18 @@ import {
   StringUtility,
   ObjectUtility,
 } from '@becomes/purple-cheetah';
-import { FSGroup, Group } from './models';
 import { ResponseCode } from '../response-code';
 import { CacheControl } from '../cache';
-import { GroupFactory } from './factories';
-import {
-  AddGroupData,
-  AddGroupDataSchema,
-  UpdateGroupData,
-  UpdateGroupDataSchema,
-} from './interfaces';
 import { PropHandler } from '../prop/handler';
+import { Widget, FSWidget } from './models';
+import { AddWidgetData, AddWidgetDataSchema, UpdateWidgetData, UpdateWidgetDataSchema } from './interfaces';
+import { WidgetFactory } from './factories';
 
-export class GroupRequestHandler {
-  @CreateLogger(GroupRequestHandler)
+export class WidgetRequestHandler {
+  @CreateLogger(WidgetRequestHandler)
   private static logger: Logger;
 
-  static async getAll(authorization: string): Promise<Array<Group | FSGroup>> {
+  static async getAll(authorization: string): Promise<Array<Widget | FSWidget>> {
     const error = HttpErrorFactory.instance('getAll', this.logger);
     const jwt = JWTSecurity.checkAndValidateAndGet(authorization, {
       roles: [RoleName.ADMIN, RoleName.USER],
@@ -41,14 +36,14 @@ export class GroupRequestHandler {
         }),
       );
     }
-    const groups = await CacheControl.group.findAll();
-    return groups;
+    const widgets = await CacheControl.widget.findAll();
+    return widgets;
   }
 
   static async getById(
     authorization: string,
     id: string,
-  ): Promise<Group | FSGroup> {
+  ): Promise<Widget | FSWidget> {
     const error = HttpErrorFactory.instance('getById', this.logger);
     if (StringUtility.isIdValid(id) === false) {
       throw error.occurred(
@@ -69,14 +64,14 @@ export class GroupRequestHandler {
         }),
       );
     }
-    const group = await CacheControl.group.findById(id);
-    if (!group) {
+    const widget = await CacheControl.widget.findById(id);
+    if (!widget) {
       throw error.occurred(
         HttpStatus.NOT_FOUNT,
-        ResponseCode.get('grp001', { id }),
+        ResponseCode.get('wid001', { id }),
       );
     }
-    return group;
+    return widget;
   }
 
   static async count(authorization: string): Promise<number> {
@@ -94,13 +89,13 @@ export class GroupRequestHandler {
         }),
       );
     }
-    return await CacheControl.group.count();
+    return await CacheControl.widget.count();
   }
 
   static async add(
     authorization: string,
-    data: AddGroupData,
-  ): Promise<Group | FSGroup> {
+    data: AddWidgetData,
+  ): Promise<Widget | FSWidget> {
     const error = HttpErrorFactory.instance('add', this.logger);
     const jwt = JWTSecurity.checkAndValidateAndGet(authorization, {
       roles: [RoleName.ADMIN],
@@ -116,7 +111,7 @@ export class GroupRequestHandler {
       );
     }
     try {
-      ObjectUtility.compareWithSchema(data, AddGroupDataSchema, 'data');
+      ObjectUtility.compareWithSchema(data, AddWidgetDataSchema, 'data');
     } catch (e) {
       throw error.occurred(
         HttpStatus.BAD_REQUEST,
@@ -125,32 +120,32 @@ export class GroupRequestHandler {
         }),
       );
     }
-    const group = GroupFactory.instance();
-    group.name = StringUtility.createSlug(data.name);
-    group.desc = data.desc;
-    if (await CacheControl.group.findByName(group.name)) {
+    const widget = WidgetFactory.instance();
+    widget.name = StringUtility.createSlug(data.name);
+    widget.desc = data.desc;
+    if (await CacheControl.widget.findByName(widget.name)) {
       throw error.occurred(
         HttpStatus.FORBIDDEN,
-        ResponseCode.get('grp002', { name: group.name }),
+        ResponseCode.get('wid002', { name: widget.name }),
       );
     }
-    const addGroupResult = await CacheControl.group.add(group);
-    if (addGroupResult === false) {
+    const addResult = await CacheControl.widget.add(widget);
+    if (addResult === false) {
       throw error.occurred(
         HttpStatus.INTERNAL_SERVER_ERROR,
         ResponseCode.get('grp003'),
       );
     }
-    return group;
+    return widget;
   }
 
   static async update(
     authorization: string,
-    data: UpdateGroupData,
-  ): Promise<Group | FSGroup> {
+    data: UpdateWidgetData,
+  ): Promise<Widget | FSWidget> {
     const error = HttpErrorFactory.instance('update', this.logger);
     try {
-      ObjectUtility.compareWithSchema(data, UpdateGroupDataSchema, 'data');
+      ObjectUtility.compareWithSchema(data, UpdateWidgetDataSchema, 'data');
     } catch (err) {
       throw error.occurred(
         HttpStatus.BAD_REQUEST,
@@ -178,34 +173,34 @@ export class GroupRequestHandler {
         }),
       );
     }
-    let group: Group | FSGroup;
+    let widget: Widget | FSWidget;
     {
-      const g = await CacheControl.group.findById(data._id);
-      if (!g) {
+      const w = await CacheControl.widget.findById(data._id);
+      if (!w) {
         throw error.occurred(
           HttpStatus.NOT_FOUNT,
-          ResponseCode.get('grp001', { id: data._id }),
+          ResponseCode.get('wid001', { id: data._id }),
         );
       }
-      group = JSON.parse(JSON.stringify(g));
+      widget = JSON.parse(JSON.stringify(w));
     }
     let changeDetected = false;
-    if (typeof data.name === 'undefined') {
+    if (typeof data.name !== 'undefined') {
       data.name = StringUtility.createSlug(data.name);
-      if (group.name !== data.name) {
+      if (widget.name !== data.name) {
         changeDetected = true;
-        group.name = StringUtility.createSlug(data.name);
-        if (await CacheControl.group.findByName(group.name)) {
+        widget.name = StringUtility.createSlug(data.name);
+        if (await CacheControl.widget.findByName(widget.name)) {
           throw error.occurred(
             HttpStatus.FORBIDDEN,
-            ResponseCode.get('grp002', { name: group.name }),
+            ResponseCode.get('wid002', { name: widget.name }),
           );
         }
       }
     }
-    if (typeof data.desc === 'string' && data.desc !== group.desc) {
+    if (typeof data.desc !== 'undefined' && data.desc !== widget.desc) {
       changeDetected = true;
-      group.desc = data.desc;
+      widget.desc = data.desc;
     }
     let updateEntries = false;
     if (typeof data.propChanges !== 'undefined') {
@@ -214,7 +209,7 @@ export class GroupRequestHandler {
         if (propChange.remove) {
           updateEntries = true;
           changeDetected = true;
-          group.props = group.props.filter((e) => e.name !== propChange.remove);
+          widget.props = widget.props.filter((e) => e.name !== propChange.remove);
         } else if (propChange.add) {
           updateEntries = true;
           changeDetected = true;
@@ -229,24 +224,24 @@ export class GroupRequestHandler {
               }),
             );
           }
-          group.props.push(propChange.add);
+          widget.props.push(propChange.add);
         } else if (propChange.update) {
           updateEntries = true;
           changeDetected = true;
           // tslint:disable-next-line: prefer-for-of
-          for (let j = 0; j < group.props.length; j = j + 1) {
-            if (group.props[j].name === propChange.update.name.old) {
-              group.props[j].name = StringUtility.createSlug(
+          for (let j = 0; j < widget.props.length; j = j + 1) {
+            if (widget.props[j].name === propChange.update.name.old) {
+              widget.props[j].name = StringUtility.createSlug(
                 propChange.update.name.new,
               ).replace(/-/g, '_');
-              group.props[j].required = propChange.update.required;
+              widget.props[j].required = propChange.update.required;
             }
           }
         }
       }
     }
     if (changeDetected === true) {
-      const updateResult = await CacheControl.group.update(group);
+      const updateResult = await CacheControl.widget.update(widget);
       if (updateResult === false) {
         throw error.occurred(
           HttpStatus.INTERNAL_SERVER_ERROR,
@@ -255,9 +250,9 @@ export class GroupRequestHandler {
       }
     }
     if (updateEntries) {
-      // TODO: Update group in Entries.
+      // TODO: Update widget in Entries.
     }
-    return group;
+    return widget;
   }
 
   static async deleteById(authorization: string, id: string) {
@@ -281,20 +276,20 @@ export class GroupRequestHandler {
         }),
       );
     }
-    const group = await CacheControl.group.findById(id);
-    if (!group) {
+    const widget = await CacheControl.widget.findById(id);
+    if (!widget) {
       throw error.occurred(
         HttpStatus.NOT_FOUNT,
-        ResponseCode.get('grp001', { id }),
+        ResponseCode.get('wid001', { id }),
       );
     }
-    const deleteResult = await CacheControl.group.deleteById(id);
+    const deleteResult = await CacheControl.widget.deleteById(id);
     if (deleteResult === false) {
       throw error.occurred(
         HttpStatus.INTERNAL_SERVER_ERROR,
         ResponseCode.get('grp006'),
       );
     }
-    // TODO: Remove group from the Entries.
+    // TODO: Remove Widget from Entries.
   }
 }
