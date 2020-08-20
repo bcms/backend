@@ -27,6 +27,7 @@ export class FSTemplateRepository
   deleteAllById: (ids: string[]) => Promise<number | boolean>;
   deleteOne: (query: (e: FSTemplate) => boolean) => Promise<void>;
   deleteMany: (query: (e: FSTemplate) => boolean) => Promise<void>;
+  count: () => Promise<number>;
 
   async findByName(name: string): Promise<FSTemplate> {
     return await this.repo.findOne((e) => e.name === name);

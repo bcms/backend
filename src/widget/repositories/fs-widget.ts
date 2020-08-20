@@ -26,12 +26,9 @@ export class FSWidgetRepository implements FSDBRepositoryPrototype<FSWidget> {
   deleteAllById: (ids: string[]) => Promise<number | boolean>;
   deleteOne: (query: (e: FSWidget) => boolean) => Promise<void>;
   deleteMany: (query: (e: FSWidget) => boolean) => Promise<void>;
+  count: () => Promise<number>;
 
   async findByName(name: string): Promise<FSWidget> {
     return await this.repo.findOne((e) => e.name === name);
-  }
-
-  async count(): Promise<number> {
-    return (await this.repo.find()).length;
   }
 }

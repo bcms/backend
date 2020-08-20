@@ -17,6 +17,8 @@ import { AuthController } from './auth';
 import { GroupController } from './group';
 import { TemplateController } from './template';
 import { WidgetController } from './widget';
+import { LanguageController } from './language';
+import { ApiKeyController } from './api';
 
 let dbConfig: MongoDBConfig;
 if (process.env.DB_USE_FS) {
@@ -68,6 +70,8 @@ if (process.env.DB_USE_FS) {
     new GroupController(),
     new TemplateController(),
     new WidgetController(),
+    new LanguageController(),
+    new ApiKeyController(),
   ],
   middleware: [
     new CORSMiddleware(),

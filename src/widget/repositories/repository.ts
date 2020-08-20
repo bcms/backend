@@ -1,11 +1,7 @@
 import { MongoWidgetRepository } from './widget';
 import { FSWidgetRepository } from './fs-widget';
 
-let repo: FSWidgetRepository | MongoWidgetRepository;
-if (process.env.DB_USE_FS) {
-  repo = new FSWidgetRepository();
-} else {
-  repo = new MongoWidgetRepository();
-}
-
-export const WidgetRepo = repo;
+export const WidgetRepo =
+  process.env.DB_USE_FS === 'true'
+    ? new FSWidgetRepository()
+    : new MongoWidgetRepository();

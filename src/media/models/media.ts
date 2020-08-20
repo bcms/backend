@@ -1,4 +1,4 @@
-import { IEntity, Entity } from '@becomes/purple-cheetah';
+import { IEntity, Entity, ObjectSchema } from '@becomes/purple-cheetah';
 import { Types, Schema } from 'mongoose';
 
 export enum MediaType {
@@ -27,6 +27,7 @@ export interface IMedia extends IEntity {
   path: string;
   isInRoot: boolean;
   hasChildren: boolean;
+  parentId: string;
 }
 
 export class Media implements Entity {
@@ -43,6 +44,7 @@ export class Media implements Entity {
     public path: string,
     public isInRoot: boolean,
     public hasChildren: boolean,
+    public parentId: string,
   ) {}
 
   public static get schema(): Schema {
@@ -58,6 +60,58 @@ export class Media implements Entity {
       path: String,
       isInRoot: Boolean,
       hasChildren: Boolean,
+      parentId: String,
     });
   }
 }
+
+export const MediaSchema: ObjectSchema = {
+  _id: {
+    __type: 'string',
+    __required: true,
+  },
+  createdAt: {
+    __type: 'number',
+    __required: true,
+  },
+  updatedAt: {
+    __type: 'number',
+    __required: true,
+  },
+  userId: {
+    __type: 'string',
+    __required: true,
+  },
+  type: {
+    __type: 'string',
+    __required: true,
+  },
+  mimetype: {
+    __type: 'string',
+    __required: true,
+  },
+  size: {
+    __type: 'number',
+    __required: true,
+  },
+  name: {
+    __type: 'string',
+    __required: true,
+  },
+  path: {
+    __type: 'string',
+    __required: true,
+  },
+  isInRoot: {
+    __type: 'boolean',
+    __required: true,
+  },
+  hasChildren: {
+    __type: 'boolean',
+    __required: true,
+  },
+  parentId: {
+    __type: 'string',
+    __required: true,
+  },
+};

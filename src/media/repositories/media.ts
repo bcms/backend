@@ -21,6 +21,10 @@ export class MongoMediaRepository
     return await this.repo.find({ isInRoot });
   }
 
+  async findAllByPath(path: string): Promise<Media[]> {
+    return await this.repo.find({ path });
+  }
+
   async findByPath(path: string): Promise<Media | null> {
     return await this.repo.findOne({ path });
   }

@@ -26,6 +26,7 @@ export class FSUserRepository implements FSDBRepositoryPrototype<FSUser> {
   deleteAllById: (ids: string[]) => Promise<number | boolean>;
   deleteOne: (query: (e: FSUser) => boolean) => Promise<void>;
   deleteMany: (query: (e: FSUser) => boolean) => Promise<void>;
+  count: () => Promise<number>;
 
   async findByEmail(email: string): Promise<FSUser | null> {
     return this.repo.findOne((e) => e.email === email);
@@ -35,9 +36,5 @@ export class FSUserRepository implements FSDBRepositoryPrototype<FSUser> {
     return this.repo.findOne((e) =>
       e.refreshTokens.find((t) => t.value === rt) ? true : false,
     );
-  }
-
-  async count(): Promise<number> {
-    return (await this.repo.find()).length;
   }
 }

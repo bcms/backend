@@ -26,12 +26,9 @@ export class FSGroupRepository implements FSDBRepositoryPrototype<FSGroup> {
   deleteAllById: (ids: string[]) => Promise<number | boolean>;
   deleteOne: (query: (e: FSGroup) => boolean) => Promise<void>;
   deleteMany: (query: (e: FSGroup) => boolean) => Promise<void>;
+  count: () => Promise<number>;
 
   async findByName(name: string): Promise<FSGroup> {
     return await this.repo.findOne((e) => e.name === name);
-  }
-
-  async count(): Promise<number> {
-    return (await this.repo.find()).length;
   }
 }

@@ -21,6 +21,7 @@ export enum PropType {
   ENTRY_POINTER_ARRAY = 'ENTRY_POINTER_ARRAY',
 }
 
+// TODO: Add is singleItems and label.
 export interface Prop {
   type: PropType;
   required: boolean;

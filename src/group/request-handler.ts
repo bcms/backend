@@ -245,14 +245,15 @@ export class GroupRequestHandler {
         }
       }
     }
-    if (changeDetected === true) {
-      const updateResult = await CacheControl.group.update(group);
-      if (updateResult === false) {
-        throw error.occurred(
-          HttpStatus.INTERNAL_SERVER_ERROR,
-          ResponseCode.get('grp005'),
-        );
-      }
+    if (!changeDetected) {
+      throw error.occurred(HttpStatus.FORBIDDEN, ResponseCode.get('g003'));
+    }
+    const updateResult = await CacheControl.group.update(group);
+    if (updateResult === false) {
+      throw error.occurred(
+        HttpStatus.INTERNAL_SERVER_ERROR,
+        ResponseCode.get('grp005'),
+      );
     }
     if (updateEntries) {
       // TODO: Update group in Entries.

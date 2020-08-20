@@ -17,7 +17,7 @@ const processFileFunction = multer({ limits: { fileSize: 102400000 } }).single(
 );
 
 @Middleware({
-  uri: '/media/file',
+  uri: '/api/media/file',
   handler: async (request: Request, response: Response, next: NextFunction) => {
     if (request.method === 'post' || request.method === 'POST') {
       processFileFunction(request, undefined, (e) => {
