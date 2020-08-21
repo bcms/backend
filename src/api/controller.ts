@@ -10,6 +10,7 @@ import {
 import { Router, Request } from 'express';
 import { ApiKeyAccess, ApiKey, FSApiKey } from './models';
 import { ApiKeyRequestHandler } from './request-handler';
+import { ApiKeySecurity } from './security';
 
 @Controller('/api/key')
 export class ApiKeyController implements ControllerPrototype {
@@ -23,15 +24,7 @@ export class ApiKeyController implements ControllerPrototype {
   async getAccessList(request: Request): Promise<{ access: ApiKeyAccess }> {
     return {
       access: await ApiKeyRequestHandler.getAccessList(
-        request.method,
-        request.originalUrl,
-        request.body,
-        {
-          key: '' + request.query.key,
-          nonce: '' + request.query.nonce,
-          signature: '' + request.query.signature,
-          timestamp: '' + request.query.timestamp,
-        },
+        ApiKeySecurity.requestToApiKeyRequest(request),
       ),
     };
   }

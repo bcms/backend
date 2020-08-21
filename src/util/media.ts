@@ -5,7 +5,18 @@ import { FSMedia, Media, MediaType } from '../media';
 export class MediaUtil {
   static get fs() {
     return {
+      getPath(media: Media | FSMedia): string {
+        if (media.type === MediaType.DIR) {
+          return path.join(process.cwd(), 'uploads', media.path);
+        }
+        return path.join(process.cwd(), 'uploads', media.path, media.name);
+      },
       async exist(media: Media | FSMedia): Promise<boolean> {
+        if (media.type === MediaType.DIR) {
+          return await FSUtil.exist(
+            path.join(process.cwd(), 'uploads', media.path),
+          );
+        }
         return await FSUtil.exist(
           path.join(process.cwd(), 'uploads', media.path, media.name),
         );

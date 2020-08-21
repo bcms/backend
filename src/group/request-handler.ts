@@ -102,6 +102,16 @@ export class GroupRequestHandler {
     data: AddGroupData,
   ): Promise<Group | FSGroup> {
     const error = HttpErrorFactory.instance('add', this.logger);
+    try {
+      ObjectUtility.compareWithSchema(data, AddGroupDataSchema, 'data');
+    } catch (e) {
+      throw error.occurred(
+        HttpStatus.BAD_REQUEST,
+        ResponseCode.get('g002', {
+          msg: e.message,
+        }),
+      );
+    }
     const jwt = JWTSecurity.checkAndValidateAndGet(authorization, {
       roles: [RoleName.ADMIN],
       permission: PermissionName.WRITE,
@@ -112,16 +122,6 @@ export class GroupRequestHandler {
         HttpStatus.UNAUTHORIZED,
         ResponseCode.get('g001', {
           msg: jwt.message,
-        }),
-      );
-    }
-    try {
-      ObjectUtility.compareWithSchema(data, AddGroupDataSchema, 'data');
-    } catch (e) {
-      throw error.occurred(
-        HttpStatus.BAD_REQUEST,
-        ResponseCode.get('g002', {
-          msg: e.message,
         }),
       );
     }

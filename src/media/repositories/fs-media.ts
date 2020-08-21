@@ -2,9 +2,14 @@ import {
   FSDBRepositoryPrototype,
   Model,
   Logger,
+  FSDBRepository,
 } from '@becomes/purple-cheetah';
-import { FSMedia } from '../models';
+import { FSMedia, MediaSchema } from '../models';
 
+@FSDBRepository({
+  schema: MediaSchema,
+  collectionName: `${process.env.DB_PRFX}_media`,
+})
 export class FSMediaRepository implements FSDBRepositoryPrototype<FSMedia> {
   repo: Model<FSMedia>;
   logger: Logger;

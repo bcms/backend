@@ -19,6 +19,7 @@ import { TemplateController } from './template';
 import { WidgetController } from './widget';
 import { LanguageController } from './language';
 import { ApiKeyController } from './api';
+import { MediaController, MediaParserMiddleware } from './media';
 
 let dbConfig: MongoDBConfig;
 if (process.env.DB_USE_FS) {
@@ -72,10 +73,12 @@ if (process.env.DB_USE_FS) {
     new WidgetController(),
     new LanguageController(),
     new ApiKeyController(),
+    new MediaController(),
   ],
   middleware: [
     new CORSMiddleware(),
     new BodyParserMiddleware(),
+    new MediaParserMiddleware(),
     process.env.DEV === 'true' ? new SwaggerMiddleware() : undefined,
   ],
 })

@@ -6,8 +6,10 @@ export class MediaCacheHandler extends CacheHandler<FSMedia, Media, IMedia> {
     super(MediaRepo, [
       'findAllByIsInRoot',
       'findAllByPath',
+      'findAllByContainingPath',
       'findByPath',
       'findByNameAndPath',
+      'count',
     ]);
   }
 
@@ -29,6 +31,17 @@ export class MediaCacheHandler extends CacheHandler<FSMedia, Media, IMedia> {
       async () => {
         await this.checkCountLatch();
         return this.cache.filter((e) => e.path === path);
+      },
+    )) as Array<Media | FSMedia>;
+  }
+
+  async findAllByContainingPath(path: string): Promise<Array<Media | FSMedia>> {
+    return (await this.queueable.exec(
+      'findAllByContainingPath',
+      'free_one_by_one',
+      async () => {
+        await this.checkCountLatch();
+        return this.cache.filter((e) => e.path.startsWith(path));
       },
     )) as Array<Media | FSMedia>;
   }
@@ -56,5 +69,13 @@ export class MediaCacheHandler extends CacheHandler<FSMedia, Media, IMedia> {
         return this.cache.find((e) => e.name === name && e.path === path);
       },
     )) as Media | FSMedia;
+  }
+
+  async count(): Promise<number> {
+    await this.queueable.exec('count', 'first_done_free_all', async () => {
+      await this.checkCountLatch();
+      return true;
+    });
+    return this.cache.length;
   }
 }

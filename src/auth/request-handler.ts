@@ -21,7 +21,9 @@ export class AuthRequestHandler {
   static async login(
     authorization: string,
   ): Promise<{ accessToken: string; refreshToken: string }> {
-    await General.delay(2000);
+    if (process.env.DEV !== 'true') {
+      await General.delay(2000);
+    }
     const error = HttpErrorFactory.instance('login', this.logger);
     if (!authorization) {
       throw error.occurred(HttpStatus.FORBIDDEN, ResponseCode.get('a001'));
@@ -84,10 +86,21 @@ export class AuthRequestHandler {
     if (!authorization) {
       throw error.occurred(HttpStatus.FORBIDDEN, ResponseCode.get('a001'));
     }
-    const user = await UserRepo.findByRefreshToken(
-      authorization.replace('Bearer ', ''),
-    );
+    const auth = authorization.replace('Bearer ', '');
+    const user = await UserRepo.findByRefreshToken(auth);
     if (!user) {
+      throw error.occurred(HttpStatus.UNAUTHORIZED, ResponseCode.get('a005'));
+    }
+    const rt = user.refreshTokens.find((e) => e.value === auth);
+    if (rt.expAt < Date.now()) {
+      user.refreshTokens = user.refreshTokens.filter((e) => e.value !== auth);
+      const updateUserResult = await UserRepo.update(user as any);
+      if (updateUserResult === false) {
+        throw error.occurred(
+          HttpStatus.INTERNAL_SERVER_ERROR,
+          ResponseCode.get('a004'),
+        );
+      }
       throw error.occurred(HttpStatus.UNAUTHORIZED, ResponseCode.get('a005'));
     }
     return JWTEncoding.encode(

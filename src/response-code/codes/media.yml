@@ -17,4 +17,4 @@ mda008:
 mda009:
   msg: Missing file.
 mda010:
-  msg: Invalid parent Media ID "%id%" was provided.
+  msg: Invalid Media ID "%id%" was provided.

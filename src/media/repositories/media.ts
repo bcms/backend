@@ -1,7 +1,17 @@
-import { MongoDBRepositoryPrototype, Logger } from '@becomes/purple-cheetah';
+import {
+  MongoDBRepositoryPrototype,
+  Logger,
+  MongoDBRepository,
+} from '@becomes/purple-cheetah';
 import { IMedia, Media } from '../models';
 import { Model } from 'mongoose';
 
+@MongoDBRepository({
+  entity: {
+    schema: Media.schema,
+  },
+  name: `${process.env.DB_PRFX}_media`,
+})
 export class MongoMediaRepository
   implements MongoDBRepositoryPrototype<Media, IMedia> {
   repo: Model<IMedia, {}>;

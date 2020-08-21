@@ -1,5 +1,9 @@
 import { ApiKeyAccess, ApiKey, FSApiKey } from './models';
-import { ApiKeySecurity, ApiKeySecurityObject } from './security';
+import {
+  ApiKeySecurity,
+  ApiKeySecurityObject,
+  ApiKeyRequestObject,
+} from './security';
 import {
   HttpErrorFactory,
   CreateLogger,
@@ -27,20 +31,11 @@ export class ApiKeyRequestHandler {
   private static logger: Logger;
 
   static async getAccessList(
-    method: string,
-    url: string,
-    body: any,
-    signature: ApiKeySecurityObject,
+    apiRequest?: ApiKeyRequestObject,
   ): Promise<ApiKeyAccess> {
     const error = HttpErrorFactory.instance('getKeyAccess', this.logger);
     try {
-      await ApiKeySecurity.verify(
-        signature,
-        body,
-        method.toUpperCase(),
-        url,
-        true,
-      );
+      await ApiKeySecurity.verify(apiRequest, true);
     } catch (e) {
       throw error.occurred(
         HttpStatus.UNAUTHORIZED,
@@ -49,7 +44,7 @@ export class ApiKeyRequestHandler {
         }),
       );
     }
-    const key = await CacheControl.apiKey.findById(signature.key);
+    const key = await CacheControl.apiKey.findById(apiRequest.data.key);
     return key.access;
   }
 
