@@ -69,7 +69,7 @@ export class LanguageController implements ControllerPrototype {
     };
   }
 
-  @Delete()
+  @Delete('/:id')
   async deleteById(request: Request): Promise<{ message: string }> {
     await LanguageRequestHandler.deleteById(
       request.headers.authorization,

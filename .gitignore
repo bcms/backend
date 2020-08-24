@@ -3,6 +3,7 @@
 /node_modules
 /doc
 /db
+/uploads
 
 # Logs
 /log

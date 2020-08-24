@@ -9,18 +9,12 @@ import {
   JWTConfigService,
   HttpStatus,
   StringUtility,
-  ObjectUtility,
 } from '@becomes/purple-cheetah';
 import { Media, FSMedia, MediaType } from './models';
 import { ResponseCode } from '../response-code';
 import { ApiKeyRequestObject, ApiKeySecurity } from '../api';
 import { CacheControl } from '../cache';
-import {
-  MediaAggregate,
-  AddMediaDirData,
-  UpdateMediaData,
-  UpdateMediaDataSchema,
-} from './interfaces';
+import { MediaAggregate, AddMediaDirData } from './interfaces';
 import { MediaFactory } from './factories';
 import { MediaUtil } from '../util';
 
@@ -90,6 +84,39 @@ export class MediaRequestHandler {
       }
     }
     return MediaFactory.aggregateFromRoot(await CacheControl.media.findAll());
+  }
+
+  static async getAllByParentId(
+    authorization: string,
+    id: string,
+    apiRequest?: ApiKeyRequestObject,
+  ): Promise<Array<Media | FSMedia>> {
+    const error = HttpErrorFactory.instance('getAllByParentId', this.logger);
+    if (apiRequest) {
+      try {
+        ApiKeySecurity.verify(apiRequest);
+      } catch (e) {
+        throw error.occurred(
+          HttpStatus.UNAUTHORIZED,
+          ResponseCode.get('ak007', { msg: e.message }),
+        );
+      }
+    } else {
+      const jwt = JWTSecurity.checkAndValidateAndGet(authorization, {
+        roles: [RoleName.ADMIN, RoleName.USER],
+        permission: PermissionName.READ,
+        JWTConfig: JWTConfigService.get('user-token-config'),
+      });
+      if (jwt instanceof Error) {
+        throw error.occurred(
+          HttpStatus.UNAUTHORIZED,
+          ResponseCode.get('g001', {
+            msg: jwt.message,
+          }),
+        );
+      }
+    }
+    return await CacheControl.media.findAllByParentId(id);
   }
 
   static async getById(
@@ -297,19 +324,19 @@ export class MediaRequestHandler {
     if (!file) {
       throw error.occurred(HttpStatus.BAD_REQUEST, ResponseCode.get('mda009'));
     }
-    const jwt = JWTSecurity.checkAndValidateAndGet(authorization, {
-      roles: [RoleName.ADMIN],
-      permission: PermissionName.WRITE,
-      JWTConfig: JWTConfigService.get('user-token-config'),
-    });
-    if (jwt instanceof Error) {
-      throw error.occurred(
-        HttpStatus.UNAUTHORIZED,
-        ResponseCode.get('g001', {
-          msg: jwt.message,
-        }),
-      );
-    }
+    // const jwt = JWTSecurity.checkAndValidateAndGet(authorization, {
+    //   roles: [RoleName.ADMIN],
+    //   permission: PermissionName.WRITE,
+    //   JWTConfig: JWTConfigService.get('user-token-config'),
+    // });
+    // if (jwt instanceof Error) {
+    //   throw error.occurred(
+    //     HttpStatus.UNAUTHORIZED,
+    //     ResponseCode.get('g001', {
+    //       msg: jwt.message,
+    //     }),
+    //   );
+    // }
     let parent: Media | FSMedia;
     if (parentId) {
       parent = await CacheControl.media.findById(parentId);
@@ -320,15 +347,22 @@ export class MediaRequestHandler {
         );
       }
     }
+    const fileNameParts = file.originalname.split('.');
+    const fileName =
+      fileNameParts.length > 1
+        ? fileNameParts[fileNameParts.length - 2]
+        : fileNameParts[0];
+    const fileExt =
+      fileNameParts.length > 1 ? fileNameParts[fileNameParts.length - 1] : '';
     const media = MediaFactory.instance;
-    media.userId = jwt.payload.userId;
+    media.userId = ''; //jwt.payload.userId;
     media.type = MediaUtil.mimetypeToMediaType(file.mimetype);
     media.mimetype = file.mimetype;
     media.size = file.size;
     media.name =
-      StringUtility.createSlug(file.originalname) +
+      StringUtility.createSlug(fileName) +
       '.' +
-      file.originalname.split('.')[file.originalname.split('.').length - 1];
+      StringUtility.createSlug(fileExt);
     media.path = parent ? parent.path : '/';
     media.isInRoot = parent ? false : true;
     media.hasChildren = false;

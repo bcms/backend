@@ -6,6 +6,7 @@ export class MediaCacheHandler extends CacheHandler<FSMedia, Media, IMedia> {
     super(MediaRepo, [
       'findAllByIsInRoot',
       'findAllByPath',
+      'findAllByParentId',
       'findAllByContainingPath',
       'findByPath',
       'findByNameAndPath',
@@ -20,6 +21,17 @@ export class MediaCacheHandler extends CacheHandler<FSMedia, Media, IMedia> {
       async () => {
         await this.checkCountLatch();
         return this.cache.filter((e) => e.isInRoot === isInRoot);
+      },
+    )) as Array<Media | FSMedia>;
+  }
+
+  async findAllByParentId(parentId: string): Promise<Array<Media | FSMedia>> {
+    return (await this.queueable.exec(
+      'findAllByParentId',
+      'free_one_by_one',
+      async () => {
+        await this.checkCountLatch();
+        return this.cache.filter((e) => e.parentId === parentId);
       },
     )) as Array<Media | FSMedia>;
   }

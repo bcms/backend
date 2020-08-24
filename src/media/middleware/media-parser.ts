@@ -13,7 +13,7 @@ import {
 } from 'express';
 
 const processFileFunction = multer({ limits: { fileSize: 102400000 } }).single(
-  'media_file',
+  'media',
 );
 
 @Middleware({

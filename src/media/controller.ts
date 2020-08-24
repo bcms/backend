@@ -45,6 +45,18 @@ export class MediaController implements ControllerPrototype {
     };
   }
 
+  @Get('/all/parent/:id')
+  async getAllByParentId(
+    request: Request,
+  ): Promise<{ media: Array<Media | FSMedia> }> {
+    return {
+      media: await MediaRequestHandler.getAllByParentId(
+        request.headers.authorization,
+        request.params.id,
+      ),
+    };
+  }
+
   @Get('/count')
   async count(request: Request): Promise<{ count: number }> {
     return {
@@ -108,6 +120,7 @@ export class MediaController implements ControllerPrototype {
 
   @Post('/file')
   async addFile(request: Request): Promise<{ media: Media | FSMedia }> {
+    this.logger.warn('addFile', request.headers.upload_file_error_message);
     return {
       media: await MediaRequestHandler.addFile(
         request.headers.authorization,
