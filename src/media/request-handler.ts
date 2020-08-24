@@ -324,19 +324,19 @@ export class MediaRequestHandler {
     if (!file) {
       throw error.occurred(HttpStatus.BAD_REQUEST, ResponseCode.get('mda009'));
     }
-    // const jwt = JWTSecurity.checkAndValidateAndGet(authorization, {
-    //   roles: [RoleName.ADMIN],
-    //   permission: PermissionName.WRITE,
-    //   JWTConfig: JWTConfigService.get('user-token-config'),
-    // });
-    // if (jwt instanceof Error) {
-    //   throw error.occurred(
-    //     HttpStatus.UNAUTHORIZED,
-    //     ResponseCode.get('g001', {
-    //       msg: jwt.message,
-    //     }),
-    //   );
-    // }
+    const jwt = JWTSecurity.checkAndValidateAndGet(authorization, {
+      roles: [RoleName.ADMIN],
+      permission: PermissionName.WRITE,
+      JWTConfig: JWTConfigService.get('user-token-config'),
+    });
+    if (jwt instanceof Error) {
+      throw error.occurred(
+        HttpStatus.UNAUTHORIZED,
+        ResponseCode.get('g001', {
+          msg: jwt.message,
+        }),
+      );
+    }
     let parent: Media | FSMedia;
     if (parentId) {
       parent = await CacheControl.media.findById(parentId);
@@ -355,7 +355,7 @@ export class MediaRequestHandler {
     const fileExt =
       fileNameParts.length > 1 ? fileNameParts[fileNameParts.length - 1] : '';
     const media = MediaFactory.instance;
-    media.userId = ''; //jwt.payload.userId;
+    media.userId = jwt.payload.userId;
     media.type = MediaUtil.mimetypeToMediaType(file.mimetype);
     media.mimetype = file.mimetype;
     media.size = file.size;
@@ -424,6 +424,7 @@ export class MediaRequestHandler {
     media.name = data.name;
     media.path = parent ? parent.path + '/' + data.name : '/' + data.name;
     media.isInRoot = parent ? false : true;
+    media.parentId = parent ? data.parentId : '';
     media.hasChildren = true;
     if (await CacheControl.media.findByNameAndPath(media.name, media.path)) {
       media.name = crypto.randomBytes(6).toString('hex') + '-' + media.name;
@@ -506,13 +507,49 @@ export class MediaRequestHandler {
         ResponseCode.get('mda001', { id }),
       );
     }
-    const deleteResult = await CacheControl.media.deleteById(id);
-    if (deleteResult === false) {
-      throw error.occurred(
-        HttpStatus.INTERNAL_SERVER_ERROR,
-        ResponseCode.get('mda006'),
+    if (media.type === MediaType.DIR) {
+      const removeIds = this.getAllChildren(
+        media,
+        await CacheControl.media.findAll(),
       );
+      for (const i in removeIds) {
+        await CacheControl.media.deleteById(removeIds[i]);
+      }
+      await MediaUtil.fs.removeDir(media);
+    } else {
+      const deleteResult = await CacheControl.media.deleteById(id);
+      if (deleteResult === false) {
+        throw error.occurred(
+          HttpStatus.INTERNAL_SERVER_ERROR,
+          ResponseCode.get('mda006'),
+        );
+      }
+      await MediaUtil.fs.removeFile(media);
     }
-    await MediaUtil.fs.removeFile(media);
+  }
+
+  private static getAllChildren(
+    media: Media | FSMedia,
+    allMedia: Array<Media | FSMedia>,
+  ): string[] {
+    const ids: string[] = [
+      typeof media._id === 'string' ? media._id : media._id.toHexString(),
+    ];
+    if (media.hasChildren) {
+      const children = allMedia.filter((e) => e.parentId === media._id);
+      for (const i in children) {
+        const child = children[i];
+        if (child.hasChildren) {
+          this.getAllChildren(child, allMedia).forEach((id) => {
+            ids.push(id);
+          });
+        } else {
+          ids.push(
+            typeof child._id === 'string' ? child._id : child._id.toHexString(),
+          );
+        }
+      }
+    }
+    return ids;
   }
 }
