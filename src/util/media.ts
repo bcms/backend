@@ -26,6 +26,17 @@ export class MediaUtil {
           path.join(process.cwd(), 'uploads', media.path, media.name),
         );
       },
+      async mkdir(media: Media | FSMedia) {
+        if (media.type === MediaType.DIR) {
+          await FSUtil.save(
+            '',
+            path.join(process.cwd(), 'uploads', media.path, 'tmp.txt'),
+          );
+          await FSUtil.deleteFile(
+            path.join(process.cwd(), 'uploads', media.path, 'tmp.txt'),
+          );
+        }
+      },
       async save(media: Media | FSMedia, binary: Buffer) {
         await FSUtil.save(
           binary,

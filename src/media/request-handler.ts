@@ -435,6 +435,7 @@ export class MediaRequestHandler {
         ResponseCode.get('mda003'),
       );
     }
+    await MediaUtil.fs.mkdir(media);
     return media;
   }
 
@@ -512,5 +513,6 @@ export class MediaRequestHandler {
         ResponseCode.get('mda006'),
       );
     }
+    await MediaUtil.fs.removeFile(media);
   }
 }

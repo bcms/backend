@@ -198,6 +198,7 @@ export class LanguageRequestHandler {
       const defLng = await CacheControl.language.findDefault();
       if (defLng) {
         switchDefault = JSON.parse(JSON.stringify(defLng));
+        switchDefault.def = false;
       }
       language.def = true;
     }
