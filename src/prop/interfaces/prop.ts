@@ -1,43 +1,36 @@
 import { PropEnum } from './enum';
-import { PropGroupPointer, PropGroupPointerArray } from './group-pointer';
-import { PropEntryPointer, PropEntryPointerArray } from './entry-pointer';
+import { PropGroupPointer } from './group-pointer';
+import { PropEntryPointer } from './entry-pointer';
 import { ObjectSchema } from '@becomes/purple-cheetah';
+import { PropMedia } from './media';
 
 export enum PropType {
-  GROUP_POINTER = 'GROUP_POINTER',
   STRING = 'STRING',
   NUMBER = 'NUMBER',
   DATE = 'DATE',
   ENUMERATION = 'ENUMERATION',
   BOOLEAN = 'BOOLEAN',
+
   MEDIA = 'MEDIA',
 
+  GROUP_POINTER = 'GROUP_POINTER',
   ENTRY_POINTER = 'ENTRY_POINTER',
-
-  GROUP_POINTER_ARRAY = 'GROUP_POINTER_ARRAY',
-  STRING_ARRAY = 'STRING_ARRAY',
-  NUMBER_ARRAY = 'NUMBER_ARRAY',
-  BOOLEAN_ARRAY = 'BOOLEAN_ARRAY',
-  ENTRY_POINTER_ARRAY = 'ENTRY_POINTER_ARRAY',
 }
 
-// TODO: Add is singleItems and label.
 export interface Prop {
   type: PropType;
   required: boolean;
   name: string;
+  label: string;
+  array: boolean;
   value:
-    | string
     | string[]
-    | boolean
     | boolean[]
-    | number
     | number[]
     | PropEnum
     | PropGroupPointer
-    | PropGroupPointerArray
     | PropEntryPointer
-    | PropEntryPointerArray;
+    | PropMedia[];
 }
 
 export const PropSchema: ObjectSchema = {
@@ -51,6 +44,14 @@ export const PropSchema: ObjectSchema = {
   },
   name: {
     __type: 'string',
+    __required: true,
+  },
+  label: {
+    __type: 'string',
+    __required: true,
+  },
+  array: {
+    __type: 'boolean',
     __required: true,
   },
 };

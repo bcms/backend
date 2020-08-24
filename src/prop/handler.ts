@@ -1,16 +1,14 @@
 import {
   Prop,
   PropType,
-  PropEntryPointerSchema,
   PropEntryPointer,
-  PropEntryPointerArray,
-  PropEntryPointerArraySchema,
+  PropEntryPointerSchema,
   PropEnum,
   PropEnumSchema,
   PropGroupPointer,
-  PropGroupPointerArray,
   PropGroupPointerSchema,
-  PropGroupPointerArraySchema,
+  PropMedia,
+  PropMediaSchema,
 } from './interfaces';
 import { ObjectUtility, ObjectSchema } from '@becomes/purple-cheetah';
 
@@ -37,19 +35,6 @@ export class PropHandler {
       }>;
       switch (prop.type) {
         case PropType.BOOLEAN:
-          {
-            data = {
-              value: prop.value,
-            };
-            schema = {
-              value: {
-                __type: 'boolean',
-                __required: true,
-              },
-            };
-          }
-          break;
-        case PropType.BOOLEAN_ARRAY:
           {
             data = {
               value: prop.value,
@@ -91,19 +76,6 @@ export class PropHandler {
             };
           }
           break;
-        case PropType.ENTRY_POINTER_ARRAY:
-          {
-            const value = prop.value as PropEntryPointerArray;
-            data = { value };
-            schema = {
-              value: {
-                __type: 'object',
-                __required: true,
-                __child: PropEntryPointerArraySchema,
-              },
-            };
-          }
-          break;
         case PropType.ENUMERATION:
           {
             const value = prop.value as PropEnum;
@@ -128,26 +100,7 @@ export class PropHandler {
                 __child: PropGroupPointerSchema,
               },
             };
-            nextLevel = [
-              {
-                name: `${level}[{i}].value.props`,
-                props: value.props,
-              },
-            ];
-          }
-          break;
-        case PropType.GROUP_POINTER_ARRAY:
-          {
-            const value = prop.value as PropGroupPointerArray;
-            data = { value };
-            schema = {
-              value: {
-                __type: 'object',
-                __required: true,
-                __child: PropGroupPointerArraySchema,
-              },
-            };
-            nextLevel = value.array.map((e, j) => {
+            nextLevel = value.items.map((e, j) => {
               return {
                 name: `${level}[${i}].value.array[j].props`,
                 props: e.props,
@@ -157,29 +110,21 @@ export class PropHandler {
           break;
         case PropType.MEDIA:
           {
-            const value = prop.value as string;
+            const value = prop.value as PropMedia[];
             data = { value };
             schema = {
               value: {
-                __type: 'string',
+                __type: 'array',
                 __required: true,
+                __child: {
+                  __type: 'object',
+                  __content: PropMediaSchema,
+                },
               },
             };
           }
           break;
         case PropType.NUMBER:
-          {
-            const value = prop.value as number;
-            data = { value };
-            schema = {
-              value: {
-                __type: 'number',
-                __required: true,
-              },
-            };
-          }
-          break;
-        case PropType.NUMBER_ARRAY:
           {
             const value = prop.value as number[];
             data = { value };
@@ -195,18 +140,6 @@ export class PropHandler {
           }
           break;
         case PropType.STRING:
-          {
-            const value = prop.value as string;
-            data = { value };
-            schema = {
-              value: {
-                __type: 'string',
-                __required: true,
-              },
-            };
-          }
-          break;
-        case PropType.STRING_ARRAY:
           {
             const value = prop.value as string[];
             data = { value };
