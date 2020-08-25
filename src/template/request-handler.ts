@@ -21,6 +21,7 @@ import {
 } from './interfaces';
 import { TemplateFactory } from './factories';
 import { PropHandler, Prop, PropFactory } from '../prop';
+import { General } from '../util';
 
 export class TemplateRequestHandler {
   @CreateLogger(TemplateRequestHandler)
@@ -127,7 +128,8 @@ export class TemplateRequestHandler {
       );
     }
     const template = TemplateFactory.instance;
-    template.name = StringUtility.createSlug(data.name);
+    template.label = data.label;
+    template.name = General.labelToName(data.label);
     template.desc = data.desc;
     template.singleEntry = data.singleEntry;
     if (await CacheControl.template.findByName(template.name)) {
@@ -192,11 +194,12 @@ export class TemplateRequestHandler {
       template = JSON.parse(JSON.stringify(t));
     }
     let changeDetected = false;
-    if (typeof data.name !== 'undefined') {
-      data.name = StringUtility.createSlug(data.name);
-      if (data.name !== template.name) {
+    if (typeof data.label !== 'undefined') {
+      const name = General.labelToName(data.label);
+      if (name !== template.name) {
         changeDetected = true;
-        template.name = data.name;
+        template.label = data.label;
+        template.name = name;
         if (await CacheControl.template.findByName(template.name)) {
           throw error.occurred(
             HttpStatus.FORBIDDEN,
@@ -242,7 +245,7 @@ export class TemplateRequestHandler {
             );
           }
           prop.label = propChange.add.label;
-          prop.name = StringUtility.createSlug(prop.label).replace(/-/g, '_');
+          prop.name = General.labelToName(prop.label);
           prop.required = propChange.add.required;
           if (typeof propChange.add.value !== 'undefined') {
             prop.value = propChange.add.value;
@@ -275,9 +278,9 @@ export class TemplateRequestHandler {
           for (let j = 0; j < template.props.length; j = j + 1) {
             if (template.props[j].label === propChange.update.label.old) {
               template.props[j].label = propChange.update.label.new;
-              template.props[j].name = StringUtility.createSlug(
+              template.props[j].name = General.labelToName(
                 propChange.update.label.new,
-              ).replace(/-/g, '_');
+              );
               template.props[j].required = propChange.update.required;
               break;
             }
@@ -289,7 +292,21 @@ export class TemplateRequestHandler {
       throw error.occurred(HttpStatus.FORBIDDEN, ResponseCode.get('g003'));
     }
     try {
-      template._schema = await PropHandler.propsToSchema(template.props, 'template');
+      await PropHandler.testInfiniteLoop(template.props);
+    } catch (e) {
+      throw error.occurred(
+        HttpStatus.BAD_REQUEST,
+        ResponseCode.get('tmp004', {
+          prop: `template.props`,
+          msg: e.message,
+        }),
+      );
+    }
+    try {
+      template._schema = await PropHandler.propsToSchema(
+        template.props,
+        'template',
+      );
     } catch (e) {
       this.logger.error('update', e);
       throw error.occurred(

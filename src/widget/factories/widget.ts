@@ -10,6 +10,7 @@ export class WidgetFactory {
         Date.now(),
         '',
         '',
+        '',
         [],
         {},
       );
@@ -18,6 +19,7 @@ export class WidgetFactory {
         new Types.ObjectId(),
         Date.now(),
         Date.now(),
+        '',
         '',
         '',
         [],

@@ -1,13 +1,10 @@
-import {
-  IEntity,
-  Entity,
-  ObjectSchema,
-} from '@becomes/purple-cheetah';
+import { IEntity, Entity, ObjectSchema } from '@becomes/purple-cheetah';
 import { Prop } from '../../prop';
 import { Types, Schema } from 'mongoose';
 
 export interface IGroup extends IEntity {
   name: string;
+  label: string;
   desc: string;
   props: Prop[];
   _schema: ObjectSchema;
@@ -20,6 +17,7 @@ export class Group implements Entity {
     public createdAt: number,
     public updatedAt: number,
     public name: string,
+    public label: string,
     public desc: string,
     public props: Prop[],
     // tslint:disable-next-line: variable-name
@@ -32,6 +30,7 @@ export class Group implements Entity {
       createdAt: Number,
       updatedAt: Number,
       name: String,
+      label: String,
       desc: String,
       props: [Object],
       _schema: Object,
@@ -53,6 +52,10 @@ export const GroupSchema: ObjectSchema = {
     __required: true,
   },
   name: {
+    __type: 'string',
+    __required: true,
+  },
+  label: {
     __type: 'string',
     __required: true,
   },

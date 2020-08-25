@@ -1,12 +1,12 @@
 import { ObjectSchema } from '@becomes/purple-cheetah';
 
 export interface AddWidgetData {
-  name: string;
+  label: string;
   desc: string;
 }
 
 export const AddWidgetDataSchema: ObjectSchema = {
-  name: {
+  label: {
     __type: 'string',
     __required: true,
   },

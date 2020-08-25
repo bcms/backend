@@ -22,6 +22,7 @@ import {
 } from './interfaces';
 import { WidgetFactory } from './factories';
 import { Prop, PropFactory } from '../prop';
+import { General } from '../util';
 
 export class WidgetRequestHandler {
   @CreateLogger(WidgetRequestHandler)
@@ -129,7 +130,8 @@ export class WidgetRequestHandler {
       );
     }
     const widget = WidgetFactory.instance();
-    widget.name = StringUtility.createSlug(data.name);
+    widget.label = data.label;
+    widget.name = General.labelToName(data.label);
     widget.desc = data.desc;
     if (await CacheControl.widget.findByName(widget.name)) {
       throw error.occurred(
@@ -193,11 +195,12 @@ export class WidgetRequestHandler {
       widget = JSON.parse(JSON.stringify(w));
     }
     let changeDetected = false;
-    if (typeof data.name !== 'undefined') {
-      data.name = StringUtility.createSlug(data.name);
-      if (widget.name !== data.name) {
+    if (typeof data.label !== 'undefined') {
+      const name = General.labelToName(data.label);
+      if (widget.name !== name) {
         changeDetected = true;
-        widget.name = StringUtility.createSlug(data.name);
+        widget.label = data.label;
+        widget.name = name;
         if (await CacheControl.widget.findByName(widget.name)) {
           throw error.occurred(
             HttpStatus.FORBIDDEN,
@@ -236,7 +239,7 @@ export class WidgetRequestHandler {
             );
           }
           prop.label = propChange.add.label;
-          prop.name = StringUtility.createSlug(prop.label).replace(/-/g, '_');
+          prop.name = General.labelToName(prop.label);
           prop.required = propChange.add.required;
           if (typeof propChange.add.value !== 'undefined') {
             prop.value = propChange.add.value;
@@ -269,9 +272,9 @@ export class WidgetRequestHandler {
           for (let j = 0; j < widget.props.length; j = j + 1) {
             if (widget.props[j].label === propChange.update.label.old) {
               widget.props[j].label = propChange.update.label.new;
-              widget.props[j].name = StringUtility.createSlug(
+              widget.props[j].name = General.labelToName(
                 propChange.update.label.new,
-              ).replace(/-/g, '_');
+              );
               widget.props[j].required = propChange.update.required;
             }
           }
@@ -280,6 +283,17 @@ export class WidgetRequestHandler {
     }
     if (changeDetected === true) {
       throw error.occurred(HttpStatus.FORBIDDEN, ResponseCode.get('g003'));
+    }
+    try {
+      await PropHandler.testInfiniteLoop(widget.props);
+    } catch (e) {
+      throw error.occurred(
+        HttpStatus.BAD_REQUEST,
+        ResponseCode.get('wid004', {
+          prop: `widget.props`,
+          msg: e.message,
+        }),
+      );
     }
     try {
       widget._schema = await PropHandler.propsToSchema(widget.props, 'widget');

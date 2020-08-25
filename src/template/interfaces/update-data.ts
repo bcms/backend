@@ -3,7 +3,7 @@ import { ObjectSchema } from '@becomes/purple-cheetah';
 
 export interface UpdateTemplateData {
   _id: string;
-  name?: string;
+  label?: string;
   desc?: string;
   singleEntry?: boolean;
   propChanges?: PropChange[];
@@ -14,7 +14,7 @@ export const UpdateTemplateDataSchema: ObjectSchema = {
     __type: 'string',
     __required: true,
   },
-  name: {
+  label: {
     __type: 'string',
     __required: false,
   },

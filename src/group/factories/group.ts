@@ -12,6 +12,7 @@ export class GroupFactory {
         Date.now(),
         '',
         '',
+        '',
         [],
         {},
       );
@@ -20,6 +21,7 @@ export class GroupFactory {
         new Types.ObjectId(),
         Date.now(),
         Date.now(),
+        '',
         '',
         '',
         [],
@@ -34,6 +36,7 @@ export class GroupFactory {
       updatedAt: group.updatedAt,
       desc: group.desc,
       name: group.name,
+      label: group.label,
       propsCount: group.props.length,
     };
   }

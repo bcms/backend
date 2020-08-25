@@ -1,3 +1,5 @@
+import { StringUtility } from '@becomes/purple-cheetah';
+
 export class General {
   static async delay(time: number) {
     await new Promise((resolve) => {
@@ -5,5 +7,8 @@ export class General {
         resolve();
       }, time);
     });
+  }
+  static labelToName(label: string): string {
+    return StringUtility.createSlug(label).replace(/-/g, '_');
   }
 }

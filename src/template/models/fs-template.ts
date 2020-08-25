@@ -8,6 +8,7 @@ export class FSTemplate implements FSDBEntity {
     public createdAt: number,
     public updatedAt: number,
     public name: string,
+    public label: string,
     public desc: string,
     public userId: string,
     public singleEntry: boolean,

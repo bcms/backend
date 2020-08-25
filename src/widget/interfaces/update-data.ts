@@ -3,7 +3,7 @@ import { ObjectSchema } from '@becomes/purple-cheetah';
 
 export interface UpdateWidgetData {
   _id: string;
-  name?: string;
+  label?: string;
   desc?: string;
   propChanges?: PropChange[];
 }
@@ -13,7 +13,7 @@ export const UpdateWidgetDataSchema: ObjectSchema = {
     __type: 'string',
     __required: true,
   },
-  name: {
+  label: {
     __type: 'string',
     __required: false,
   },

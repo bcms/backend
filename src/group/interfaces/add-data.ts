@@ -1,12 +1,12 @@
 import { ObjectSchema } from '@becomes/purple-cheetah';
 
 export interface AddGroupData {
-  name: string;
+  label: string;
   desc: string;
 }
 
 export const AddGroupDataSchema: ObjectSchema = {
-  name: {
+  label: {
     __type: 'string',
     __required: true,
   },

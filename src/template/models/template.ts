@@ -4,6 +4,7 @@ import { Types, Schema } from 'mongoose';
 
 export interface ITemplate extends IEntity {
   name: string;
+  label: string;
   desc: string;
   userId: string;
   singleEntry: boolean;
@@ -18,6 +19,7 @@ export class Template implements Entity {
     public createdAt: number,
     public updatedAt: number,
     public name: string,
+    public label: string,
     public desc: string,
     public userId: string,
     public singleEntry: boolean,
@@ -32,6 +34,7 @@ export class Template implements Entity {
       createdAt: Number,
       updatedAt: Number,
       name: String,
+      label: String,
       desc: String,
       userId: String,
       singleEntry: Boolean,
@@ -55,6 +58,10 @@ export const TemplateSchema: ObjectSchema = {
     __required: true,
   },
   name: {
+    __type: 'string',
+    __required: true,
+  },
+  label: {
     __type: 'string',
     __required: true,
   },

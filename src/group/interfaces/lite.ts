@@ -3,6 +3,7 @@ export interface GroupLite {
   createdAt: number;
   updatedAt: number;
   name: string;
+  label: string;
   desc: string;
   propsCount: number;
 }

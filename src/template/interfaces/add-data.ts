@@ -1,13 +1,13 @@
 import { ObjectSchema } from '@becomes/purple-cheetah';
 
 export interface AddTemplateData {
-  name: string;
+  label: string;
   desc: string;
   singleEntry: boolean;
 }
 
 export const AddTemplateDataSchema: ObjectSchema = {
-  name: {
+  label: {
     __type: 'string',
     __required: true,
   },

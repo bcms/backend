@@ -8,6 +8,7 @@ export class FSWidget implements FSDBEntity {
     public createdAt: number,
     public updatedAt: number,
     public name: string,
+    public label: string,
     public desc: string,
     public props: Prop[],
     // tslint:disable-next-line: variable-name

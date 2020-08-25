@@ -9,11 +9,12 @@ import {
   JWTConfigService,
   HttpStatus,
   StringUtility,
+  ObjectUtility,
 } from '@becomes/purple-cheetah';
 import { ResponseCode } from '../response-code';
 import { ApiKeySecurity, ApiKeyRequestObject } from '../api';
 import { CacheControl } from '../cache';
-import { EntryLite } from './interfaces';
+import { EntryLite, AddEntryData, AddEntryDataSchema } from './interfaces';
 import { EntryFactory } from './factory';
 
 export class EntryRequestHandler {
@@ -182,5 +183,33 @@ export class EntryRequestHandler {
     return await CacheControl.entry.findById(id);
   }
 
-  static async add(authorization: string, )
+  static async add(
+    authorization: string,
+    data: AddEntryData,
+  ): Promise<Entry | FSEntry> {
+    const error = HttpErrorFactory.instance('add', this.logger);
+    try {
+      ObjectUtility.compareWithSchema(data, AddEntryDataSchema, 'data');
+    } catch (e) {
+      throw error.occurred(
+        HttpStatus.BAD_REQUEST,
+        ResponseCode.get('g002', {
+          msg: e.message,
+        }),
+      );
+    }
+    const jwt = JWTSecurity.checkAndValidateAndGet(authorization, {
+      roles: [RoleName.ADMIN, RoleName.USER],
+      permission: PermissionName.WRITE,
+      JWTConfig: JWTConfigService.get('user-token-config'),
+    });
+    if (jwt instanceof Error) {
+      throw error.occurred(
+        HttpStatus.UNAUTHORIZED,
+        ResponseCode.get('g001', {
+          msg: jwt.message,
+        }),
+      );
+    }
+  }
 }

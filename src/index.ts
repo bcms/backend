@@ -12,3 +12,4 @@ export * from './template';
 export * from './user';
 export * from './util';
 export * from './widget';
+export * from './entry';

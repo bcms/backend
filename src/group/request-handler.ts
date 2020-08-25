@@ -21,6 +21,7 @@ import {
   UpdateGroupDataSchema,
 } from './interfaces';
 import { PropFactory, Prop, PropHandler } from '../prop';
+import { General } from '../util';
 
 export class GroupRequestHandler {
   @CreateLogger(GroupRequestHandler)
@@ -126,7 +127,8 @@ export class GroupRequestHandler {
       );
     }
     const group = GroupFactory.instance();
-    group.name = StringUtility.createSlug(data.name);
+    group.label = data.label;
+    group.name = General.labelToName(data.label);
     group.desc = data.desc;
     if (await CacheControl.group.findByName(group.name)) {
       throw error.occurred(
@@ -190,11 +192,12 @@ export class GroupRequestHandler {
       group = JSON.parse(JSON.stringify(g));
     }
     let changeDetected = false;
-    if (typeof data.name !== 'undefined') {
-      data.name = StringUtility.createSlug(data.name);
-      if (group.name !== data.name) {
+    if (typeof data.label !== 'undefined') {
+      const name = General.labelToName(data.label);
+      if (group.name !== name) {
         changeDetected = true;
-        group.name = StringUtility.createSlug(data.name);
+        group.label = data.label;
+        group.name = name;
         if (await CacheControl.group.findByName(group.name)) {
           throw error.occurred(
             HttpStatus.FORBIDDEN,
@@ -231,7 +234,7 @@ export class GroupRequestHandler {
             );
           }
           prop.label = propChange.add.label;
-          prop.name = StringUtility.createSlug(prop.label).replace(/-/g, '_');
+          prop.name = General.labelToName(prop.label);
           prop.required = propChange.add.required;
           if (typeof propChange.add.value !== 'undefined') {
             prop.value = propChange.add.value;
@@ -247,17 +250,6 @@ export class GroupRequestHandler {
           }
           try {
             PropHandler.verifyValue([prop], {
-              group: [
-                {
-                  _id:
-                    typeof group._id === 'string'
-                      ? group._id
-                      : group._id.toHexString(),
-                  label: group.name,
-                },
-              ],
-            });
-            await PropHandler.testInfiniteLoop([prop], {
               group: [
                 {
                   _id:
@@ -285,9 +277,9 @@ export class GroupRequestHandler {
           for (let j = 0; j < group.props.length; j = j + 1) {
             if (group.props[j].label === propChange.update.label.old) {
               group.props[j].label = propChange.update.label.new;
-              group.props[j].name = StringUtility.createSlug(
+              group.props[j].name = General.labelToName(
                 propChange.update.label.new,
-              ).replace(/-/g, '_');
+              );
               group.props[j].required = propChange.update.required;
               break;
             }
@@ -297,6 +289,27 @@ export class GroupRequestHandler {
     }
     if (!changeDetected) {
       throw error.occurred(HttpStatus.FORBIDDEN, ResponseCode.get('g003'));
+    }
+    try {
+      await PropHandler.testInfiniteLoop(group.props, {
+        group: [
+          {
+            _id:
+              typeof group._id === 'string'
+                ? group._id
+                : group._id.toHexString(),
+            label: group.name,
+          },
+        ],
+      });
+    } catch (e) {
+      throw error.occurred(
+        HttpStatus.BAD_REQUEST,
+        ResponseCode.get('grp004', {
+          prop: `group.props`,
+          msg: e.message,
+        }),
+      );
     }
     try {
       group._schema = await PropHandler.propsToSchema(group.props, 'group');
