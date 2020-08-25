@@ -8,6 +8,7 @@ export interface ITemplate extends IEntity {
   userId: string;
   singleEntry: boolean;
   props: Prop[];
+  _schema: ObjectSchema;
 }
 
 export class Template implements Entity {
@@ -21,6 +22,8 @@ export class Template implements Entity {
     public userId: string,
     public singleEntry: boolean,
     public props: Prop[],
+    // tslint:disable-next-line: variable-name
+    public _schema: ObjectSchema,
   ) {}
 
   public static get schema(): Schema {
@@ -33,6 +36,7 @@ export class Template implements Entity {
       userId: String,
       singleEntry: Boolean,
       props: [Object],
+      _schema: Object,
     });
   }
 }

@@ -1,4 +1,4 @@
-import { FSDBEntity } from '@becomes/purple-cheetah';
+import { FSDBEntity, ObjectSchema } from '@becomes/purple-cheetah';
 import { Prop } from '../../prop';
 
 export class FSGroup implements FSDBEntity {
@@ -10,5 +10,7 @@ export class FSGroup implements FSDBEntity {
     public name: string,
     public desc: string,
     public props: Prop[],
+    // tslint:disable-next-line: variable-name
+    public _schema: ObjectSchema,
   ) {}
 }

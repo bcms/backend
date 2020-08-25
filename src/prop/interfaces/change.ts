@@ -1,11 +1,17 @@
-import { Prop, PropSchema } from './prop';
+import { Prop, PropSchema, PropType } from './prop';
 import { ObjectSchema } from '@becomes/purple-cheetah';
 
 export interface PropChange {
-  add?: Prop;
+  add?: {
+    label: string;
+    type: PropType;
+    required: boolean;
+    array: boolean;
+    value?: any;
+  };
   remove?: string;
   update?: {
-    name: {
+    label: {
       old: string;
       new: string;
     };
@@ -17,7 +23,24 @@ export const PropChangeSchema: ObjectSchema = {
   add: {
     __type: 'object',
     __required: false,
-    __child: PropSchema,
+    __child: {
+      label: {
+        __type: 'string',
+        __required: true,
+      },
+      type: {
+        __type: 'string',
+        __required: true,
+      },
+      array: {
+        __type: 'boolean',
+        __required: true,
+      },
+      required: {
+        __type: 'boolean',
+        __required: true,
+      },
+    },
   },
   remove: {
     __type: 'string',
@@ -27,7 +50,7 @@ export const PropChangeSchema: ObjectSchema = {
     __type: 'object',
     __required: false,
     __child: {
-      name: {
+      label: {
         __type: 'object',
         __required: true,
         __child: {

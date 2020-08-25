@@ -1,4 +1,8 @@
-import { IEntity, Entity, ObjectSchema } from '@becomes/purple-cheetah';
+import {
+  IEntity,
+  Entity,
+  ObjectSchema,
+} from '@becomes/purple-cheetah';
 import { Prop } from '../../prop';
 import { Types, Schema } from 'mongoose';
 
@@ -6,6 +10,7 @@ export interface IGroup extends IEntity {
   name: string;
   desc: string;
   props: Prop[];
+  _schema: ObjectSchema;
 }
 
 export class Group implements Entity {
@@ -17,6 +22,8 @@ export class Group implements Entity {
     public name: string,
     public desc: string,
     public props: Prop[],
+    // tslint:disable-next-line: variable-name
+    public _schema: ObjectSchema,
   ) {}
 
   public static get schema(): Schema {
@@ -27,6 +34,7 @@ export class Group implements Entity {
       name: String,
       desc: String,
       props: [Object],
+      _schema: Object,
     });
   }
 }
@@ -51,5 +59,13 @@ export const GroupSchema: ObjectSchema = {
   desc: {
     __type: 'string',
     __required: true,
+  },
+  props: {
+    __type: 'array',
+    __required: true,
+    __child: {
+      __type: 'object',
+      __content: {},
+    },
   },
 };

@@ -20,7 +20,7 @@ import {
   UpdateGroupData,
   UpdateGroupDataSchema,
 } from './interfaces';
-import { PropHandler } from '../prop/handler';
+import { PropFactory, Prop, PropHandler } from '../prop';
 
 export class GroupRequestHandler {
   @CreateLogger(GroupRequestHandler)
@@ -190,7 +190,7 @@ export class GroupRequestHandler {
       group = JSON.parse(JSON.stringify(g));
     }
     let changeDetected = false;
-    if (typeof data.name === 'undefined') {
+    if (typeof data.name !== 'undefined') {
       data.name = StringUtility.createSlug(data.name);
       if (group.name !== data.name) {
         changeDetected = true;
@@ -218,28 +218,78 @@ export class GroupRequestHandler {
         } else if (propChange.add) {
           updateEntries = true;
           changeDetected = true;
+          const prop: Prop = PropFactory.get(
+            propChange.add.type,
+            propChange.add.array,
+          );
+          if (!prop) {
+            throw error.occurred(
+              HttpStatus.BAD_REQUEST,
+              ResponseCode.get('g005', {
+                type: propChange.add.type,
+              }),
+            );
+          }
+          prop.label = propChange.add.label;
+          prop.name = StringUtility.createSlug(prop.label).replace(/-/g, '_');
+          prop.required = propChange.add.required;
+          if (typeof propChange.add.value !== 'undefined') {
+            prop.value = propChange.add.value;
+          }
+          if (group.props.find((e) => e.name === prop.name)) {
+            throw error.occurred(
+              HttpStatus.BAD_REQUEST,
+              ResponseCode.get('grp004', {
+                prop: `data.propChanges[${i}]`,
+                msg: `Prop with name "${prop.name}" already exist at this level.`,
+              }),
+            );
+          }
           try {
-            PropHandler.verifyValue([propChange.add]);
+            PropHandler.verifyValue([prop], {
+              group: [
+                {
+                  _id:
+                    typeof group._id === 'string'
+                      ? group._id
+                      : group._id.toHexString(),
+                  label: group.name,
+                },
+              ],
+            });
+            await PropHandler.testInfiniteLoop([prop], {
+              group: [
+                {
+                  _id:
+                    typeof group._id === 'string'
+                      ? group._id
+                      : group._id.toHexString(),
+                  label: group.name,
+                },
+              ],
+            });
           } catch (err) {
             throw error.occurred(
               HttpStatus.BAD_REQUEST,
               ResponseCode.get('grp004', {
-                prop: `data.propChanger[${i}]`,
+                prop: `data.propChanges[${i}]`,
                 msg: err.message,
               }),
             );
           }
-          group.props.push(propChange.add);
+          group.props.push(prop);
         } else if (propChange.update) {
           updateEntries = true;
           changeDetected = true;
           // tslint:disable-next-line: prefer-for-of
           for (let j = 0; j < group.props.length; j = j + 1) {
-            if (group.props[j].name === propChange.update.name.old) {
+            if (group.props[j].label === propChange.update.label.old) {
+              group.props[j].label = propChange.update.label.new;
               group.props[j].name = StringUtility.createSlug(
-                propChange.update.name.new,
+                propChange.update.label.new,
               ).replace(/-/g, '_');
               group.props[j].required = propChange.update.required;
+              break;
             }
           }
         }
@@ -247,6 +297,17 @@ export class GroupRequestHandler {
     }
     if (!changeDetected) {
       throw error.occurred(HttpStatus.FORBIDDEN, ResponseCode.get('g003'));
+    }
+    try {
+      group._schema = await PropHandler.propsToSchema(group.props, 'group');
+    } catch (e) {
+      this.logger.error('update', e);
+      throw error.occurred(
+        HttpStatus.INTERNAL_SERVER_ERROR,
+        ResponseCode.get('g006', {
+          error: e.message,
+        }),
+      );
     }
     const updateResult = await CacheControl.group.update(group);
     if (updateResult === false) {

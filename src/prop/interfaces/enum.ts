@@ -15,6 +15,6 @@ export const PropEnumSchema: ObjectSchema = {
   },
   selected: {
     __type: 'string',
-    __required: true,
+    __required: false,
   },
 };

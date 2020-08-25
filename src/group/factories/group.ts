@@ -1,6 +1,7 @@
 import { Group, FSGroup } from '../models';
 import { Types } from 'mongoose';
 import { GroupLite } from '../interfaces';
+import { ObjectPropSchema } from '@becomes/purple-cheetah';
 
 export class GroupFactory {
   static instance(): Group | FSGroup {
@@ -12,6 +13,7 @@ export class GroupFactory {
         '',
         '',
         [],
+        {},
       );
     } else {
       return new Group(
@@ -21,10 +23,10 @@ export class GroupFactory {
         '',
         '',
         [],
+        {},
       );
     }
   }
-
   static toLite(group: Group | FSGroup): GroupLite {
     return {
       _id: typeof group._id === 'string' ? group._id : group._id.toHexString(),

@@ -14,14 +14,22 @@ import { ResponseCode } from '../response-code';
 import { CacheControl } from '../cache';
 import { PropHandler } from '../prop/handler';
 import { Widget, FSWidget } from './models';
-import { AddWidgetData, AddWidgetDataSchema, UpdateWidgetData, UpdateWidgetDataSchema } from './interfaces';
+import {
+  AddWidgetData,
+  AddWidgetDataSchema,
+  UpdateWidgetData,
+  UpdateWidgetDataSchema,
+} from './interfaces';
 import { WidgetFactory } from './factories';
+import { Prop, PropFactory } from '../prop';
 
 export class WidgetRequestHandler {
   @CreateLogger(WidgetRequestHandler)
   private static logger: Logger;
 
-  static async getAll(authorization: string): Promise<Array<Widget | FSWidget>> {
+  static async getAll(
+    authorization: string,
+  ): Promise<Array<Widget | FSWidget>> {
     const error = HttpErrorFactory.instance('getAll', this.logger);
     const jwt = JWTSecurity.checkAndValidateAndGet(authorization, {
       roles: [RoleName.ADMIN, RoleName.USER],
@@ -133,7 +141,7 @@ export class WidgetRequestHandler {
     if (addResult === false) {
       throw error.occurred(
         HttpStatus.INTERNAL_SERVER_ERROR,
-        ResponseCode.get('grp003'),
+        ResponseCode.get('wid003'),
       );
     }
     return widget;
@@ -209,30 +217,60 @@ export class WidgetRequestHandler {
         if (propChange.remove) {
           updateEntries = true;
           changeDetected = true;
-          widget.props = widget.props.filter((e) => e.name !== propChange.remove);
+          widget.props = widget.props.filter(
+            (e) => e.name !== propChange.remove,
+          );
         } else if (propChange.add) {
           updateEntries = true;
           changeDetected = true;
+          const prop: Prop = PropFactory.get(
+            propChange.add.type,
+            propChange.add.array,
+          );
+          if (!prop) {
+            throw error.occurred(
+              HttpStatus.BAD_REQUEST,
+              ResponseCode.get('g005', {
+                type: propChange.add.type,
+              }),
+            );
+          }
+          prop.label = propChange.add.label;
+          prop.name = StringUtility.createSlug(prop.label).replace(/-/g, '_');
+          prop.required = propChange.add.required;
+          if (typeof propChange.add.value !== 'undefined') {
+            prop.value = propChange.add.value;
+          }
+          if (widget.props.find((e) => e.name === prop.name)) {
+            throw error.occurred(
+              HttpStatus.BAD_REQUEST,
+              ResponseCode.get('wid004', {
+                prop: `data.propChanges[${i}]`,
+                msg: `Prop with name "${prop.name}" already exist at this level.`,
+              }),
+            );
+          }
           try {
-            PropHandler.verifyValue([propChange.add]);
+            PropHandler.verifyValue([prop]);
           } catch (err) {
             throw error.occurred(
               HttpStatus.BAD_REQUEST,
-              ResponseCode.get('grp004', {
-                prop: `data.propChanger[${i}]`,
+              ResponseCode.get('wid004', {
+                prop: `data.propChanges[${i}]`,
                 msg: err.message,
               }),
             );
           }
-          widget.props.push(propChange.add);
+          widget.props.push(prop);
         } else if (propChange.update) {
           updateEntries = true;
           changeDetected = true;
           // tslint:disable-next-line: prefer-for-of
           for (let j = 0; j < widget.props.length; j = j + 1) {
-            if (widget.props[j].name === propChange.update.name.old) {
+            if (widget.props[j].label === propChange.update.label.old) {
+              widget.props[j].label = propChange.update.label.new;
               widget.props[j].name = StringUtility.createSlug(
-                propChange.update.name.new,
+                propChange.update.label.new,
               ).replace(/-/g, '_');
               widget.props[j].required = propChange.update.required;
             }
@@ -241,13 +279,25 @@ export class WidgetRequestHandler {
       }
     }
     if (changeDetected === true) {
-      const updateResult = await CacheControl.widget.update(widget);
-      if (updateResult === false) {
-        throw error.occurred(
-          HttpStatus.INTERNAL_SERVER_ERROR,
-          ResponseCode.get('grp005'),
-        );
-      }
+      throw error.occurred(HttpStatus.FORBIDDEN, ResponseCode.get('g003'));
+    }
+    try {
+      widget._schema = await PropHandler.propsToSchema(widget.props, 'widget');
+    } catch (e) {
+      this.logger.error('update', e);
+      throw error.occurred(
+        HttpStatus.INTERNAL_SERVER_ERROR,
+        ResponseCode.get('g006', {
+          error: e.message,
+        }),
+      );
+    }
+    const updateResult = await CacheControl.widget.update(widget);
+    if (updateResult === false) {
+      throw error.occurred(
+        HttpStatus.INTERNAL_SERVER_ERROR,
+        ResponseCode.get('wid005'),
+      );
     }
     if (updateEntries) {
       // TODO: Update widget in Entries.
@@ -287,7 +337,7 @@ export class WidgetRequestHandler {
     if (deleteResult === false) {
       throw error.occurred(
         HttpStatus.INTERNAL_SERVER_ERROR,
-        ResponseCode.get('grp006'),
+        ResponseCode.get('wid006'),
       );
     }
     // TODO: Remove Widget from Entries.

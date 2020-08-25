@@ -30,4 +30,8 @@ export class MongoTemplateRepository
   async findByName(name: string): Promise<Template> {
     return await this.repo.findOne({ name });
   }
+
+  async count(): Promise<number> {
+    return await this.repo.countDocuments();
+  }
 }

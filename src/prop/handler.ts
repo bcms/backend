@@ -10,12 +10,202 @@ import {
   PropMedia,
   PropMediaSchema,
 } from './interfaces';
-import { ObjectUtility, ObjectSchema } from '@becomes/purple-cheetah';
+import {
+  ObjectUtility,
+  ObjectSchema,
+  ObjectPropSchema,
+} from '@becomes/purple-cheetah';
+import { CacheControl } from '../cache';
+
+interface Pointer {
+  group: Array<{
+    _id: string;
+    label: string;
+  }>;
+}
 
 export class PropHandler {
-  static verifyValue(props: Prop[], level?: string) {
+  static async propToSchema(
+    prop: Prop,
+    level?: string,
+  ): Promise<ObjectPropSchema> {
+    if (!level) {
+      level = 'prop';
+    }
+    switch (prop.type) {
+      case PropType.STRING: {
+        return {
+          __type: 'array',
+          __required: prop.required,
+          __child: {
+            __type: 'string',
+          },
+        };
+      }
+      case PropType.NUMBER: {
+        return {
+          __type: 'array',
+          __required: prop.required,
+          __child: {
+            __type: 'number',
+          },
+        };
+      }
+      case PropType.BOOLEAN: {
+        return {
+          __type: 'array',
+          __required: prop.required,
+          __child: {
+            __type: 'boolean',
+          },
+        };
+      }
+      case PropType.MEDIA: {
+        return {
+          __type: 'array',
+          __required: prop.required,
+          __child: {
+            __type: 'string',
+          },
+        };
+      }
+      case PropType.DATE: {
+        return {
+          __type: 'array',
+          __required: prop.required,
+          __child: {
+            __type: 'number',
+          },
+        };
+      }
+      case PropType.ENUMERATION: {
+        return {
+          __type: 'object',
+          __required: prop.required,
+          __child: PropEnumSchema,
+        };
+      }
+      case PropType.GROUP_POINTER: {
+        const value: PropGroupPointer = prop.value as PropGroupPointer;
+        const group = await CacheControl.group.findById(value._id);
+        if (!group) {
+          throw new Error(
+            `[ ${level}.value._id ] --> Group with ID "${value._id}" does not exist.`,
+          );
+        }
+        return {
+          __type: 'object',
+          __required: prop.required,
+          __child: {
+            _id: {
+              __type: 'string',
+              __required: true,
+            },
+            items: {
+              __type: 'array',
+              __required: true,
+              __child: {
+                __type: 'object',
+                __content: group._schema,
+              },
+            },
+          },
+        };
+      }
+      case PropType.ENTRY_POINTER: {
+        const value: PropEntryPointer = prop.value as PropEntryPointer;
+        return {
+          __type: 'object',
+          __required: prop.required,
+          __child: {
+            templateId: {
+              __type: 'string',
+              __required: true,
+            },
+            displayProp: {
+              __type: 'string',
+              __required: true,
+            },
+            entryIds: {
+              __type: 'array',
+              __required: true,
+              __child: {
+                __type: 'string',
+              },
+            },
+          },
+        };
+      }
+    }
+  }
+  static async propsToSchema(
+    props: Prop[],
+    level?: string,
+  ): Promise<ObjectSchema> {
+    if (!level) {
+      level = 'root';
+    }
+    const schema: ObjectSchema = {};
+    for (const i in props) {
+      const prop = props[i];
+      schema[prop.name] = await this.propToSchema(prop, 'props[${i}]');
+    }
+    return schema;
+  }
+  static async testInfiniteLoop(
+    props: Prop[],
+    pointer?: Pointer,
+    level?: string,
+  ) {
     if (!level) {
       level = 'props';
+    }
+    if (!pointer) {
+      pointer = {
+        group: [],
+      };
+    }
+    for (const i in props) {
+      const prop = props[i];
+      if (prop.type === PropType.GROUP_POINTER) {
+        const value = prop.value as PropGroupPointer;
+        const group = await CacheControl.group.findById(value._id);
+        if (!group) {
+          throw new Error(
+            `[ ${level}.value._id ] --> Group with ID "${value._id}" does not exist.`,
+          );
+        }
+        if (pointer.group.find((e) => e._id === value._id)) {
+          throw new Error(
+            `Pointer loop detected: [ ${pointer.group
+              .map((e) => {
+                return e.label;
+              })
+              .join(' -> ')} -> ${
+              prop.label
+            } ] this is forbidden since it will result in an infinite loop.`,
+          );
+        }
+        pointer.group.push({
+          _id: value._id,
+          label: prop.label,
+        });
+        await this.testInfiniteLoop(
+          group.props,
+          pointer,
+          `${level}[i].group.props`,
+        );
+      }
+    }
+  }
+  static verifyValue(props: Prop[], pointer?: Pointer, level?: string) {
+    if (!level) {
+      level = 'props';
+    }
+    if (!pointer) {
+      pointer = {
+        group: [],
+      };
     }
     for (const i in props) {
       const prop = props[i];
@@ -34,6 +224,36 @@ export class PropHandler {
         name: string;
       }>;
       switch (prop.type) {
+        case PropType.STRING:
+          {
+            const value = prop.value as string[];
+            data = { value };
+            schema = {
+              value: {
+                __type: 'array',
+                __required: true,
+                __child: {
+                  __type: 'string',
+                },
+              },
+            };
+          }
+          break;
+        case PropType.NUMBER:
+          {
+            const value = prop.value as number[];
+            data = { value };
+            schema = {
+              value: {
+                __type: 'array',
+                __required: true,
+                __child: {
+                  __type: 'number',
+                },
+              },
+            };
+          }
+          break;
         case PropType.BOOLEAN:
           {
             data = {
@@ -57,21 +277,27 @@ export class PropHandler {
             };
             schema = {
               value: {
-                __type: 'number',
+                __type: 'array',
                 __required: true,
+                __child: {
+                  __type: 'number',
+                },
               },
             };
           }
           break;
-        case PropType.ENTRY_POINTER:
+        case PropType.MEDIA:
           {
-            const value = prop.value as PropEntryPointer;
+            const value = prop.value as PropMedia[];
             data = { value };
             schema = {
               value: {
-                __type: 'object',
+                __type: 'array',
                 __required: true,
-                __child: PropEntryPointerSchema,
+                __child: {
+                  __type: 'object',
+                  __content: PropMediaSchema,
+                },
               },
             };
           }
@@ -85,6 +311,19 @@ export class PropHandler {
                 __type: 'object',
                 __required: true,
                 __child: PropEnumSchema,
+              },
+            };
+          }
+          break;
+        case PropType.ENTRY_POINTER:
+          {
+            const value = prop.value as PropEntryPointer;
+            data = { value };
+            schema = {
+              value: {
+                __type: 'object',
+                __required: true,
+                __child: PropEntryPointerSchema,
               },
             };
           }
@@ -106,59 +345,30 @@ export class PropHandler {
                 props: e.props,
               };
             });
-          }
-          break;
-        case PropType.MEDIA:
-          {
-            const value = prop.value as PropMedia[];
-            data = { value };
-            schema = {
-              value: {
-                __type: 'array',
-                __required: true,
-                __child: {
-                  __type: 'object',
-                  __content: PropMediaSchema,
-                },
-              },
-            };
-          }
-          break;
-        case PropType.NUMBER:
-          {
-            const value = prop.value as number[];
-            data = { value };
-            schema = {
-              value: {
-                __type: 'array',
-                __required: true,
-                __child: {
-                  __type: 'number',
-                },
-              },
-            };
-          }
-          break;
-        case PropType.STRING:
-          {
-            const value = prop.value as string[];
-            data = { value };
-            schema = {
-              value: {
-                __type: 'array',
-                __required: true,
-                __child: {
-                  __type: 'string',
-                },
-              },
-            };
+            if (value && value._id) {
+              if (pointer.group.find((e) => e._id === value._id)) {
+                throw new Error(
+                  `Pointer loop detected: [ ${pointer.group
+                    .map((e) => {
+                      return e.label;
+                    })
+                    .join(' -> ')} -> ${
+                    prop.label
+                  } ] this is forbidden since it will result in an infinite loop.`,
+                );
+              }
+              pointer.group.push({
+                _id: value._id,
+                label: prop.label,
+              });
+            }
           }
           break;
       }
       ObjectUtility.compareWithSchema(data, schema, `${level}[${i}]`);
       if (nextLevel) {
         nextLevel.forEach((e) => {
-          this.verifyValue(e.props, e.name);
+          this.verifyValue(e.props, pointer, e.name);
         });
       }
     }

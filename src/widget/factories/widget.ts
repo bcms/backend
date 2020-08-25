@@ -11,6 +11,7 @@ export class WidgetFactory {
         '',
         '',
         [],
+        {},
       );
     } else {
       return new Widget(
@@ -20,6 +21,7 @@ export class WidgetFactory {
         '',
         '',
         [],
+        {},
       );
     }
   }

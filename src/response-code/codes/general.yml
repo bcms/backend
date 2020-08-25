@@ -6,3 +6,7 @@ g003:
   msg: Nothing to update.
 g004:
   msg: Invalid ID "%id%" was provided.
+g005:
+  msg: Prop of type "%type%" is not allowed.
+g006:
+  msg: 'Failed to create Props schema with error: %error%'

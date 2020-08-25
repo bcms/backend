@@ -7,10 +7,10 @@ import { PropMedia } from './media';
 export enum PropType {
   STRING = 'STRING',
   NUMBER = 'NUMBER',
-  DATE = 'DATE',
-  ENUMERATION = 'ENUMERATION',
   BOOLEAN = 'BOOLEAN',
 
+  DATE = 'DATE',
+  ENUMERATION = 'ENUMERATION',
   MEDIA = 'MEDIA',
 
   GROUP_POINTER = 'GROUP_POINTER',
