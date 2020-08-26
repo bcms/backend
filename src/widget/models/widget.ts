@@ -21,7 +21,7 @@ export class Widget implements Entity {
     public createdAt: number,
     public updatedAt: number,
     public name: string,
-    public label: string;
+    public label: string,
     public desc: string,
     public props: Prop[],
     // tslint:disable-next-line: variable-name

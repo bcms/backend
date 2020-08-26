@@ -38,6 +38,7 @@ export class Entry implements Entity {
     public createdAt: number,
     public updatedAt: number,
     public title: string,
+    public slug: string,
     public templateId: string,
     public userId: string,
     public meta: EntryMeta[],

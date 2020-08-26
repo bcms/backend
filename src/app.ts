@@ -10,6 +10,11 @@ import {
   PurpleCheetah,
   MongoDBConfig,
   EnableMongoDB,
+  EnableSocketServer,
+  JWTSecurity,
+  RoleName,
+  PermissionName,
+  JWTConfigService,
 } from '@becomes/purple-cheetah';
 import { SwaggerController, SwaggerMiddleware } from './swagger';
 import { UserController } from './user';
@@ -20,6 +25,7 @@ import { WidgetController } from './widget';
 import { LanguageController } from './language';
 import { ApiKeyController } from './api';
 import { MediaController, MediaParserMiddleware } from './media';
+import { Types } from 'mongoose';
 
 let dbConfig: MongoDBConfig;
 if (process.env.DB_USE_FS) {
@@ -62,6 +68,29 @@ if (process.env.DB_USE_FS) {
  * Application Module that starts all dependencies and
  * handles HTTP requests.
  */
+@EnableSocketServer({
+  path: '/api/socket/server/',
+  onConnection: (socket) => {
+    return {
+      id: new Types.ObjectId().toHexString(),
+      createdAt: Date.now(),
+      group: 'global',
+      socket,
+    };
+  },
+  verifyConnection: async (socket) => {
+    const jwt = JWTSecurity.checkAndValidateAndGet(socket.request._query.at, {
+      roles: [RoleName.ADMIN, RoleName.MANAGER],
+      permission: PermissionName.READ,
+      JWTConfig: JWTConfigService.get('user-token-config'),
+    });
+    if (jwt instanceof Error) {
+      return false;
+    }
+    return true;
+  },
+  eventHandlers: [],
+})
 @Application({
   port: parseInt(process.env.API_PORT, 10),
   controllers: [

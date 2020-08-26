@@ -298,9 +298,9 @@ export class UserRequestHandler {
           user.customPool.policy.customPortal =
             data.customPool.policy.customPortal;
         }
-        if (typeof data.customPool.policy.entries !== 'undefined') {
+        if (typeof data.customPool.policy.templates !== 'undefined') {
           change = true;
-          user.customPool.policy.entries = data.customPool.policy.entries;
+          user.customPool.policy.templates = data.customPool.policy.templates;
         }
         if (typeof data.customPool.policy.media !== 'undefined') {
           change = true;

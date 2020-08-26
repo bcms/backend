@@ -26,7 +26,7 @@ export interface UpdateUserData {
     policy?: {
       media?: UserPolicyCRUD;
       customPortal?: UserPolicyCRUD;
-      entries?: Array<UserPolicyCRUD & { _id: string }>;
+      templates?: Array<UserPolicyCRUD & { _id: string }>;
       webhooks?: Array<
         UserPolicyCRUD & {
           _id: string;
