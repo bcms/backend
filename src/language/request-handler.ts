@@ -20,6 +20,7 @@ import {
   UpdateLanguageDataSchema,
 } from './interfaces';
 import { LanguageFactory } from './factories';
+import { SocketUtil, SocketEventName } from '../util';
 
 export class LanguageRequestHandler {
   @CreateLogger(LanguageRequestHandler)
@@ -214,7 +215,23 @@ export class LanguageRequestHandler {
     }
     if (switchDefault) {
       await CacheControl.language.update(switchDefault);
+      SocketUtil.emit(SocketEventName.LANGUAGE, {
+        entry: {
+          _id: `${switchDefault._id}`,
+        },
+        message: 'Language has been updated.',
+        source: '',
+        type: 'update',
+      });
     }
+    SocketUtil.emit(SocketEventName.LANGUAGE, {
+      entry: {
+        _id: `${language._id}`,
+      },
+      message: 'Language has been updated.',
+      source: jwt.payload.userId,
+      type: 'update',
+    });
     return language;
   }
 
