@@ -5,7 +5,7 @@ grp002:
 grp003:
   msg: Failed to add Group to the database.
 grp004:
-  msg: Changes to prop "%prop%" are not valid --> %msg%
+  msg: 'Prop check failed with: %msg%'
 grp005:
   msg: Failed to update Group in the database.
 grp006:

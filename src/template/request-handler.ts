@@ -269,17 +269,6 @@ export class TemplateRequestHandler {
               }),
             );
           }
-          try {
-            PropHandler.verifyValue([prop]);
-          } catch (err) {
-            throw error.occurred(
-              HttpStatus.BAD_REQUEST,
-              ResponseCode.get('tmp004', {
-                prop: `data.propChanges[${i}]`,
-                msg: err.message,
-              }),
-            );
-          }
           template.props.push(prop);
         } else if (propChange.update) {
           updateEntries = true;
@@ -306,23 +295,22 @@ export class TemplateRequestHandler {
     } catch (e) {
       throw error.occurred(
         HttpStatus.BAD_REQUEST,
-        ResponseCode.get('tmp004', {
-          prop: `template.props`,
+        ResponseCode.get('g008', {
           msg: e.message,
         }),
       );
     }
     try {
-      template._schema = await PropHandler.propsToSchema(
+      await PropHandler.propsChecker(
         template.props,
-        'template',
+        template.props,
+        'group.props',
       );
     } catch (e) {
-      this.logger.error('update', e);
       throw error.occurred(
-        HttpStatus.INTERNAL_SERVER_ERROR,
-        ResponseCode.get('g006', {
-          error: e.message,
+        HttpStatus.BAD_REQUEST,
+        ResponseCode.get('g007', {
+          msg: e.message,
         }),
       );
     }

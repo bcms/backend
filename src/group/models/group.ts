@@ -7,7 +7,6 @@ export interface IGroup extends IEntity {
   label: string;
   desc: string;
   props: Prop[];
-  _schema: ObjectSchema;
 }
 
 export class Group implements Entity {
@@ -20,8 +19,6 @@ export class Group implements Entity {
     public label: string,
     public desc: string,
     public props: Prop[],
-    // tslint:disable-next-line: variable-name
-    public _schema: ObjectSchema,
   ) {}
 
   public static get schema(): Schema {
@@ -33,7 +30,6 @@ export class Group implements Entity {
       label: String,
       desc: String,
       props: [Object],
-      _schema: Object,
     });
   }
 }

@@ -263,17 +263,6 @@ export class WidgetRequestHandler {
               }),
             );
           }
-          try {
-            PropHandler.verifyValue([prop]);
-          } catch (err) {
-            throw error.occurred(
-              HttpStatus.BAD_REQUEST,
-              ResponseCode.get('wid004', {
-                prop: `data.propChanges[${i}]`,
-                msg: err.message,
-              }),
-            );
-          }
           widget.props.push(prop);
         } else if (propChange.update) {
           updateEntries = true;
@@ -299,20 +288,18 @@ export class WidgetRequestHandler {
     } catch (e) {
       throw error.occurred(
         HttpStatus.BAD_REQUEST,
-        ResponseCode.get('wid004', {
-          prop: `widget.props`,
+        ResponseCode.get('g008', {
           msg: e.message,
         }),
       );
     }
     try {
-      widget._schema = await PropHandler.propsToSchema(widget.props, 'widget');
+      await PropHandler.propsChecker(widget.props, widget.props, 'group.props');
     } catch (e) {
-      this.logger.error('update', e);
       throw error.occurred(
-        HttpStatus.INTERNAL_SERVER_ERROR,
-        ResponseCode.get('g006', {
-          error: e.message,
+        HttpStatus.BAD_REQUEST,
+        ResponseCode.get('g007', {
+          msg: e.message,
         }),
       );
     }

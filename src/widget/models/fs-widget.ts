@@ -1,4 +1,4 @@
-import { FSDBEntity, ObjectSchema } from '@becomes/purple-cheetah';
+import { FSDBEntity } from '@becomes/purple-cheetah';
 import { Prop } from '../../prop';
 
 export class FSWidget implements FSDBEntity {
@@ -11,7 +11,5 @@ export class FSWidget implements FSDBEntity {
     public label: string,
     public desc: string,
     public props: Prop[],
-    // tslint:disable-next-line: variable-name
-    public _schema: ObjectSchema,
   ) {}
 }

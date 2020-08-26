@@ -10,3 +10,7 @@ g005:
   msg: Prop of type "%type%" is not allowed.
 g006:
   msg: 'Failed to create Props schema with error: %error%'
+g007:
+  msg: 'Prop check failed with: %msg%'
+g008: # Infinite loop detected
+  msg: '%msg%'

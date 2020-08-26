@@ -14,7 +14,6 @@ export class GroupFactory {
         '',
         '',
         [],
-        {},
       );
     } else {
       return new Group(
@@ -25,7 +24,6 @@ export class GroupFactory {
         '',
         '',
         [],
-        {},
       );
     }
   }

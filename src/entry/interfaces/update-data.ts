@@ -1,14 +1,19 @@
 import { EntryMeta } from '../models';
 import { ObjectSchema } from '@becomes/purple-cheetah';
 
-export interface AddEntryData {
+export interface UpdateEntryData {
+  _id: string;
   title: string;
   slug: string;
   templateId: string;
   meta: EntryMeta[];
 }
 
-export const AddEntryDataSchema: ObjectSchema = {
+export const UpdateEntryDataSchema: ObjectSchema = {
+  _id: {
+    __type: 'string',
+    __required: true,
+  },
   title: {
     __type: 'string',
     __required: true,

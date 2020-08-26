@@ -51,7 +51,7 @@ export const UserPolicySchema: ObjectSchema = {
       __type: 'object',
       __content: {
         _id: {
-          __type: 'boolean',
+          __type: 'string',
           __required: true,
         },
         ...UserPolicyCRUDSchema,
@@ -65,7 +65,7 @@ export const UserPolicySchema: ObjectSchema = {
       __type: 'object',
       __content: {
         _id: {
-          __type: 'boolean',
+          __type: 'string',
           __required: true,
         },
         ...UserPolicyCRUDSchema,

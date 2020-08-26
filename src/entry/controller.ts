@@ -82,12 +82,35 @@ export class EntryController implements ControllerPrototype {
 
   @Post()
   async add(request: Request): Promise<{ entry: Entry | FSEntry }> {
-    
+    return {
+      entry: await EntryRequestHandler.add(
+        request.headers.authorization,
+        request.body,
+        request.headers.sid as string,
+      ),
+    };
   }
 
   @Put()
-  async update(request: Request): Promise<{ entry: Entry | FSEntry }> {}
+  async update(request: Request): Promise<{ entry: Entry | FSEntry }> {
+    return {
+      entry: await EntryRequestHandler.update(
+        request.headers.authorization,
+        request.body,
+        request.headers.sid as string,
+      ),
+    };
+  }
 
   @Delete('/:id')
-  async deleteById(request: Request): Promise<{ message: string }> {}
+  async deleteById(request: Request): Promise<{ message: string }> {
+    await EntryRequestHandler.deleteById(
+      request.headers.authorization,
+      request.params.id,
+      request.headers.sid as string,
+    );
+    return {
+      message: 'Success.',
+    };
+  }
 }

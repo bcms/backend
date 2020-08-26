@@ -14,7 +14,6 @@ export class TemplateFactory {
         '',
         false,
         [],
-        {},
       );
     } else {
       return new Template(
@@ -27,7 +26,6 @@ export class TemplateFactory {
         '',
         false,
         [],
-        {},
       );
     }
   }

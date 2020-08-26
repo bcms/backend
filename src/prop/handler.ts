@@ -9,11 +9,13 @@ import {
   PropGroupPointerSchema,
   PropMedia,
   PropMediaSchema,
+  PropSchema,
 } from './interfaces';
 import {
   ObjectUtility,
   ObjectSchema,
   ObjectPropSchema,
+  StringUtility,
 } from '@becomes/purple-cheetah';
 import { CacheControl } from '../cache';
 
@@ -25,147 +27,24 @@ interface Pointer {
 }
 
 export class PropHandler {
-  static async propToSchema(
-    prop: Prop,
-    level?: string,
-  ): Promise<ObjectPropSchema> {
-    if (!level) {
-      level = 'prop';
-    }
-    switch (prop.type) {
-      case PropType.STRING: {
-        return {
-          __type: 'array',
-          __required: prop.required,
-          __child: {
-            __type: 'string',
-          },
-        };
-      }
-      case PropType.NUMBER: {
-        return {
-          __type: 'array',
-          __required: prop.required,
-          __child: {
-            __type: 'number',
-          },
-        };
-      }
-      case PropType.BOOLEAN: {
-        return {
-          __type: 'array',
-          __required: prop.required,
-          __child: {
-            __type: 'boolean',
-          },
-        };
-      }
-      case PropType.MEDIA: {
-        return {
-          __type: 'array',
-          __required: prop.required,
-          __child: {
-            __type: 'string',
-          },
-        };
-      }
-      case PropType.DATE: {
-        return {
-          __type: 'array',
-          __required: prop.required,
-          __child: {
-            __type: 'number',
-          },
-        };
-      }
-      case PropType.ENUMERATION: {
-        return {
-          __type: 'object',
-          __required: prop.required,
-          __child: PropEnumSchema,
-        };
-      }
-      case PropType.GROUP_POINTER: {
-        const value: PropGroupPointer = prop.value as PropGroupPointer;
-        const group = await CacheControl.group.findById(value._id);
-        if (!group) {
-          throw new Error(
-            `[ ${level}.value._id ] --> Group with ID "${value._id}" does not exist.`,
-          );
-        }
-        return {
-          __type: 'object',
-          __required: prop.required,
-          __child: {
-            _id: {
-              __type: 'string',
-              __required: true,
-            },
-            items: {
-              __type: 'array',
-              __required: true,
-              __child: {
-                __type: 'object',
-                __content: group._schema,
-              },
-            },
-          },
-        };
-      }
-      case PropType.ENTRY_POINTER: {
-        const value: PropEntryPointer = prop.value as PropEntryPointer;
-        return {
-          __type: 'object',
-          __required: prop.required,
-          __child: {
-            templateId: {
-              __type: 'string',
-              __required: true,
-            },
-            displayProp: {
-              __type: 'string',
-              __required: true,
-            },
-            entryIds: {
-              __type: 'array',
-              __required: true,
-              __child: {
-                __type: 'string',
-              },
-            },
-          },
-        };
-      }
-    }
-  }
-  static async propsToSchema(
-    props: Prop[],
-    level?: string,
-  ): Promise<ObjectSchema> {
-    if (!level) {
-      level = 'root';
-    }
-    const schema: ObjectSchema = {};
-    for (const i in props) {
-      const prop = props[i];
-      schema[prop.name] = await this.propToSchema(prop, 'props[${i}]');
-    }
-    return schema;
-  }
   static async testInfiniteLoop(
     props: Prop[],
-    pointer?: Pointer,
+    // tslint:disable-next-line: variable-name
+    _pointer?: Pointer,
     level?: string,
   ) {
     if (!level) {
       level = 'props';
     }
-    if (!pointer) {
-      pointer = {
-        group: [],
-      };
-    }
     for (const i in props) {
+      let pointer: Pointer;
+      if (!_pointer) {
+        pointer = {
+          group: [],
+        };
+      } else {
+        pointer = JSON.parse(JSON.stringify(_pointer));
+      }
       const prop = props[i];
       if (prop.type === PropType.GROUP_POINTER) {
         const value = prop.value as PropGroupPointer;
@@ -182,13 +61,13 @@ export class PropHandler {
                 return e.label;
               })
               .join(' -> ')} -> ${
-              prop.label
+              group.label
             } ] this is forbidden since it will result in an infinite loop.`,
           );
         }
         pointer.group.push({
           _id: value._id,
-          label: prop.label,
+          label: group.label,
         });
         await this.testInfiniteLoop(
           group.props,
@@ -198,178 +77,215 @@ export class PropHandler {
       }
     }
   }
-  static verifyValue(props: Prop[], pointer?: Pointer, level?: string) {
+  static async propsChecker(
+    propsToCheck: Prop[],
+    props: Prop[],
+    level?: string,
+  ) {
     if (!level) {
-      level = 'props';
-    }
-    if (!pointer) {
-      pointer = {
-        group: [],
-      };
+      level = 'root';
     }
     for (const i in props) {
       const prop = props[i];
-      if (typeof prop.type !== 'string') {
+      const propToCheck = propsToCheck.find((e) => e.name === prop.name);
+      if (!propToCheck && prop.required) {
         throw new Error(
-          `${level}[${i}].type --> Expected "string" but got "${typeof prop.type}".`,
+          `[ ${level}.${prop.name} ] --> Property "${prop.name}" does not exist.`,
         );
       }
-      if (typeof prop.value === 'undefined') {
-        throw new Error(`${level}[${i}].value --> Does not exist.`);
+      if (prop.type !== propToCheck.type) {
+        throw new Error(
+          `[ ${level}.${prop.name} ] --> Type mismatch, expected` +
+            ` "${prop.type}" but got "${propToCheck.type}".`,
+        );
       }
-      let schema: ObjectSchema;
-      let data: any;
-      let nextLevel: Array<{
-        props: Prop[];
-        name: string;
-      }>;
-      switch (prop.type) {
-        case PropType.STRING:
-          {
-            const value = prop.value as string[];
-            data = { value };
-            schema = {
-              value: {
-                __type: 'array',
-                __required: true,
-                __child: {
-                  __type: 'string',
+      if (prop.required !== propToCheck.required) {
+        throw new Error(
+          `[ ${level}.${prop.name} ] --> expected required` +
+            ` property to be "${prop.required}" but got` +
+            ` "${propToCheck.required}".`,
+        );
+      }
+      if (prop.array !== propToCheck.array) {
+        throw new Error(
+          `[ ${level}.${prop.name} ] --> expected array` +
+            ` property to be "${prop.array}" but got` +
+            ` "${propToCheck.array}".`,
+        );
+      }
+      if (!prop.value) {
+        throw new Error(
+          `[ ${level}.${prop.name} ] --> value property does not exist.`,
+        );
+      }
+      if (prop.required) {
+        switch (prop.type) {
+          case PropType.STRING:
+            {
+              const value = propToCheck.value as string[];
+              ObjectUtility.compareWithSchema(
+                { value },
+                {
+                  value: {
+                    __type: 'array',
+                    __required: true,
+                    __child: {
+                      __type: 'string',
+                    },
+                  },
                 },
-              },
-            };
-          }
-          break;
-        case PropType.NUMBER:
-          {
-            const value = prop.value as number[];
-            data = { value };
-            schema = {
-              value: {
-                __type: 'array',
-                __required: true,
-                __child: {
-                  __type: 'number',
+                `${level}.${prop.name}`,
+              );
+            }
+            break;
+          case PropType.NUMBER:
+            {
+              const value = propToCheck.value as number[];
+              ObjectUtility.compareWithSchema(
+                { value },
+                {
+                  value: {
+                    __type: 'array',
+                    __required: true,
+                    __child: {
+                      __type: 'number',
+                    },
+                  },
                 },
-              },
-            };
-          }
-          break;
-        case PropType.BOOLEAN:
-          {
-            data = {
-              value: prop.value,
-            };
-            schema = {
-              value: {
-                __type: 'array',
-                __required: true,
-                __child: {
-                  __type: 'boolean',
+                `${level}.${prop.name}`,
+              );
+            }
+            break;
+          case PropType.BOOLEAN:
+            {
+              const value = propToCheck.value as boolean[];
+              ObjectUtility.compareWithSchema(
+                { value },
+                {
+                  value: {
+                    __type: 'array',
+                    __required: true,
+                    __child: {
+                      __type: 'boolean',
+                    },
+                  },
                 },
-              },
-            };
-          }
-          break;
-        case PropType.DATE:
-          {
-            data = {
-              value: prop.value,
-            };
-            schema = {
-              value: {
-                __type: 'array',
-                __required: true,
-                __child: {
-                  __type: 'number',
+                `${level}.${prop.name}`,
+              );
+            }
+            break;
+          case PropType.MEDIA:
+            {
+              const value = propToCheck.value as PropMedia[];
+              ObjectUtility.compareWithSchema(
+                { value },
+                {
+                  value: {
+                    __type: 'array',
+                    __required: true,
+                    __child: {
+                      __type: 'number',
+                    },
+                  },
                 },
-              },
-            };
-          }
-          break;
-        case PropType.MEDIA:
-          {
-            const value = prop.value as PropMedia[];
-            data = { value };
-            schema = {
-              value: {
-                __type: 'array',
-                __required: true,
-                __child: {
-                  __type: 'object',
-                  __content: PropMediaSchema,
+                `${level}.${prop.name}`,
+              );
+            }
+            break;
+          case PropType.DATE:
+            {
+              const value = propToCheck.value as number[];
+              ObjectUtility.compareWithSchema(
+                { value },
+                {
+                  value: {
+                    __type: 'array',
+                    __required: true,
+                    __child: {
+                      __type: 'number',
+                    },
+                  },
                 },
-              },
-            };
-          }
-          break;
-        case PropType.ENUMERATION:
-          {
-            const value = prop.value as PropEnum;
-            data = { value };
-            schema = {
-              value: {
-                __type: 'object',
-                __required: true,
-                __child: PropEnumSchema,
-              },
-            };
-          }
-          break;
-        case PropType.ENTRY_POINTER:
-          {
-            const value = prop.value as PropEntryPointer;
-            data = { value };
-            schema = {
-              value: {
-                __type: 'object',
-                __required: true,
-                __child: PropEntryPointerSchema,
-              },
-            };
-          }
-          break;
-        case PropType.GROUP_POINTER:
-          {
-            const value = prop.value as PropGroupPointer;
-            data = { value };
-            schema = {
-              value: {
-                __type: 'object',
-                __required: true,
-                __child: PropGroupPointerSchema,
-              },
-            };
-            nextLevel = value.items.map((e, j) => {
-              return {
-                name: `${level}[${i}].value.array[j].props`,
-                props: e.props,
-              };
-            });
-            if (value && value._id) {
-              if (pointer.group.find((e) => e._id === value._id)) {
+                `${level}.${prop.name}`,
+              );
+            }
+            break;
+          case PropType.ENUMERATION:
+            {
+              const value = propToCheck.value as PropEnum;
+              ObjectUtility.compareWithSchema(
+                { value },
+                {
+                  value: {
+                    __type: 'object',
+                    __required: true,
+                    __child: {
+                      items: {
+                        __type: 'array',
+                        __required: true,
+                        __child: {
+                          __type: 'string',
+                        },
+                      },
+                      selected: {
+                        __type: 'string',
+                        __required: false,
+                      },
+                    },
+                  },
+                },
+                `${level}.${prop.name}`,
+              );
+            }
+            break;
+          case PropType.GROUP_POINTER:
+            {
+              const value = propToCheck.value as PropGroupPointer;
+              ObjectUtility.compareWithSchema(
+                { value },
+                {
+                  _id: {
+                    __type: 'string',
+                    __required: true,
+                  },
+                  items: {
+                    __type: 'array',
+                    __required: true,
+                    __child: {
+                      __type: 'object',
+                      __content: {},
+                    },
+                  },
+                },
+                `${level}.${prop.name}`,
+              );
+              if (StringUtility.isIdValid(value._id) === false) {
                 throw new Error(
-                  `Pointer loop detected: [ ${pointer.group
-                    .map((e) => {
-                      return e.label;
-                    })
-                    .join(' -> ')} -> ${
-                    prop.label
-                  } ] this is forbidden since it will result in an infinite loop.`,
+                  `[ ${level}.${prop.name}.value._id ] --> invalid value.`,
                 );
               }
-              pointer.group.push({
-                _id: value._id,
-                label: prop.label,
-              });
+              const group = await CacheControl.group.findById(value._id);
+              if (!group) {
+                throw new Error(
+                  `[ ${level}.${prop.name}.value._id ] --> Group with ID` +
+                    ` "${value._id}" does not exist.`,
+                );
+              }
+              for (const j in value.items) {
+                const toCheckGroupProps = value.items[i].props;
+                await this.propsChecker(
+                  toCheckGroupProps,
+                  group.props,
+                  `${level}.${prop.name}.value.items[${j}]`,
+                );
+              }
             }
-          }
-          break;
-      }
-      ObjectUtility.compareWithSchema(data, schema, `${level}[${i}]`);
-      if (nextLevel) {
-        nextLevel.forEach((e) => {
-          this.verifyValue(e.props, pointer, e.name);
-        });
+            break;
+          case PropType.ENTRY_POINTER:
+            {
+            }
+            break;
+        }
       }
     }
   }

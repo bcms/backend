@@ -1,4 +1,4 @@
-import { Entry, FSEntry } from './models';
+import { Entry, FSEntry, EntryMeta } from './models';
 import {
   HttpErrorFactory,
   Logger,
@@ -14,8 +14,15 @@ import {
 import { ResponseCode } from '../response-code';
 import { ApiKeySecurity, ApiKeyRequestObject } from '../api';
 import { CacheControl } from '../cache';
-import { EntryLite, AddEntryData, AddEntryDataSchema } from './interfaces';
+import {
+  EntryLite,
+  AddEntryData,
+  AddEntryDataSchema,
+  UpdateEntryData,
+} from './interfaces';
 import { EntryFactory } from './factory';
+import { PropHandler } from '../prop';
+import { SocketUtil, SocketEventName } from '../util';
 
 export class EntryRequestHandler {
   @CreateLogger(EntryRequestHandler)
@@ -180,12 +187,20 @@ export class EntryRequestHandler {
         );
       }
     }
-    return await CacheControl.entry.findById(id);
+    const entry = await CacheControl.entry.findById(id);
+    if (!entry) {
+      throw error.occurred(
+        HttpStatus.NOT_FOUNT,
+        ResponseCode.get('etr001', { id }),
+      );
+    }
+    return entry;
   }
 
   static async add(
     authorization: string,
     data: AddEntryData,
+    sid: string,
   ): Promise<Entry | FSEntry> {
     const error = HttpErrorFactory.instance('add', this.logger);
     try {
@@ -196,6 +211,12 @@ export class EntryRequestHandler {
         ResponseCode.get('g002', {
           msg: e.message,
         }),
+      );
+    }
+    if (StringUtility.isIdValid(data.templateId) === false) {
+      throw error.occurred(
+        HttpStatus.BAD_REQUEST,
+        ResponseCode.get('g004', { id: data.templateId }),
       );
     }
     const jwt = JWTSecurity.checkAndValidateAndGet(authorization, {
@@ -211,5 +232,210 @@ export class EntryRequestHandler {
         }),
       );
     }
+    const template = await CacheControl.template.findById(data.templateId);
+    if (!template) {
+      throw error.occurred(
+        HttpStatus.NOT_FOUNT,
+        ResponseCode.get('tmp001', {
+          id: data.templateId,
+        }),
+      );
+    }
+    const languages = await CacheControl.language.findAll();
+    const meta: EntryMeta[] = [];
+    for (const i in languages) {
+      const lngMeta = data.meta.find((e) => e.lng === languages[i].code);
+      if (!lngMeta) {
+        throw error.occurred(
+          HttpStatus.BAD_REQUEST,
+          ResponseCode.get('etr002', {
+            lng: languages[i].name,
+          }),
+        );
+      }
+      try {
+        await PropHandler.propsChecker(lngMeta.props, template.props);
+      } catch (e) {
+        throw error.occurred(
+          HttpStatus.BAD_REQUEST,
+          ResponseCode.get('etr003', {
+            error: e.message,
+          }),
+        );
+      }
+      meta.push(lngMeta);
+    }
+    const entry = EntryFactory.instance;
+    entry.title = data.title;
+    entry.slug = StringUtility.createSlug(data.slug);
+    entry.templateId = data.templateId;
+    entry.userId = jwt.payload.userId;
+    entry.meta = meta;
+    const addResult = await CacheControl.entry.add(entry);
+    if (addResult === false) {
+      throw error.occurred(
+        HttpStatus.INTERNAL_SERVER_ERROR,
+        ResponseCode.get('etr004'),
+      );
+    }
+    SocketUtil.emit(SocketEventName.ENTRY, {
+      entry: {
+        _id: `${entry._id}`,
+      },
+      message: 'Entry added.',
+      source: sid,
+      type: 'add',
+    });
+    return entry;
+  }
+
+  static async update(
+    authorization: string,
+    data: UpdateEntryData,
+    sid: string,
+  ): Promise<Entry | FSEntry> {
+    const error = HttpErrorFactory.instance('update', this.logger);
+    try {
+      ObjectUtility.compareWithSchema(data, AddEntryDataSchema, 'data');
+    } catch (e) {
+      throw error.occurred(
+        HttpStatus.BAD_REQUEST,
+        ResponseCode.get('g002', {
+          msg: e.message,
+        }),
+      );
+    }
+    if (StringUtility.isIdValid(data.templateId) === false) {
+      throw error.occurred(
+        HttpStatus.BAD_REQUEST,
+        ResponseCode.get('g004', { id: `templateId: ${data.templateId}` }),
+      );
+    }
+    if (StringUtility.isIdValid(data._id) === false) {
+      throw error.occurred(
+        HttpStatus.BAD_REQUEST,
+        ResponseCode.get('g004', { id: `_id: ${data._id}` }),
+      );
+    }
+    const jwt = JWTSecurity.checkAndValidateAndGet(authorization, {
+      roles: [RoleName.ADMIN, RoleName.USER],
+      permission: PermissionName.WRITE,
+      JWTConfig: JWTConfigService.get('user-token-config'),
+    });
+    if (jwt instanceof Error) {
+      throw error.occurred(
+        HttpStatus.UNAUTHORIZED,
+        ResponseCode.get('g001', {
+          msg: jwt.message,
+        }),
+      );
+    }
+    const entry = await CacheControl.entry.findById(data._id);
+    if (!entry) {
+      throw error.occurred(
+        HttpStatus.NOT_FOUNT,
+        ResponseCode.get('etr001', {
+          id: data._id,
+        }),
+      );
+    }
+    const template = await CacheControl.template.findById(data.templateId);
+    if (!template) {
+      throw error.occurred(
+        HttpStatus.NOT_FOUNT,
+        ResponseCode.get('tmp001', {
+          id: data.templateId,
+        }),
+      );
+    }
+    const languages = await CacheControl.language.findAll();
+    const meta: EntryMeta[] = [];
+    for (const i in languages) {
+      const lngMeta = data.meta.find((e) => e.lng === languages[i].code);
+      if (!lngMeta) {
+        throw error.occurred(
+          HttpStatus.BAD_REQUEST,
+          ResponseCode.get('etr002', {
+            lng: languages[i].name,
+          }),
+        );
+      }
+      try {
+        await PropHandler.propsChecker(lngMeta.props, template.props);
+      } catch (e) {
+        throw error.occurred(
+          HttpStatus.BAD_REQUEST,
+          ResponseCode.get('etr003', {
+            error: e.message,
+          }),
+        );
+      }
+      meta.push(lngMeta);
+      const updateResult = await CacheControl.entry.update(entry);
+      if (updateResult === false) {
+        throw error.occurred(
+          HttpStatus.INTERNAL_SERVER_ERROR,
+          ResponseCode.get('etr004'),
+        );
+      }
+      SocketUtil.emit(SocketEventName.ENTRY, {
+        entry: {
+          _id: `${entry._id}`,
+        },
+        message: 'Entry updated.',
+        source: sid,
+        type: 'update',
+      });
+      return entry;
+    }
+  }
+
+  static async deleteById(
+    authorization: string,
+    id: string,
+    sid: string,
+  ) {
+    const error = HttpErrorFactory.instance('deleteById', this.logger);
+    if (StringUtility.isIdValid(id) === false) {
+      throw error.occurred(
+        HttpStatus.BAD_REQUEST,
+        ResponseCode.get('g004', { id }),
+      );
+    }
+    const jwt = JWTSecurity.checkAndValidateAndGet(authorization, {
+      roles: [RoleName.ADMIN],
+      permission: PermissionName.DELETE,
+      JWTConfig: JWTConfigService.get('user-token-config'),
+    });
+    if (jwt instanceof Error) {
+      throw error.occurred(
+        HttpStatus.UNAUTHORIZED,
+        ResponseCode.get('g001', {
+          msg: jwt.message,
+        }),
+      );
+    }
+    const entry = await CacheControl.entry.findById(id);
+    if (!entry) {
+      throw error.occurred(
+        HttpStatus.NOT_FOUNT,
+        ResponseCode.get('etr001', { id }),
+      );
+    }
+    const deleteResult = await CacheControl.entry.deleteById(id);
+    if (deleteResult === false) {
+      throw error.occurred(
+        HttpStatus.INTERNAL_SERVER_ERROR,
+        ResponseCode.get('etr006'),
+      );
+    }
+    SocketUtil.emit(SocketEventName.ENTRY, {
+      entry: {
+        _id: `${entry._id}`,
+      },
+      message: 'Entry removed.',
+      source: sid,
+      type: 'remove',
+    });
   }
 }

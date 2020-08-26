@@ -258,27 +258,6 @@ export class GroupRequestHandler {
               }),
             );
           }
-          try {
-            PropHandler.verifyValue([prop], {
-              group: [
-                {
-                  _id:
-                    typeof group._id === 'string'
-                      ? group._id
-                      : group._id.toHexString(),
-                  label: group.name,
-                },
-              ],
-            });
-          } catch (err) {
-            throw error.occurred(
-              HttpStatus.BAD_REQUEST,
-              ResponseCode.get('grp004', {
-                prop: `data.propChanges[${i}]`,
-                msg: err.message,
-              }),
-            );
-          }
           group.props.push(prop);
         } else if (propChange.update) {
           updateEntries = true;
@@ -304,31 +283,26 @@ export class GroupRequestHandler {
       await PropHandler.testInfiniteLoop(group.props, {
         group: [
           {
-            _id:
-              typeof group._id === 'string'
-                ? group._id
-                : group._id.toHexString(),
-            label: group.name,
+            _id: `${group._id}`,
+            label: group.label,
           },
         ],
       });
     } catch (e) {
       throw error.occurred(
         HttpStatus.BAD_REQUEST,
-        ResponseCode.get('grp004', {
-          prop: `group.props`,
+        ResponseCode.get('g008', {
           msg: e.message,
         }),
       );
     }
     try {
-      group._schema = await PropHandler.propsToSchema(group.props, 'group');
+      await PropHandler.propsChecker(group.props, group.props, 'group.props');
     } catch (e) {
-      this.logger.error('update', e);
       throw error.occurred(
-        HttpStatus.INTERNAL_SERVER_ERROR,
-        ResponseCode.get('g006', {
-          error: e.message,
+        HttpStatus.BAD_REQUEST,
+        ResponseCode.get('g007', {
+          msg: e.message,
         }),
       );
     }
