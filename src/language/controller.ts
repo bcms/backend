@@ -65,6 +65,7 @@ export class LanguageController implements ControllerPrototype {
       language: await LanguageRequestHandler.update(
         request.headers.authorization,
         request.body,
+        request.headers.sid as string,
       ),
     };
   }

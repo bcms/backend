@@ -150,6 +150,7 @@ export class LanguageRequestHandler {
   static async update(
     authorization: string,
     data: UpdateLanguageData,
+    sid: string,
   ): Promise<Language | FSLanguage> {
     const error = HttpErrorFactory.instance('update', this.logger);
     try {
@@ -219,7 +220,7 @@ export class LanguageRequestHandler {
         entry: {
           _id: `${switchDefault._id}`,
         },
-        message: 'Language has been updated.',
+        message: 'Language is no longer default.',
         source: '',
         type: 'update',
       });
@@ -228,8 +229,8 @@ export class LanguageRequestHandler {
       entry: {
         _id: `${language._id}`,
       },
-      message: 'Language has been updated.',
-      source: jwt.payload.userId,
+      message: 'Language has been set to default.',
+      source: sid,
       type: 'update',
     });
     return language;

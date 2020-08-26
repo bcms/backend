@@ -80,7 +80,7 @@ if (process.env.DB_USE_FS) {
   },
   verifyConnection: async (socket) => {
     const jwt = JWTSecurity.checkAndValidateAndGet(socket.request._query.at, {
-      roles: [RoleName.ADMIN, RoleName.MANAGER],
+      roles: [RoleName.ADMIN, RoleName.USER],
       permission: PermissionName.READ,
       JWTConfig: JWTConfigService.get('user-token-config'),
     });
