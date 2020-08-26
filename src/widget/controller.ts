@@ -20,7 +20,9 @@ export class WidgetController implements ControllerPrototype {
   initRouter: () => void;
 
   @Get('/all')
-  async getAll(request: Request): Promise<{ widgets: Array<Widget | FSWidget> }> {
+  async getAll(
+    request: Request,
+  ): Promise<{ widgets: Array<Widget | FSWidget> }> {
     return {
       widgets: await WidgetRequestHandler.getAll(request.headers.authorization),
     };
@@ -49,6 +51,7 @@ export class WidgetController implements ControllerPrototype {
       widget: await WidgetRequestHandler.add(
         request.headers.authorization,
         request.body,
+        request.headers.sid as string,
       ),
     };
   }
@@ -59,6 +62,7 @@ export class WidgetController implements ControllerPrototype {
       widget: await WidgetRequestHandler.update(
         request.headers.authorization,
         request.body,
+        request.headers.sid as string,
       ),
     };
   }
@@ -68,6 +72,7 @@ export class WidgetController implements ControllerPrototype {
     await WidgetRequestHandler.deleteById(
       request.headers.authorization,
       request.params.id,
+      request.headers.sid as string,
     );
     return {
       message: 'Success.',

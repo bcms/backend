@@ -24,6 +24,7 @@ import {
 import { Types } from 'mongoose';
 import { ResponseCode } from '../response-code';
 import { CacheControl } from '../cache';
+import { SocketUtil, SocketEventName } from '../util';
 
 export class UserRequestHandler {
   @CreateLogger(UserRequestHandler)
@@ -135,6 +136,7 @@ export class UserRequestHandler {
   static async update(
     authorization: string,
     data: UpdateUserData,
+    sid: string,
   ): Promise<ProtectedUser> {
     const error = HttpErrorFactory.instance('update', this.logger);
     try {
@@ -322,12 +324,21 @@ export class UserRequestHandler {
         ResponseCode.get('u010'),
       );
     }
+    SocketUtil.emit(SocketEventName.USER, {
+      entry: {
+        _id: `${user._id}`,
+      },
+      message: 'User has been updated.',
+      source: sid,
+      type: 'update',
+    });
     return UserFactory.removeProtected(user);
   }
 
   static async add(
     authorization: string,
     data: AddUserData,
+    sid: string,
   ): Promise<ProtectedUser> {
     const error = HttpErrorFactory.instance('add', this.logger);
     try {
@@ -382,10 +393,18 @@ export class UserRequestHandler {
         ResponseCode.get('u011'),
       );
     }
+    SocketUtil.emit(SocketEventName.USER, {
+      entry: {
+        _id: `${user._id}`,
+      },
+      message: 'User has been added.',
+      source: sid,
+      type: 'add',
+    });
     return UserFactory.removeProtected(user);
   }
 
-  static async makeAnAdmin(authorization: string, id: string) {
+  static async makeAnAdmin(authorization: string, id: string, sid: string) {
     const error = HttpErrorFactory.instance('makeAnAdmin', this.logger);
     if (StringUtility.isIdValid(id) === false) {
       throw error.occurred(
@@ -421,6 +440,14 @@ export class UserRequestHandler {
         ResponseCode.get('u010'),
       );
     }
+    SocketUtil.emit(SocketEventName.USER, {
+      entry: {
+        _id: `${user._id}`,
+      },
+      message: 'User has been updated.',
+      source: sid,
+      type: 'update',
+    });
     return UserFactory.removeProtected(user);
   }
 
@@ -526,7 +553,7 @@ export class UserRequestHandler {
     };
   }
 
-  static async delete(authorization: string, id: string) {
+  static async delete(authorization: string, id: string, sid: string) {
     const error = HttpErrorFactory.instance('delete', this.logger);
     if (StringUtility.isIdValid(id) === false) {
       throw error.occurred(
@@ -571,5 +598,13 @@ export class UserRequestHandler {
         ResponseCode.get('u005'),
       );
     }
+    SocketUtil.emit(SocketEventName.USER, {
+      entry: {
+        _id: `${user._id}`,
+      },
+      message: 'User has been removed.',
+      source: sid,
+      type: 'remove',
+    });
   }
 }

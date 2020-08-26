@@ -22,7 +22,7 @@ import {
 } from './interfaces';
 import { WidgetFactory } from './factories';
 import { Prop, PropFactory } from '../prop';
-import { General } from '../util';
+import { General, SocketUtil, SocketEventName } from '../util';
 
 export class WidgetRequestHandler {
   @CreateLogger(WidgetRequestHandler)
@@ -104,6 +104,7 @@ export class WidgetRequestHandler {
   static async add(
     authorization: string,
     data: AddWidgetData,
+    sid: string,
   ): Promise<Widget | FSWidget> {
     const error = HttpErrorFactory.instance('add', this.logger);
     const jwt = JWTSecurity.checkAndValidateAndGet(authorization, {
@@ -146,12 +147,21 @@ export class WidgetRequestHandler {
         ResponseCode.get('wid003'),
       );
     }
+    SocketUtil.emit(SocketEventName.WIDGET, {
+      entry: {
+        _id: `${widget._id}`,
+      },
+      message: 'Widget has been added.',
+      source: sid,
+      type: 'add',
+    });
     return widget;
   }
 
   static async update(
     authorization: string,
     data: UpdateWidgetData,
+    sid: string,
   ): Promise<Widget | FSWidget> {
     const error = HttpErrorFactory.instance('update', this.logger);
     try {
@@ -316,10 +326,18 @@ export class WidgetRequestHandler {
     if (updateEntries) {
       // TODO: Update widget in Entries.
     }
+    SocketUtil.emit(SocketEventName.WIDGET, {
+      entry: {
+        _id: `${widget._id}`,
+      },
+      message: 'Widget has been updated.',
+      source: sid,
+      type: 'update',
+    });
     return widget;
   }
 
-  static async deleteById(authorization: string, id: string) {
+  static async deleteById(authorization: string, id: string, sid: string) {
     const error = HttpErrorFactory.instance('deleteById', this.logger);
     if (StringUtility.isIdValid(id) === false) {
       throw error.occurred(
@@ -355,5 +373,13 @@ export class WidgetRequestHandler {
       );
     }
     // TODO: Remove Widget from Entries.
+    SocketUtil.emit(SocketEventName.WIDGET, {
+      entry: {
+        _id: `${widget._id}`,
+      },
+      message: 'Widget has been removed.',
+      source: sid,
+      type: 'remove',
+    });
   }
 }

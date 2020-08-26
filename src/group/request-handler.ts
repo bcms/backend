@@ -21,7 +21,7 @@ import {
   UpdateGroupDataSchema,
 } from './interfaces';
 import { PropFactory, Prop, PropHandler } from '../prop';
-import { General } from '../util';
+import { General, SocketUtil, SocketEventName } from '../util';
 
 export class GroupRequestHandler {
   @CreateLogger(GroupRequestHandler)
@@ -101,6 +101,7 @@ export class GroupRequestHandler {
   static async add(
     authorization: string,
     data: AddGroupData,
+    sid: string,
   ): Promise<Group | FSGroup> {
     const error = HttpErrorFactory.instance('add', this.logger);
     try {
@@ -143,12 +144,21 @@ export class GroupRequestHandler {
         ResponseCode.get('grp003'),
       );
     }
+    SocketUtil.emit(SocketEventName.GROUP, {
+      entry: {
+        _id: `${group._id}`,
+      },
+      message: 'Group has been added.',
+      source: sid,
+      type: 'add',
+    });
     return group;
   }
 
   static async update(
     authorization: string,
     data: UpdateGroupData,
+    sid: string,
   ): Promise<Group | FSGroup> {
     const error = HttpErrorFactory.instance('update', this.logger);
     try {
@@ -329,13 +339,21 @@ export class GroupRequestHandler {
         ResponseCode.get('grp005'),
       );
     }
+    SocketUtil.emit(SocketEventName.GROUP, {
+      entry: {
+        _id: `${group._id}`,
+      },
+      message: 'Group has been updated.',
+      source: sid,
+      type: 'update',
+    });
     if (updateEntries) {
       // TODO: Update group in Entries.
     }
     return group;
   }
 
-  static async deleteById(authorization: string, id: string) {
+  static async deleteById(authorization: string, id: string, sid: string) {
     const error = HttpErrorFactory.instance('deleteById', this.logger);
     if (StringUtility.isIdValid(id) === false) {
       throw error.occurred(
@@ -371,5 +389,13 @@ export class GroupRequestHandler {
       );
     }
     // TODO: Remove group from the Entries.
+    SocketUtil.emit(SocketEventName.GROUP, {
+      entry: {
+        _id: `${group._id}`,
+      },
+      message: 'Group has been removed.',
+      source: sid,
+      type: 'remove',
+    });
   }
 }

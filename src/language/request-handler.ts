@@ -101,6 +101,7 @@ export class LanguageRequestHandler {
   static async add(
     authorization: string,
     data: AddLanguageData,
+    sid: string,
   ): Promise<Language | FSLanguage> {
     const error = HttpErrorFactory.instance('add', this.logger);
     try {
@@ -143,6 +144,14 @@ export class LanguageRequestHandler {
         ResponseCode.get('lng003'),
       );
     }
+    SocketUtil.emit(SocketEventName.LANGUAGE, {
+      entry: {
+        _id: `${language._id}`,
+      },
+      message: 'Language has been added.',
+      source: sid,
+      type: 'add',
+    });
     // TODO: Add new Language to existing Entries.
     return language;
   }
@@ -236,7 +245,7 @@ export class LanguageRequestHandler {
     return language;
   }
 
-  static async deleteById(authorization: string, id: string) {
+  static async deleteById(authorization: string, id: string, sid: string) {
     const error = HttpErrorFactory.instance('deleteById', this.logger);
     if (StringUtility.isIdValid(id) === false) {
       throw error.occurred(
@@ -277,6 +286,14 @@ export class LanguageRequestHandler {
         ResponseCode.get('lng006'),
       );
     }
+    SocketUtil.emit(SocketEventName.LANGUAGE, {
+      entry: {
+        _id: `${language._id}`,
+      },
+      message: 'Language has been removed.',
+      source: sid,
+      type: 'remove',
+    });
     // TODO: Remove Language from existing Entries.
   }
 }

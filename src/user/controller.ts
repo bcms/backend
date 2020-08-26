@@ -65,6 +65,7 @@ export class UserController implements ControllerPrototype {
       user: await UserRequestHandler.update(
         request.headers.authorization,
         request.body,
+        request.headers.sid as string,
       ),
     };
   }
@@ -75,6 +76,7 @@ export class UserController implements ControllerPrototype {
       user: await UserRequestHandler.add(
         request.headers.authorization,
         request.body,
+        request.headers.sid as string,
       ),
     };
   }
@@ -85,6 +87,7 @@ export class UserController implements ControllerPrototype {
       user: await UserRequestHandler.makeAnAdmin(
         request.headers.authorization,
         request.params.id,
+        request.headers.sid as string,
       ),
     };
   }
@@ -111,6 +114,7 @@ export class UserController implements ControllerPrototype {
     await UserRequestHandler.delete(
       request.headers.authorization,
       request.params.id,
+      request.headers.sid as string,
     );
     return {
       message: 'Success.',

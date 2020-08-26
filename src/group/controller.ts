@@ -62,6 +62,7 @@ export class GroupController implements ControllerPrototype {
       group: await GroupRequestHandler.add(
         request.headers.authorization,
         request.body,
+        request.headers.sid as string,
       ),
     };
   }
@@ -72,6 +73,7 @@ export class GroupController implements ControllerPrototype {
       group: await GroupRequestHandler.update(
         request.headers.authorization,
         request.body,
+        request.headers.sid as string,
       ),
     };
   }
@@ -81,6 +83,7 @@ export class GroupController implements ControllerPrototype {
     await GroupRequestHandler.deleteById(
       request.headers.authorization,
       request.params.id,
+      request.headers.sid as string,
     );
     return {
       message: 'Success.',

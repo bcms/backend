@@ -21,7 +21,7 @@ import {
 } from './interfaces';
 import { TemplateFactory } from './factories';
 import { PropHandler, Prop, PropFactory } from '../prop';
-import { General } from '../util';
+import { General, SocketUtil, SocketEventName } from '../util';
 
 export class TemplateRequestHandler {
   @CreateLogger(TemplateRequestHandler)
@@ -102,6 +102,7 @@ export class TemplateRequestHandler {
   static async add(
     authorization: string,
     data: AddTemplateData,
+    sid: string,
   ): Promise<Template | FSTemplate> {
     const error = HttpErrorFactory.instance('add', this.logger);
     const jwt = JWTSecurity.checkAndValidateAndGet(authorization, {
@@ -145,12 +146,21 @@ export class TemplateRequestHandler {
         ResponseCode.get('tmp003'),
       );
     }
+    SocketUtil.emit(SocketEventName.TEMPLATE, {
+      entry: {
+        _id: `${template._id}`,
+      },
+      message: 'Template has been added.',
+      source: sid,
+      type: 'add',
+    });
     return template;
   }
 
   static async update(
     authorization: string,
     data: UpdateTemplateData,
+    sid: string,
   ): Promise<Template | FSTemplate> {
     const error = HttpErrorFactory.instance('update', this.logger);
     try {
@@ -326,10 +336,18 @@ export class TemplateRequestHandler {
     if (updateEntries) {
       // TODO: Update Entries props for this template.
     }
+    SocketUtil.emit(SocketEventName.TEMPLATE, {
+      entry: {
+        _id: `${template._id}`,
+      },
+      message: 'Template has been updated.',
+      source: sid,
+      type: 'update',
+    });
     return template;
   }
 
-  static async deleteById(authorization: string, id: string) {
+  static async deleteById(authorization: string, id: string, sid: string) {
     const error = HttpErrorFactory.instance('deleteById', this.logger);
     if (StringUtility.isIdValid(id) === false) {
       throw error.occurred(
@@ -350,7 +368,7 @@ export class TemplateRequestHandler {
         }),
       );
     }
-    const template = CacheControl.template.findById(id);
+    const template = await CacheControl.template.findById(id);
     if (!template) {
       throw error.occurred(
         HttpStatus.NOT_FOUNT,
@@ -365,5 +383,13 @@ export class TemplateRequestHandler {
       );
     }
     // TODO: Delete all Entries for this Template.
+    SocketUtil.emit(SocketEventName.TEMPLATE, {
+      entry: {
+        _id: `${template._id}`,
+      },
+      message: 'Template has been removed.',
+      source: sid,
+      type: 'remove',
+    });
   }
 }

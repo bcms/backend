@@ -55,6 +55,7 @@ export class TemplateController implements ControllerPrototype {
       template: await TemplateRequestHandler.add(
         request.headers.authorization,
         request.body,
+        request.headers.sid as string,
       ),
     };
   }
@@ -65,6 +66,7 @@ export class TemplateController implements ControllerPrototype {
       template: await TemplateRequestHandler.update(
         request.headers.authorization,
         request.body,
+        request.headers.sid as string,
       ),
     };
   }
@@ -74,6 +76,7 @@ export class TemplateController implements ControllerPrototype {
     await TemplateRequestHandler.deleteById(
       request.headers.authorization,
       request.params.id,
+      request.headers.sid as string,
     );
     return {
       message: 'Success.',

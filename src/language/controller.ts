@@ -55,6 +55,7 @@ export class LanguageController implements ControllerPrototype {
       language: await LanguageRequestHandler.add(
         request.headers.authorization,
         request.body,
+        request.headers.sid as string,
       ),
     };
   }
@@ -75,6 +76,7 @@ export class LanguageController implements ControllerPrototype {
     await LanguageRequestHandler.deleteById(
       request.headers.authorization,
       request.params.id,
+      request.headers.sid as string,
     );
     return {
       message: 'Success.',
