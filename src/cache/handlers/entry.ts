@@ -1,9 +1,22 @@
 import { CacheHandler } from '../handler';
-import { FSEntry, Entry, IEntry, EntryRepo } from '../../entry';
+import {
+  FSEntry,
+  Entry,
+  IEntry,
+  EntryRepo,
+  FSEntryRepository,
+  MongoEntryRepository,
+} from '../../entry';
 
-export class EntryCacheHandler extends CacheHandler<FSEntry, Entry, IEntry> {
+export class EntryCacheHandler extends CacheHandler<
+  FSEntry,
+  Entry,
+  IEntry,
+  FSEntryRepository,
+  MongoEntryRepository
+> {
   constructor() {
-    super(EntryRepo, ['count', 'findAllByTemplateId']);
+    super(EntryRepo, ['count', 'findAllByTemplateId', 'deleteAllByTemplateId']);
   }
 
   async findAllByTemplateId(
@@ -25,5 +38,17 @@ export class EntryCacheHandler extends CacheHandler<FSEntry, Entry, IEntry> {
       return true;
     });
     return this.cache.length;
+  }
+
+  async countByTemplateId(templateId: string): Promise<number> {
+    return await this.repo.countByTemplateId(templateId);
+  }
+
+  async deleteAllByTemplateId(templateId: string) {
+    await this.queueable.exec('count', 'first_done_free_all', async () => {
+      this.cache = this.cache.filter((e) => e.templateId !== templateId);
+      await this.repo.deleteAllByTemplateId(templateId);
+      return true;
+    });
   }
 }

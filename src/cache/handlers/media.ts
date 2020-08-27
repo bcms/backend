@@ -1,7 +1,20 @@
 import { CacheHandler } from '../handler';
-import { FSMedia, Media, IMedia, MediaRepo } from '../../media';
+import {
+  FSMedia,
+  Media,
+  IMedia,
+  MediaRepo,
+  FSMediaRepository,
+  MongoMediaRepository,
+} from '../../media';
 
-export class MediaCacheHandler extends CacheHandler<FSMedia, Media, IMedia> {
+export class MediaCacheHandler extends CacheHandler<
+  FSMedia,
+  Media,
+  IMedia,
+  FSMediaRepository,
+  MongoMediaRepository
+> {
   constructor() {
     super(MediaRepo, [
       'findAllByIsInRoot',

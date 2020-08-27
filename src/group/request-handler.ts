@@ -20,8 +20,11 @@ import {
   UpdateGroupData,
   UpdateGroupDataSchema,
 } from './interfaces';
-import { PropFactory, Prop, PropHandler } from '../prop';
+import { PropHandler, PropChange } from '../prop';
 import { General, SocketUtil, SocketEventName } from '../util';
+import { Widget, FSWidget } from '../widget';
+import { Template, FSTemplate } from '../template';
+import { Entry, FSEntry } from '../entry';
 
 export class GroupRequestHandler {
   @CreateLogger(GroupRequestHandler)
@@ -78,6 +81,36 @@ export class GroupRequestHandler {
       );
     }
     return group;
+  }
+
+  static async getMany(
+    authorization: string,
+    idsString: string,
+  ): Promise<Array<Group | FSGroup>> {
+    const error = HttpErrorFactory.instance('getMany', this.logger);
+    const ids: string[] = idsString.split('-').map((id, i) => {
+      if (StringUtility.isIdValid(id) === false) {
+        throw error.occurred(
+          HttpStatus.BAD_REQUEST,
+          ResponseCode.get('g004', { id: `ids[${i}]: ${id}` }),
+        );
+      }
+      return id;
+    });
+    const jwt = JWTSecurity.checkAndValidateAndGet(authorization, {
+      roles: [RoleName.ADMIN, RoleName.USER],
+      permission: PermissionName.READ,
+      JWTConfig: JWTConfigService.get('user-token-config'),
+    });
+    if (jwt instanceof Error) {
+      throw error.occurred(
+        HttpStatus.UNAUTHORIZED,
+        ResponseCode.get('g001', {
+          msg: jwt.message,
+        }),
+      );
+    }
+    return await CacheControl.group.findAllById(ids);
   }
 
   static async count(authorization: string): Promise<number> {
@@ -221,59 +254,24 @@ export class GroupRequestHandler {
       group.desc = data.desc;
     }
     let updateEntries = false;
-    if (typeof data.propChanges !== 'undefined') {
-      for (const i in data.propChanges) {
-        const propChange = data.propChanges[i];
-        if (propChange.remove) {
-          updateEntries = true;
-          changeDetected = true;
-          group.props = group.props.filter((e) => e.name !== propChange.remove);
-        } else if (propChange.add) {
-          updateEntries = true;
-          changeDetected = true;
-          const prop: Prop = PropFactory.get(
-            propChange.add.type,
-            propChange.add.array,
-          );
-          if (!prop) {
-            throw error.occurred(
-              HttpStatus.BAD_REQUEST,
-              ResponseCode.get('g005', {
-                type: propChange.add.type,
-              }),
-            );
-          }
-          prop.label = propChange.add.label;
-          prop.name = General.labelToName(prop.label);
-          prop.required = propChange.add.required;
-          if (typeof propChange.add.value !== 'undefined') {
-            prop.value = propChange.add.value;
-          }
-          if (group.props.find((e) => e.name === prop.name)) {
-            throw error.occurred(
-              HttpStatus.BAD_REQUEST,
-              ResponseCode.get('grp004', {
-                prop: `data.propChanges[${i}]`,
-                msg: `Prop with name "${prop.name}" already exist at this level.`,
-              }),
-            );
-          }
-          group.props.push(prop);
-        } else if (propChange.update) {
-          updateEntries = true;
-          changeDetected = true;
-          // tslint:disable-next-line: prefer-for-of
-          for (let j = 0; j < group.props.length; j = j + 1) {
-            if (group.props[j].label === propChange.update.label.old) {
-              group.props[j].label = propChange.update.label.new;
-              group.props[j].name = General.labelToName(
-                propChange.update.label.new,
-              );
-              group.props[j].required = propChange.update.required;
-              break;
-            }
-          }
-        }
+    if (
+      typeof data.propChanges !== 'undefined' &&
+      data.propChanges.length > 0
+    ) {
+      updateEntries = true;
+      changeDetected = true;
+      try {
+        group.props = PropHandler.applyPropChanges(
+          group.props,
+          data.propChanges,
+        );
+      } catch (e) {
+        throw error.occurred(
+          HttpStatus.BAD_REQUEST,
+          ResponseCode.get('g009', {
+            msg: e.message,
+          }),
+        );
       }
     }
     if (!changeDetected) {
@@ -313,17 +311,35 @@ export class GroupRequestHandler {
         ResponseCode.get('grp005'),
       );
     }
+    let updated: any;
+    if (updateEntries) {
+      // TODO: It is a very big issue if this fails because
+      //        there is no mechanism to reverse the state
+      //        back to pre fail state.
+      try {
+        updated = await this.propsUpdate(group, data.propChanges);
+      } catch (e) {
+        this.logger.error('update', e);
+        throw error.occurred(
+          HttpStatus.INTERNAL_SERVER_ERROR,
+          ResponseCode.get('grp007', {
+            msg: e.message,
+          }),
+        );
+      }
+    }
     SocketUtil.emit(SocketEventName.GROUP, {
       entry: {
         _id: `${group._id}`,
       },
-      message: 'Group has been updated.',
+      message: Object.keys(updated)
+        .map((key) => {
+          return `${key}:` + updated[key].join('-');
+        })
+        .join('_'),
       source: sid,
       type: 'update',
     });
-    if (updateEntries) {
-      // TODO: Update group in Entries.
-    }
     return group;
   }
 
@@ -371,5 +387,108 @@ export class GroupRequestHandler {
       source: sid,
       type: 'remove',
     });
+  }
+
+  // tslint:disable-next-line: variable-name
+  private static async propsUpdate(
+    // tslint:disable-next-line: variable-name
+    _group: Group | FSGroup,
+    propChanges: PropChange[],
+  ) {
+    const updated: {
+      entries: string[];
+      groups: string[];
+      widgets: string[];
+      templates: string[];
+    } = {
+      entries: [],
+      groups: [],
+      templates: [],
+      widgets: [],
+    };
+    // Update Groups which are using this Group.
+    {
+      const groups = await CacheControl.group.findAll();
+      for (const i in groups) {
+        const group: Group | FSGroup = JSON.parse(JSON.stringify(groups[i]));
+        const output = PropHandler.propsUpdateTargetGroup(
+          `${_group._id}`,
+          group.props,
+          propChanges,
+        );
+        if (output.changesFound) {
+          updated.groups.push(`${group._id}`);
+          group.props = output.props;
+          await CacheControl.group.update(group);
+        }
+      }
+    }
+    // Update Widgets which are using this Group.
+    {
+      const widgets = await CacheControl.widget.findAll();
+      for (const i in widgets) {
+        const widget: Widget | FSWidget = JSON.parse(
+          JSON.stringify(widgets[i]),
+        );
+        const output = PropHandler.propsUpdateTargetGroup(
+          `${_group._id}`,
+          widget.props,
+          propChanges,
+        );
+        if (output.changesFound) {
+          updated.widgets.push(`${widget._id}`);
+          widget.props = output.props;
+          await CacheControl.widget.update(widget);
+        }
+      }
+    }
+    // Update Templates which are using this Group.
+    {
+      const templates = await CacheControl.template.findAll();
+      for (const i in templates) {
+        const template: Template | FSTemplate = JSON.parse(
+          JSON.stringify(templates[i]),
+        );
+        const output = PropHandler.propsUpdateTargetGroup(
+          `${_group._id}`,
+          template.props,
+          propChanges,
+        );
+        if (output.changesFound) {
+          updated.templates.push(`${template._id}`);
+          template.props = output.props;
+          await CacheControl.template.update(template);
+        }
+      }
+    }
+    // Update Entries which are using this Group.
+    {
+      for (const i in updated.templates) {
+        const entries = await CacheControl.entry.findAllByTemplateId(
+          updated.templates[i],
+        );
+        for (const j in entries) {
+          const entry: Entry | FSEntry = JSON.parse(JSON.stringify(entries[j]));
+          let changeInEntry = false;
+          for (const k in entry.meta) {
+            const meta = entry.meta[k];
+            const output = PropHandler.propsUpdateTargetGroup(
+              `${_group._id}`,
+              meta.props,
+              propChanges,
+            );
+            if (output.changesFound) {
+              changeInEntry = true;
+              entry.meta[k].props = output.props;
+            }
+          }
+          if (changeInEntry) {
+            updated.entries.push(`${entry._id}`);
+            await CacheControl.entry.update(entry);
+          }
+        }
+      }
+    }
+    return updated;
   }
 }

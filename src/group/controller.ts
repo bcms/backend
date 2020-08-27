@@ -39,6 +39,16 @@ export class GroupController implements ControllerPrototype {
     };
   }
 
+  @Get('/many/:ids')
+  async getMany(request: Request): Promise<{ groups: Array<Group | FSGroup> }> {
+    return {
+      groups: await GroupRequestHandler.getMany(
+        request.headers.authorization,
+        request.params.ids,
+      ),
+    };
+  }
+
   @Get('/count')
   async count(request: Request): Promise<{ count: number }> {
     return {

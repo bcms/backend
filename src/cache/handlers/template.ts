@@ -1,10 +1,19 @@
 import { CacheHandler } from '../handler';
-import { FSTemplate, Template, ITemplate, TemplateRepo } from '../../template';
+import {
+  FSTemplate,
+  Template,
+  ITemplate,
+  TemplateRepo,
+  FSTemplateRepository,
+  MongoTemplateRepository,
+} from '../../template';
 
 export class TemplateCacheHandler extends CacheHandler<
   FSTemplate,
   Template,
-  ITemplate
+  ITemplate,
+  FSTemplateRepository,
+  MongoTemplateRepository
 > {
   constructor() {
     super(TemplateRepo, ['findByName', 'count']);

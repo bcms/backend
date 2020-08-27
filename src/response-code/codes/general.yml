@@ -14,3 +14,5 @@ g007:
   msg: 'Prop check failed with: %msg%'
 g008: # Infinite loop detected
   msg: '%msg%'
+g009:
+  msg: 'Failed to update props. %msg%'

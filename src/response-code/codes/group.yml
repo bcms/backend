@@ -10,3 +10,5 @@ grp005:
   msg: Failed to update Group in the database.
 grp006:
   msg: Failed to delete Group from the database.
+grp007:
+  msg: Failed to update Entries, Groups, Widgets or Templates after Groups update. %msg%

@@ -1,7 +1,20 @@
 import { CacheHandler } from '../handler';
-import { FSUser, User, IUser, UserRepo } from '../../user';
+import {
+  FSUser,
+  User,
+  IUser,
+  UserRepo,
+  FSUserRepository,
+  MongoUserRepository,
+} from '../../user';
 
-export class UserCacheHandler extends CacheHandler<FSUser, User, IUser> {
+export class UserCacheHandler extends CacheHandler<
+  FSUser,
+  User,
+  IUser,
+  FSUserRepository,
+  MongoUserRepository
+> {
   constructor() {
     super(
       UserRepo,

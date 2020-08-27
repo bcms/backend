@@ -1,23 +1,15 @@
 import {
   Prop,
   PropType,
-  PropEntryPointer,
-  PropEntryPointerSchema,
   PropEnum,
-  PropEnumSchema,
   PropGroupPointer,
-  PropGroupPointerSchema,
   PropMedia,
-  PropMediaSchema,
-  PropSchema,
+  PropChange,
 } from './interfaces';
-import {
-  ObjectUtility,
-  ObjectSchema,
-  ObjectPropSchema,
-  StringUtility,
-} from '@becomes/purple-cheetah';
+import { ObjectUtility, StringUtility } from '@becomes/purple-cheetah';
 import { CacheControl } from '../cache';
+import { PropFactory } from './factory';
+import { General } from '../util';
 
 interface Pointer {
   group: Array<{
@@ -288,5 +280,96 @@ export class PropHandler {
         }
       }
     }
+  }
+  // tslint:disable-next-line: variable-name
+  static applyPropChanges(_props: Prop[], changes: PropChange[]): Prop[] {
+    let props = JSON.parse(JSON.stringify(_props));
+    for (const i in changes) {
+      const change = changes[i];
+      if (change.remove) {
+        props = props.filter((e) => e.name !== change.remove);
+      } else if (change.add) {
+        const prop: Prop = PropFactory.get(change.add.type, change.add.array);
+        if (!prop) {
+          throw new Error(
+            `Invalid property type "${change.add.type}"` +
+              ` was provided as "changes[${i}].add.type".`,
+          );
+        }
+        prop.label = change.add.label;
+        prop.name = General.labelToName(prop.label);
+        prop.required = change.add.required;
+        if (typeof change.add.value !== 'undefined') {
+          prop.value = change.add.value;
+        }
+        if (props.find((e) => e.name === prop.name)) {
+          throw new Error(
+            `Error at "changes[${i}].add".` +
+              ` Prop with name "${prop.name}" already exist at this level.`,
+          );
+        }
+        props.push(prop);
+      } else if (change.update) {
+        // tslint:disable-next-line: prefer-for-of
+        for (let j = 0; j < props.length; j = j + 1) {
+          if (props[j].label === change.update.label.old) {
+            props[j].label = change.update.label.new;
+            props[j].name = General.labelToName(change.update.label.new);
+            props[j].required = change.update.required;
+            break;
+          }
+        }
+      } else {
+        throw new Error(`changes[${i}]`);
+      }
+    }
+    return props;
+  }
+  /**
+   * Update properties `_props` with changes due to
+   * Group change.
+   */
+  static propsUpdateTargetGroup(
+    targetGroupId: string,
+    // tslint:disable-next-line: variable-name
+    _props: Prop[],
+    changes: PropChange[],
+    level?: string,
+  ): { changesFound: boolean; props: Prop[] } {
+    if (!level) {
+      level = 'props';
+    }
+    let changesFound = false;
+    const props: Prop[] = JSON.parse(JSON.stringify(_props));
+    for (const i in props) {
+      const prop = props[i];
+      if (prop.type === PropType.GROUP_POINTER) {
+        const value = prop.value as PropGroupPointer;
+        if (value._id === targetGroupId) {
+          changesFound = true;
+          for (const j in value.items) {
+            try {
+              (props[i].value as PropGroupPointer).items[
+                j
+              ].props = this.applyPropChanges(value.items[j].props, changes);
+            } catch (e) {
+              throw new Error(`Error at "props[${i}].value.items[j]" --> `);
+            }
+          }
+        } else {
+          for (const j in value.items) {
+            const output = this.propsUpdateTargetGroup(
+              targetGroupId,
+              value.items[j].props,
+              changes,
+              `props[${i}].value.items[j]`,
+            );
+            changesFound = output.changesFound;
+            (props[i].value as PropGroupPointer).items[j].props = output.props;
+          }
+        }
+      }
+    }
+    return { changesFound, props };
   }
 }

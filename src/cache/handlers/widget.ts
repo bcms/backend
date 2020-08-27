@@ -1,10 +1,19 @@
 import { CacheHandler } from '../handler';
-import { FSWidget, Widget, IWidget, WidgetRepo } from '../../widget';
+import {
+  FSWidget,
+  Widget,
+  IWidget,
+  WidgetRepo,
+  FSWidgetRepository,
+  MongoWidgetRepository,
+} from '../../widget';
 
 export class WidgetCacheHandler extends CacheHandler<
   FSWidget,
   Widget,
-  IWidget
+  IWidget,
+  FSWidgetRepository,
+  MongoWidgetRepository
 > {
   constructor() {
     super(WidgetRepo, ['findByName', 'count']);

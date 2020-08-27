@@ -67,6 +67,16 @@ export class EntryController implements ControllerPrototype {
     };
   }
 
+  @Get('/count/:templateId')
+  async countByTemplateId(request: Request): Promise<{ count: number }> {
+    return {
+      count: await EntryRequestHandler.countByTemplateId(
+        request.headers.authorization,
+        request.params.templateId,
+      ),
+    };
+  }
+
   @Get('/:id')
   async getById(request: Request): Promise<{ entry: Entry | FSEntry }> {
     return {

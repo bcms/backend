@@ -21,7 +21,7 @@ import {
   UpdateWidgetDataSchema,
 } from './interfaces';
 import { WidgetFactory } from './factories';
-import { Prop, PropFactory } from '../prop';
+import { Prop, PropFactory, PropChange } from '../prop';
 import { General, SocketUtil, SocketEventName } from '../util';
 
 export class WidgetRequestHandler {
@@ -224,63 +224,27 @@ export class WidgetRequestHandler {
       widget.desc = data.desc;
     }
     let updateEntries = false;
-    if (typeof data.propChanges !== 'undefined') {
-      for (const i in data.propChanges) {
-        const propChange = data.propChanges[i];
-        if (propChange.remove) {
-          updateEntries = true;
-          changeDetected = true;
-          widget.props = widget.props.filter(
-            (e) => e.name !== propChange.remove,
-          );
-        } else if (propChange.add) {
-          updateEntries = true;
-          changeDetected = true;
-          const prop: Prop = PropFactory.get(
-            propChange.add.type,
-            propChange.add.array,
-          );
-          if (!prop) {
-            throw error.occurred(
-              HttpStatus.BAD_REQUEST,
-              ResponseCode.get('g005', {
-                type: propChange.add.type,
-              }),
-            );
-          }
-          prop.label = propChange.add.label;
-          prop.name = General.labelToName(prop.label);
-          prop.required = propChange.add.required;
-          if (typeof propChange.add.value !== 'undefined') {
-            prop.value = propChange.add.value;
-          }
-          if (widget.props.find((e) => e.name === prop.name)) {
-            throw error.occurred(
-              HttpStatus.BAD_REQUEST,
-              ResponseCode.get('wid004', {
-                prop: `data.propChanges[${i}]`,
-                msg: `Prop with name "${prop.name}" already exist at this level.`,
-              }),
-            );
-          }
-          widget.props.push(prop);
-        } else if (propChange.update) {
-          updateEntries = true;
-          changeDetected = true;
-          // tslint:disable-next-line: prefer-for-of
-          for (let j = 0; j < widget.props.length; j = j + 1) {
-            if (widget.props[j].label === propChange.update.label.old) {
-              widget.props[j].label = propChange.update.label.new;
-              widget.props[j].name = General.labelToName(
-                propChange.update.label.new,
-              );
-              widget.props[j].required = propChange.update.required;
-            }
-          }
-        }
+    if (
+      typeof data.propChanges !== 'undefined' &&
+      data.propChanges.length > 0
+    ) {
+      updateEntries = true;
+      changeDetected = true;
+      try {
+        widget.props = PropHandler.applyPropChanges(
+          widget.props,
+          data.propChanges,
+        );
+      } catch (e) {
+        throw error.occurred(
+          HttpStatus.BAD_REQUEST,
+          ResponseCode.get('g009', {
+            msg: e.message,
+          }),
+        );
       }
     }
-    if (changeDetected === true) {
+    if (!changeDetected) {
       throw error.occurred(HttpStatus.FORBIDDEN, ResponseCode.get('g003'));
     }
     try {
@@ -294,7 +258,11 @@ export class WidgetRequestHandler {
       );
     }
     try {
-      await PropHandler.propsChecker(widget.props, widget.props, 'group.props');
+      await PropHandler.propsChecker(
+        widget.props,
+        widget.props,
+        'widget.props',
+      );
     } catch (e) {
       throw error.occurred(
         HttpStatus.BAD_REQUEST,
@@ -311,7 +279,17 @@ export class WidgetRequestHandler {
       );
     }
     if (updateEntries) {
-      // TODO: Update widget in Entries.
+      try {
+        await this.propsUpdate(widget, data.propChanges);
+      } catch (e) {
+        this.logger.error('update', e);
+        throw error.occurred(
+          HttpStatus.INTERNAL_SERVER_ERROR,
+          ResponseCode.get('wid007', {
+            msg: e.message,
+          }),
+        );
+      }
     }
     SocketUtil.emit(SocketEventName.WIDGET, {
       entry: {
@@ -368,5 +346,12 @@ export class WidgetRequestHandler {
       source: sid,
       type: 'remove',
     });
+  }
+
+  private static async propsUpdate(
+    widget: Widget | FSWidget,
+    propChanges: PropChange[],
+  ) {
+    // TODO: Update Entries content.
   }
 }

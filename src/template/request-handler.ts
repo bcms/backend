@@ -20,8 +20,9 @@ import {
   UpdateTemplateDataSchema,
 } from './interfaces';
 import { TemplateFactory } from './factories';
-import { PropHandler, Prop, PropFactory } from '../prop';
+import { PropHandler, Prop, PropFactory, PropChange } from '../prop';
 import { General, SocketUtil, SocketEventName } from '../util';
+import { Entry, FSEntry } from '../entry';
 
 export class TemplateRequestHandler {
   @CreateLogger(TemplateRequestHandler)
@@ -230,61 +231,24 @@ export class TemplateRequestHandler {
       template.singleEntry = data.singleEntry;
     }
     let updateEntries = false;
-    if (typeof data.propChanges !== 'undefined') {
-      for (const i in data.propChanges) {
-        const propChange = data.propChanges[i];
-        if (propChange.remove) {
-          updateEntries = true;
-          changeDetected = true;
-          template.props = template.props.filter(
-            (e) => e.name !== propChange.remove,
-          );
-        } else if (propChange.add) {
-          updateEntries = true;
-          changeDetected = true;
-          const prop: Prop = PropFactory.get(
-            propChange.add.type,
-            propChange.add.array,
-          );
-          if (!prop) {
-            throw error.occurred(
-              HttpStatus.BAD_REQUEST,
-              ResponseCode.get('g005', {
-                type: propChange.add.type,
-              }),
-            );
-          }
-          prop.label = propChange.add.label;
-          prop.name = General.labelToName(prop.label);
-          prop.required = propChange.add.required;
-          if (typeof propChange.add.value !== 'undefined') {
-            prop.value = propChange.add.value;
-          }
-          if (template.props.find((e) => e.name === prop.name)) {
-            throw error.occurred(
-              HttpStatus.BAD_REQUEST,
-              ResponseCode.get('tmp004', {
-                prop: `data.propChanges[${i}]`,
-                msg: `Prop with name "${prop.name}" already exist at this level.`,
-              }),
-            );
-          }
-          template.props.push(prop);
-        } else if (propChange.update) {
-          updateEntries = true;
-          changeDetected = true;
-          // tslint:disable-next-line: prefer-for-of
-          for (let j = 0; j < template.props.length; j = j + 1) {
-            if (template.props[j].label === propChange.update.label.old) {
-              template.props[j].label = propChange.update.label.new;
-              template.props[j].name = General.labelToName(
-                propChange.update.label.new,
-              );
-              template.props[j].required = propChange.update.required;
-              break;
-            }
-          }
-        }
+    if (
+      typeof data.propChanges !== 'undefined' &&
+      data.propChanges.length > 0
+    ) {
+      updateEntries = true;
+      changeDetected = true;
+      try {
+        template.props = PropHandler.applyPropChanges(
+          template.props,
+          data.propChanges,
+        );
+      } catch (e) {
+        throw error.occurred(
+          HttpStatus.BAD_REQUEST,
+          ResponseCode.get('g009', {
+            msg: e.message,
+          }),
+        );
       }
     }
     if (!changeDetected) {
@@ -321,14 +285,25 @@ export class TemplateRequestHandler {
         ResponseCode.get('tmp005'),
       );
     }
+    let updated: string[] = [];
     if (updateEntries) {
-      // TODO: Update Entries props for this template.
+      try {
+        updated = await this.propsUpdate(template, data.propChanges);
+      } catch (e) {
+        this.logger.error('update', e);
+        throw error.occurred(
+          HttpStatus.INTERNAL_SERVER_ERROR,
+          ResponseCode.get('tmp008', {
+            msg: e.message,
+          }),
+        );
+      }
     }
     SocketUtil.emit(SocketEventName.TEMPLATE, {
       entry: {
         _id: `${template._id}`,
       },
-      message: 'Template has been updated.',
+      message: updated.join('-'),
       source: sid,
       type: 'update',
     });
@@ -370,7 +345,17 @@ export class TemplateRequestHandler {
         ResponseCode.get('tmp006'),
       );
     }
-    // TODO: Delete all Entries for this Template.
+    const entries = await CacheControl.entry.findAllByTemplateId(
+      `${template._id}`,
+    );
+    try {
+      await CacheControl.entry.deleteAllByTemplateId(`${template._id}`);
+    } catch (e) {
+      this.logger.error('deleteById', {
+        msg: 'Failed to delete Entries for removed Template.',
+        err: e,
+      });
+    }
     SocketUtil.emit(SocketEventName.TEMPLATE, {
       entry: {
         _id: `${template._id}`,
@@ -379,5 +364,26 @@ export class TemplateRequestHandler {
       source: sid,
       type: 'remove',
     });
+  }
+
+  private static async propsUpdate(
+    template: Template | FSTemplate,
+    propChanges: PropChange[],
+  ) {
+    const entries = await CacheControl.entry.findAllByTemplateId(
+      `${template._id}`,
+    );
+    for (const i in entries) {
+      const entry: Entry | FSEntry = JSON.parse(JSON.stringify(entries[i]));
+      for (const j in entry.meta) {
+        const meta = entry.meta[j];
+        entry.meta[j].props = PropHandler.applyPropChanges(
+          meta.props,
+          propChanges,
+        );
+      }
+      await CacheControl.entry.update(entry);
+    }
+    return entries.map((e) => `${e._id}`);
   }
 }

@@ -27,8 +27,15 @@ export class FSEntryRepository implements FSDBRepositoryPrototype<FSEntry> {
   deleteOne: (query: (e: FSEntry) => boolean) => Promise<void>;
   deleteMany: (query: (e: FSEntry) => boolean) => Promise<void>;
   count: () => Promise<number>;
+  async countByTemplateId(templateId: string): Promise<number> {
+    return (await this.repo.find((e) => e.templateId === templateId)).length;
+  }
 
   async findAllByTemplateId(templateId: string) {
     return await this.repo.find((e) => e.templateId === templateId);
+  }
+
+  async deleteAllByTemplateId(templateId: string) {
+    await this.repo.deleteMany((e) => e.templateId === templateId);
   }
 }

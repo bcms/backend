@@ -1,10 +1,19 @@
 import { CacheHandler } from '../handler';
-import { FSApiKey, ApiKey, IApiKey, ApiKeyRepo } from '../../api';
+import {
+  FSApiKey,
+  ApiKey,
+  IApiKey,
+  ApiKeyRepo,
+  FSApiKeyRepository,
+  MongoApiKeyRepository,
+} from '../../api';
 
 export class ApiKeyCacheHandler extends CacheHandler<
   FSApiKey,
   ApiKey,
-  IApiKey
+  IApiKey,
+  FSApiKeyRepository,
+  MongoApiKeyRepository
 > {
   constructor() {
     super(ApiKeyRepo, ['count']);

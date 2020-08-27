@@ -1,10 +1,19 @@
 import { CacheHandler } from '../handler';
-import { FSLanguage, Language, ILanguage, LanguageRepo } from '../../language';
+import {
+  FSLanguage,
+  Language,
+  ILanguage,
+  LanguageRepo,
+  FSLanguageRepository,
+  MongoLanguageRepository,
+} from '../../language';
 
 export class LanguageCacheHandler extends CacheHandler<
   FSLanguage,
   Language,
-  ILanguage
+  ILanguage,
+  FSLanguageRepository,
+  MongoLanguageRepository
 > {
   constructor() {
     super(LanguageRepo, ['findByCode', 'findDefault', 'count']);

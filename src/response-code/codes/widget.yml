@@ -10,3 +10,5 @@ wid005:
   msg: Failed to update Widget in the database.
 wid006:
   msg: Failed to delete widget from the database.
+wid007:
+  msg: Failed to update Entries after Widget update. %msg%

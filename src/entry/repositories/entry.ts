@@ -28,11 +28,17 @@ export class MongoEntryRepository
   deleteById: (id: string) => Promise<boolean>;
   deleteAllById: (ids: string[]) => Promise<number | boolean>;
   async count(): Promise<number> {
-    return await this.repo.countDocuments();
+    return await this.repo.find().countDocuments();
+  }
+  async countByTemplateId(templateId): Promise<number> {
+    return await this.repo.find({ templateId }).countDocuments();
   }
 
-  async findAllByTemplateId(templateId): Promise<Entry[]> {
+  async findAllByTemplateId(templateId: string): Promise<Entry[]> {
     return await this.repo.find({ templateId });
   }
 
+  async deleteAllByTemplateId(templateId: string) {
+    await this.repo.deleteMany({ templateId });
+  }
 }

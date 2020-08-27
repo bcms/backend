@@ -151,6 +151,33 @@ export class EntryRequestHandler {
     );
   }
 
+  static async countByTemplateId(
+    authorization: string,
+    templateId: string,
+  ): Promise<number> {
+    const error = HttpErrorFactory.instance('countByTemplateId', this.logger);
+    if (StringUtility.isIdValid(templateId) === false) {
+      throw error.occurred(
+        HttpStatus.BAD_REQUEST,
+        ResponseCode.get('g004', { templateId }),
+      );
+    }
+    const jwt = JWTSecurity.checkAndValidateAndGet(authorization, {
+      roles: [RoleName.ADMIN, RoleName.USER],
+      permission: PermissionName.READ,
+      JWTConfig: JWTConfigService.get('user-token-config'),
+    });
+    if (jwt instanceof Error) {
+      throw error.occurred(
+        HttpStatus.UNAUTHORIZED,
+        ResponseCode.get('g001', {
+          msg: jwt.message,
+        }),
+      );
+    }
+    return await CacheControl.entry.countByTemplateId(templateId);
+  }
+
   static async getById(
     authorization: string,
     id: string,
@@ -390,11 +417,7 @@ export class EntryRequestHandler {
     }
   }
 
-  static async deleteById(
-    authorization: string,
-    id: string,
-    sid: string,
-  ) {
+  static async deleteById(authorization: string, id: string, sid: string) {
     const error = HttpErrorFactory.instance('deleteById', this.logger);
     if (StringUtility.isIdValid(id) === false) {
       throw error.occurred(

@@ -13,18 +13,15 @@ import { Types } from 'mongoose';
 export abstract class CacheHandler<
   T extends FSDBEntity,
   K extends Entity,
-  J extends IEntity
+  J extends IEntity,
+  M extends FSDBRepositoryPrototype<T>,
+  N extends MongoDBRepositoryPrototype<K, J>
 > {
   protected cache: Array<T | K> = [];
   protected countLatch: boolean = false;
   protected queueable: QueueablePrototype<T | K | Array<T | K> | boolean>;
 
-  constructor(
-    protected repo:
-      | FSDBRepositoryPrototype<T>
-      | MongoDBRepositoryPrototype<K, J>,
-    queueable: string[],
-  ) {
+  constructor(protected repo: M | N, queueable: string[]) {
     this.queueable = Queueable(
       'findAll',
       'findAllById',
@@ -54,7 +51,7 @@ export abstract class CacheHandler<
     )) as Array<T | K>;
   }
 
-  async findAllById(ids: string): Promise<Array<T | K>> {
+  async findAllById(ids: string[]): Promise<Array<T | K>> {
     return (await this.queueable.exec(
       'findAllById',
       'free_one_by_one',
