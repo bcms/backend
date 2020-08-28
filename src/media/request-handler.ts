@@ -9,14 +9,19 @@ import {
   JWTConfigService,
   HttpStatus,
   StringUtility,
+  ObjectUtility,
 } from '@becomes/purple-cheetah';
 import { Media, FSMedia, MediaType } from './models';
 import { ResponseCode } from '../response-code';
 import { ApiKeyRequestObject, ApiKeySecurity } from '../api';
 import { CacheControl } from '../cache';
-import { MediaAggregate, AddMediaDirData } from './interfaces';
+import {
+  MediaAggregate,
+  AddMediaDirData,
+  AddMediaDirDataSchema,
+} from './interfaces';
 import { MediaFactory } from './factories';
-import { MediaUtil } from '../util';
+import { MediaUtil, SocketUtil, SocketEventName } from '../util';
 
 export class MediaRequestHandler {
   @CreateLogger(MediaRequestHandler)
@@ -311,11 +316,12 @@ export class MediaRequestHandler {
 
   static async addFile(
     authorization: string,
+    sid: string,
     parentId?: string,
     file?: Express.Multer.File,
   ): Promise<Media | FSMedia> {
     const error = HttpErrorFactory.instance('addFile', this.logger);
-    if (parentId && StringUtility.isIdValid(parentId) === false) {
+    if (!parentId || StringUtility.isIdValid(parentId) === false) {
       throw error.occurred(
         HttpStatus.BAD_REQUEST,
         ResponseCode.get('mda010', { id: parentId }),
@@ -360,9 +366,9 @@ export class MediaRequestHandler {
     media.mimetype = file.mimetype;
     media.size = file.size;
     media.name =
-      StringUtility.createSlug(fileName) +
-      '.' +
-      StringUtility.createSlug(fileExt);
+      StringUtility.createSlug(fileName) + fileExt
+        ? '.' + StringUtility.createSlug(fileExt)
+        : '';
     media.path = parent ? parent.path : '/';
     media.isInRoot = parent ? false : true;
     media.hasChildren = false;
@@ -379,14 +385,33 @@ export class MediaRequestHandler {
         ResponseCode.get('mda003'),
       );
     }
+    SocketUtil.emit(SocketEventName.MEDIA, {
+      entry: {
+        _id: `${media._id}`,
+      },
+      message: 'Media added.',
+      source: sid,
+      type: 'add',
+    });
     return media;
   }
 
   static async addDir(
     authorization: string,
     data: AddMediaDirData,
+    sid: string,
   ): Promise<Media | FSMedia> {
     const error = HttpErrorFactory.instance('addDir', this.logger);
+    try {
+      ObjectUtility.compareWithSchema(data, AddMediaDirDataSchema, 'data');
+    } catch (e) {
+      throw error.occurred(
+        HttpStatus.BAD_REQUEST,
+        ResponseCode.get('g002', {
+          msg: e.message,
+        }),
+      );
+    }
     if (data.parentId && StringUtility.isIdValid(data.parentId) === false) {
       throw error.occurred(
         HttpStatus.BAD_REQUEST,
@@ -437,6 +462,14 @@ export class MediaRequestHandler {
       );
     }
     await MediaUtil.fs.mkdir(media);
+    SocketUtil.emit(SocketEventName.MEDIA, {
+      entry: {
+        _id: `${media._id}`,
+      },
+      message: 'Media added.',
+      source: sid,
+      type: 'add',
+    });
     return media;
   }
 
@@ -479,7 +512,7 @@ export class MediaRequestHandler {
 
   // }
 
-  static async deleteById(authorization: string, id: string) {
+  static async deleteById(authorization: string, id: string, sid: string) {
     const error = HttpErrorFactory.instance('deleteById', this.logger);
     if (StringUtility.isIdValid(id) === false) {
       throw error.occurred(
@@ -526,6 +559,14 @@ export class MediaRequestHandler {
       }
       await MediaUtil.fs.removeFile(media);
     }
+    SocketUtil.emit(SocketEventName.MEDIA, {
+      entry: {
+        _id: `${media._id}`,
+      },
+      message: 'Media added.',
+      source: sid,
+      type: 'remove',
+    });
   }
 
   private static getAllChildren(

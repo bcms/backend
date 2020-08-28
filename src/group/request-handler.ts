@@ -9,6 +9,7 @@ import {
   HttpStatus,
   StringUtility,
   ObjectUtility,
+  Queueable,
 } from '@becomes/purple-cheetah';
 import { FSGroup, Group } from './models';
 import { ResponseCode } from '../response-code';
@@ -29,6 +30,7 @@ import { Entry, FSEntry } from '../entry';
 export class GroupRequestHandler {
   @CreateLogger(GroupRequestHandler)
   private static logger: Logger;
+  private static queueable = Queueable<Group | FSGroup | void>('update');
 
   static async getAll(authorization: string): Promise<Array<Group | FSGroup>> {
     const error = HttpErrorFactory.instance('getAll', this.logger);
@@ -88,6 +90,14 @@ export class GroupRequestHandler {
     idsString: string,
   ): Promise<Array<Group | FSGroup>> {
     const error = HttpErrorFactory.instance('getMany', this.logger);
+    if (!idsString) {
+      throw error.occurred(
+        HttpStatus.BAD_REQUEST,
+        ResponseCode.get('g010', {
+          param: 'ids',
+        }),
+      );
+    }
     const ids: string[] = idsString.split('-').map((id, i) => {
       if (StringUtility.isIdValid(id) === false) {
         throw error.occurred(
@@ -188,159 +198,168 @@ export class GroupRequestHandler {
     return group;
   }
 
+  /**
+   * This method will update specified Group and it have a lot
+   * of side effect. This is done to remove complex and hard work
+   * from the client and to ensure that data is consistent in the
+   * database. After updating the Group, `propsUpdate` method
+   * will be called and it will update all Entries, Templates,
+   * Groups and Widgets which are using this group.
+   */
   static async update(
     authorization: string,
     data: UpdateGroupData,
     sid: string,
   ): Promise<Group | FSGroup> {
-    const error = HttpErrorFactory.instance('update', this.logger);
-    try {
-      ObjectUtility.compareWithSchema(data, UpdateGroupDataSchema, 'data');
-    } catch (err) {
-      throw error.occurred(
-        HttpStatus.BAD_REQUEST,
-        ResponseCode.get('g002', {
-          msg: err.message,
-        }),
-      );
-    }
-    if (StringUtility.isIdValid(data._id) === false) {
-      throw error.occurred(
-        HttpStatus.BAD_REQUEST,
-        ResponseCode.get('g004', { id: data._id }),
-      );
-    }
-    const jwt = JWTSecurity.checkAndValidateAndGet(authorization, {
-      roles: [RoleName.ADMIN],
-      permission: PermissionName.WRITE,
-      JWTConfig: JWTConfigService.get('user-token-config'),
-    });
-    if (jwt instanceof Error) {
-      throw error.occurred(
-        HttpStatus.UNAUTHORIZED,
-        ResponseCode.get('g001', {
-          msg: jwt.message,
-        }),
-      );
-    }
-    let group: Group | FSGroup;
-    {
-      const g = await CacheControl.group.findById(data._id);
-      if (!g) {
+    return (await this.queueable.exec('update', 'free_one_by_one', async () => {
+      const error = HttpErrorFactory.instance('update', this.logger);
+      try {
+        ObjectUtility.compareWithSchema(data, UpdateGroupDataSchema, 'data');
+      } catch (err) {
         throw error.occurred(
-          HttpStatus.NOT_FOUNT,
-          ResponseCode.get('grp001', { id: data._id }),
+          HttpStatus.BAD_REQUEST,
+          ResponseCode.get('g002', {
+            msg: err.message,
+          }),
         );
       }
-      group = JSON.parse(JSON.stringify(g));
-    }
-    let changeDetected = false;
-    if (typeof data.label !== 'undefined') {
-      const name = General.labelToName(data.label);
-      if (group.name !== name) {
-        changeDetected = true;
-        group.label = data.label;
-        group.name = name;
-        if (await CacheControl.group.findByName(group.name)) {
+      if (StringUtility.isIdValid(data._id) === false) {
+        throw error.occurred(
+          HttpStatus.BAD_REQUEST,
+          ResponseCode.get('g004', { id: data._id }),
+        );
+      }
+      const jwt = JWTSecurity.checkAndValidateAndGet(authorization, {
+        roles: [RoleName.ADMIN],
+        permission: PermissionName.WRITE,
+        JWTConfig: JWTConfigService.get('user-token-config'),
+      });
+      if (jwt instanceof Error) {
+        throw error.occurred(
+          HttpStatus.UNAUTHORIZED,
+          ResponseCode.get('g001', {
+            msg: jwt.message,
+          }),
+        );
+      }
+      let group: Group | FSGroup;
+      {
+        const g = await CacheControl.group.findById(data._id);
+        if (!g) {
           throw error.occurred(
-            HttpStatus.FORBIDDEN,
-            ResponseCode.get('grp002', { name: group.name }),
+            HttpStatus.NOT_FOUNT,
+            ResponseCode.get('grp001', { id: data._id }),
+          );
+        }
+        group = JSON.parse(JSON.stringify(g));
+      }
+      let changeDetected = false;
+      if (typeof data.label !== 'undefined') {
+        const name = General.labelToName(data.label);
+        if (group.name !== name) {
+          changeDetected = true;
+          group.label = data.label;
+          group.name = name;
+          if (await CacheControl.group.findByName(group.name)) {
+            throw error.occurred(
+              HttpStatus.FORBIDDEN,
+              ResponseCode.get('grp002', { name: group.name }),
+            );
+          }
+        }
+      }
+      if (typeof data.desc === 'string' && data.desc !== group.desc) {
+        changeDetected = true;
+        group.desc = data.desc;
+      }
+      let updateEntries = false;
+      if (
+        typeof data.propChanges !== 'undefined' &&
+        data.propChanges.length > 0
+      ) {
+        updateEntries = true;
+        changeDetected = true;
+        try {
+          group.props = await PropHandler.applyPropChanges(
+            group.props,
+            data.propChanges,
+          );
+        } catch (e) {
+          throw error.occurred(
+            HttpStatus.BAD_REQUEST,
+            ResponseCode.get('g009', {
+              msg: e.message,
+            }),
           );
         }
       }
-    }
-    if (typeof data.desc === 'string' && data.desc !== group.desc) {
-      changeDetected = true;
-      group.desc = data.desc;
-    }
-    let updateEntries = false;
-    if (
-      typeof data.propChanges !== 'undefined' &&
-      data.propChanges.length > 0
-    ) {
-      updateEntries = true;
-      changeDetected = true;
+      if (!changeDetected) {
+        throw error.occurred(HttpStatus.FORBIDDEN, ResponseCode.get('g003'));
+      }
       try {
-        group.props = PropHandler.applyPropChanges(
-          group.props,
-          data.propChanges,
-        );
+        await PropHandler.testInfiniteLoop(group.props, {
+          group: [
+            {
+              _id: `${group._id}`,
+              label: group.label,
+            },
+          ],
+        });
       } catch (e) {
         throw error.occurred(
           HttpStatus.BAD_REQUEST,
-          ResponseCode.get('g009', {
+          ResponseCode.get('g008', {
             msg: e.message,
           }),
         );
       }
-    }
-    if (!changeDetected) {
-      throw error.occurred(HttpStatus.FORBIDDEN, ResponseCode.get('g003'));
-    }
-    try {
-      await PropHandler.testInfiniteLoop(group.props, {
-        group: [
-          {
-            _id: `${group._id}`,
-            label: group.label,
-          },
-        ],
-      });
-    } catch (e) {
-      throw error.occurred(
-        HttpStatus.BAD_REQUEST,
-        ResponseCode.get('g008', {
-          msg: e.message,
-        }),
-      );
-    }
-    try {
-      await PropHandler.propsChecker(group.props, group.props, 'group.props');
-    } catch (e) {
-      throw error.occurred(
-        HttpStatus.BAD_REQUEST,
-        ResponseCode.get('g007', {
-          msg: e.message,
-        }),
-      );
-    }
-    const updateResult = await CacheControl.group.update(group);
-    if (updateResult === false) {
-      throw error.occurred(
-        HttpStatus.INTERNAL_SERVER_ERROR,
-        ResponseCode.get('grp005'),
-      );
-    }
-    let updated: any;
-    if (updateEntries) {
-      // TODO: It is a very big issue if this fails because
-      //        there is no mechanism to reverse the state
-      //        back to pre fail state.
       try {
-        updated = await this.propsUpdate(group, data.propChanges);
+        await PropHandler.propsChecker(group.props, group.props, 'group.props');
       } catch (e) {
-        this.logger.error('update', e);
+        throw error.occurred(
+          HttpStatus.BAD_REQUEST,
+          ResponseCode.get('g007', {
+            msg: e.message,
+          }),
+        );
+      }
+      const updateResult = await CacheControl.group.update(group);
+      if (updateResult === false) {
         throw error.occurred(
           HttpStatus.INTERNAL_SERVER_ERROR,
-          ResponseCode.get('grp007', {
-            msg: e.message,
-          }),
+          ResponseCode.get('grp005'),
         );
       }
-    }
-    SocketUtil.emit(SocketEventName.GROUP, {
-      entry: {
-        _id: `${group._id}`,
-      },
-      message: Object.keys(updated)
-        .map((key) => {
-          return `${key}:` + updated[key].join('-');
-        })
-        .join('_'),
-      source: sid,
-      type: 'update',
-    });
-    return group;
+      let updated: any;
+      if (updateEntries) {
+        // TODO: It is a very big issue if this fails because
+        //        there is no mechanism to reverse the state
+        //        back to pre fail state.
+        try {
+          updated = await this.propsUpdate(`${group._id}`, data.propChanges);
+        } catch (e) {
+          this.logger.error('update', e);
+          throw error.occurred(
+            HttpStatus.INTERNAL_SERVER_ERROR,
+            ResponseCode.get('grp007', {
+              msg: e.message,
+            }),
+          );
+        }
+      }
+      this.logger.info('updated', updated);
+      SocketUtil.emit(SocketEventName.GROUP, {
+        entry: {
+          _id: `${group._id}`,
+        },
+        message: {
+          updated,
+        },
+        source: sid,
+        type: 'update',
+      });
+      return group;
+    })) as Group | FSGroup;
   }
 
   static async deleteById(authorization: string, id: string, sid: string) {
@@ -378,12 +397,32 @@ export class GroupRequestHandler {
         ResponseCode.get('grp006'),
       );
     }
-    // TODO: Remove group from the Entries.
+    let updated: any;
+    // TODO: It is a very big issue if this fails because
+    //        there is no mechanism to reverse the state
+    //        back to pre fail state.
+    try {
+      updated = await this.propsUpdate(`${group._id}`, [
+        {
+          remove: `${group._id}`,
+        },
+      ]);
+    } catch (e) {
+      this.logger.error('update', e);
+      throw error.occurred(
+        HttpStatus.INTERNAL_SERVER_ERROR,
+        ResponseCode.get('grp007', {
+          msg: e.message,
+        }),
+      );
+    }
     SocketUtil.emit(SocketEventName.GROUP, {
       entry: {
         _id: `${group._id}`,
       },
-      message: 'Group has been removed.',
+      message: {
+        updated,
+      },
       source: sid,
       type: 'remove',
     });
@@ -392,9 +431,14 @@ export class GroupRequestHandler {
   // tslint:disable-next-line: variable-name
   private static async propsUpdate(
     // tslint:disable-next-line: variable-name
-    _group: Group | FSGroup,
+    groupId: string,
     propChanges: PropChange[],
-  ) {
+  ): Promise<
+    Array<{
+      name: string;
+      ids: string[];
+    }>
+  > {
     const updated: {
       entries: string[];
       groups: string[];
@@ -411,8 +455,8 @@ export class GroupRequestHandler {
       const groups = await CacheControl.group.findAll();
       for (const i in groups) {
         const group: Group | FSGroup = JSON.parse(JSON.stringify(groups[i]));
-        const output = PropHandler.propsUpdateTargetGroup(
-          `${_group._id}`,
+        const output = await PropHandler.propsUpdateTargetGroup(
+          groupId,
           group.props,
           propChanges,
         );
@@ -430,8 +474,8 @@ export class GroupRequestHandler {
         const widget: Widget | FSWidget = JSON.parse(
           JSON.stringify(widgets[i]),
         );
-        const output = PropHandler.propsUpdateTargetGroup(
-          `${_group._id}`,
+        const output = await PropHandler.propsUpdateTargetGroup(
+          groupId,
           widget.props,
           propChanges,
         );
@@ -449,8 +493,8 @@ export class GroupRequestHandler {
         const template: Template | FSTemplate = JSON.parse(
           JSON.stringify(templates[i]),
         );
-        const output = PropHandler.propsUpdateTargetGroup(
-          `${_group._id}`,
+        const output = await PropHandler.propsUpdateTargetGroup(
+          groupId,
           template.props,
           propChanges,
         );
@@ -472,8 +516,8 @@ export class GroupRequestHandler {
           let changeInEntry = false;
           for (const k in entry.meta) {
             const meta = entry.meta[k];
-            const output = PropHandler.propsUpdateTargetGroup(
-              `${_group._id}`,
+            const output = await PropHandler.propsUpdateTargetGroup(
+              groupId,
               meta.props,
               propChanges,
             );
@@ -489,6 +533,11 @@ export class GroupRequestHandler {
         }
       }
     }
-    return updated;
+    return Object.keys(updated).map((key) => {
+      return {
+        name: key,
+        ids: updated[key],
+      };
+    });
   }
 }

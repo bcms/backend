@@ -16,3 +16,5 @@ g008: # Infinite loop detected
   msg: '%msg%'
 g009:
   msg: 'Failed to update props. %msg%'
+g010:
+  msg: Missing parameter "%param%".

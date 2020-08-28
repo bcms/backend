@@ -37,6 +37,18 @@ export class EntryController implements ControllerPrototype {
     };
   }
 
+  @Get('/many/lite/:ids')
+  async getManyLite(
+    request: Request,
+  ): Promise<{ entries: EntryLite[] }> {
+    return {
+      entries: await EntryRequestHandler.getManyLite(
+        request.headers.authorization,
+        request.params.ids,
+      ),
+    };
+  }
+
   @Get('/all/:templateId')
   async getAllByTemplateId(
     request: Request,

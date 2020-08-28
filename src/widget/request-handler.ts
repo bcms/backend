@@ -21,7 +21,7 @@ import {
   UpdateWidgetDataSchema,
 } from './interfaces';
 import { WidgetFactory } from './factories';
-import { Prop, PropFactory, PropChange } from '../prop';
+import { PropChange } from '../prop';
 import { General, SocketUtil, SocketEventName } from '../util';
 
 export class WidgetRequestHandler {
@@ -81,6 +81,46 @@ export class WidgetRequestHandler {
       );
     }
     return widget;
+  }
+
+  static async getMany(
+    authorization: string,
+    idsString: string,
+  ): Promise<Array<Widget | FSWidget>> {
+    const error = HttpErrorFactory.instance('getMany', this.logger);
+    if (!idsString) {
+      throw error.occurred(
+        HttpStatus.BAD_REQUEST,
+        ResponseCode.get('g010', {
+          param: 'ids',
+        }),
+      );
+    }
+    const ids: string[] = idsString.split('-').map((id, i) => {
+      if (StringUtility.isIdValid(id) === false) {
+        throw error.occurred(
+          HttpStatus.BAD_REQUEST,
+          ResponseCode.get('g004', {
+            id: `ids[${i}]: ${id}`,
+          }),
+        );
+      }
+      return id;
+    });
+    const jwt = JWTSecurity.checkAndValidateAndGet(authorization, {
+      roles: [RoleName.ADMIN, RoleName.USER],
+      permission: PermissionName.READ,
+      JWTConfig: JWTConfigService.get('user-token-config'),
+    });
+    if (jwt instanceof Error) {
+      throw error.occurred(
+        HttpStatus.UNAUTHORIZED,
+        ResponseCode.get('g001', {
+          msg: jwt.message,
+        }),
+      );
+    }
+    return await CacheControl.widget.findAllById(ids);
   }
 
   static async count(authorization: string): Promise<number> {
@@ -231,7 +271,7 @@ export class WidgetRequestHandler {
       updateEntries = true;
       changeDetected = true;
       try {
-        widget.props = PropHandler.applyPropChanges(
+        widget.props = await PropHandler.applyPropChanges(
           widget.props,
           data.propChanges,
         );

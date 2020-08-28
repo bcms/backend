@@ -9,6 +9,7 @@ import {
   HttpStatus,
   StringUtility,
   ObjectUtility,
+  Queueable,
 } from '@becomes/purple-cheetah';
 import { Template, FSTemplate } from './models';
 import { ResponseCode } from '../response-code';
@@ -27,6 +28,7 @@ import { Entry, FSEntry } from '../entry';
 export class TemplateRequestHandler {
   @CreateLogger(TemplateRequestHandler)
   private static logger: Logger;
+  private static queueable = Queueable<Template | FSTemplate | void>('update');
 
   static async getAll(
     authorization: string,
@@ -46,6 +48,46 @@ export class TemplateRequestHandler {
       );
     }
     return await CacheControl.template.findAll();
+  }
+
+  static async getMany(
+    authorization: string,
+    idsString: string,
+  ): Promise<Array<Template | FSTemplate>> {
+    const error = HttpErrorFactory.instance('getMany', this.logger);
+    if (!idsString) {
+      throw error.occurred(
+        HttpStatus.BAD_REQUEST,
+        ResponseCode.get('g010', {
+          param: 'ids',
+        }),
+      );
+    }
+    const ids: string[] = idsString.split('-').map((id, i) => {
+      if (StringUtility.isIdValid(id) === false) {
+        throw error.occurred(
+          HttpStatus.BAD_REQUEST,
+          ResponseCode.get('g004', {
+            id: `ids[${i}]: ${id}`,
+          }),
+        );
+      }
+      return id;
+    });
+    const jwt = JWTSecurity.checkAndValidateAndGet(authorization, {
+      roles: [RoleName.ADMIN, RoleName.USER],
+      permission: PermissionName.READ,
+      JWTConfig: JWTConfigService.get('user-token-config'),
+    });
+    if (jwt instanceof Error) {
+      throw error.occurred(
+        HttpStatus.UNAUTHORIZED,
+        ResponseCode.get('g001', {
+          msg: jwt.message,
+        }),
+      );
+    }
+    return await CacheControl.template.findAllById(ids);
   }
 
   static async count(authorization: string): Promise<number> {
@@ -158,156 +200,165 @@ export class TemplateRequestHandler {
     return template;
   }
 
+  /**
+   * This method will update specified Template and it has
+   * side effect. This is done to offload complex and hard
+   * work from the client and to ensure consistent data
+   * structure in the database. After updating the Template,
+   * all Entries which are belonging to it will be updated.
+   */
   static async update(
     authorization: string,
     data: UpdateTemplateData,
     sid: string,
   ): Promise<Template | FSTemplate> {
-    const error = HttpErrorFactory.instance('update', this.logger);
-    try {
-      ObjectUtility.compareWithSchema(data, UpdateTemplateDataSchema, 'data');
-    } catch (err) {
-      throw error.occurred(
-        HttpStatus.BAD_REQUEST,
-        ResponseCode.get('g002', {
-          msg: err.message,
-        }),
-      );
-    }
-    if (StringUtility.isIdValid(data._id) === false) {
-      throw error.occurred(
-        HttpStatus.BAD_REQUEST,
-        ResponseCode.get('g004', { id: data._id }),
-      );
-    }
-    const jwt = JWTSecurity.checkAndValidateAndGet(authorization, {
-      roles: [RoleName.ADMIN],
-      permission: PermissionName.WRITE,
-      JWTConfig: JWTConfigService.get('user-token-config'),
-    });
-    if (jwt instanceof Error) {
-      throw error.occurred(
-        HttpStatus.UNAUTHORIZED,
-        ResponseCode.get('g001', {
-          msg: jwt.message,
-        }),
-      );
-    }
-    let template: Template | FSTemplate;
-    {
-      const t = await CacheControl.template.findById(data._id);
-      if (!t) {
+    return (await this.queueable.exec('update', 'free_one_by_one', async () => {
+      const error = HttpErrorFactory.instance('update', this.logger);
+      try {
+        ObjectUtility.compareWithSchema(data, UpdateTemplateDataSchema, 'data');
+      } catch (err) {
         throw error.occurred(
-          HttpStatus.NOT_FOUNT,
-          ResponseCode.get('tmp001', { id: data._id }),
+          HttpStatus.BAD_REQUEST,
+          ResponseCode.get('g002', {
+            msg: err.message,
+          }),
         );
       }
-      template = JSON.parse(JSON.stringify(t));
-    }
-    let changeDetected = false;
-    if (typeof data.label !== 'undefined') {
-      const name = General.labelToName(data.label);
-      if (name !== template.name) {
-        changeDetected = true;
-        template.label = data.label;
-        template.name = name;
-        if (await CacheControl.template.findByName(template.name)) {
+      if (StringUtility.isIdValid(data._id) === false) {
+        throw error.occurred(
+          HttpStatus.BAD_REQUEST,
+          ResponseCode.get('g004', { id: data._id }),
+        );
+      }
+      const jwt = JWTSecurity.checkAndValidateAndGet(authorization, {
+        roles: [RoleName.ADMIN],
+        permission: PermissionName.WRITE,
+        JWTConfig: JWTConfigService.get('user-token-config'),
+      });
+      if (jwt instanceof Error) {
+        throw error.occurred(
+          HttpStatus.UNAUTHORIZED,
+          ResponseCode.get('g001', {
+            msg: jwt.message,
+          }),
+        );
+      }
+      let template: Template | FSTemplate;
+      {
+        const t = await CacheControl.template.findById(data._id);
+        if (!t) {
           throw error.occurred(
-            HttpStatus.FORBIDDEN,
-            ResponseCode.get('tmp002', { name: template.name }),
+            HttpStatus.NOT_FOUNT,
+            ResponseCode.get('tmp001', { id: data._id }),
+          );
+        }
+        template = JSON.parse(JSON.stringify(t));
+      }
+      let changeDetected = false;
+      if (typeof data.label !== 'undefined') {
+        const name = General.labelToName(data.label);
+        if (name !== template.name) {
+          changeDetected = true;
+          template.label = data.label;
+          template.name = name;
+          if (await CacheControl.template.findByName(template.name)) {
+            throw error.occurred(
+              HttpStatus.FORBIDDEN,
+              ResponseCode.get('tmp002', { name: template.name }),
+            );
+          }
+        }
+      }
+      if (typeof data.desc !== 'undefined' && template.desc !== data.desc) {
+        changeDetected = true;
+        template.desc = data.desc;
+      }
+      if (
+        typeof data.singleEntry !== 'undefined' &&
+        template.singleEntry !== data.singleEntry
+      ) {
+        changeDetected = true;
+        template.singleEntry = data.singleEntry;
+      }
+      let updateEntries = false;
+      if (
+        typeof data.propChanges !== 'undefined' &&
+        data.propChanges.length > 0
+      ) {
+        updateEntries = true;
+        changeDetected = true;
+        try {
+          template.props = await PropHandler.applyPropChanges(
+            template.props,
+            data.propChanges,
+          );
+        } catch (e) {
+          throw error.occurred(
+            HttpStatus.BAD_REQUEST,
+            ResponseCode.get('g009', {
+              msg: e.message,
+            }),
           );
         }
       }
-    }
-    if (typeof data.desc !== 'undefined' && template.desc !== data.desc) {
-      changeDetected = true;
-      template.desc = data.desc;
-    }
-    if (
-      typeof data.singleEntry !== 'undefined' &&
-      template.singleEntry !== data.singleEntry
-    ) {
-      changeDetected = true;
-      template.singleEntry = data.singleEntry;
-    }
-    let updateEntries = false;
-    if (
-      typeof data.propChanges !== 'undefined' &&
-      data.propChanges.length > 0
-    ) {
-      updateEntries = true;
-      changeDetected = true;
+      if (!changeDetected) {
+        throw error.occurred(HttpStatus.FORBIDDEN, ResponseCode.get('g003'));
+      }
       try {
-        template.props = PropHandler.applyPropChanges(
+        await PropHandler.testInfiniteLoop(template.props);
+      } catch (e) {
+        throw error.occurred(
+          HttpStatus.BAD_REQUEST,
+          ResponseCode.get('g008', {
+            msg: e.message,
+          }),
+        );
+      }
+      try {
+        await PropHandler.propsChecker(
           template.props,
-          data.propChanges,
+          template.props,
+          'template.props',
         );
       } catch (e) {
         throw error.occurred(
           HttpStatus.BAD_REQUEST,
-          ResponseCode.get('g009', {
+          ResponseCode.get('g007', {
             msg: e.message,
           }),
         );
       }
-    }
-    if (!changeDetected) {
-      throw error.occurred(HttpStatus.FORBIDDEN, ResponseCode.get('g003'));
-    }
-    try {
-      await PropHandler.testInfiniteLoop(template.props);
-    } catch (e) {
-      throw error.occurred(
-        HttpStatus.BAD_REQUEST,
-        ResponseCode.get('g008', {
-          msg: e.message,
-        }),
-      );
-    }
-    try {
-      await PropHandler.propsChecker(
-        template.props,
-        template.props,
-        'group.props',
-      );
-    } catch (e) {
-      throw error.occurred(
-        HttpStatus.BAD_REQUEST,
-        ResponseCode.get('g007', {
-          msg: e.message,
-        }),
-      );
-    }
-    const updateResult = await CacheControl.template.update(template);
-    if (updateResult === false) {
-      throw error.occurred(
-        HttpStatus.INTERNAL_SERVER_ERROR,
-        ResponseCode.get('tmp005'),
-      );
-    }
-    let updated: string[] = [];
-    if (updateEntries) {
-      try {
-        updated = await this.propsUpdate(template, data.propChanges);
-      } catch (e) {
-        this.logger.error('update', e);
+      const updateResult = await CacheControl.template.update(template);
+      if (updateResult === false) {
         throw error.occurred(
           HttpStatus.INTERNAL_SERVER_ERROR,
-          ResponseCode.get('tmp008', {
-            msg: e.message,
-          }),
+          ResponseCode.get('tmp005'),
         );
       }
-    }
-    SocketUtil.emit(SocketEventName.TEMPLATE, {
-      entry: {
-        _id: `${template._id}`,
-      },
-      message: updated.join('-'),
-      source: sid,
-      type: 'update',
-    });
-    return template;
+      let updated: string[] = [];
+      if (updateEntries) {
+        try {
+          updated = await this.propsUpdate(template, data.propChanges);
+        } catch (e) {
+          this.logger.error('update', e);
+          throw error.occurred(
+            HttpStatus.INTERNAL_SERVER_ERROR,
+            ResponseCode.get('tmp008', {
+              msg: e.message,
+            }),
+          );
+        }
+      }
+      SocketUtil.emit(SocketEventName.TEMPLATE, {
+        entry: {
+          _id: `${template._id}`,
+        },
+        message: updated.join('-'),
+        source: sid,
+        type: 'update',
+      });
+      return template;
+    })) as Template | FSTemplate;
   }
 
   static async deleteById(authorization: string, id: string, sid: string) {
@@ -377,7 +428,7 @@ export class TemplateRequestHandler {
       const entry: Entry | FSEntry = JSON.parse(JSON.stringify(entries[i]));
       for (const j in entry.meta) {
         const meta = entry.meta[j];
-        entry.meta[j].props = PropHandler.applyPropChanges(
+        entry.meta[j].props = await PropHandler.applyPropChanges(
           meta.props,
           propChanges,
         );

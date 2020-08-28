@@ -77,6 +77,12 @@ export class PropHandler {
     if (!level) {
       level = 'root';
     }
+    if (!(propsToCheck instanceof Array)) {
+      throw new Error(`[ ${level}] --> "propsToCheck" must be an array.`);
+    }
+    if (!(props instanceof Array)) {
+      throw new Error(`[ ${level}] --> "props" must be an array.`);
+    }
     for (const i in props) {
       const prop = props[i];
       const propToCheck = propsToCheck.find((e) => e.name === prop.name);
@@ -115,142 +121,176 @@ export class PropHandler {
           case PropType.STRING:
             {
               const value = propToCheck.value as string[];
-              ObjectUtility.compareWithSchema(
-                { value },
-                {
-                  value: {
-                    __type: 'array',
-                    __required: true,
-                    __child: {
-                      __type: 'string',
+              try {
+                ObjectUtility.compareWithSchema(
+                  { value },
+                  {
+                    value: {
+                      __type: 'array',
+                      __required: true,
+                      __child: {
+                        __type: 'string',
+                      },
                     },
                   },
-                },
-                `${level}.${prop.name}`,
-              );
+                  `${level}.${prop.name}`,
+                );
+              } catch (e) {
+                throw new Error(`[ ${level}.${prop.name} ] --> ${e.message}`);
+              }
             }
             break;
           case PropType.NUMBER:
             {
               const value = propToCheck.value as number[];
-              ObjectUtility.compareWithSchema(
-                { value },
-                {
-                  value: {
-                    __type: 'array',
-                    __required: true,
-                    __child: {
-                      __type: 'number',
+              try {
+                ObjectUtility.compareWithSchema(
+                  { value },
+                  {
+                    value: {
+                      __type: 'array',
+                      __required: true,
+                      __child: {
+                        __type: 'number',
+                      },
                     },
                   },
-                },
-                `${level}.${prop.name}`,
-              );
+                  `${level}.${prop.name}`,
+                );
+              } catch (e) {
+                throw new Error(`[ ${level}.${prop.name} ] --> ${e.message}`);
+              }
             }
             break;
           case PropType.BOOLEAN:
             {
               const value = propToCheck.value as boolean[];
-              ObjectUtility.compareWithSchema(
-                { value },
-                {
-                  value: {
-                    __type: 'array',
-                    __required: true,
-                    __child: {
-                      __type: 'boolean',
+              try {
+                ObjectUtility.compareWithSchema(
+                  { value },
+                  {
+                    value: {
+                      __type: 'array',
+                      __required: true,
+                      __child: {
+                        __type: 'boolean',
+                      },
                     },
                   },
-                },
-                `${level}.${prop.name}`,
-              );
+                  `${level}.${prop.name}`,
+                );
+              } catch (e) {
+                throw new Error(`[ ${level}.${prop.name} ] --> ${e.message}`);
+              }
             }
             break;
           case PropType.MEDIA:
             {
               const value = propToCheck.value as PropMedia[];
-              ObjectUtility.compareWithSchema(
-                { value },
-                {
-                  value: {
-                    __type: 'array',
-                    __required: true,
-                    __child: {
-                      __type: 'number',
+              try {
+                ObjectUtility.compareWithSchema(
+                  { value },
+                  {
+                    value: {
+                      __type: 'array',
+                      __required: true,
+                      __child: {
+                        __type: 'number',
+                      },
                     },
                   },
-                },
-                `${level}.${prop.name}`,
-              );
+                  `${level}.${prop.name}`,
+                );
+              } catch (e) {
+                throw new Error(`[ ${level}.${prop.name} ] --> ${e.message}`);
+              }
             }
             break;
           case PropType.DATE:
             {
               const value = propToCheck.value as number[];
-              ObjectUtility.compareWithSchema(
-                { value },
-                {
-                  value: {
-                    __type: 'array',
-                    __required: true,
-                    __child: {
-                      __type: 'number',
+              try {
+                ObjectUtility.compareWithSchema(
+                  { value },
+                  {
+                    value: {
+                      __type: 'array',
+                      __required: true,
+                      __child: {
+                        __type: 'number',
+                      },
                     },
                   },
-                },
-                `${level}.${prop.name}`,
-              );
+                  `${level}.${prop.name}`,
+                );
+              } catch (e) {
+                throw new Error(`[ ${level}.${prop.name} ] --> ${e.message}`);
+              }
             }
             break;
           case PropType.ENUMERATION:
             {
               const value = propToCheck.value as PropEnum;
-              ObjectUtility.compareWithSchema(
-                { value },
-                {
-                  value: {
-                    __type: 'object',
-                    __required: true,
-                    __child: {
-                      items: {
-                        __type: 'array',
-                        __required: true,
-                        __child: {
-                          __type: 'string',
+              try {
+                ObjectUtility.compareWithSchema(
+                  { value },
+                  {
+                    value: {
+                      __type: 'object',
+                      __required: true,
+                      __child: {
+                        items: {
+                          __type: 'array',
+                          __required: true,
+                          __child: {
+                            __type: 'string',
+                          },
                         },
-                      },
-                      selected: {
-                        __type: 'string',
-                        __required: false,
+                        selected: {
+                          __type: 'string',
+                          __required: false,
+                        },
                       },
                     },
                   },
-                },
-                `${level}.${prop.name}`,
-              );
+                  `${level}.${prop.name}`,
+                );
+              } catch (e) {
+                throw new Error(`[ ${level}.${prop.name} ] --> ${e.message}`);
+              }
             }
             break;
           case PropType.GROUP_POINTER:
             {
               const value = propToCheck.value as PropGroupPointer;
-              ObjectUtility.compareWithSchema(
-                { value },
-                {
-                  _id: {
-                    __type: 'string',
-                    __required: true,
-                  },
-                  items: {
-                    __type: 'array',
-                    __required: true,
-                    __child: {
+              try {
+                ObjectUtility.compareWithSchema(
+                  { value },
+                  {
+                    value: {
                       __type: 'object',
-                      __content: {},
+                      __required: true,
+                      __child: {
+                        _id: {
+                          __type: 'string',
+                          __required: true,
+                        },
+                        items: {
+                          __type: 'array',
+                          __required: true,
+                          __child: {
+                            __type: 'object',
+                            __content: {},
+                          },
+                        },
+                      },
                     },
                   },
-                },
-                `${level}.${prop.name}`,
-              );
+                  `${level}.${prop.name}`,
+                );
+              } catch (e) {
+                throw new Error(`[ ${level}.${prop.name} ] --> ${e.message}`);
+              }
               if (StringUtility.isIdValid(value._id) === false) {
                 throw new Error(
                   `[ ${level}.${prop.name}.value._id ] --> invalid value.`,
@@ -263,8 +303,14 @@ export class PropHandler {
                     ` "${value._id}" does not exist.`,
                 );
               }
+              if (value.items.length === 0) {
+                throw new Error(
+                  `[ ${level}.${prop.name}.value.items ] --> Must have` +
+                    ` at least 1 item but got 0.`,
+                );
+              }
               for (const j in value.items) {
-                const toCheckGroupProps = value.items[i].props;
+                const toCheckGroupProps = value.items[j].props;
                 await this.propsChecker(
                   toCheckGroupProps,
                   group.props,
@@ -281,13 +327,59 @@ export class PropHandler {
       }
     }
   }
-  // tslint:disable-next-line: variable-name
-  static applyPropChanges(_props: Prop[], changes: PropChange[]): Prop[] {
-    let props = JSON.parse(JSON.stringify(_props));
+  static async applyPropChanges(
+    // tslint:disable-next-line: variable-name
+    _props: Prop[],
+    changes: PropChange[],
+  ): Promise<Prop[]> {
+    let props: Prop[] = JSON.parse(JSON.stringify(_props));
+    if (!(changes instanceof Array)) {
+      throw new Error('Parameter "changes" must be an array.');
+    }
     for (const i in changes) {
       const change = changes[i];
       if (change.remove) {
-        props = props.filter((e) => e.name !== change.remove);
+        console.log('h');
+        // Check if Group is removed
+        if (StringUtility.isIdValid(change.remove)) {
+          const removeProps: string[] = [];
+          for (const j in props) {
+            const prop = props[j];
+            console.log(prop.type, prop.name);
+            if (prop.type === PropType.GROUP_POINTER) {
+              const value = prop.value as PropGroupPointer;
+              console.log('v', value);
+              if (value._id === change.remove) {
+                removeProps.push(value._id);
+              } else {
+                for (const k in value.items) {
+                  try {
+                    (props[j].value as PropGroupPointer).items[
+                      k
+                    ].props = await this.applyPropChanges(
+                      value.items[k].props,
+                      [
+                        {
+                          remove: change.remove,
+                        },
+                      ],
+                    );
+                  } catch (e) {
+                    throw new Error(
+                      `Error at "changes[${i}].remove, ${e.message}"`,
+                    );
+                  }
+                }
+              }
+            }
+          }
+          console.log(removeProps);
+          props = props.filter((e) =>
+            removeProps.includes((e.value as PropGroupPointer)._id),
+          );
+        } else {
+          props = props.filter((e) => e.name !== change.remove);
+        }
       } else if (change.add) {
         const prop: Prop = PropFactory.get(change.add.type, change.add.array);
         if (!prop) {
@@ -300,7 +392,34 @@ export class PropHandler {
         prop.name = General.labelToName(prop.label);
         prop.required = change.add.required;
         if (typeof change.add.value !== 'undefined') {
-          prop.value = change.add.value;
+          if (prop.type === PropType.GROUP_POINTER) {
+            if (StringUtility.isIdValid(change.add.value._id) === false) {
+              throw new Error(
+                `Specified in "changes[${i}]._id", invalid` +
+                  ` ID "${change.add.value._id}" was provided.`,
+              );
+            }
+            const group = await CacheControl.group.findById(
+              change.add.value._id,
+            );
+            if (!group) {
+              throw new Error(
+                `Specified in "changes[${i}]._id", invalid` +
+                  ` ID "${change.add.value._id}" was provided.`,
+              );
+            }
+            const value: PropGroupPointer = {
+              _id: change.add.value._id,
+              items: [
+                {
+                  props: group.props,
+                },
+              ],
+            };
+            prop.value = value;
+          } else {
+            prop.value = change.add.value;
+          }
         }
         if (props.find((e) => e.name === prop.name)) {
           throw new Error(
@@ -316,6 +435,7 @@ export class PropHandler {
             props[j].label = change.update.label.new;
             props[j].name = General.labelToName(change.update.label.new);
             props[j].required = change.update.required;
+
             break;
           }
         }
@@ -329,36 +449,52 @@ export class PropHandler {
    * Update properties `_props` with changes due to
    * Group change.
    */
-  static propsUpdateTargetGroup(
+  static async propsUpdateTargetGroup(
     targetGroupId: string,
     // tslint:disable-next-line: variable-name
     _props: Prop[],
     changes: PropChange[],
     level?: string,
-  ): { changesFound: boolean; props: Prop[] } {
+  ): Promise<{ changesFound: boolean; props: Prop[] }> {
     if (!level) {
       level = 'props';
     }
     let changesFound = false;
-    const props: Prop[] = JSON.parse(JSON.stringify(_props));
+    let props: Prop[] = JSON.parse(JSON.stringify(_props));
+    const removeGroupProps: string[] = [];
     for (const i in props) {
       const prop = props[i];
       if (prop.type === PropType.GROUP_POINTER) {
         const value = prop.value as PropGroupPointer;
         if (value._id === targetGroupId) {
           changesFound = true;
-          for (const j in value.items) {
-            try {
-              (props[i].value as PropGroupPointer).items[
-                j
-              ].props = this.applyPropChanges(value.items[j].props, changes);
-            } catch (e) {
-              throw new Error(`Error at "props[${i}].value.items[j]" --> `);
+          let removeGroup = false;
+          for (const j in changes) {
+            const change = changes[j];
+            if (change.remove && StringUtility.isIdValid(change.remove)) {
+              if (change.remove === value._id) {
+                removeGroup = true;
+                removeGroupProps.push(value._id);
+              }
+            }
+          }
+          if (!removeGroup) {
+            for (const j in value.items) {
+              try {
+                (props[i].value as PropGroupPointer).items[
+                  j
+                ].props = await this.applyPropChanges(
+                  value.items[j].props,
+                  changes,
+                );
+              } catch (e) {
+                throw new Error(`Error at "props[${i}].value.items[j]" --> `);
+              }
             }
           }
         } else {
           for (const j in value.items) {
-            const output = this.propsUpdateTargetGroup(
+            const output = await this.propsUpdateTargetGroup(
               targetGroupId,
               value.items[j].props,
               changes,
@@ -369,6 +505,19 @@ export class PropHandler {
           }
         }
       }
+    }
+    if (removeGroupProps.length > 0) {
+      const buffer: Prop[] = [];
+      for (const i in props) {
+        const prop = props[i];
+        if (
+          prop.type !== PropType.GROUP_POINTER ||
+          !removeGroupProps.includes((prop.value as PropGroupPointer)._id)
+        ) {
+          buffer.push(prop);
+        }
+      }
+      props = buffer;
     }
     return { changesFound, props };
   }

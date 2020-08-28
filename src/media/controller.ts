@@ -124,6 +124,7 @@ export class MediaController implements ControllerPrototype {
     return {
       media: await MediaRequestHandler.addFile(
         request.headers.authorization,
+        request.headers.sid as string,
         request.query.parentId ? '' + request.query.parentId : undefined,
         request.file,
       ),
@@ -136,6 +137,7 @@ export class MediaController implements ControllerPrototype {
       media: await MediaRequestHandler.addDir(
         request.headers.authorization,
         request.body,
+        request.headers.sid as string,
       ),
     };
   }
@@ -145,6 +147,7 @@ export class MediaController implements ControllerPrototype {
     await MediaRequestHandler.deleteById(
       request.headers.authorization,
       request.params.id,
+      request.headers.sid as string,
     );
     return {
       message: 'Success.',

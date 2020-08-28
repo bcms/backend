@@ -28,6 +28,18 @@ export class WidgetController implements ControllerPrototype {
     };
   }
 
+  @Get('/many/:ids')
+  async getMany(
+    request: Request,
+  ): Promise<{ widgets: Array<Widget | FSWidget> }> {
+    return {
+      widgets: await WidgetRequestHandler.getMany(
+        request.headers.authorization,
+        request.params.ids,
+      ),
+    };
+  }
+
   @Get('/count')
   async count(request: Request): Promise<{ count: number }> {
     return {

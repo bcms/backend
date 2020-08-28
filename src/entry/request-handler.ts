@@ -66,6 +66,48 @@ export class EntryRequestHandler {
     });
   }
 
+  static async getManyLite(
+    authorization: string,
+    idsString: string,
+  ): Promise<EntryLite[]> {
+    const error = HttpErrorFactory.instance('getManyLite', this.logger);
+    if (!idsString) {
+      throw error.occurred(
+        HttpStatus.BAD_REQUEST,
+        ResponseCode.get('g010', {
+          param: 'ids',
+        }),
+      );
+    }
+    const ids: string[] = idsString.split('-').map((id, i) => {
+      if (StringUtility.isIdValid(id) === false) {
+        throw error.occurred(
+          HttpStatus.BAD_REQUEST,
+          ResponseCode.get('g004', {
+            id: `ids[${i}]: ${id}`,
+          }),
+        );
+      }
+      return id;
+    });
+    const jwt = JWTSecurity.checkAndValidateAndGet(authorization, {
+      roles: [RoleName.ADMIN, RoleName.USER],
+      permission: PermissionName.READ,
+      JWTConfig: JWTConfigService.get('user-token-config'),
+    });
+    if (jwt instanceof Error) {
+      throw error.occurred(
+        HttpStatus.UNAUTHORIZED,
+        ResponseCode.get('g001', {
+          msg: jwt.message,
+        }),
+      );
+    }
+    return (await CacheControl.entry.findAllById(ids)).map((entry) => {
+      return EntryFactory.toLite(entry);
+    });
+  }
+
   static async getAllByTemplateId(
     authorization: string,
     templateId: string,

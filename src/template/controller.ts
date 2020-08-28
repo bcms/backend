@@ -30,6 +30,18 @@ export class TemplateController implements ControllerPrototype {
     };
   }
 
+  @Get('/many/:ids')
+  async getMany(
+    request: Request,
+  ): Promise<{ templates: Array<Template | FSTemplate> }> {
+    return {
+      templates: await TemplateRequestHandler.getMany(
+        request.headers.authorization,
+        request.params.ids,
+      ),
+    };
+  }
+
   @Get('/count')
   async count(request: Request): Promise<{ count: number }> {
     return {

@@ -7,11 +7,12 @@ export enum SocketEventName {
   GROUP = 'group',
   WIDGET = 'widget',
   ENTRY = 'entry',
+  MEDIA = 'media',
 }
 
 export interface SocketEventData {
   type: 'add' | 'update' | 'remove';
-  message: string;
+  message: any;
   source: string;
   entry: {
     _id: string;
