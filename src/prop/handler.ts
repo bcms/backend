@@ -339,16 +339,13 @@ export class PropHandler {
     for (const i in changes) {
       const change = changes[i];
       if (change.remove) {
-        console.log('h');
         // Check if Group is removed
         if (StringUtility.isIdValid(change.remove)) {
           const removeProps: string[] = [];
           for (const j in props) {
             const prop = props[j];
-            console.log(prop.type, prop.name);
             if (prop.type === PropType.GROUP_POINTER) {
               const value = prop.value as PropGroupPointer;
-              console.log('v', value);
               if (value._id === change.remove) {
                 removeProps.push(value._id);
               } else {
@@ -373,7 +370,6 @@ export class PropHandler {
               }
             }
           }
-          console.log(removeProps);
           props = props.filter((e) =>
             removeProps.includes((e.value as PropGroupPointer)._id),
           );
