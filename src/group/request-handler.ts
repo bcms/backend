@@ -279,19 +279,21 @@ export class GroupRequestHandler {
       ) {
         updateEntries = true;
         changeDetected = true;
-        try {
-          group.props = await PropHandler.applyPropChanges(
-            group.props,
-            data.propChanges,
-          );
-        } catch (e) {
+        const result = await PropHandler.applyPropChanges(
+          group.props,
+          data.propChanges,
+          `(group: ${group.name}).props`,
+        );
+        if (result instanceof Error) {
           throw error.occurred(
             HttpStatus.BAD_REQUEST,
             ResponseCode.get('g009', {
-              msg: e.message,
+              msg: result.message,
             }),
           );
+          throw result;
         }
+        group.props = result;
       }
       if (!changeDetected) {
         throw error.occurred(HttpStatus.FORBIDDEN, ResponseCode.get('g003'));
@@ -458,7 +460,11 @@ export class GroupRequestHandler {
           groupId,
           group.props,
           propChanges,
+          `(group: ${group.name}).props`,
         );
+        if (output instanceof Error) {
+          throw output;
+        }
         if (output.changesFound) {
           updated.groups.push(`${group._id}`);
           group.props = output.props;
@@ -477,7 +483,11 @@ export class GroupRequestHandler {
           groupId,
           widget.props,
           propChanges,
+          `(widget: ${widget.name}).props`,
         );
+        if (output instanceof Error) {
+          throw output;
+        }
         if (output.changesFound) {
           updated.widgets.push(`${widget._id}`);
           widget.props = output.props;
@@ -496,7 +506,11 @@ export class GroupRequestHandler {
           groupId,
           template.props,
           propChanges,
+          `(template: ${template.name}).props`,
         );
+        if (output instanceof Error) {
+          throw output;
+        }
         if (output.changesFound) {
           updated.templates.push(`${template._id}`);
           template.props = output.props;
@@ -519,7 +533,11 @@ export class GroupRequestHandler {
               groupId,
               meta.props,
               propChanges,
+              `(entry: ${entry.slug}).meta[${k}].props`,
             );
+            if (output instanceof Error) {
+              throw output;
+            }
             if (output.changesFound) {
               changeInEntry = true;
               entry.meta[k].props = output.props;

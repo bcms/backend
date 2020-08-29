@@ -42,12 +42,12 @@ export class PropHandler {
         const value = prop.value as PropGroupPointer;
         const group = await CacheControl.group.findById(value._id);
         if (!group) {
-          return Error(
+          return new Error(
             `[ ${level}.value._id ] --> Group with ID "${value._id}" does not exist.`,
           );
         }
         if (pointer.group.find((e) => e._id === value._id)) {
-          return Error(
+          return new Error(
             `Pointer loop detected: [ ${pointer.group
               .map((e) => {
                 return e.label;
@@ -81,41 +81,41 @@ export class PropHandler {
       level = 'root';
     }
     if (!(propsToCheck instanceof Array)) {
-      return Error(`[ ${level}] --> "propsToCheck" must be an array.`);
+      return new Error(`[ ${level}] --> "propsToCheck" must be an array.`);
     }
     if (!(props instanceof Array)) {
-      return Error(`[ ${level}] --> "props" must be an array.`);
+      return new Error(`[ ${level}] --> "props" must be an array.`);
     }
     for (const i in props) {
       const prop = props[i];
       const propToCheck = propsToCheck.find((e) => e.name === prop.name);
       if (!propToCheck && prop.required) {
-        return Error(
+        return new Error(
           `[ ${level}.${prop.name} ] --> Property "${prop.name}" does not exist.`,
         );
       }
       if (prop.type !== propToCheck.type) {
-        return Error(
+        return new Error(
           `[ ${level}.${prop.name} ] --> Type mismatch, expected` +
             ` "${prop.type}" but got "${propToCheck.type}".`,
         );
       }
       if (prop.required !== propToCheck.required) {
-        return Error(
+        return new Error(
           `[ ${level}.${prop.name} ] --> expected required` +
             ` property to be "${prop.required}" but got` +
             ` "${propToCheck.required}".`,
         );
       }
       if (prop.array !== propToCheck.array) {
-        return Error(
+        return new Error(
           `[ ${level}.${prop.name} ] --> expected array` +
             ` property to be "${prop.array}" but got` +
             ` "${propToCheck.array}".`,
         );
       }
       if (!prop.value) {
-        return Error(
+        return new Error(
           `[ ${level}.${prop.name} ] --> value property does not exist.`,
         );
       }
@@ -139,7 +139,7 @@ export class PropHandler {
                   `${level}.${prop.name}`,
                 );
               } catch (e) {
-                return Error(`[ ${level}.${prop.name} ] --> ${e.message}`);
+                return new Error(`[ ${level}.${prop.name} ] --> ${e.message}`);
               }
             }
             break;
@@ -161,7 +161,7 @@ export class PropHandler {
                   `${level}.${prop.name}`,
                 );
               } catch (e) {
-                return Error(`[ ${level}.${prop.name} ] --> ${e.message}`);
+                return new Error(`[ ${level}.${prop.name} ] --> ${e.message}`);
               }
             }
             break;
@@ -183,7 +183,7 @@ export class PropHandler {
                   `${level}.${prop.name}`,
                 );
               } catch (e) {
-                return Error(`[ ${level}.${prop.name} ] --> ${e.message}`);
+                return new Error(`[ ${level}.${prop.name} ] --> ${e.message}`);
               }
             }
             break;
@@ -205,7 +205,7 @@ export class PropHandler {
                   `${level}.${prop.name}`,
                 );
               } catch (e) {
-                return Error(`[ ${level}.${prop.name} ] --> ${e.message}`);
+                return new Error(`[ ${level}.${prop.name} ] --> ${e.message}`);
               }
             }
             break;
@@ -227,7 +227,7 @@ export class PropHandler {
                   `${level}.${prop.name}`,
                 );
               } catch (e) {
-                return Error(`[ ${level}.${prop.name} ] --> ${e.message}`);
+                return new Error(`[ ${level}.${prop.name} ] --> ${e.message}`);
               }
             }
             break;
@@ -259,7 +259,7 @@ export class PropHandler {
                   `${level}.${prop.name}`,
                 );
               } catch (e) {
-                return Error(`[ ${level}.${prop.name} ] --> ${e.message}`);
+                return new Error(`[ ${level}.${prop.name} ] --> ${e.message}`);
               }
             }
             break;
@@ -292,22 +292,22 @@ export class PropHandler {
                   `${level}.${prop.name}`,
                 );
               } catch (e) {
-                return Error(`[ ${level}.${prop.name} ] --> ${e.message}`);
+                return new Error(`[ ${level}.${prop.name} ] --> ${e.message}`);
               }
               if (StringUtility.isIdValid(value._id) === false) {
-                return Error(
+                return new Error(
                   `[ ${level}.${prop.name}.value._id ] --> invalid value.`,
                 );
               }
               const group = await CacheControl.group.findById(value._id);
               if (!group) {
-                return Error(
+                return new Error(
                   `[ ${level}.${prop.name}.value._id ] --> Group with ID` +
                     ` "${value._id}" does not exist.`,
                 );
               }
               if (value.items.length === 0) {
-                return Error(
+                return new Error(
                   `[ ${level}.${prop.name}.value.items ] --> Must have` +
                     ` at least 1 item but got 0.`,
                 );
@@ -344,10 +344,11 @@ export class PropHandler {
     }
     let props: Prop[] = JSON.parse(JSON.stringify(_props));
     if (!(changes instanceof Array)) {
-      return Error('Parameter "changes" must be an array.');
+      return new Error('Parameter "changes" must be an array.');
     }
     for (const i in changes) {
       const change = changes[i];
+      console.log('change', change);
       if (typeof change.remove === 'string') {
         // Check if Group is removed
         if (StringUtility.isIdValid(change.remove)) {
@@ -370,7 +371,7 @@ export class PropHandler {
                     `${level}[${j}].value.items[k].props`,
                   );
                   if (result instanceof Error) {
-                    return Error(
+                    return new Error(
                       `Error at "changes[${i}].remove, ${result.message}"`,
                     );
                   }
@@ -388,7 +389,7 @@ export class PropHandler {
       } else if (typeof change.add === 'object') {
         const prop: Prop = PropFactory.get(change.add.type, change.add.array);
         if (!prop) {
-          return Error(
+          return new Error(
             `Invalid property type "${change.add.type}"` +
               ` was provided as "changes[${i}].add.type".`,
           );
@@ -399,7 +400,7 @@ export class PropHandler {
         if (typeof change.add.value !== 'undefined') {
           if (prop.type === PropType.GROUP_POINTER) {
             if (StringUtility.isIdValid(change.add.value._id) === false) {
-              return Error(
+              return new Error(
                 `Specified in "changes[${i}]._id", invalid` +
                   ` ID "${change.add.value._id}" was provided.`,
               );
@@ -408,7 +409,7 @@ export class PropHandler {
               change.add.value._id,
             );
             if (!group) {
-              return Error(
+              return new Error(
                 `Specified in "changes[${i}]._id", invalid` +
                   ` ID "${change.add.value._id}" was provided.`,
               );
@@ -427,25 +428,22 @@ export class PropHandler {
           }
         }
         if (props.find((e) => e.name === prop.name)) {
-          return Error(
-            `Prop with name "${prop.name}" already exist at this level in "${level}"`,
-          );
+          console.log('Here?');
+          return new Error('koji kurac');
         }
         props.push(prop);
       } else if (typeof change.update === 'object') {
+        console.log('update');
         // tslint:disable-next-line: prefer-for-of
         for (let j = 0; j < props.length; j = j + 1) {
           if (props[j].label === change.update.label.old) {
-            let err = false;
             if (props.find((e) => e.label === change.update.label.new)) {
-              err = true;
-            }
-            if (err) {
-              // return 'bane' as any;
-              return Error(
+              console.log('WTF');
+              return Error('bane');
+              return new Error(
                 `Prop with name "${General.labelToName(
                   change.update.label.new,
-                )}" already exist at this level "${level}", error in "changes[${i}].update".`,
+                )}" already exist at this level, error in "changes[${i}].update" for "${level}[${j}]"`,
               );
             }
             props[j].label = change.update.label.new;
@@ -454,8 +452,9 @@ export class PropHandler {
             break;
           }
         }
+        console.log('LOL');
       } else {
-        return Error(`(${level}) --> changes[${i}]`);
+        return new Error(`(${level}) --> changes[${i}]`);
       }
     }
     return props;
@@ -501,7 +500,7 @@ export class PropHandler {
                 `${level}[${i}].value.items[${j}].props`,
               );
               if (result instanceof Error) {
-                return Error(
+                return new Error(
                   `Error at "props[${i}].value.items[j]" --> ${result.message}`,
                 );
               }

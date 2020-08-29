@@ -287,19 +287,19 @@ export class TemplateRequestHandler {
       ) {
         updateEntries = true;
         changeDetected = true;
-        try {
-          template.props = await PropHandler.applyPropChanges(
-            template.props,
-            data.propChanges,
-          );
-        } catch (e) {
+        const result = await PropHandler.applyPropChanges(
+          template.props,
+          data.propChanges,
+        );
+        if (result instanceof Error) {
           throw error.occurred(
             HttpStatus.BAD_REQUEST,
             ResponseCode.get('g009', {
-              msg: e.message,
+              msg: result.message,
             }),
           );
         }
+        template.props = result;
       }
       if (!changeDetected) {
         throw error.occurred(HttpStatus.FORBIDDEN, ResponseCode.get('g003'));
@@ -428,10 +428,14 @@ export class TemplateRequestHandler {
       const entry: Entry | FSEntry = JSON.parse(JSON.stringify(entries[i]));
       for (const j in entry.meta) {
         const meta = entry.meta[j];
-        entry.meta[j].props = await PropHandler.applyPropChanges(
+        const result = await PropHandler.applyPropChanges(
           meta.props,
           propChanges,
         );
+        if (result instanceof Error) {
+          throw result;
+        }
+        entry.meta[j].props = result;
       }
       await CacheControl.entry.update(entry);
     }

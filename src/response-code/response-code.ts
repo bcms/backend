@@ -83,14 +83,15 @@ export class ResponseCode {
     if (!c) {
       throw new Error(`Code "${code}" does not exist.`);
     }
+    let msg = '' + c.msg;
     if (vars) {
       for (const key in vars) {
-        c.msg = c.msg.replace(new RegExp(`%${key}%`, 'g'), vars[key]);
+        msg = c.msg.replace(new RegExp(`%${key}%`, 'g'), vars[key]);
       }
     }
     return {
       code,
-      message: c.msg,
+      message: msg,
     };
   }
 }
