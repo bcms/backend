@@ -347,7 +347,6 @@ export class GroupRequestHandler {
           );
         }
       }
-      this.logger.info('updated', updated);
       SocketUtil.emit(SocketEventName.GROUP, {
         entry: {
           _id: `${group._id}`,
