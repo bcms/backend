@@ -279,21 +279,20 @@ export class GroupRequestHandler {
       ) {
         updateEntries = true;
         changeDetected = true;
-        const result = await PropHandler.applyPropChanges(
+        const o = await PropHandler.applyPropChanges(
           group.props,
           data.propChanges,
           `(group: ${group.name}).props`,
         );
-        if (result instanceof Error) {
+        if (o instanceof Error) {
           throw error.occurred(
             HttpStatus.BAD_REQUEST,
             ResponseCode.get('g009', {
-              msg: result.message,
+              msg: o.message,
             }),
           );
-          throw result;
         }
-        group.props = result;
+        group.props = o;
       }
       if (!changeDetected) {
         throw error.occurred(HttpStatus.FORBIDDEN, ResponseCode.get('g003'));
@@ -535,7 +534,7 @@ export class GroupRequestHandler {
               groupId,
               meta.props,
               propChanges,
-              `(entry: ${entry.slug}).meta[${k}].props`,
+              `(entry: ${entry._id}).meta[${k}].props`,
             );
             if (output instanceof Error) {
               throw output;

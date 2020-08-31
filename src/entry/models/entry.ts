@@ -23,8 +23,6 @@ export const EntryMetaSchema: ObjectSchema = {
 };
 
 export interface IEntry extends IEntity {
-  title: string;
-  slug: string;
   templateId: string;
   userId: string;
   meta: EntryMeta[];
@@ -37,8 +35,6 @@ export class Entry implements Entity {
     public _id: Types.ObjectId,
     public createdAt: number,
     public updatedAt: number,
-    public title: string,
-    public slug: string,
     public templateId: string,
     public userId: string,
     public meta: EntryMeta[],
@@ -50,8 +46,6 @@ export class Entry implements Entity {
       _id: Types.ObjectId,
       createdAt: Number,
       updatedAt: Number,
-      title: String,
-      slug: String,
       templateId: String,
       userId: String,
       meta: [Object],
@@ -71,14 +65,6 @@ export const EntrySchema: ObjectSchema = {
   },
   updatedAt: {
     __type: 'number',
-    __required: true,
-  },
-  title: {
-    __type: 'string',
-    __required: true,
-  },
-  slug: {
-    __type: 'string',
     __required: true,
   },
   templateId: {

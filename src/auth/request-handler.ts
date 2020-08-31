@@ -8,10 +8,11 @@ import {
   JWTConfigService,
 } from '@becomes/purple-cheetah';
 import * as bcrypt from 'bcrypt';
-import { UserRepo, RefreshTokenFactory, User, FSUser } from '../user';
+import { RefreshTokenFactory } from '../user';
 import { General } from '../util';
 import { ResponseCode } from '../response-code';
 import { Types } from 'mongoose';
+import { CacheControl } from '../cache';
 
 // TODO: Add IP blacklist
 export class AuthRequestHandler {
@@ -47,7 +48,7 @@ export class AuthRequestHandler {
     } catch (e) {
       throw error.occurred(HttpStatus.FORBIDDEN, ResponseCode.get('a002'));
     }
-    const user = await UserRepo.findByEmail(auth.email);
+    const user = await CacheControl.user.findByEmail(auth.email);
     if (!user || user === null) {
       this.logger.warn('login', 'Bad email.');
       throw error.occurred(HttpStatus.UNAUTHORIZED, ResponseCode.get('a003'));
@@ -59,7 +60,7 @@ export class AuthRequestHandler {
     }
     const refreshToken = RefreshTokenFactory.instance;
     user.refreshTokens.push(refreshToken);
-    const updateUserResult = await UserRepo.update(user as any);
+    const updateUserResult = await CacheControl.user.update(user as any);
     if (updateUserResult === false) {
       throw error.occurred(
         HttpStatus.INTERNAL_SERVER_ERROR,
@@ -87,14 +88,14 @@ export class AuthRequestHandler {
       throw error.occurred(HttpStatus.FORBIDDEN, ResponseCode.get('a001'));
     }
     const auth = authorization.replace('Bearer ', '');
-    const user = await UserRepo.findByRefreshToken(auth);
+    const user = await CacheControl.user.findByRefreshToken(auth);
     if (!user) {
       throw error.occurred(HttpStatus.UNAUTHORIZED, ResponseCode.get('a005'));
     }
     const rt = user.refreshTokens.find((e) => e.value === auth);
     if (rt.expAt < Date.now()) {
       user.refreshTokens = user.refreshTokens.filter((e) => e.value !== auth);
-      const updateUserResult = await UserRepo.update(user as any);
+      const updateUserResult = await CacheControl.user.update(user as any);
       if (updateUserResult === false) {
         throw error.occurred(
           HttpStatus.INTERNAL_SERVER_ERROR,
@@ -121,14 +122,14 @@ export class AuthRequestHandler {
       throw error.occurred(HttpStatus.FORBIDDEN, ResponseCode.get('a001'));
     }
     const refreshTokenValue = authorization.replace('Bearer ', '');
-    const user = await UserRepo.findByRefreshToken(refreshTokenValue);
+    const user = await CacheControl.user.findByRefreshToken(refreshTokenValue);
     if (!user) {
       throw error.occurred(HttpStatus.UNAUTHORIZED, ResponseCode.get('a005'));
     }
     user.refreshTokens = user.refreshTokens.filter(
       (e) => e.value !== refreshTokenValue,
     );
-    const updateUserResult = await UserRepo.update(user as any);
+    const updateUserResult = await CacheControl.user.update(user as any);
     if (updateUserResult === false) {
       throw error.occurred(
         HttpStatus.INTERNAL_SERVER_ERROR,

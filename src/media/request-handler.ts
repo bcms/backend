@@ -321,7 +321,7 @@ export class MediaRequestHandler {
     file?: Express.Multer.File,
   ): Promise<Media | FSMedia> {
     const error = HttpErrorFactory.instance('addFile', this.logger);
-    if (!parentId || StringUtility.isIdValid(parentId) === false) {
+    if (parentId && StringUtility.isIdValid(parentId) === false) {
       throw error.occurred(
         HttpStatus.BAD_REQUEST,
         ResponseCode.get('mda010', { id: parentId }),
@@ -367,7 +367,9 @@ export class MediaRequestHandler {
     media.size = file.size;
     media.name =
       StringUtility.createSlug(fileName) + fileExt
-        ? '.' + StringUtility.createSlug(fileExt)
+        ? StringUtility.createSlug(fileName) +
+          '.' +
+          StringUtility.createSlug(fileExt)
         : '';
     media.path = parent ? parent.path : '/';
     media.isInRoot = parent ? false : true;

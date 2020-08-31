@@ -5,8 +5,6 @@ export interface EntryLite {
   _id: string;
   createdAt: number;
   updatedAt: number;
-  title: string;
-  slug: string;
   templateId: string;
   userId: string;
   meta: EntryMeta[];
@@ -26,14 +24,6 @@ export const EntryLiteSchema: ObjectSchema = {
     __required: true,
   },
   templateId: {
-    __type: 'string',
-    __required: true,
-  },
-  title: {
-    __type: 'string',
-    __required: true,
-  },
-  slug: {
     __type: 'string',
     __required: true,
   },

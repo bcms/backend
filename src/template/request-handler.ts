@@ -313,7 +313,6 @@ export class TemplateRequestHandler {
           }),
         );
       }
-      this.logger.info('tmp', template.props);
       output = await PropHandler.propsChecker(
         template.props,
         template.props,

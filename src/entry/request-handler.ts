@@ -21,7 +21,7 @@ import {
   UpdateEntryData,
 } from './interfaces';
 import { EntryFactory } from './factory';
-import { PropHandler } from '../prop';
+import { PropHandler, PropType } from '../prop';
 import { SocketUtil, SocketEventName } from '../util';
 
 export class EntryRequestHandler {
@@ -335,11 +335,49 @@ export class EntryRequestHandler {
           }),
         );
       }
+      let title = false;
+      let slug = false;
+      lngMeta.props.forEach((e) => {
+        if (e.name === 'title') {
+          title = true;
+        } else if (e.name === 'slug') {
+          if (typeof e.value[0] === 'string') {
+            e.value[0] = StringUtility.createSlug('' + e.value[0]);
+          } else {
+            e.value = [''];
+          }
+          slug = true;
+        }
+      });
+      if (!slug) {
+        lngMeta.props = [
+          {
+            label: 'Slug',
+            name: 'slug',
+            array: false,
+            required: true,
+            type: PropType.STRING,
+            value: [''],
+          },
+          ...lngMeta.props,
+        ];
+      }
+      if (!title) {
+        lngMeta.props = [
+          {
+            label: 'Title',
+            name: 'title',
+            array: false,
+            required: true,
+            type: PropType.STRING,
+            value: [''],
+          },
+          ...lngMeta.props,
+        ];
+      }
       meta.push(lngMeta);
     }
     const entry = EntryFactory.instance;
-    entry.title = data.title;
-    entry.slug = StringUtility.createSlug(data.slug);
     entry.templateId = data.templateId;
     entry.userId = jwt.payload.userId;
     entry.meta = meta;
@@ -444,24 +482,65 @@ export class EntryRequestHandler {
           }),
         );
       }
-      meta.push(lngMeta);
-      const updateResult = await CacheControl.entry.update(entry);
-      if (updateResult === false) {
-        throw error.occurred(
-          HttpStatus.INTERNAL_SERVER_ERROR,
-          ResponseCode.get('etr004'),
-        );
-      }
-      SocketUtil.emit(SocketEventName.ENTRY, {
-        entry: {
-          _id: `${entry._id}`,
-        },
-        message: 'Entry updated.',
-        source: sid,
-        type: 'update',
+      let title = false;
+      let slug = false;
+      lngMeta.props.forEach((e) => {
+        if (e.name === 'title') {
+          title = true;
+        } else if (e.name === 'slug') {
+          if (typeof e.value[0] === 'string') {
+            e.value[0] = StringUtility.createSlug(e.value[0]);
+          } else {
+            e.value = [''];
+          }
+          slug = true;
+        }
       });
-      return entry;
+      if (!slug) {
+        lngMeta.props = [
+          {
+            label: 'Slug',
+            name: 'slug',
+            array: false,
+            required: true,
+            type: PropType.STRING,
+            value: [''],
+          },
+          ...lngMeta.props,
+        ];
+      }
+      if (!title) {
+        lngMeta.props = [
+          {
+            label: 'Title',
+            name: 'title',
+            array: false,
+            required: true,
+            type: PropType.STRING,
+            value: [''],
+          },
+          ...lngMeta.props,
+        ];
+      }
+      meta.push(lngMeta);
     }
+    entry.meta = meta;
+    const updateResult = await CacheControl.entry.update(entry);
+    if (updateResult === false) {
+      throw error.occurred(
+        HttpStatus.INTERNAL_SERVER_ERROR,
+        ResponseCode.get('etr004'),
+      );
+    }
+    SocketUtil.emit(SocketEventName.ENTRY, {
+      entry: {
+        _id: `${entry._id}`,
+      },
+      message: 'Entry updated.',
+      source: sid,
+      type: 'update',
+    });
+    return entry;
   }
 
   static async deleteById(authorization: string, id: string, sid: string) {

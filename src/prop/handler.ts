@@ -5,6 +5,7 @@ import {
   PropGroupPointer,
   PropMedia,
   PropChange,
+  PropEntryPointer,
 } from './interfaces';
 import { ObjectUtility, StringUtility } from '@becomes/purple-cheetah';
 import { CacheControl } from '../cache';
@@ -327,6 +328,81 @@ export class PropHandler {
             break;
           case PropType.ENTRY_POINTER:
             {
+              const value = prop.value as PropEntryPointer;
+              try {
+                ObjectUtility.compareWithSchema(
+                  { value },
+                  {
+                    value: {
+                      __type: 'object',
+                      __required: true,
+                      __child: {
+                        templateId: {
+                          __type: 'string',
+                          __required: true,
+                        },
+                        displayProp: {
+                          __type: 'string',
+                          __required: true,
+                        },
+                        entryIds: {
+                          __type: 'array',
+                          __required: true,
+                          __child: {
+                            __type: 'string',
+                          },
+                        },
+                      },
+                    },
+                  },
+                  `${level}.${prop.name}.value`,
+                );
+              } catch (e) {
+                return e;
+              }
+              for (const j in value.entryIds) {
+                if (StringUtility.isIdValid(value.entryIds[j]) === false) {
+                  return Error(
+                    `[ ${level}.${prop.name}.value.entryIds[${j}] ] -->` +
+                      ` invalid ID "${value.entryIds[j]}" was provided.`,
+                  );
+                }
+                const entry = await CacheControl.entry.findById(
+                  value.entryIds[j],
+                );
+                if (!entry) {
+                  return Error(
+                    `[ ${level}.${prop.name}.value.entryIds[${j}] ] -->` +
+                      ` entry with ID "${value.entryIds[j]}" does not exist.`,
+                  );
+                }
+              }
+              if (StringUtility.isIdValid(value.templateId) === false) {
+                return Error(
+                  `[ ${level}.${prop.name}.value.templateId ] -->` +
+                    ` invalid ID "${value.templateId}" was provided.`,
+                );
+              }
+              const template = await CacheControl.template.findById(
+                value.templateId,
+              );
+              if (!template) {
+                return Error(
+                  `[ ${level}.${prop.name}.value.templateId ] -->` +
+                    ` template with ID "${value.templateId}" does not exist.`,
+                );
+              }
+              const displayPropChecker = template.props.find(
+                (e) =>
+                  e.name === value.displayProp && e.type === PropType.STRING,
+              );
+              if (!displayPropChecker) {
+                return Error(
+                  `[ ${level}.${prop.name}.value.displayProp ] -->` +
+                    ` property with name "${value.displayProp}" does not exist` +
+                    ` in template "${value.templateId}".`,
+                );
+              }
             }
             break;
         }

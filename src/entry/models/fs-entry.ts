@@ -7,8 +7,6 @@ export class FSEntry implements FSDBEntity {
     public _id: string,
     public createdAt: number,
     public updatedAt: number,
-    public title: string,
-    public slug: string,
     public templateId: string,
     public userId: string,
     public meta: EntryMeta[],
