@@ -304,27 +304,26 @@ export class TemplateRequestHandler {
       if (!changeDetected) {
         throw error.occurred(HttpStatus.FORBIDDEN, ResponseCode.get('g003'));
       }
-      try {
-        await PropHandler.testInfiniteLoop(template.props);
-      } catch (e) {
+      let output = await PropHandler.testInfiniteLoop(template.props);
+      if (output instanceof Error) {
         throw error.occurred(
           HttpStatus.BAD_REQUEST,
           ResponseCode.get('g008', {
-            msg: e.message,
+            msg: output.message,
           }),
         );
       }
-      try {
-        await PropHandler.propsChecker(
-          template.props,
-          template.props,
-          'template.props',
-        );
-      } catch (e) {
+      this.logger.info('tmp', template.props);
+      output = await PropHandler.propsChecker(
+        template.props,
+        template.props,
+        'template.props',
+      );
+      if (output instanceof Error) {
         throw error.occurred(
           HttpStatus.BAD_REQUEST,
           ResponseCode.get('g007', {
-            msg: e.message,
+            msg: output.message,
           }),
         );
       }

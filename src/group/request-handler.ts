@@ -298,30 +298,32 @@ export class GroupRequestHandler {
       if (!changeDetected) {
         throw error.occurred(HttpStatus.FORBIDDEN, ResponseCode.get('g003'));
       }
-      try {
-        await PropHandler.testInfiniteLoop(group.props, {
-          group: [
-            {
-              _id: `${group._id}`,
-              label: group.label,
-            },
-          ],
-        });
-      } catch (e) {
+      const result = await PropHandler.testInfiniteLoop(group.props, {
+        group: [
+          {
+            _id: `${group._id}`,
+            label: group.label,
+          },
+        ],
+      });
+      if (result instanceof Error) {
         throw error.occurred(
           HttpStatus.BAD_REQUEST,
           ResponseCode.get('g008', {
-            msg: e.message,
+            msg: result.message,
           }),
         );
       }
-      try {
-        await PropHandler.propsChecker(group.props, group.props, 'group.props');
-      } catch (e) {
+      const output = await PropHandler.propsChecker(
+        group.props,
+        group.props,
+        'group.props',
+      );
+      if (output instanceof Error) {
         throw error.occurred(
           HttpStatus.BAD_REQUEST,
           ResponseCode.get('g007', {
-            msg: e.message,
+            msg: output.message,
           }),
         );
       }

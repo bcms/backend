@@ -265,10 +265,10 @@ export class PropHandler {
             break;
           case PropType.GROUP_POINTER:
             {
-              const value = propToCheck.value as PropGroupPointer;
+              const valueToCheck = propToCheck.value as PropGroupPointer;
               try {
                 ObjectUtility.compareWithSchema(
-                  { value },
+                  { value: valueToCheck },
                   {
                     value: {
                       __type: 'object',
@@ -294,26 +294,26 @@ export class PropHandler {
               } catch (e) {
                 return Error(`[ ${level}.${prop.name} ] --> ${e.message}`);
               }
-              if (StringUtility.isIdValid(value._id) === false) {
+              if (StringUtility.isIdValid(valueToCheck._id) === false) {
                 return Error(
                   `[ ${level}.${prop.name}.value._id ] --> invalid value.`,
                 );
               }
-              const group = await CacheControl.group.findById(value._id);
+              const group = await CacheControl.group.findById(valueToCheck._id);
               if (!group) {
                 return Error(
                   `[ ${level}.${prop.name}.value._id ] --> Group with ID` +
-                    ` "${value._id}" does not exist.`,
+                    ` "${valueToCheck._id}" does not exist.`,
                 );
               }
-              if (value.items.length === 0) {
+              if (valueToCheck.items.length === 0) {
                 return Error(
                   `[ ${level}.${prop.name}.value.items ] --> Must have` +
                     ` at least 1 item but got 0.`,
                 );
               }
-              for (const j in value.items) {
-                const toCheckGroupProps = value.items[j].props;
+              for (const j in valueToCheck.items) {
+                const toCheckGroupProps = valueToCheck.items[j].props;
                 const result = await this.propsChecker(
                   toCheckGroupProps,
                   group.props,

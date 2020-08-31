@@ -287,27 +287,25 @@ export class WidgetRequestHandler {
     if (!changeDetected) {
       throw error.occurred(HttpStatus.FORBIDDEN, ResponseCode.get('g003'));
     }
-    try {
-      await PropHandler.testInfiniteLoop(widget.props);
-    } catch (e) {
+    let output = await PropHandler.testInfiniteLoop(widget.props);
+    if (output instanceof Error) {
       throw error.occurred(
         HttpStatus.BAD_REQUEST,
         ResponseCode.get('g008', {
-          msg: e.message,
+          msg: output.message,
         }),
       );
     }
-    try {
-      await PropHandler.propsChecker(
-        widget.props,
-        widget.props,
-        'widget.props',
-      );
-    } catch (e) {
+    output = await PropHandler.propsChecker(
+      widget.props,
+      widget.props,
+      'widget.props',
+    );
+    if (output instanceof Error) {
       throw error.occurred(
         HttpStatus.BAD_REQUEST,
         ResponseCode.get('g007', {
-          msg: e.message,
+          msg: output.message,
         }),
       );
     }

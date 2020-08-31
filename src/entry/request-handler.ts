@@ -322,13 +322,16 @@ export class EntryRequestHandler {
           }),
         );
       }
-      try {
-        await PropHandler.propsChecker(lngMeta.props, template.props);
-      } catch (e) {
+      const result = await PropHandler.propsChecker(
+        lngMeta.props,
+        template.props,
+        `data.meta["${lngMeta.lng}"].props`,
+      );
+      if (result instanceof Error) {
         throw error.occurred(
           HttpStatus.BAD_REQUEST,
           ResponseCode.get('etr003', {
-            error: e.message,
+            error: result.message,
           }),
         );
       }
@@ -429,13 +432,15 @@ export class EntryRequestHandler {
           }),
         );
       }
-      try {
-        await PropHandler.propsChecker(lngMeta.props, template.props);
-      } catch (e) {
+      const result = await PropHandler.propsChecker(
+        lngMeta.props,
+        template.props,
+      );
+      if (result instanceof Error) {
         throw error.occurred(
           HttpStatus.BAD_REQUEST,
           ResponseCode.get('etr003', {
-            error: e.message,
+            error: result.message,
           }),
         );
       }
