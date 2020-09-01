@@ -21,9 +21,14 @@ import {
   UpdateTemplateDataSchema,
 } from './interfaces';
 import { TemplateFactory } from './factories';
-import { PropHandler, Prop, PropFactory, PropChange } from '../prop';
+import { PropHandler, PropChange } from '../prop';
 import { General, SocketUtil, SocketEventName } from '../util';
 import { Entry, FSEntry } from '../entry';
+import {
+  EventManager,
+  BCMSEventConfigScope,
+  BCMSEventConfigMethod,
+} from '../event';
 
 export class TemplateRequestHandler {
   @CreateLogger(TemplateRequestHandler)
@@ -197,6 +202,11 @@ export class TemplateRequestHandler {
       source: sid,
       type: 'add',
     });
+    await EventManager.emit(
+      BCMSEventConfigScope.TEMPLATE,
+      BCMSEventConfigMethod.ADD,
+      JSON.parse(JSON.stringify(template)),
+    );
     return template;
   }
 
@@ -285,6 +295,41 @@ export class TemplateRequestHandler {
         typeof data.propChanges !== 'undefined' &&
         data.propChanges.length > 0
       ) {
+        for (const i in data.propChanges) {
+          const change = data.propChanges[i];
+          if (change.add) {
+            const name = General.labelToName(change.add.label);
+            if (name === 'title' || name === 'slug') {
+              throw error.occurred(
+                HttpStatus.FORBIDDEN,
+                ResponseCode.get('tmp009', {
+                  name,
+                }),
+              );
+            }
+          } else if (change.update) {
+            if (
+              change.update.label.old === 'Title' ||
+              change.update.label.old === 'Slug'
+            ) {
+              throw error.occurred(
+                HttpStatus.FORBIDDEN,
+                ResponseCode.get('tmp009', {
+                  name: change.update.label.old,
+                }),
+              );
+            }
+          } else if (change.remove) {
+            if (change.remove === 'title' || change.remove === 'slug') {
+              throw error.occurred(
+                HttpStatus.FORBIDDEN,
+                ResponseCode.get('tmp009', {
+                  name: change.remove,
+                }),
+              );
+            }
+          }
+        }
         updateEntries = true;
         changeDetected = true;
         const result = await PropHandler.applyPropChanges(
@@ -355,6 +400,11 @@ export class TemplateRequestHandler {
         source: sid,
         type: 'update',
       });
+      await EventManager.emit(
+        BCMSEventConfigScope.TEMPLATE,
+        BCMSEventConfigMethod.UPDATE,
+        JSON.parse(JSON.stringify(template)),
+      );
       return template;
     })) as Template | FSTemplate;
   }
@@ -413,6 +463,11 @@ export class TemplateRequestHandler {
       source: sid,
       type: 'remove',
     });
+    await EventManager.emit(
+      BCMSEventConfigScope.TEMPLATE,
+      BCMSEventConfigMethod.DELETE,
+      JSON.parse(JSON.stringify(template)),
+    );
   }
 
   private static async propsUpdate(

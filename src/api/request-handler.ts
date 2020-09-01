@@ -25,6 +25,11 @@ import {
   UpdateApiKeyDataSchema,
 } from './interfaces';
 import { ApiKeyFactory } from './factories';
+import {
+  EventManager,
+  BCMSEventConfigScope,
+  BCMSEventConfigMethod,
+} from '../event';
 
 export class ApiKeyRequestHandler {
   @CreateLogger(ApiKeyRequestHandler)
@@ -162,6 +167,11 @@ export class ApiKeyRequestHandler {
         ResponseCode.get('ak003'),
       );
     }
+    await EventManager.emit(
+      BCMSEventConfigScope.API_KEY,
+      BCMSEventConfigMethod.ADD,
+      JSON.parse(JSON.stringify(key)),
+    );
     return key;
   }
 
@@ -237,6 +247,11 @@ export class ApiKeyRequestHandler {
         ResponseCode.get('ak005'),
       );
     }
+    await EventManager.emit(
+      BCMSEventConfigScope.API_KEY,
+      BCMSEventConfigMethod.UPDATE,
+      JSON.parse(JSON.stringify(key)),
+    );
     return key;
   }
 
@@ -275,5 +290,10 @@ export class ApiKeyRequestHandler {
         ResponseCode.get('ak006'),
       );
     }
+    await EventManager.emit(
+      BCMSEventConfigScope.API_KEY,
+      BCMSEventConfigMethod.DELETE,
+      JSON.parse(JSON.stringify(key)),
+    );
   }
 }

@@ -1,5 +1,6 @@
 import { Template, FSTemplate } from '../models';
 import { Types } from 'mongoose';
+import { PropType } from '../../prop';
 
 export class TemplateFactory {
   public static get instance(): Template | FSTemplate {
@@ -13,7 +14,24 @@ export class TemplateFactory {
         '',
         '',
         false,
-        [],
+        [
+          {
+            label: 'Title',
+            name: 'title',
+            array: false,
+            required: true,
+            type: PropType.STRING,
+            value: [''],
+          },
+          {
+            label: 'Slug',
+            name: 'slug',
+            array: false,
+            required: true,
+            type: PropType.STRING,
+            value: [''],
+          },
+        ],
       );
     } else {
       return new Template(
@@ -25,7 +43,24 @@ export class TemplateFactory {
         '',
         '',
         false,
-        [],
+        [
+          {
+            label: 'Title',
+            name: 'title',
+            array: false,
+            required: true,
+            type: PropType.STRING,
+            value: [''],
+          },
+          {
+            label: 'Slug',
+            name: 'slug',
+            array: false,
+            required: true,
+            type: PropType.STRING,
+            value: [''],
+          },
+        ],
       );
     }
   }

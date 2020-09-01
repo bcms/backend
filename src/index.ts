@@ -13,3 +13,6 @@ export * from './user';
 export * from './util';
 export * from './widget';
 export * from './entry';
+export * from './api';
+export * from './function';
+export * from './event';

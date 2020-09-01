@@ -1,6 +1,8 @@
 import { JWTConfigService, JWTEncryptionAlg } from '@becomes/purple-cheetah';
 import { ResponseCode } from './response-code';
 import { CacheControl } from './cache';
+import { FunctionManager } from './function';
+import { EventManager } from './event';
 
 export class Config {
   public static async init() {
@@ -13,5 +15,7 @@ export class Config {
       secret: process.env.JWT_SECRET,
     });
     CacheControl.init();
+    await FunctionManager.init();
+    await EventManager.init();
   }
 }

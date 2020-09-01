@@ -27,6 +27,7 @@ import { ApiKeyController } from './api';
 import { MediaController, MediaParserMiddleware } from './media';
 import { Types } from 'mongoose';
 import { EntryController } from './entry/controller';
+import { FunctionController } from './function';
 
 let dbConfig: MongoDBConfig;
 if (process.env.DB_USE_FS) {
@@ -105,6 +106,7 @@ if (process.env.DB_USE_FS) {
     new ApiKeyController(),
     new MediaController(),
     new EntryController(),
+    new FunctionController(),
   ],
   middleware: [
     new CORSMiddleware(),

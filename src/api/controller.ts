@@ -12,7 +12,7 @@ import { ApiKeyAccess, ApiKey, FSApiKey } from './models';
 import { ApiKeyRequestHandler } from './request-handler';
 import { ApiKeySecurity } from './security';
 
-@Controller('/api/key')
+@Controller('/key')
 export class ApiKeyController implements ControllerPrototype {
   name: string;
   baseUri: string;

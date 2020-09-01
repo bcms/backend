@@ -23,6 +23,11 @@ import {
 import { EntryFactory } from './factory';
 import { PropHandler, PropType } from '../prop';
 import { SocketUtil, SocketEventName } from '../util';
+import {
+  EventManager,
+  BCMSEventConfigScope,
+  BCMSEventConfigMethod,
+} from '../event';
 
 export class EntryRequestHandler {
   @CreateLogger(EntryRequestHandler)
@@ -396,6 +401,11 @@ export class EntryRequestHandler {
       source: sid,
       type: 'add',
     });
+    await EventManager.emit(
+      BCMSEventConfigScope.ENTRY,
+      BCMSEventConfigMethod.ADD,
+      JSON.parse(JSON.stringify(entry)),
+    );
     return entry;
   }
 
@@ -540,6 +550,11 @@ export class EntryRequestHandler {
       source: sid,
       type: 'update',
     });
+    await EventManager.emit(
+      BCMSEventConfigScope.ENTRY,
+      BCMSEventConfigMethod.UPDATE,
+      JSON.parse(JSON.stringify(entry)),
+    );
     return entry;
   }
 
@@ -586,5 +601,10 @@ export class EntryRequestHandler {
       source: sid,
       type: 'remove',
     });
+    await EventManager.emit(
+      BCMSEventConfigScope.ENTRY,
+      BCMSEventConfigMethod.DELETE,
+      JSON.parse(JSON.stringify(entry)),
+    );
   }
 }

@@ -14,3 +14,5 @@ tmp007:
   msg: Invalid propChange was provided as position "%pos%".
 tmp008:
   msg: Failed to update Entries after Template update. %msg%
+tmp009:
+  msg: Property with name "%name%" is reserved and cannot me modified.

@@ -23,6 +23,11 @@ import {
 import { WidgetFactory } from './factories';
 import { PropChange } from '../prop';
 import { General, SocketUtil, SocketEventName } from '../util';
+import {
+  EventManager,
+  BCMSEventConfigScope,
+  BCMSEventConfigMethod,
+} from '../event';
 
 export class WidgetRequestHandler {
   @CreateLogger(WidgetRequestHandler)
@@ -195,6 +200,11 @@ export class WidgetRequestHandler {
       source: sid,
       type: 'add',
     });
+    await EventManager.emit(
+      BCMSEventConfigScope.WIDGET,
+      BCMSEventConfigMethod.ADD,
+      JSON.parse(JSON.stringify(widget)),
+    );
     return widget;
   }
 
@@ -337,6 +347,11 @@ export class WidgetRequestHandler {
       source: sid,
       type: 'update',
     });
+    await EventManager.emit(
+      BCMSEventConfigScope.WIDGET,
+      BCMSEventConfigMethod.UPDATE,
+      JSON.parse(JSON.stringify(widget)),
+    );
     return widget;
   }
 
@@ -384,6 +399,11 @@ export class WidgetRequestHandler {
       source: sid,
       type: 'remove',
     });
+    await EventManager.emit(
+      BCMSEventConfigScope.WIDGET,
+      BCMSEventConfigMethod.DELETE,
+      JSON.parse(JSON.stringify(widget)),
+    );
   }
 
   private static async propsUpdate(

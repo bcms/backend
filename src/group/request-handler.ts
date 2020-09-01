@@ -26,6 +26,11 @@ import { General, SocketUtil, SocketEventName } from '../util';
 import { Widget, FSWidget } from '../widget';
 import { Template, FSTemplate } from '../template';
 import { Entry, FSEntry } from '../entry';
+import {
+  EventManager,
+  BCMSEventConfigScope,
+  BCMSEventConfigMethod,
+} from '../event';
 
 export class GroupRequestHandler {
   @CreateLogger(GroupRequestHandler)
@@ -195,6 +200,11 @@ export class GroupRequestHandler {
       source: sid,
       type: 'add',
     });
+    await EventManager.emit(
+      BCMSEventConfigScope.GROUP,
+      BCMSEventConfigMethod.ADD,
+      JSON.parse(JSON.stringify(group)),
+    );
     return group;
   }
 
@@ -360,6 +370,11 @@ export class GroupRequestHandler {
         source: sid,
         type: 'update',
       });
+      await EventManager.emit(
+        BCMSEventConfigScope.GROUP,
+        BCMSEventConfigMethod.UPDATE,
+        JSON.parse(JSON.stringify(group)),
+      );
       return group;
     })) as Group | FSGroup;
   }
@@ -428,6 +443,11 @@ export class GroupRequestHandler {
       source: sid,
       type: 'remove',
     });
+    await EventManager.emit(
+      BCMSEventConfigScope.GROUP,
+      BCMSEventConfigMethod.DELETE,
+      JSON.parse(JSON.stringify(group)),
+    );
   }
 
   // tslint:disable-next-line: variable-name

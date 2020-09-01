@@ -22,6 +22,11 @@ import {
 } from './interfaces';
 import { MediaFactory } from './factories';
 import { MediaUtil, SocketUtil, SocketEventName } from '../util';
+import {
+  EventManager,
+  BCMSEventConfigScope,
+  BCMSEventConfigMethod,
+} from '../event';
 
 export class MediaRequestHandler {
   @CreateLogger(MediaRequestHandler)
@@ -395,6 +400,11 @@ export class MediaRequestHandler {
       source: sid,
       type: 'add',
     });
+    await EventManager.emit(
+      BCMSEventConfigScope.MEDIA,
+      BCMSEventConfigMethod.ADD,
+      JSON.parse(JSON.stringify(media)),
+    );
     return media;
   }
 
@@ -472,6 +482,11 @@ export class MediaRequestHandler {
       source: sid,
       type: 'add',
     });
+    await EventManager.emit(
+      BCMSEventConfigScope.MEDIA,
+      BCMSEventConfigMethod.ADD,
+      JSON.parse(JSON.stringify(media)),
+    );
     return media;
   }
 
@@ -569,6 +584,11 @@ export class MediaRequestHandler {
       source: sid,
       type: 'remove',
     });
+    await EventManager.emit(
+      BCMSEventConfigScope.MEDIA,
+      BCMSEventConfigMethod.DELETE,
+      JSON.parse(JSON.stringify(media)),
+    );
   }
 
   private static getAllChildren(
