@@ -27,6 +27,14 @@ export class MediaCacheHandler extends CacheHandler<
     ]);
   }
 
+  async count(): Promise<number> {
+    await this.queueable.exec('count', 'first_done_free_all', async () => {
+      await this.checkCountLatch();
+      return true;
+    });
+    return this.cache.length;
+  }
+
   async findAllByIsInRoot(isInRoot: boolean): Promise<Array<Media | FSMedia>> {
     return (await this.queueable.exec(
       'findAllByIsInRoot',
@@ -38,7 +46,9 @@ export class MediaCacheHandler extends CacheHandler<
     )) as Array<Media | FSMedia>;
   }
 
-  async findAllByParentId(parentId: string): Promise<Array<Media | FSMedia>> {
+  async findAllByParentIdDepth1(
+    parentId: string,
+  ): Promise<Array<Media | FSMedia>> {
     return (await this.queueable.exec(
       'findAllByParentId',
       'free_one_by_one',
@@ -96,11 +106,19 @@ export class MediaCacheHandler extends CacheHandler<
     )) as Media | FSMedia;
   }
 
-  async count(): Promise<number> {
-    await this.queueable.exec('count', 'first_done_free_all', async () => {
-      await this.checkCountLatch();
-      return true;
-    });
-    return this.cache.length;
+  async findByNameAndParentId(
+    name: string,
+    parentId: string,
+  ): Promise<Media | FSMedia> {
+    await this.checkCountLatch();
+    return this.cache.find((e) => e.name === name && e.parentId === parentId);
+  }
+
+  async findByIdInRootAndName(
+    isInRoot: boolean,
+    name: string,
+  ): Promise<Media | FSMedia> {
+    await this.checkCountLatch();
+    return this.cache.find((e) => e.name === name && e.isInRoot === isInRoot);
   }
 }

@@ -2,7 +2,7 @@ import { ObjectSchema } from '@becomes/purple-cheetah';
 
 export interface UpdateMediaData {
   _id: string;
-  name?: string;
+  rename?: string;
   /** ID of the parent dir or `root`. */
   moveTo?: string;
 }
@@ -12,11 +12,11 @@ export const UpdateMediaDataSchema: ObjectSchema = {
     __type: 'string',
     __required: true,
   },
-  name: {
+  rename: {
     __type: 'string',
     __required: false,
   },
-  move: {
+  moveTo: {
     __type: 'string',
     __required: false,
   },

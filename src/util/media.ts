@@ -1,6 +1,9 @@
 import * as path from 'path';
 import { FSUtil } from '@becomes/purple-cheetah';
 import { FSMedia, Media, MediaType } from '../media';
+import { CacheControl } from '../cache';
+import * as fse from 'fs-extra';
+import { rename } from 'fs';
 
 export class MediaUtil {
   static get fs() {
@@ -51,6 +54,12 @@ export class MediaUtil {
       async removeDir(media: Media | FSMedia) {
         await FSUtil.deleteDir(path.join(process.cwd(), 'uploads', media.path));
       },
+      async move(from: string, to: string) {
+        await fse.move(
+          path.join(process.cwd(), 'uploads', from),
+          path.join(process.cwd(), 'uploads', to),
+        );
+      },
     };
   }
   // TODO: Add support for other mimetypes.
@@ -63,5 +72,22 @@ export class MediaUtil {
         return MediaType.OTH;
       }
     }
+  }
+  public static async getChildren(
+    media: Media | FSMedia,
+  ): Promise<Array<Media | FSMedia>> {
+    const children = await CacheControl.media.findAllByParentIdDepth1(
+      `${media._id}`,
+    );
+    const childrenOfChildren: Array<Media | FSMedia> = [];
+    for (const i in children) {
+      const child = children[i];
+      if (child.type === MediaType.DIR) {
+        (await this.getChildren(child)).forEach((e) => {
+          childrenOfChildren.push(e);
+        });
+      }
+    }
+    return [...children, ...childrenOfChildren];
   }
 }

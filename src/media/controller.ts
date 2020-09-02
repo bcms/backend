@@ -7,6 +7,7 @@ import {
   HttpStatus,
   Post,
   Delete,
+  Put,
 } from '@becomes/purple-cheetah';
 import { Router, Request, Response } from 'express';
 import { Media, FSMedia, MediaType } from './models';
@@ -27,7 +28,12 @@ export class MediaController implements ControllerPrototype {
   @Get('/all')
   async getAll(request: Request): Promise<{ media: Array<Media | FSMedia> }> {
     return {
-      media: await MediaRequestHandler.getAll(request.headers.authorization),
+      media: await MediaRequestHandler.getAll(
+        request.headers.authorization,
+        request.query.signature
+          ? ApiKeySecurity.requestToApiKeyRequest(request)
+          : undefined,
+      ),
     };
   }
 
@@ -53,6 +59,22 @@ export class MediaController implements ControllerPrototype {
       media: await MediaRequestHandler.getAllByParentId(
         request.headers.authorization,
         request.params.id,
+        request.query.signature
+          ? ApiKeySecurity.requestToApiKeyRequest(request)
+          : undefined,
+      ),
+    };
+  }
+
+  @Get('/many/:ids')
+  async getMany(request: Request): Promise<{ media: Array<Media | FSMedia> }> {
+    return {
+      media: await MediaRequestHandler.getMany(
+        request.headers.authorization,
+        request.params.ids,
+        request.query.signature
+          ? ApiKeySecurity.requestToApiKeyRequest(request)
+          : undefined,
       ),
     };
   }
@@ -135,6 +157,17 @@ export class MediaController implements ControllerPrototype {
   async addDir(request: Request): Promise<{ media: Media | FSMedia }> {
     return {
       media: await MediaRequestHandler.addDir(
+        request.headers.authorization,
+        request.body,
+        request.headers.sid as string,
+      ),
+    };
+  }
+
+  @Put('/:id')
+  async update(request: Request): Promise<{ media: Media | FSMedia }> {
+    return {
+      media: await MediaRequestHandler.update(
         request.headers.authorization,
         request.body,
         request.headers.sid as string,
