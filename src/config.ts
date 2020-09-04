@@ -3,6 +3,7 @@ import { ResponseCode } from './response-code';
 import { CacheControl } from './cache';
 import { FunctionManager } from './function';
 import { EventManager } from './event';
+import { JobManager } from './job';
 
 export class Config {
   public static async init() {
@@ -17,5 +18,6 @@ export class Config {
     CacheControl.init();
     await FunctionManager.init();
     await EventManager.init();
+    await JobManager.init();
   }
 }
