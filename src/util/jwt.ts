@@ -33,6 +33,7 @@ export class JWTUtil {
         }),
       );
     }
+    return jwt;
   }
   public static policyCheck(
     policy: UserPolicy,
