@@ -15,6 +15,7 @@ export interface PropChange {
       old: string;
       new: string;
     };
+    move: number;
     required: boolean;
   };
 }
@@ -63,6 +64,10 @@ export const PropChangeSchema: ObjectSchema = {
             __required: true,
           },
         },
+      },
+      move: {
+        __type: 'number',
+        __required: true,
       },
       required: {
         __type: 'boolean',

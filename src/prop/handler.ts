@@ -512,21 +512,37 @@ export class PropHandler {
         // tslint:disable-next-line: prefer-for-of
         for (let j = 0; j < props.length; j = j + 1) {
           if (props[j].label === change.update.label.old) {
-            let err = false;
-            if (props.find((e) => e.label === change.update.label.new)) {
-              err = true;
-            }
-            if (err) {
-              // return 'bane' as any;
-              return Error(
-                `Prop with name "${General.labelToName(
-                  change.update.label.new,
-                )}" already exist at this level "${level}", error in "changes[${i}].update".`,
-              );
+            if (change.update.label.old !== change.update.label.new) {
+              if (props.find((e) => e.label === change.update.label.new)) {
+                return Error(
+                  `Prop with name "${General.labelToName(
+                    change.update.label.new,
+                  )}" already exist at this level "${level}", error in "changes[${i}].update".`,
+                );
+              }
             }
             props[j].label = change.update.label.new;
             props[j].name = General.labelToName(change.update.label.new);
             props[j].required = change.update.required;
+            if (change.update.move !== 0) {
+              if (change.update.move > 0 && j < props.length - 1) {
+                const propBuffer = JSON.parse(JSON.stringify(props[j + 1]));
+                props[j + 1] = JSON.parse(JSON.stringify(props[j]));
+                props[j] = propBuffer;
+              } else if (change.update.move < 0 && j > 0) {
+                if (props[0] && props[0].name === 'title') {
+                  if (j > 2) {
+                    const propBuffer = JSON.parse(JSON.stringify(props[j - 1]));
+                    props[j - 1] = JSON.parse(JSON.stringify(props[j]));
+                    props[j] = propBuffer;
+                  }
+                } else {
+                  const propBuffer = JSON.parse(JSON.stringify(props[j - 1]));
+                  props[j - 1] = JSON.parse(JSON.stringify(props[j]));
+                  props[j] = propBuffer;
+                }
+              }
+            }
             break;
           }
         }
