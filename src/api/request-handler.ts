@@ -30,6 +30,7 @@ import {
   BCMSEventConfigScope,
   BCMSEventConfigMethod,
 } from '../event';
+import { SocketEventName, SocketUtil } from '../util';
 
 export class ApiKeyRequestHandler {
   @CreateLogger(ApiKeyRequestHandler)
@@ -127,6 +128,7 @@ export class ApiKeyRequestHandler {
 
   static async add(
     authorization: string,
+    sid: string,
     data: AddApiKeyData,
   ): Promise<ApiKey | FSApiKey> {
     const error = HttpErrorFactory.instance('add', this.logger);
@@ -172,11 +174,20 @@ export class ApiKeyRequestHandler {
       BCMSEventConfigMethod.ADD,
       JSON.parse(JSON.stringify(key)),
     );
+    SocketUtil.emit(SocketEventName.API_KEY, {
+      entry: {
+        _id: `${key._id}`,
+      },
+      message: 'Api Key has been added.',
+      source: sid,
+      type: 'add',
+    });
     return key;
   }
 
   static async update(
     authorization: string,
+    sid: string,
     data: UpdateApiKeyData,
   ): Promise<ApiKey | FSApiKey> {
     const error = HttpErrorFactory.instance('update', this.logger);
@@ -252,10 +263,18 @@ export class ApiKeyRequestHandler {
       BCMSEventConfigMethod.UPDATE,
       JSON.parse(JSON.stringify(key)),
     );
+    SocketUtil.emit(SocketEventName.API_KEY, {
+      entry: {
+        _id: `${key._id}`,
+      },
+      message: 'Api Key has been updated.',
+      source: sid,
+      type: 'update',
+    });
     return key;
   }
 
-  static async deleteById(authorization: string, id: string) {
+  static async deleteById(authorization: string, sid: string, id: string) {
     const error = HttpErrorFactory.instance('deleteById', this.logger);
     if (StringUtility.isIdValid(id) === false) {
       throw error.occurred(
@@ -295,5 +314,13 @@ export class ApiKeyRequestHandler {
       BCMSEventConfigMethod.DELETE,
       JSON.parse(JSON.stringify(key)),
     );
+    SocketUtil.emit(SocketEventName.API_KEY, {
+      entry: {
+        _id: `${key._id}`,
+      },
+      message: 'Api Key has been removed.',
+      source: sid,
+      type: 'remove',
+    });
   }
 }

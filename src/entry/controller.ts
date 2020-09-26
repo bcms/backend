@@ -38,9 +38,7 @@ export class EntryController implements ControllerPrototype {
   }
 
   @Get('/many/lite/:ids')
-  async getManyLite(
-    request: Request,
-  ): Promise<{ entries: EntryLite[] }> {
+  async getManyLite(request: Request): Promise<{ entries: EntryLite[] }> {
     return {
       entries: await EntryRequestHandler.getManyLite(
         request.headers.authorization,
@@ -85,11 +83,14 @@ export class EntryController implements ControllerPrototype {
       count: await EntryRequestHandler.countByTemplateId(
         request.headers.authorization,
         request.params.templateId,
+        request.query.signature
+          ? ApiKeySecurity.requestToApiKeyRequest(request)
+          : undefined,
       ),
     };
   }
 
-  @Get('/:id')
+  @Get('/:templateId/:id')
   async getById(request: Request): Promise<{ entry: Entry | FSEntry }> {
     return {
       entry: await EntryRequestHandler.getById(
@@ -102,34 +103,43 @@ export class EntryController implements ControllerPrototype {
     };
   }
 
-  @Post()
+  @Post('/:templateId')
   async add(request: Request): Promise<{ entry: Entry | FSEntry }> {
     return {
       entry: await EntryRequestHandler.add(
         request.headers.authorization,
         request.body,
         request.headers.sid as string,
+        request.query.signature
+          ? ApiKeySecurity.requestToApiKeyRequest(request)
+          : undefined,
       ),
     };
   }
 
-  @Put()
+  @Put('/:templateId')
   async update(request: Request): Promise<{ entry: Entry | FSEntry }> {
     return {
       entry: await EntryRequestHandler.update(
         request.headers.authorization,
         request.body,
         request.headers.sid as string,
+        request.query.signature
+          ? ApiKeySecurity.requestToApiKeyRequest(request)
+          : undefined,
       ),
     };
   }
 
-  @Delete('/:id')
+  @Delete('/:templateId/:id')
   async deleteById(request: Request): Promise<{ message: string }> {
     await EntryRequestHandler.deleteById(
       request.headers.authorization,
       request.params.id,
       request.headers.sid as string,
+      request.query.signature
+        ? ApiKeySecurity.requestToApiKeyRequest(request)
+        : undefined,
     );
     return {
       message: 'Success.',

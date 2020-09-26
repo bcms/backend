@@ -123,8 +123,11 @@ export class ApiKeySecurity {
       return;
     }
     if (
-      ApiKeySecurity.verifyAccess(key, request.requestMethod, request.path) ===
-      false
+      ApiKeySecurity.verifyAccess(
+        key,
+        request.requestMethod as any,
+        request.path,
+      ) === false
     ) {
       throw new Error(`Key is not allowed to access this resource.`);
     }
@@ -133,50 +136,128 @@ export class ApiKeySecurity {
 
   static verifyAccess(
     key: ApiKey | FSApiKey,
-    method: string,
+    method: 'get' | 'post' | 'put' | 'delete',
     path: string,
   ): boolean {
-    if (path.startsWith('/function')) {
-      const p = path.replace('/function/', '');
-      if (key.access.functions.find((e) => e.name === p) && method === 'POST') {
+    if (path.startsWith('/api/function')) {
+      const p = path.replace('/api/function/', '');
+      if (key.access.functions.find((e) => e.name === p) && method === 'post') {
         return true;
       }
-    } else if (path.startsWith('/template')) {
-      const parts = path.split('/');
-      if (parts.length > 1) {
-        if (parts.length === 3) {
-          if (parts[2] === 'all' && method === 'GET') {
-            const templateAccess = key.access.templates.find((e) =>
-              e.methods.find((m) => m === 'GET_ALL'),
-            );
-            if (templateAccess) {
-              return true;
-            }
-          } else if (method === 'GET') {
-            const templateAccess = key.access.templates.find(
-              (e) => e._id === parts[2],
-            );
-            if (templateAccess) {
-              if (templateAccess.methods.find((e) => e === method)) {
-                return true;
-              }
-            }
-          }
-        } else if (parts.length > 2 && parts[3] === 'entry') {
-          const templateAccess = key.access.templates.find(
-            (e) => e._id === parts[2],
+    } else if (path.startsWith('/api/template')) {
+      const params = path.split('/').splice(2);
+      switch (method.toLowerCase()) {
+        case 'get': {
+          // GET: /:templateId
+          const templateId = params[0];
+          const accessPolicy = key.access.templates.find(
+            (e) => e._id === templateId,
           );
-          if (templateAccess) {
-            if (parts.length === 5 && parts[4] === 'all') {
-              if (templateAccess.entry.methods.find((e) => e === 'GET_ALL')) {
-                return true;
-              }
-            } else {
-              if (templateAccess.entry.methods.find((e) => e === method)) {
-                return true;
+          if (accessPolicy) {
+            return true;
+          }
+        }
+      }
+    } else if (path.startsWith('/api/entry')) {
+      const parts = path.split('/');
+      if (parts.length > 2) {
+        const params = parts.splice(2);
+        switch (method.toLowerCase()) {
+          case 'get':
+            {
+              if (params.length > 1) {
+                if (params[0] === 'all') {
+                  // GET: /all/:templateId
+                  // GET: /all/:templateId/lite
+                  const templateId = params[1];
+                  const accessPolicy = key.access.templates.find(
+                    (e) => e._id === templateId,
+                  );
+                  if (
+                    accessPolicy &&
+                    accessPolicy[method.toLowerCase()] === true
+                  ) {
+                    return true;
+                  }
+                } else if (params[0] === 'count') {
+                  // GET: /count/:templateId
+                  const templateId = params[1];
+                  const accessPolicy = key.access.templates.find(
+                    (e) => e._id === templateId,
+                  );
+                  if (
+                    accessPolicy &&
+                    accessPolicy[method.toLowerCase()] === true
+                  ) {
+                    return true;
+                  }
+                } else {
+                  // GET: /:templateId/:entryId
+                  const templateId = params[0];
+                  const accessPolicy = key.access.templates.find(
+                    (e) => e._id === templateId,
+                  );
+                  if (
+                    accessPolicy &&
+                    accessPolicy[method.toLowerCase()] === true
+                  ) {
+                    return true;
+                  }
+                }
               }
             }
-          }
+            break;
+          case 'post':
+            {
+              if (params.length === 1) {
+                // POST: /:templateId/
+                const templateId = params[0];
+                const accessPolicy = key.access.templates.find(
+                  (e) => e._id === templateId,
+                );
+                if (
+                  accessPolicy &&
+                  accessPolicy[method.toLowerCase()] === true
+                ) {
+                  return true;
+                }
+              }
+            }
+            break;
+          case 'put':
+            {
+              if (params.length === 1) {
+                // PUT: /:templateId/
+                const templateId = params[0];
+                const accessPolicy = key.access.templates.find(
+                  (e) => e._id === templateId,
+                );
+                if (
+                  accessPolicy &&
+                  accessPolicy[method.toLowerCase()] === true
+                ) {
+                  return true;
+                }
+              }
+            }
+            break;
+          case 'delete':
+            {
+              if (params.length === 2) {
+                // POST: /:templateId/:entryId
+                const templateId = params[0];
+                const accessPolicy = key.access.templates.find(
+                  (e) => e._id === templateId,
+                );
+                if (
+                  accessPolicy &&
+                  accessPolicy[method.toLowerCase()] === true
+                ) {
+                  return true;
+                }
+              }
+            }
+            break;
         }
       }
     }

@@ -12,7 +12,7 @@ import { ApiKeyAccess, ApiKey, FSApiKey } from './models';
 import { ApiKeyRequestHandler } from './request-handler';
 import { ApiKeySecurity } from './security';
 
-@Controller('/key')
+@Controller('/api/key')
 export class ApiKeyController implements ControllerPrototype {
   name: string;
   baseUri: string;
@@ -58,6 +58,7 @@ export class ApiKeyController implements ControllerPrototype {
     return {
       key: await ApiKeyRequestHandler.add(
         request.headers.authorization,
+        request.headers.sid as string,
         request.body,
       ),
     };
@@ -68,6 +69,7 @@ export class ApiKeyController implements ControllerPrototype {
     return {
       key: await ApiKeyRequestHandler.update(
         request.headers.authorization,
+        request.headers.sid as string,
         request.body,
       ),
     };
@@ -77,6 +79,7 @@ export class ApiKeyController implements ControllerPrototype {
   async deleteById(request: Request): Promise<{ message: string }> {
     await ApiKeyRequestHandler.deleteById(
       request.headers.authorization,
+      request.headers.sid as string,
       request.params.id,
     );
     return {

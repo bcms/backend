@@ -1,39 +1,15 @@
 import {
   IEntity,
   ObjectSchema,
-  ObjectPropSchema,
 } from '@becomes/purple-cheetah';
 import { Types, Schema } from 'mongoose';
-
-/**
- * Set of allowed values for request method.
- */
-export enum ApiKeyMethod {
-  GET_ALL = 'GET_ALL',
-  POST = 'POST',
-  PUT = 'PUT',
-  GET = 'GET',
-  DELETE = 'DELETE',
-}
+import { UserPolicyCRUD, UserPolicyCRUDSchema } from '../../user';
 
 /**
  * Defines what specific Key can do with Template/Templates.
  */
 export interface ApiKeyAccess {
-  /** Refers to all Templates */
-  global: {
-    methods: ApiKeyMethod[];
-  };
-  templates: Array<{
-    /** Specific Template ID. */
-    _id: string;
-    /** Methods that can be executed on specified Template. */
-    methods: ApiKeyMethod[];
-    /** Entry level access definition for specified Template. */
-    entry: {
-      methods: ApiKeyMethod[];
-    };
-  }>;
+  templates: Array<UserPolicyCRUD & { _id: string }>;
   functions: Array<{
     name: string;
   }>;
@@ -85,21 +61,7 @@ export class ApiKey {
   }
 }
 
-export const ApiKeyMethodSchema: ObjectPropSchema = {
-  __type: 'array',
-  __required: true,
-  __child: {
-    __type: 'string',
-  },
-};
 export const ApiKeyAccessSchema: ObjectSchema = {
-  global: {
-    __type: 'object',
-    __required: true,
-    __child: {
-      methods: ApiKeyMethodSchema,
-    },
-  },
   templates: {
     __type: 'array',
     __required: true,
@@ -110,14 +72,7 @@ export const ApiKeyAccessSchema: ObjectSchema = {
           __type: 'string',
           __required: true,
         },
-        methods: ApiKeyMethodSchema,
-        entry: {
-          __type: 'object',
-          __required: true,
-          __child: {
-            methods: ApiKeyMethodSchema,
-          },
-        },
+        ...UserPolicyCRUDSchema,
       },
     },
   },

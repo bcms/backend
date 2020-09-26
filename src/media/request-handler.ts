@@ -524,6 +524,7 @@ export class MediaRequestHandler {
     media.hasChildren = true;
     if (await CacheControl.media.findByNameAndPath(media.name, media.path)) {
       media.name = crypto.randomBytes(6).toString('hex') + '-' + media.name;
+      media.path = parent ? parent.path + '/' + media.name : '/' + media.name;
     }
     const addResult = await CacheControl.media.add(media);
     if (addResult === false) {

@@ -8,6 +8,7 @@ export enum SocketEventName {
   WIDGET = 'widget',
   ENTRY = 'entry',
   MEDIA = 'media',
+  API_KEY = 'apiKey',
 }
 
 export interface SocketEventData {

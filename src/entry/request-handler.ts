@@ -201,6 +201,7 @@ export class EntryRequestHandler {
   static async countByTemplateId(
     authorization: string,
     templateId: string,
+    apiRequest?: ApiKeyRequestObject,
   ): Promise<number> {
     const error = HttpErrorFactory.instance('countByTemplateId', this.logger);
     if (StringUtility.isIdValid(templateId) === false) {
@@ -209,18 +210,29 @@ export class EntryRequestHandler {
         ResponseCode.get('g004', { templateId }),
       );
     }
-    const jwt = JWTSecurity.checkAndValidateAndGet(authorization, {
-      roles: [RoleName.ADMIN, RoleName.USER],
-      permission: PermissionName.READ,
-      JWTConfig: JWTConfigService.get('user-token-config'),
-    });
-    if (jwt instanceof Error) {
-      throw error.occurred(
-        HttpStatus.UNAUTHORIZED,
-        ResponseCode.get('g001', {
-          msg: jwt.message,
-        }),
-      );
+    if (apiRequest) {
+      try {
+        ApiKeySecurity.verify(apiRequest);
+      } catch (e) {
+        throw error.occurred(
+          HttpStatus.UNAUTHORIZED,
+          ResponseCode.get('ak007', { msg: e.message }),
+        );
+      }
+    } else {
+      const jwt = JWTSecurity.checkAndValidateAndGet(authorization, {
+        roles: [RoleName.ADMIN, RoleName.USER],
+        permission: PermissionName.READ,
+        JWTConfig: JWTConfigService.get('user-token-config'),
+      });
+      if (jwt instanceof Error) {
+        throw error.occurred(
+          HttpStatus.UNAUTHORIZED,
+          ResponseCode.get('g001', {
+            msg: jwt.message,
+          }),
+        );
+      }
     }
     return await CacheControl.entry.countByTemplateId(templateId);
   }
@@ -275,6 +287,7 @@ export class EntryRequestHandler {
     authorization: string,
     data: AddEntryData,
     sid: string,
+    apiRequest?: ApiKeyRequestObject,
   ): Promise<Entry | FSEntry> {
     const error = HttpErrorFactory.instance('add', this.logger);
     try {
@@ -293,18 +306,32 @@ export class EntryRequestHandler {
         ResponseCode.get('g004', { id: data.templateId }),
       );
     }
-    const jwt = JWTSecurity.checkAndValidateAndGet(authorization, {
-      roles: [RoleName.ADMIN, RoleName.USER],
-      permission: PermissionName.WRITE,
-      JWTConfig: JWTConfigService.get('user-token-config'),
-    });
-    if (jwt instanceof Error) {
-      throw error.occurred(
-        HttpStatus.UNAUTHORIZED,
-        ResponseCode.get('g001', {
-          msg: jwt.message,
-        }),
-      );
+    let userId: string;
+    if (apiRequest) {
+      try {
+        ApiKeySecurity.verify(apiRequest);
+      } catch (e) {
+        throw error.occurred(
+          HttpStatus.UNAUTHORIZED,
+          ResponseCode.get('ak007', { msg: e.message }),
+        );
+      }
+      userId = `key_${apiRequest.data.key}`;
+    } else {
+      const jwt = JWTSecurity.checkAndValidateAndGet(authorization, {
+        roles: [RoleName.ADMIN, RoleName.USER],
+        permission: PermissionName.WRITE,
+        JWTConfig: JWTConfigService.get('user-token-config'),
+      });
+      if (jwt instanceof Error) {
+        throw error.occurred(
+          HttpStatus.UNAUTHORIZED,
+          ResponseCode.get('g001', {
+            msg: jwt.message,
+          }),
+        );
+      }
+      userId = jwt.payload.userId;
     }
     const template = await CacheControl.template.findById(data.templateId);
     if (!template) {
@@ -384,7 +411,7 @@ export class EntryRequestHandler {
     }
     const entry = EntryFactory.instance;
     entry.templateId = data.templateId;
-    entry.userId = jwt.payload.userId;
+    entry.userId = userId;
     entry.meta = meta;
     const addResult = await CacheControl.entry.add(entry);
     if (addResult === false) {
@@ -413,6 +440,7 @@ export class EntryRequestHandler {
     authorization: string,
     data: UpdateEntryData,
     sid: string,
+    apiRequest?: ApiKeyRequestObject,
   ): Promise<Entry | FSEntry> {
     const error = HttpErrorFactory.instance('update', this.logger);
     try {
@@ -437,18 +465,29 @@ export class EntryRequestHandler {
         ResponseCode.get('g004', { id: `_id: ${data._id}` }),
       );
     }
-    const jwt = JWTSecurity.checkAndValidateAndGet(authorization, {
-      roles: [RoleName.ADMIN, RoleName.USER],
-      permission: PermissionName.WRITE,
-      JWTConfig: JWTConfigService.get('user-token-config'),
-    });
-    if (jwt instanceof Error) {
-      throw error.occurred(
-        HttpStatus.UNAUTHORIZED,
-        ResponseCode.get('g001', {
-          msg: jwt.message,
-        }),
-      );
+    if (apiRequest) {
+      try {
+        ApiKeySecurity.verify(apiRequest);
+      } catch (e) {
+        throw error.occurred(
+          HttpStatus.UNAUTHORIZED,
+          ResponseCode.get('ak007', { msg: e.message }),
+        );
+      }
+    } else {
+      const jwt = JWTSecurity.checkAndValidateAndGet(authorization, {
+        roles: [RoleName.ADMIN, RoleName.USER],
+        permission: PermissionName.WRITE,
+        JWTConfig: JWTConfigService.get('user-token-config'),
+      });
+      if (jwt instanceof Error) {
+        throw error.occurred(
+          HttpStatus.UNAUTHORIZED,
+          ResponseCode.get('g001', {
+            msg: jwt.message,
+          }),
+        );
+      }
     }
     const entry = await CacheControl.entry.findById(data._id);
     if (!entry) {
@@ -558,7 +597,12 @@ export class EntryRequestHandler {
     return entry;
   }
 
-  static async deleteById(authorization: string, id: string, sid: string) {
+  static async deleteById(
+    authorization: string,
+    id: string,
+    sid: string,
+    apiRequest?: ApiKeyRequestObject,
+  ) {
     const error = HttpErrorFactory.instance('deleteById', this.logger);
     if (StringUtility.isIdValid(id) === false) {
       throw error.occurred(
@@ -566,18 +610,29 @@ export class EntryRequestHandler {
         ResponseCode.get('g004', { id }),
       );
     }
-    const jwt = JWTSecurity.checkAndValidateAndGet(authorization, {
-      roles: [RoleName.ADMIN],
-      permission: PermissionName.DELETE,
-      JWTConfig: JWTConfigService.get('user-token-config'),
-    });
-    if (jwt instanceof Error) {
-      throw error.occurred(
-        HttpStatus.UNAUTHORIZED,
-        ResponseCode.get('g001', {
-          msg: jwt.message,
-        }),
-      );
+    if (apiRequest) {
+      try {
+        ApiKeySecurity.verify(apiRequest);
+      } catch (e) {
+        throw error.occurred(
+          HttpStatus.UNAUTHORIZED,
+          ResponseCode.get('ak007', { msg: e.message }),
+        );
+      }
+    } else {
+      const jwt = JWTSecurity.checkAndValidateAndGet(authorization, {
+        roles: [RoleName.ADMIN],
+        permission: PermissionName.DELETE,
+        JWTConfig: JWTConfigService.get('user-token-config'),
+      });
+      if (jwt instanceof Error) {
+        throw error.occurred(
+          HttpStatus.UNAUTHORIZED,
+          ResponseCode.get('g001', {
+            msg: jwt.message,
+          }),
+        );
+      }
     }
     const entry = await CacheControl.entry.findById(id);
     if (!entry) {
