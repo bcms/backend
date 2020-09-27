@@ -611,7 +611,9 @@ export class PropHandler {
             if (output instanceof Error) {
               return output;
             }
-            changesFound = output.changesFound;
+            if (!changesFound) {
+              changesFound = output.changesFound;
+            }
             (props[i].value as PropGroupPointer).items[j].props = output.props;
           }
         }
