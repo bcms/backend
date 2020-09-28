@@ -396,7 +396,14 @@ export class TemplateRequestHandler {
         entry: {
           _id: `${template._id}`,
         },
-        message: updated.join('-'),
+        message: {
+          updated: [
+            {
+              name: 'entry',
+              ids: updated,
+            },
+          ],
+        },
         source: sid,
         type: 'update',
       });

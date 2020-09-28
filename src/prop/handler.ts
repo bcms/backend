@@ -199,7 +199,7 @@ export class PropHandler {
                       __type: 'array',
                       __required: true,
                       __child: {
-                        __type: 'number',
+                        __type: 'string',
                       },
                     },
                   },

@@ -462,15 +462,15 @@ export class GroupRequestHandler {
     }>
   > {
     const updated: {
-      entries: string[];
-      groups: string[];
-      widgets: string[];
-      templates: string[];
+      entry: string[];
+      group: string[];
+      widget: string[];
+      template: string[];
     } = {
-      entries: [],
-      groups: [],
-      templates: [],
-      widgets: [],
+      entry: [],
+      group: [],
+      template: [],
+      widget: [],
     };
     // Update Groups which are using this Group.
     {
@@ -487,7 +487,7 @@ export class GroupRequestHandler {
           throw output;
         }
         if (output.changesFound) {
-          updated.groups.push(`${group._id}`);
+          updated.group.push(`${group._id}`);
           group.props = output.props;
           await CacheControl.group.update(group);
         }
@@ -510,7 +510,7 @@ export class GroupRequestHandler {
           throw output;
         }
         if (output.changesFound) {
-          updated.widgets.push(`${widget._id}`);
+          updated.widget.push(`${widget._id}`);
           widget.props = output.props;
           await CacheControl.widget.update(widget);
         }
@@ -534,7 +534,7 @@ export class GroupRequestHandler {
         }
         this.logger.warn('', output);
         if (output.changesFound) {
-          updated.templates.push(`${template._id}`);
+          updated.template.push(`${template._id}`);
           template.props = output.props;
           await CacheControl.template.update(template);
         }
@@ -542,9 +542,9 @@ export class GroupRequestHandler {
     }
     // Update Entries which are using this Group.
     {
-      for (const i in updated.templates) {
+      for (const i in updated.template) {
         const entries = await CacheControl.entry.findAllByTemplateId(
-          updated.templates[i],
+          updated.template[i],
         );
         for (const j in entries) {
           const entry: Entry | FSEntry = JSON.parse(JSON.stringify(entries[j]));
@@ -566,7 +566,7 @@ export class GroupRequestHandler {
             }
           }
           if (changeInEntry) {
-            updated.entries.push(`${entry._id}`);
+            updated.entry.push(`${entry._id}`);
             await CacheControl.entry.update(entry);
           }
         }
