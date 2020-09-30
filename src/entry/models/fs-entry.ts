@@ -1,5 +1,5 @@
 import { FSDBEntity } from '@becomes/purple-cheetah';
-import { EntryMeta } from './entry';
+import { EntryContent, EntryMeta } from './entry';
 
 export class FSEntry implements FSDBEntity {
   constructor(
@@ -10,6 +10,6 @@ export class FSEntry implements FSDBEntity {
     public templateId: string,
     public userId: string,
     public meta: EntryMeta[],
-    public content: any[],
+    public content: EntryContent[],
   ) {}
 }

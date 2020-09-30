@@ -7,26 +7,16 @@ export interface EntryMeta {
   props: Prop[];
 }
 
-export const EntryMetaSchema: ObjectSchema = {
-  lng: {
-    __type: 'string',
-    __required: true,
-  },
-  props: {
-    __type: 'array',
-    __required: true,
-    __child: {
-      __type: 'object',
-      __content: PropSchema,
-    },
-  },
-};
+export interface EntryContent {
+  lng: string;
+  props: Prop[];
+}
 
 export interface IEntry extends IEntity {
   templateId: string;
   userId: string;
   meta: EntryMeta[];
-  content: any[];
+  content: EntryContent[];
 }
 
 export class Entry implements Entity {
@@ -53,6 +43,36 @@ export class Entry implements Entity {
     });
   }
 }
+
+export const EntryMetaSchema: ObjectSchema = {
+  lng: {
+    __type: 'string',
+    __required: true,
+  },
+  props: {
+    __type: 'array',
+    __required: true,
+    __child: {
+      __type: 'object',
+      __content: PropSchema,
+    },
+  },
+};
+
+export const EntryContentSchema: ObjectSchema = {
+  lng: {
+    __type: 'string',
+    __required: true,
+  },
+  props: {
+    __type: 'array',
+    __required: true,
+    __child: {
+      __type: 'object',
+      __content: PropSchema,
+    },
+  },
+};
 
 export const EntrySchema: ObjectSchema = {
   _id: {
@@ -88,6 +108,7 @@ export const EntrySchema: ObjectSchema = {
     __required: true,
     __child: {
       __type: 'object',
+      __content: EntryContentSchema,
     },
   },
 };

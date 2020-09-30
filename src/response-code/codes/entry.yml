@@ -1,9 +1,9 @@
 etr001:
   msg: Entry with ID "%id%" does not exist.
 etr002:
-  msg: Entry is missing language "%lng%" in meta.
+  msg: Entry is missing language "%lng%" in "%prop%".
 etr003:
-  msg: Entry meta check failed with %error%
+  msg: Entry "%prop%" check failed with %error%
 etr004:
   msg: Failed to add Entry to the database.
 etr005:

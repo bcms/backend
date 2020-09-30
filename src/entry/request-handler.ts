@@ -1,4 +1,4 @@
-import { Entry, FSEntry, EntryMeta } from './models';
+import { Entry, FSEntry, EntryMeta, EntryContent } from './models';
 import {
   HttpErrorFactory,
   Logger,
@@ -344,26 +344,52 @@ export class EntryRequestHandler {
     }
     const languages = await CacheControl.language.findAll();
     const meta: EntryMeta[] = [];
+    const content: EntryContent[] = [];
     for (const i in languages) {
       const lngMeta = data.meta.find((e) => e.lng === languages[i].code);
+      const lngContent = data.content.find((e) => e.lng === languages[i].code);
       if (!lngMeta) {
         throw error.occurred(
           HttpStatus.BAD_REQUEST,
           ResponseCode.get('etr002', {
             lng: languages[i].name,
+            prop: 'meta',
           }),
         );
       }
-      const result = await PropHandler.propsChecker(
+      if (!lngContent) {
+        throw error.occurred(
+          HttpStatus.BAD_REQUEST,
+          ResponseCode.get('etr002', {
+            lng: languages[i].name,
+            prop: 'content',
+          }),
+        );
+      }
+      const metaCheckResult = await PropHandler.propsChecker(
         lngMeta.props,
         template.props,
-        `data.meta["${lngMeta.lng}"].props`,
+        `data.meta[${i}].props`,
       );
-      if (result instanceof Error) {
+      if (metaCheckResult instanceof Error) {
         throw error.occurred(
           HttpStatus.BAD_REQUEST,
           ResponseCode.get('etr003', {
-            error: result.message,
+            error: metaCheckResult.message,
+            prop: 'meta',
+          }),
+        );
+      }
+      const contentCheckResult = await PropHandler.propsValidate(
+        lngContent.props,
+        `data.content[${i}].props`,
+      );
+      if (contentCheckResult instanceof Error) {
+        throw error.occurred(
+          HttpStatus.BAD_REQUEST,
+          ResponseCode.get('etr003', {
+            error: contentCheckResult.message,
+            prop: 'content',
           }),
         );
       }
@@ -373,11 +399,6 @@ export class EntryRequestHandler {
         if (e.name === 'title') {
           title = true;
         } else if (e.name === 'slug') {
-          if (typeof e.value[0] === 'string') {
-            e.value[0] = StringUtility.createSlug('' + e.value[0]);
-          } else {
-            e.value = [''];
-          }
           slug = true;
         }
       });
@@ -408,11 +429,13 @@ export class EntryRequestHandler {
         ];
       }
       meta.push(lngMeta);
+      content.push(lngContent);
     }
     const entry = EntryFactory.instance;
     entry.templateId = data.templateId;
     entry.userId = userId;
     entry.meta = meta;
+    entry.content = content;
     const addResult = await CacheControl.entry.add(entry);
     if (addResult === false) {
       throw error.occurred(
@@ -423,6 +446,9 @@ export class EntryRequestHandler {
     SocketUtil.emit(SocketEventName.ENTRY, {
       entry: {
         _id: `${entry._id}`,
+        additional: {
+          templateId: entry.templateId,
+        },
       },
       message: 'Entry added.',
       source: sid,
@@ -509,25 +535,52 @@ export class EntryRequestHandler {
     }
     const languages = await CacheControl.language.findAll();
     const meta: EntryMeta[] = [];
+    const content: EntryContent[] = [];
     for (const i in languages) {
       const lngMeta = data.meta.find((e) => e.lng === languages[i].code);
+      const lngContent = data.content.find((e) => e.lng === languages[i].code);
       if (!lngMeta) {
         throw error.occurred(
           HttpStatus.BAD_REQUEST,
           ResponseCode.get('etr002', {
             lng: languages[i].name,
+            prop: 'meta',
           }),
         );
       }
-      const result = await PropHandler.propsChecker(
+      if (!lngContent) {
+        throw error.occurred(
+          HttpStatus.BAD_REQUEST,
+          ResponseCode.get('etr002', {
+            lng: languages[i].name,
+            prop: 'content',
+          }),
+        );
+      }
+      const metaCheckResult = await PropHandler.propsChecker(
         lngMeta.props,
         template.props,
+        `data.meta[${i}].props`,
       );
-      if (result instanceof Error) {
+      if (metaCheckResult instanceof Error) {
         throw error.occurred(
           HttpStatus.BAD_REQUEST,
           ResponseCode.get('etr003', {
-            error: result.message,
+            error: metaCheckResult.message,
+            prop: 'meta',
+          }),
+        );
+      }
+      const contentCheckResult = await PropHandler.propsValidate(
+        lngContent.props,
+        `data.content[${i}].props`,
+      );
+      if (contentCheckResult instanceof Error) {
+        throw error.occurred(
+          HttpStatus.BAD_REQUEST,
+          ResponseCode.get('etr003', {
+            error: contentCheckResult.message,
+            prop: 'content',
           }),
         );
       }
@@ -537,11 +590,6 @@ export class EntryRequestHandler {
         if (e.name === 'title') {
           title = true;
         } else if (e.name === 'slug') {
-          if (typeof e.value[0] === 'string') {
-            e.value[0] = StringUtility.createSlug(e.value[0]);
-          } else {
-            e.value = [''];
-          }
           slug = true;
         }
       });
@@ -572,8 +620,10 @@ export class EntryRequestHandler {
         ];
       }
       meta.push(lngMeta);
+      content.push(lngContent);
     }
     entry.meta = meta;
+    entry.content = content;
     const updateResult = await CacheControl.entry.update(entry);
     if (updateResult === false) {
       throw error.occurred(
@@ -584,6 +634,9 @@ export class EntryRequestHandler {
     SocketUtil.emit(SocketEventName.ENTRY, {
       entry: {
         _id: `${entry._id}`,
+        additional: {
+          templateId: entry.templateId,
+        },
       },
       message: 'Entry updated.',
       source: sid,
@@ -651,6 +704,9 @@ export class EntryRequestHandler {
     SocketUtil.emit(SocketEventName.ENTRY, {
       entry: {
         _id: `${entry._id}`,
+        additional: {
+          templateId: entry.templateId,
+        },
       },
       message: 'Entry removed.',
       source: sid,

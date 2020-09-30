@@ -6,11 +6,16 @@ import {
   PropMedia,
   PropChange,
   PropEntryPointer,
+  PropEntryPointerSchema,
+  PropSchema,
+  PropGroupPointerSchema,
 } from './interfaces';
 import { ObjectUtility, StringUtility } from '@becomes/purple-cheetah';
 import { CacheControl } from '../cache';
 import { PropFactory } from './factory';
 import { General } from '../util';
+import { PropQuill, PropQuillSchema } from './interfaces/quill';
+import { PropWidget, PropWidgetSchema } from './interfaces/quill/widget';
 
 interface Pointer {
   group: Array<{
@@ -73,6 +78,344 @@ export class PropHandler {
       }
     }
   }
+  static async propsValidate(props: Prop[], level?: string) {
+    if (!level) {
+      level = 'root';
+    }
+    if (!(props instanceof Array)) {
+      return Error(`[ ${level} ] --> "props" must be an array.`);
+    }
+    for (const i in props) {
+      const prop = props[i];
+      try {
+        ObjectUtility.compareWithSchema(prop, PropSchema, `${level}[${i}]`);
+      } catch (error) {
+        return error;
+      }
+      if (!PropType[prop.type]) {
+        return Error(
+          `[ ${level}[${i}] ] --> Property type` +
+            ` "${prop.type}" is not supported.`,
+        );
+      }
+      switch (prop.type) {
+        case PropType.STRING:
+          {
+            const value = prop.value as string[];
+            try {
+              ObjectUtility.compareWithSchema(
+                { value },
+                {
+                  value: {
+                    __type: 'array',
+                    __required: true,
+                    __child: {
+                      __type: 'string',
+                    },
+                  },
+                },
+                `${level}[i].value`,
+              );
+            } catch (e) {
+              return Error(`[ ${level}[${i}] ] --> ${e.message}`);
+            }
+          }
+          break;
+        case PropType.NUMBER:
+          {
+            const value = prop.value as number[];
+            try {
+              ObjectUtility.compareWithSchema(
+                { value },
+                {
+                  value: {
+                    __type: 'array',
+                    __required: true,
+                    __child: {
+                      __type: 'number',
+                    },
+                  },
+                },
+                `${level}[${i}].value`,
+              );
+            } catch (e) {
+              return Error(`[ ${level}[${i}] ] --> ${e.message}`);
+            }
+          }
+          break;
+        case PropType.BOOLEAN:
+          {
+            const value = prop.value as boolean[];
+            try {
+              ObjectUtility.compareWithSchema(
+                { value },
+                {
+                  value: {
+                    __type: 'array',
+                    __required: true,
+                    __child: {
+                      __type: 'boolean',
+                    },
+                  },
+                },
+                `${level}[${i}].value`,
+              );
+            } catch (e) {
+              return Error(`[ ${level}[${i}] ] --> ${e.message}`);
+            }
+          }
+          break;
+        case PropType.MEDIA:
+          {
+            const value = prop.value as PropMedia[];
+            try {
+              ObjectUtility.compareWithSchema(
+                { value },
+                {
+                  value: {
+                    __type: 'array',
+                    __required: true,
+                    __child: {
+                      __type: 'string',
+                    },
+                  },
+                },
+                `${level}[${i}].value`,
+              );
+            } catch (e) {
+              return Error(`[ ${level}[${i}] ] --> ${e.message}`);
+            }
+          }
+          break;
+        case PropType.DATE:
+          {
+            const value = prop.value as number[];
+            try {
+              ObjectUtility.compareWithSchema(
+                { value },
+                {
+                  value: {
+                    __type: 'array',
+                    __required: true,
+                    __child: {
+                      __type: 'number',
+                    },
+                  },
+                },
+                `${level}[${i}].value`,
+              );
+            } catch (e) {
+              return Error(`[ ${level}[${i}] ] --> ${e.message}`);
+            }
+          }
+          break;
+        case PropType.ENUMERATION:
+          {
+            const value = prop.value as PropEnum;
+            try {
+              ObjectUtility.compareWithSchema(
+                { value },
+                {
+                  value: {
+                    __type: 'object',
+                    __required: true,
+                    __child: {
+                      items: {
+                        __type: 'array',
+                        __required: true,
+                        __child: {
+                          __type: 'string',
+                        },
+                      },
+                      selected: {
+                        __type: 'string',
+                        __required: false,
+                      },
+                    },
+                  },
+                },
+                `${level}[${i}].value`,
+              );
+            } catch (e) {
+              return Error(`[ ${level}[${i}] ] --> ${e.message}`);
+            }
+          }
+          break;
+        case PropType.GROUP_POINTER:
+          {
+            const value = prop.value as PropGroupPointer;
+            try {
+              ObjectUtility.compareWithSchema(
+                { value },
+                {
+                  value: {
+                    __type: 'object',
+                    __required: true,
+                    __child: PropGroupPointerSchema,
+                  },
+                },
+                `${level}[${i}].value`,
+              );
+            } catch (e) {
+              return Error(`[ ${level}[${i}] ] --> ${e.message}`);
+            }
+            if (StringUtility.isIdValid(value._id) === false) {
+              return Error(`[ ${level}[${i}].value._id ] --> invalid value.`);
+            }
+            const group = await CacheControl.group.findById(value._id);
+            if (!group) {
+              return Error(
+                `[ ${level}[${i}].value._id ] --> Group with ID` +
+                  ` "${value._id}" does not exist.`,
+              );
+            }
+            if (value.items.length === 0 && prop.array === false) {
+              return Error(
+                `[ ${level}[${i}].value.items ] --> Must have` +
+                  ` at least 1 item but got 0.`,
+              );
+            }
+            for (const j in value.items) {
+              const toCheckGroupProps = value.items[j].props;
+              const result = await this.propsChecker(
+                toCheckGroupProps,
+                group.props,
+                `${level}[${i}].value.items[${j}]`,
+              );
+              if (result instanceof Error) {
+                return result;
+              }
+            }
+          }
+          break;
+        case PropType.ENTRY_POINTER:
+          {
+            const value = prop.value as PropEntryPointer;
+            try {
+              ObjectUtility.compareWithSchema(
+                { value },
+                {
+                  value: {
+                    __type: 'object',
+                    __required: true,
+                    __child: PropEntryPointerSchema,
+                  },
+                },
+                `${level}[${i}].value`,
+              );
+            } catch (e) {
+              return Error(`[ ${level}[${i}] ] --> ${e.message}`);
+            }
+            for (const j in value.entryIds) {
+              if (StringUtility.isIdValid(value.entryIds[j]) === false) {
+                return Error(
+                  `[ ${level}[${i}].value.entryIds[${j}] ] -->` +
+                    ` invalid ID "${value.entryIds[j]}" was provided.`,
+                );
+              }
+              const entry = await CacheControl.entry.findById(
+                value.entryIds[j],
+              );
+              if (!entry) {
+                return Error(
+                  `[ ${level}[${i}].value.entryIds[${j}] ] -->` +
+                    ` entry with ID "${value.entryIds[j]}" does not exist.`,
+                );
+              }
+            }
+            if (StringUtility.isIdValid(value.templateId) === false) {
+              return Error(
+                `[ ${level}[${i}].value.templateId ] -->` +
+                  ` invalid ID "${value.templateId}" was provided.`,
+              );
+            }
+            const template = await CacheControl.template.findById(
+              value.templateId,
+            );
+            if (!template) {
+              return Error(
+                `[ ${level}[${i}].value.templateId ] -->` +
+                  ` template with ID "${value.templateId}" does not exist.`,
+              );
+            }
+            const displayPropChecker = template.props.find(
+              (e) => e.name === value.displayProp && e.type === PropType.STRING,
+            );
+            if (!displayPropChecker) {
+              return Error(
+                `[ ${level}[${i}].value.displayProp ] -->` +
+                  ` property with name "${value.displayProp}" does not exist` +
+                  ` in template "${value.templateId}".`,
+              );
+            }
+          }
+          break;
+        case PropType.WIDGET:
+          {
+            const value = prop.value as PropWidget;
+            try {
+              ObjectUtility.compareWithSchema(
+                {
+                  value,
+                },
+                {
+                  value: {
+                    __type: 'object',
+                    __required: true,
+                    __child: PropWidgetSchema,
+                  },
+                },
+                `${level}.${prop.name}.value`,
+              );
+            } catch (e) {
+              return Error(`[ ${level}[${i}] ] --> ${e.message}`);
+            }
+            if (StringUtility.isIdValid(value._id) === false) {
+              return Error(
+                `[ ${level}[${i}].value._id ] -->` +
+                  ` invalid ID "${value._id}" was provided.`,
+              );
+            }
+            const widget = await CacheControl.widget.findById(value._id);
+            if (!widget) {
+              return Error(
+                `[ ${level}[${i}].value._id ] -->` +
+                  ` widget with ID "${value._id}" does not exist.`,
+              );
+            }
+            const result = this.propsChecker(
+              value.props,
+              widget.props,
+              `${level}[${i}].value.props`,
+            );
+            if (result instanceof Error) {
+              return result;
+            }
+          }
+          break;
+        default: {
+          const value = prop.value as PropQuill;
+          try {
+            ObjectUtility.compareWithSchema(
+              {
+                value,
+              },
+              {
+                value: {
+                  __type: 'object',
+                  __required: true,
+                  __child: PropQuillSchema,
+                },
+              },
+              `${level}[${i}].value`,
+            );
+          } catch (e) {
+            return Error(`[ ${level}[${i}] ] --> ${e.message}`);
+          }
+        }
+      }
+    }
+  }
   static async propsChecker(
     propsToCheck: Prop[],
     props: Prop[],
@@ -82,10 +425,10 @@ export class PropHandler {
       level = 'root';
     }
     if (!(propsToCheck instanceof Array)) {
-      return Error(`[ ${level}] --> "propsToCheck" must be an array.`);
+      return Error(`[ ${level} ] --> "propsToCheck" must be an array.`);
     }
     if (!(props instanceof Array)) {
-      return Error(`[ ${level}] --> "props" must be an array.`);
+      return Error(`[ ${level} ] --> "props" must be an array.`);
     }
     for (const i in props) {
       const prop = props[i];
@@ -99,6 +442,12 @@ export class PropHandler {
         return Error(
           `[ ${level}.${prop.name} ] --> Type mismatch, expected` +
             ` "${prop.type}" but got "${propToCheck.type}".`,
+        );
+      }
+      if (!PropType[prop.type]) {
+        return Error(
+          `[ ${level}.${prop.name} ] --> Property type` +
+            ` "${prop.type}" is not supported.`,
         );
       }
       if (prop.required !== propToCheck.required) {
@@ -336,29 +685,13 @@ export class PropHandler {
                     value: {
                       __type: 'object',
                       __required: true,
-                      __child: {
-                        templateId: {
-                          __type: 'string',
-                          __required: true,
-                        },
-                        displayProp: {
-                          __type: 'string',
-                          __required: true,
-                        },
-                        entryIds: {
-                          __type: 'array',
-                          __required: true,
-                          __child: {
-                            __type: 'string',
-                          },
-                        },
-                      },
+                      __child: PropEntryPointerSchema,
                     },
                   },
                   `${level}.${prop.name}.value`,
                 );
               } catch (e) {
-                return e;
+                return Error(`[ ${level}.${prop.name} ] --> ${e.message}`);
               }
               for (const j in value.entryIds) {
                 if (StringUtility.isIdValid(value.entryIds[j]) === false) {
@@ -405,6 +738,69 @@ export class PropHandler {
               }
             }
             break;
+          case PropType.WIDGET:
+            {
+              const value = prop.value as PropWidget;
+              try {
+                ObjectUtility.compareWithSchema(
+                  {
+                    value,
+                  },
+                  {
+                    value: {
+                      __type: 'object',
+                      __required: true,
+                      __child: PropWidgetSchema,
+                    },
+                  },
+                  `${level}.${prop.name}.value`,
+                );
+              } catch (e) {
+                return Error(`[ ${level}[${i}] ] --> ${e.message}`);
+              }
+              if (StringUtility.isIdValid(value._id) === false) {
+                return Error(
+                  `[ ${level}.${prop.name}.value._id ] -->` +
+                    ` invalid ID "${value._id}" was provided.`,
+                );
+              }
+              const widget = await CacheControl.widget.findById(value._id);
+              if (!widget) {
+                return Error(
+                  `[ ${level}.${prop.name}.value._id ] -->` +
+                    ` widget with ID "${value._id}" does not exist.`,
+                );
+              }
+              const result = this.propsChecker(
+                value.props,
+                widget.props,
+                `${level}.${prop.name}.value.props`,
+              );
+              if (result instanceof Error) {
+                return result;
+              }
+            }
+            break;
+          default: {
+            const value = prop.value as PropQuill;
+            try {
+              ObjectUtility.compareWithSchema(
+                {
+                  value,
+                },
+                {
+                  value: {
+                    __type: 'object',
+                    __required: true,
+                    __child: PropQuillSchema,
+                  },
+                },
+                `${level}.${prop.name}.value`,
+              );
+            } catch (e) {
+              return e;
+            }
+          }
         }
       }
     }

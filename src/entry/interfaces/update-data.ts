@@ -1,10 +1,16 @@
-import { EntryMeta } from '../models';
+import {
+  EntryContent,
+  EntryContentSchema,
+  EntryMeta,
+  EntryMetaSchema,
+} from '../models';
 import { ObjectSchema } from '@becomes/purple-cheetah';
 
 export interface UpdateEntryData {
   _id: string;
   templateId: string;
   meta: EntryMeta[];
+  content: EntryContent[];
 }
 
 export const UpdateEntryDataSchema: ObjectSchema = {
@@ -21,20 +27,15 @@ export const UpdateEntryDataSchema: ObjectSchema = {
     __required: true,
     __child: {
       __type: 'object',
-      __content: {
-        lng: {
-          __type: 'string',
-          __required: true,
-        },
-        props: {
-          __type: 'array',
-          __required: true,
-          __child: {
-            __type: 'object',
-            __content: {},
-          },
-        },
-      },
+      __content: EntryMetaSchema,
+    },
+  },
+  content: {
+    __type: 'array',
+    __required: true,
+    __child: {
+      __type: 'object',
+      __content: EntryContentSchema,
     },
   },
 };
