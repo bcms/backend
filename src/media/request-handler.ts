@@ -43,7 +43,7 @@ export class MediaRequestHandler {
     const error = HttpErrorFactory.instance('getAll', this.logger);
     if (apiRequest) {
       try {
-        ApiKeySecurity.verify(apiRequest);
+        await ApiKeySecurity.verify(apiRequest);
       } catch (e) {
         throw error.occurred(
           HttpStatus.UNAUTHORIZED,
@@ -75,7 +75,7 @@ export class MediaRequestHandler {
     const error = HttpErrorFactory.instance('getAllAggregated', this.logger);
     if (apiRequest) {
       try {
-        ApiKeySecurity.verify(apiRequest);
+        await ApiKeySecurity.verify(apiRequest);
       } catch (e) {
         throw error.occurred(
           HttpStatus.UNAUTHORIZED,
@@ -114,7 +114,7 @@ export class MediaRequestHandler {
     }
     if (apiRequest) {
       try {
-        ApiKeySecurity.verify(apiRequest);
+        await ApiKeySecurity.verify(apiRequest);
       } catch (e) {
         throw error.occurred(
           HttpStatus.UNAUTHORIZED,
@@ -163,7 +163,7 @@ export class MediaRequestHandler {
     }
     if (apiRequest) {
       try {
-        ApiKeySecurity.verify(apiRequest);
+        await ApiKeySecurity.verify(apiRequest);
       } catch (e) {
         throw error.occurred(
           HttpStatus.UNAUTHORIZED,
@@ -202,7 +202,7 @@ export class MediaRequestHandler {
     }
     if (apiRequest) {
       try {
-        ApiKeySecurity.verify(apiRequest);
+        await ApiKeySecurity.verify(apiRequest);
       } catch (e) {
         throw error.occurred(
           HttpStatus.UNAUTHORIZED,
@@ -248,7 +248,7 @@ export class MediaRequestHandler {
     }
     if (apiRequest) {
       try {
-        ApiKeySecurity.verify(apiRequest);
+        await ApiKeySecurity.verify(apiRequest);
       } catch (e) {
         throw error.occurred(
           HttpStatus.UNAUTHORIZED,
@@ -313,7 +313,7 @@ export class MediaRequestHandler {
     }
     if (apiRequest) {
       try {
-        ApiKeySecurity.verify(apiRequest);
+        await ApiKeySecurity.verify(apiRequest);
       } catch (e) {
         throw error.occurred(
           HttpStatus.UNAUTHORIZED,

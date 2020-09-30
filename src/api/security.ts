@@ -129,24 +129,27 @@ export class ApiKeySecurity {
         request.path,
       ) === false
     ) {
-      throw new Error(`Key is not allowed to access this resource.`);
+      throw Error(`Key is not allowed to access this resource.`);
     }
     return key;
   }
 
   static verifyAccess(
     key: ApiKey | FSApiKey,
-    method: 'get' | 'post' | 'put' | 'delete',
+    method: string,
     path: string,
   ): boolean {
-    if (path.startsWith('/api/function')) {
+    method = method.toLowerCase();
+    if (path.startsWith('/api/media') && method === 'get') {
+      return true;
+    } else if (path.startsWith('/api/function')) {
       const p = path.replace('/api/function/', '');
       if (key.access.functions.find((e) => e.name === p) && method === 'post') {
         return true;
       }
     } else if (path.startsWith('/api/template')) {
-      const params = path.split('/').splice(2);
-      switch (method.toLowerCase()) {
+      const params = path.split('/').slice(3);
+      switch (method) {
         case 'get': {
           // GET: /:templateId
           const templateId = params[0];
@@ -161,8 +164,8 @@ export class ApiKeySecurity {
     } else if (path.startsWith('/api/entry')) {
       const parts = path.split('/');
       if (parts.length > 2) {
-        const params = parts.splice(2);
-        switch (method.toLowerCase()) {
+        const params = parts.slice(3);
+        switch (method) {
           case 'get':
             {
               if (params.length > 1) {

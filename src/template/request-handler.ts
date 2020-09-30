@@ -29,6 +29,7 @@ import {
   BCMSEventConfigScope,
   BCMSEventConfigMethod,
 } from '../event';
+import { ApiKeyRequestObject, ApiKeySecurity } from '../api';
 
 export class TemplateRequestHandler {
   @CreateLogger(TemplateRequestHandler)
@@ -116,6 +117,7 @@ export class TemplateRequestHandler {
   static async getById(
     authorization: string,
     id: string,
+    apiRequest?: ApiKeyRequestObject,
   ): Promise<Template | FSTemplate> {
     const error = HttpErrorFactory.instance('getById', this.logger);
     if (StringUtility.isIdValid(id) === false) {
@@ -124,18 +126,29 @@ export class TemplateRequestHandler {
         ResponseCode.get('g004', { id }),
       );
     }
-    const jwt = JWTSecurity.checkAndValidateAndGet(authorization, {
-      roles: [RoleName.ADMIN, RoleName.USER],
-      permission: PermissionName.READ,
-      JWTConfig: JWTConfigService.get('user-token-config'),
-    });
-    if (jwt instanceof Error) {
-      throw error.occurred(
-        HttpStatus.UNAUTHORIZED,
-        ResponseCode.get('g001', {
-          msg: jwt.message,
-        }),
-      );
+    if (apiRequest) {
+      try {
+        await ApiKeySecurity.verify(apiRequest);
+      } catch (e) {
+        throw error.occurred(
+          HttpStatus.UNAUTHORIZED,
+          ResponseCode.get('ak007', { msg: e.message }),
+        );
+      }
+    } else {
+      const jwt = JWTSecurity.checkAndValidateAndGet(authorization, {
+        roles: [RoleName.ADMIN, RoleName.USER],
+        permission: PermissionName.READ,
+        JWTConfig: JWTConfigService.get('user-token-config'),
+      });
+      if (jwt instanceof Error) {
+        throw error.occurred(
+          HttpStatus.UNAUTHORIZED,
+          ResponseCode.get('g001', {
+            msg: jwt.message,
+          }),
+        );
+      }
     }
     const template = await CacheControl.template.findById(id);
     if (!template) {

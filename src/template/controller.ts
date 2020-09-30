@@ -8,6 +8,7 @@ import {
   Delete,
 } from '@becomes/purple-cheetah';
 import { Request } from 'express';
+import { ApiKeySecurity } from '../api';
 import { Template, FSTemplate } from './models';
 import { TemplateRequestHandler } from './request-handler';
 
@@ -57,6 +58,9 @@ export class TemplateController implements ControllerPrototype {
       template: await TemplateRequestHandler.getById(
         request.headers.authorization,
         request.params.id,
+        request.query.signature
+          ? ApiKeySecurity.requestToApiKeyRequest(request)
+          : undefined,
       ),
     };
   }

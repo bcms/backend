@@ -81,7 +81,7 @@ export class FunctionController implements ControllerPrototype {
     if (pub === false) {
       if (apiRequest) {
         try {
-          ApiKeySecurity.verify(apiRequest);
+          await ApiKeySecurity.verify(apiRequest);
         } catch (e) {
           throw error.occurred(
             HttpStatus.UNAUTHORIZED,

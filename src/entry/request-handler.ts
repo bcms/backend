@@ -127,7 +127,7 @@ export class EntryRequestHandler {
     }
     if (apiRequest) {
       try {
-        ApiKeySecurity.verify(apiRequest);
+        await ApiKeySecurity.verify(apiRequest);
       } catch (e) {
         throw error.occurred(
           HttpStatus.UNAUTHORIZED,
@@ -169,7 +169,7 @@ export class EntryRequestHandler {
     }
     if (apiRequest) {
       try {
-        ApiKeySecurity.verify(apiRequest);
+        await ApiKeySecurity.verify(apiRequest);
       } catch (e) {
         throw error.occurred(
           HttpStatus.UNAUTHORIZED,
@@ -212,7 +212,7 @@ export class EntryRequestHandler {
     }
     if (apiRequest) {
       try {
-        ApiKeySecurity.verify(apiRequest);
+        await ApiKeySecurity.verify(apiRequest);
       } catch (e) {
         throw error.occurred(
           HttpStatus.UNAUTHORIZED,
@@ -251,7 +251,7 @@ export class EntryRequestHandler {
     }
     if (apiRequest) {
       try {
-        ApiKeySecurity.verify(apiRequest);
+        await ApiKeySecurity.verify(apiRequest);
       } catch (e) {
         throw error.occurred(
           HttpStatus.UNAUTHORIZED,
@@ -309,7 +309,7 @@ export class EntryRequestHandler {
     let userId: string;
     if (apiRequest) {
       try {
-        ApiKeySecurity.verify(apiRequest);
+        await ApiKeySecurity.verify(apiRequest);
       } catch (e) {
         throw error.occurred(
           HttpStatus.UNAUTHORIZED,
@@ -493,7 +493,7 @@ export class EntryRequestHandler {
     }
     if (apiRequest) {
       try {
-        ApiKeySecurity.verify(apiRequest);
+        await ApiKeySecurity.verify(apiRequest);
       } catch (e) {
         throw error.occurred(
           HttpStatus.UNAUTHORIZED,
@@ -665,7 +665,7 @@ export class EntryRequestHandler {
     }
     if (apiRequest) {
       try {
-        ApiKeySecurity.verify(apiRequest);
+        await ApiKeySecurity.verify(apiRequest);
       } catch (e) {
         throw error.occurred(
           HttpStatus.UNAUTHORIZED,
