@@ -28,7 +28,7 @@ export class Entry implements Entity {
     public templateId: string,
     public userId: string,
     public meta: EntryMeta[],
-    public content: any[],
+    public content: EntryContent[],
   ) {}
 
   static get schema(): Schema {

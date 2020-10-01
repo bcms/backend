@@ -15,7 +15,7 @@ import { MediaRequestHandler } from './request-handler';
 import { ApiKeySecurity } from '../api';
 import { MediaAggregate } from './interfaces';
 import { ResponseCode } from '../response-code';
-import { MediaUtil } from '../util';
+import { General, MediaUtil } from '../util';
 
 @Controller('/api/media')
 export class MediaController implements ControllerPrototype {

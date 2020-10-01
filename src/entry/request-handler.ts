@@ -19,6 +19,7 @@ import {
   AddEntryData,
   AddEntryDataSchema,
   UpdateEntryData,
+  EntryParsed,
 } from './interfaces';
 import { EntryFactory } from './factory';
 import { PropHandler, PropType } from '../prop';
@@ -28,6 +29,7 @@ import {
   BCMSEventConfigScope,
   BCMSEventConfigMethod,
 } from '../event';
+import { EntryParser } from './parser';
 
 export class EntryRequestHandler {
   @CreateLogger(EntryRequestHandler)
@@ -150,6 +152,61 @@ export class EntryRequestHandler {
       }
     }
     return await CacheControl.entry.findAllByTemplateId(templateId);
+  }
+
+  static async getAllByTemplateIdParsed(
+    authorization: string,
+    templateId: string,
+    apiRequest?: ApiKeyRequestObject,
+  ): Promise<EntryParsed[]> {
+    const error = HttpErrorFactory.instance(
+      'getAllByTemplateIdParsed',
+      this.logger,
+    );
+    if (StringUtility.isIdValid(templateId) === false) {
+      throw error.occurred(
+        HttpStatus.BAD_REQUEST,
+        ResponseCode.get('g004', { templateId }),
+      );
+    }
+    if (apiRequest) {
+      try {
+        await ApiKeySecurity.verify(apiRequest);
+      } catch (e) {
+        throw error.occurred(
+          HttpStatus.UNAUTHORIZED,
+          ResponseCode.get('ak007', { msg: e.message }),
+        );
+      }
+    } else {
+      const jwt = JWTSecurity.checkAndValidateAndGet(authorization, {
+        roles: [RoleName.ADMIN, RoleName.USER],
+        permission: PermissionName.READ,
+        JWTConfig: JWTConfigService.get('user-token-config'),
+      });
+      if (jwt instanceof Error) {
+        throw error.occurred(
+          HttpStatus.UNAUTHORIZED,
+          ResponseCode.get('g001', {
+            msg: jwt.message,
+          }),
+        );
+      }
+    }
+    const entries = await CacheControl.entry.findAllByTemplateId(templateId);
+    const entriesParsed: EntryParsed[] = [];
+    for (const i in entries) {
+      const entry = entries[i];
+      try {
+        entriesParsed.push(await EntryParser.parse(entry));
+      } catch (e) {
+        throw error.occurred(
+          HttpStatus.INTERNAL_SERVER_ERROR,
+          `Parsing entry "${entry._id}" failed with message: ${e.message}`,
+        );
+      }
+    }
+    return entriesParsed;
   }
 
   static async getAllLiteByTemplateId(

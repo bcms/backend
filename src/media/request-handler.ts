@@ -24,13 +24,12 @@ import {
   UpdateMediaDataSchema,
 } from './interfaces';
 import { MediaFactory } from './factories';
-import { MediaUtil, SocketUtil, SocketEventName } from '../util';
+import { MediaUtil, SocketUtil, SocketEventName, General } from '../util';
 import {
   EventManager,
   BCMSEventConfigScope,
   BCMSEventConfigMethod,
 } from '../event';
-import { Socket } from 'dgram';
 
 export class MediaRequestHandler {
   @CreateLogger(MediaRequestHandler)

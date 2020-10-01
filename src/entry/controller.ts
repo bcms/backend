@@ -9,7 +9,7 @@ import {
 } from '@becomes/purple-cheetah';
 import { Router, Request } from 'express';
 import { Entry, FSEntry } from './models';
-import { EntryLite } from './interfaces';
+import { EntryLite, EntryParsed } from './interfaces';
 import { EntryRequestHandler } from './request-handler';
 import { ApiKeySecurity } from '../api';
 
@@ -53,6 +53,21 @@ export class EntryController implements ControllerPrototype {
   ): Promise<{ entries: Array<Entry | FSEntry> }> {
     return {
       entries: await EntryRequestHandler.getAllByTemplateId(
+        request.headers.authorization,
+        request.params.templateId,
+        request.query.signature
+          ? ApiKeySecurity.requestToApiKeyRequest(request)
+          : undefined,
+      ),
+    };
+  }
+
+  @Get('/all/:templateId/parse')
+  async getAllByTemplateIdParsed(
+    request: Request,
+  ): Promise<{ entries: EntryParsed[] }> {
+    return {
+      entries: await EntryRequestHandler.getAllByTemplateIdParsed(
         request.headers.authorization,
         request.params.templateId,
         request.query.signature

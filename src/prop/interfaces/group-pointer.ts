@@ -1,4 +1,4 @@
-import { Prop, PropSchema } from './prop';
+import { Prop, PropParsed, PropSchema } from './prop';
 import { ObjectSchema } from '@becomes/purple-cheetah';
 
 export interface PropGroupPointer {
@@ -6,6 +6,10 @@ export interface PropGroupPointer {
   items: Array<{
     props: Prop[];
   }>;
+}
+
+export interface PropGroupPointerParsed {
+  [key: string]: PropParsed | PropParsed[];
 }
 
 export const PropGroupPointerSchema: ObjectSchema = {

@@ -1,9 +1,13 @@
 import { ObjectSchema } from '@becomes/purple-cheetah';
-import { Prop, PropSchema } from '../prop';
+import { Prop, PropParsed, PropSchema } from '../prop';
 
 export interface PropWidget {
   _id: string;
   props: Prop[];
+}
+
+export interface PropWidgetParsed {
+  [key: string]: PropParsed;
 }
 
 export const PropWidgetSchema: ObjectSchema = {

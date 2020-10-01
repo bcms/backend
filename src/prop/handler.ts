@@ -9,13 +9,24 @@ import {
   PropEntryPointerSchema,
   PropSchema,
   PropGroupPointerSchema,
+  PropParsed,
+  PropGroupPointerParsed,
 } from './interfaces';
 import { ObjectUtility, StringUtility } from '@becomes/purple-cheetah';
 import { CacheControl } from '../cache';
 import { PropFactory } from './factory';
 import { General } from '../util';
-import { PropQuill, PropQuillSchema } from './interfaces/quill';
-import { PropWidget, PropWidgetSchema } from './interfaces/quill/widget';
+import {
+  PropQuill,
+  PropQuillOption,
+  PropQuillSchema,
+} from './interfaces/quill';
+import {
+  PropWidget,
+  PropWidgetParsed,
+  PropWidgetSchema,
+} from './interfaces/quill/widget';
+import { EntryParsed, EntryParser } from '../entry';
 
 interface Pointer {
   group: Array<{
@@ -1029,5 +1040,568 @@ export class PropHandler {
       props = buffer;
     }
     return { changesFound, props };
+  }
+  static async parseProps(
+    props: Prop[],
+    lng: string,
+    level?: string,
+    entryPointerDepth?: number,
+  ): Promise<
+    Array<{
+      quill: boolean;
+      key: string;
+      value: PropParsed;
+    }>
+  > {
+    if (!level) {
+      level = 'root';
+    }
+    if (!entryPointerDepth) {
+      entryPointerDepth = 0;
+    }
+    const output: Array<{
+      quill: boolean;
+      key: string;
+      value: PropParsed;
+    }> = [];
+    for (const i in props) {
+      const prop = props[i];
+      switch (prop.type) {
+        case PropType.STRING:
+          {
+            if (prop.array) {
+              output.push({
+                quill: false,
+                key: prop.name,
+                value: prop.value as string[],
+              });
+            } else {
+              output.push({
+                quill: false,
+                key: prop.name,
+                value: prop.value[0],
+              });
+            }
+          }
+          break;
+        case PropType.MEDIA:
+          {
+            if (prop.array) {
+              output.push({
+                quill: false,
+                key: prop.name,
+                value: prop.value as string[],
+              });
+            } else {
+              output.push({
+                quill: false,
+                key: prop.name,
+                value: prop.value[0],
+              });
+            }
+          }
+          break;
+        case PropType.NUMBER:
+          {
+            if (prop.array) {
+              output.push({
+                quill: false,
+                key: prop.name,
+                value: prop.value as number[],
+              });
+            } else {
+              output.push({
+                quill: false,
+                key: prop.name,
+                value: prop.value[0],
+              });
+            }
+          }
+          break;
+        case PropType.DATE:
+          {
+            if (prop.array) {
+              output.push({
+                quill: false,
+                key: prop.name,
+                value: prop.value as number[],
+              });
+            } else {
+              output.push({
+                quill: false,
+                key: prop.name,
+                value: prop.value[0],
+              });
+            }
+          }
+          break;
+        case PropType.BOOLEAN:
+          {
+            if (prop.array) {
+              output.push({
+                quill: false,
+                key: prop.name,
+                value: prop.value as boolean[],
+              });
+            } else {
+              output.push({
+                quill: false,
+                key: prop.name,
+                value: prop.value[0],
+              });
+            }
+          }
+          break;
+        case PropType.ENUMERATION:
+          {
+            output.push({
+              quill: false,
+              key: prop.name,
+              value: prop.value as PropEnum,
+            });
+          }
+          break;
+        case PropType.GROUP_POINTER:
+          {
+            const value = prop.value as PropGroupPointer;
+            const group = await CacheControl.group.findById(value._id);
+            if (!group) {
+              throw Error(
+                `[ ${level}[${i}].value._id ] --->` +
+                  ` Group with ID "${value._id}" does not exist.`,
+              );
+            }
+            const groupPointerOutput: {
+              quill: boolean;
+              key: string;
+              value: PropGroupPointerParsed | PropGroupPointerParsed[];
+            } = {
+              quill: false,
+              key: prop.name,
+              value: [],
+            };
+            for (const j in value.items) {
+              const children = await this.parseProps(
+                value.items[j].props,
+                lng,
+                `${level}[${i}].value.items[${j}].props`,
+                entryPointerDepth,
+              );
+              const insert: PropGroupPointerParsed = {};
+              children.forEach((child) => {
+                insert[child.key] = child.value;
+              });
+              if (prop.array) {
+                (groupPointerOutput.value as PropGroupPointerParsed[]).push(
+                  insert,
+                );
+              } else {
+                groupPointerOutput.value = insert;
+                break;
+              }
+            }
+            output.push(groupPointerOutput);
+          }
+          break;
+        case PropType.ENTRY_POINTER:
+          {
+            const value = prop.value as PropEntryPointer;
+            const entryPointerOutput: {
+              quill: boolean;
+              key: string;
+              value: EntryParsed | EntryParsed[];
+            } = {
+              quill: false,
+              key: prop.name,
+              value: [],
+            };
+            if (entryPointerDepth < 1) {
+              for (const j in value.entryIds) {
+                const entry = await CacheControl.entry.findById(
+                  value.entryIds[j],
+                );
+                if (!entry) {
+                  throw Error(
+                    `[ ${level}[${i}].value.entryIds[${j}] ] --->` +
+                      ` Entry with ID "${value.entryIds[j]}" does not exist.`,
+                  );
+                }
+                if (!prop.array) {
+                  entryPointerOutput.value = await EntryParser.parse(
+                    entry,
+                    lng,
+                    `${level}[${i}].value.entry[${j}]`,
+                    entryPointerDepth + 1,
+                  );
+                  break;
+                } else {
+                  (entryPointerOutput.value as EntryParsed[]).push(
+                    await EntryParser.parse(
+                      entry,
+                      lng,
+                      `${level}[${i}].value.entry[${j}]`,
+                      entryPointerDepth + 1,
+                    ),
+                  );
+                }
+              }
+            }
+            output.push(entryPointerOutput);
+          }
+          break;
+        case PropType.WIDGET:
+          {
+            const value = prop.value as PropWidget;
+            const widget = await CacheControl.widget.findById(value._id);
+            if (!widget) {
+              throw Error(
+                `[ ${level}[${i}].value._id ] --->` +
+                  ` Widget with ID "${value._id}" does not exist.`,
+              );
+            }
+            const widgetPointerOutput: {
+              quill: boolean;
+              key: string;
+              value: PropWidgetParsed;
+            } = {
+              quill: true,
+              key: prop.name,
+              value: {
+                type: prop.type,
+                value: {},
+              },
+            };
+            const children = await this.parseProps(
+              value.props,
+              lng,
+              `${level}[${i}].value.props`,
+              entryPointerDepth,
+            );
+            children.forEach((child) => {
+              widgetPointerOutput.value.value[child.key] = child.value;
+            });
+            output.push(widgetPointerOutput);
+          }
+          break;
+        case PropType.HEADING_1:
+          {
+            const value = prop.value as PropQuill;
+            output.push({
+              quill: true,
+              key: prop.name,
+              value: {
+                type: prop.type,
+                value: `<h1>${
+                  value.text.endsWith('\n')
+                    ? value.text.substring(0, value.text.length - 1)
+                    : value.text
+                }</h1>`,
+              },
+            });
+          }
+          break;
+        case PropType.HEADING_2:
+          {
+            const value = prop.value as PropQuill;
+            output.push({
+              quill: true,
+              key: prop.name,
+              value: {
+                type: prop.type,
+                value: `<h2>${
+                  value.text.endsWith('\n')
+                    ? value.text.substring(0, value.text.length - 1)
+                    : value.text
+                }</h2>`,
+              },
+            });
+          }
+          break;
+        case PropType.HEADING_3:
+          {
+            const value = prop.value as PropQuill;
+            output.push({
+              quill: true,
+              key: prop.name,
+              value: {
+                type: prop.type,
+                value: `<h3>${
+                  value.text.endsWith('\n')
+                    ? value.text.substring(0, value.text.length - 1)
+                    : value.text
+                }</h3>`,
+              },
+            });
+          }
+          break;
+        case PropType.HEADING_4:
+          {
+            const value = prop.value as PropQuill;
+            output.push({
+              quill: true,
+              key: prop.name,
+              value: {
+                type: prop.type,
+                value: `<h4>${
+                  value.text.endsWith('\n')
+                    ? value.text.substring(0, value.text.length - 1)
+                    : value.text
+                }</h4>`,
+              },
+            });
+          }
+          break;
+        case PropType.HEADING_5:
+          {
+            const value = prop.value as PropQuill;
+            output.push({
+              quill: true,
+              key: prop.name,
+              value: {
+                type: prop.type,
+                value: `<h5>${
+                  value.text.endsWith('\n')
+                    ? value.text.substring(0, value.text.length - 1)
+                    : value.text
+                }</h5>`,
+              },
+            });
+          }
+          break;
+        case PropType.CODE:
+          {
+            const value = prop.value as PropQuill;
+            output.push({
+              quill: true,
+              key: prop.name,
+              value: {
+                type: prop.type,
+                value: `<code>${
+                  value.text.endsWith('\n')
+                    ? value.text.substring(0, value.text.length - 1)
+                    : value.text
+                }</code>`,
+              },
+            });
+          }
+          break;
+        case PropType.PARAGRAPH:
+          {
+            const value = prop.value as PropQuill;
+            output.push({
+              quill: true,
+              key: prop.name,
+              value: {
+                type: prop.type,
+                value: `<p>${this.quillOpsToValue(value.ops)}</p>`,
+              },
+            });
+          }
+          break;
+        case PropType.LIST:
+          {
+            const value = prop.value as PropQuill;
+            output.push({
+              quill: true,
+              key: prop.name,
+              value: {
+                type: prop.type,
+                value: `<ul>${this.quillOpsListToValue(value.ops, true)}</ul>`,
+              },
+            });
+          }
+          break;
+      }
+    }
+    return output;
+  }
+  static quillOpsToValue(ops: PropQuillOption[], isList?: boolean): string {
+    const checker = {
+      link: false,
+      bold: false,
+      italic: false,
+      underline: false,
+      list: {
+        in: false,
+        level: 0,
+      },
+    };
+    let value = '';
+    let opPointer = 0;
+    while (opPointer < ops.length) {
+      const op: {
+        insert: string;
+        attributes?: {
+          italic?: boolean;
+          bold?: boolean;
+          underline?: boolean;
+          link?: string;
+          list?: string;
+          indent?: number;
+        };
+      } = ops[opPointer];
+      if (!op.attributes) {
+        if (checker.link === true) {
+          checker.link = false;
+          value += '</a>';
+        }
+        if (checker.underline === true) {
+          checker.underline = false;
+          value += '</u>';
+        }
+        if (checker.italic === true) {
+          checker.italic = false;
+          value += '</i>';
+        }
+        if (checker.bold === true) {
+          checker.bold = false;
+          value += '</strong>';
+        }
+        if (checker.list.in === true) {
+          checker.list.in = false;
+          value += '</ul>';
+          for (let k = 0; k < checker.list.level; k = k + 1) {
+            value += '</ul>';
+          }
+          checker.list.level = 0;
+        }
+      } else {
+        if (op.attributes.bold) {
+          if (checker.bold === false) {
+            checker.bold = true;
+            value += '<strong>';
+          }
+        } else {
+          if (checker.bold === true) {
+            checker.bold = false;
+            value += '</strong>';
+          }
+        }
+        if (op.attributes.italic) {
+          if (checker.italic === false) {
+            checker.italic = true;
+            value += '<i>';
+          }
+        } else {
+          if (checker.italic === true) {
+            checker.italic = false;
+            value += '</i>';
+          }
+        }
+        if (op.attributes.underline) {
+          if (checker.underline === false) {
+            checker.underline = true;
+            value += '<u>';
+          }
+        } else {
+          if (checker.underline === true) {
+            checker.underline = false;
+            value += '</u>';
+          }
+        }
+        if (op.attributes.link) {
+          if (checker.link === false) {
+            checker.link = true;
+            value += `<a href="${op.attributes.link}">`;
+          }
+        } else {
+          if (checker.link === true) {
+            checker.link = false;
+            value += '</a>';
+          }
+        }
+      }
+      if (op.insert.endsWith('\n')) {
+        value += op.insert.substring(0, op.insert.length - 1);
+      } else {
+        value += op.insert;
+      }
+      opPointer = opPointer + 1;
+    }
+    if (checker.bold === true) {
+      checker.bold = false;
+      value += '</strong>';
+    }
+    if (checker.italic === true) {
+      checker.italic = false;
+      value += '</i>';
+    }
+    if (checker.underline === true) {
+      checker.underline = false;
+      value += '</u>';
+    }
+    if (checker.link === true) {
+      checker.link = false;
+      value += '</a>';
+    }
+    return value;
+  }
+  static quillOpsListToValue(
+    ops: PropQuillOption[],
+    unordered?: boolean,
+  ): string {
+    const topLevelTag = unordered === true ? 'ul' : 'ol';
+    let value = '';
+    let opPointer = 0;
+    const checker = {
+      atIndent: 0,
+    };
+    while (opPointer < ops.length) {
+      const opsChunk: PropQuillOption[] = [];
+      while (true) {
+        if (opPointer > ops.length - 1) {
+          break;
+        }
+        const op = ops[opPointer];
+        if (op.attributes && op.attributes.list) {
+          if (op.attributes.indent) {
+            if (op.attributes.indent > checker.atIndent) {
+              checker.atIndent = op.attributes.indent;
+              value += `<li><${topLevelTag}>`;
+            }
+          } else {
+            if (checker.atIndent !== 0) {
+              for (let i = 0; i < checker.atIndent; i = i + 1) {
+                value += `</${topLevelTag}></li>`;
+              }
+              checker.atIndent = 0;
+            }
+          }
+          value += '<li>' + this.quillOpsToValue(opsChunk) + '</li>';
+          if (op.attributes.indent) {
+            if (op.attributes.indent - 1 === checker.atIndent) {
+              checker.atIndent = op.attributes.indent;
+              value += `</${topLevelTag}></li>`;
+            } else {
+              for (
+                let i = op.attributes.indent;
+                i < checker.atIndent;
+                i = i + 1
+              ) {
+                value += `</${topLevelTag}></li>`;
+              }
+              checker.atIndent = op.attributes.indent;
+            }
+          } else {
+            for (let i = 0; i < checker.atIndent; i = i + 1) {
+              value += `</${topLevelTag}></li>`;
+            }
+            checker.atIndent = 0;
+          }
+          opPointer = opPointer + 1;
+          break;
+        } else {
+          opsChunk.push(op);
+          opPointer = opPointer + 1;
+        }
+      }
+    }
+    if (checker.atIndent !== 0) {
+      for (let i = 0; i < checker.atIndent; i = i + 1) {
+        value += `</${topLevelTag}></li>`;
+      }
+      checker.atIndent = 0;
+    }
+    return value.replace(/<\/li><li><ul>/g, '<ul>');
   }
 }

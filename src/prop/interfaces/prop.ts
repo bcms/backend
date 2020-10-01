@@ -1,10 +1,11 @@
 import { PropEnum } from './enum';
-import { PropGroupPointer } from './group-pointer';
+import { PropGroupPointer, PropGroupPointerParsed } from './group-pointer';
 import { PropEntryPointer } from './entry-pointer';
 import { ObjectSchema } from '@becomes/purple-cheetah';
 import { PropMedia } from './media';
-import { PropQuill } from './quill';
-import { PropWidget } from './quill/widget';
+import { PropQuill, PropWidgetParsed } from './quill';
+import { PropWidget } from './quill';
+import { EntryParsed } from '../../entry';
 
 export enum PropType {
   STRING = 'STRING',
@@ -49,6 +50,24 @@ export interface Prop {
     | PropQuill
     | PropWidget;
 }
+
+export type PropParsed =
+  | string
+  | string[]
+  | boolean
+  | boolean[]
+  | number
+  | number[]
+  | PropEnum
+  | EntryParsed
+  | EntryParsed[]
+  | PropGroupPointerParsed
+  | PropGroupPointerParsed[]
+  | PropWidgetParsed
+  | {
+      type: PropType;
+      value: PropParsed;
+    };
 
 export const PropSchema: ObjectSchema = {
   type: {
