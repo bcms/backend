@@ -11,8 +11,8 @@
     "baseUrl": "./",
     "incremental": true
   },
-  "include": ["src"],
-  "exclude": ["node_modules", "dist", "public"],
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist"],
   "typedocOptions": {
     "name": "GetCV | SDK",
     "theme": "./node_modules/typedoc-neo-theme/bin/default",
