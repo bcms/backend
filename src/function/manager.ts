@@ -10,7 +10,7 @@ import {
 import { Types } from 'mongoose';
 
 export class FunctionManager {
-  public static fns: Array<BCMSFunction & { path: string }> = [];
+  private static fns: Array<BCMSFunction & { path: string }> = [];
   private static logger = new Logger('FunctionInitializer');
   private static watching = false;
 
@@ -29,28 +29,22 @@ export class FunctionManager {
   }
 
   private static async load(originalLocation: string, location: string) {
-    const file: {fn: BCMSFunction} = await import(location);
+    const file: BCMSFunction = await import(location);
     try {
       ObjectUtility.compareWithSchema(
         file,
         {
-          fn: {
+          config: {
             __type: 'object',
             __required: true,
             __child: {
-              config: {
-                __type: 'object',
+              name: {
+                __type: 'string',
                 __required: true,
-                __child: {
-                  name: {
-                    __type: 'string',
-                    __required: true,
-                  },
-                  public: {
-                    __type: 'boolean',
-                    __required: true,
-                  },
-                },
+              },
+              public: {
+                __type: 'boolean',
+                __required: true,
               },
             },
           },
@@ -61,22 +55,36 @@ export class FunctionManager {
       this.logger.error('', error.message);
       return;
     }
-    if (typeof file.fn.handler !== 'function') {
+    if (typeof file.handler !== 'function') {
       this.logger.error(
         '',
         `Expected "handler" export to be a "function"` +
-          ` but got "${typeof file.fn.handler}" in file` +
+          ` but got "${typeof file.handler}" in file` +
           ` "${location}".`,
       );
       return;
     }
-    file.fn.config.name = StringUtility.createSlug(file.fn.config.name);
+    file.config.name = StringUtility.createSlug(file.config.name);
     this.fns = this.fns.filter((e) => e.path !== originalLocation);
     this.fns.push({
       path: originalLocation,
-      config: file.fn.config,
-      handler: file.fn.handler,
+      config: file.config,
+      handler: file.handler,
     });
+  }
+
+  public static getAll(): Array<BCMSFunction & { path: string }> {
+    return this.fns.map((e) => {
+      return {
+        config: e.config,
+        handler: e.handler,
+        path: e.path,
+      };
+    });
+  }
+
+  public static get(name: string) {
+    return this.fns.find((e) => e.config.name === name);
   }
 
   public static clear() {
@@ -101,7 +109,7 @@ export class FunctionManager {
       const files = await FSUtil.readdir(fnsPath);
       files.forEach(async (fileName) => {
         if (fileName.endsWith('.js')) {
-          const file: { fn: BCMSFunction } = await import(
+          const file: BCMSFunction = await import(
             // tslint:disable-next-line: trailing-comma
             path.join(fnsPath, fileName)
           );
@@ -109,23 +117,17 @@ export class FunctionManager {
             ObjectUtility.compareWithSchema(
               file,
               {
-                fn: {
+                config: {
                   __type: 'object',
                   __required: true,
                   __child: {
-                    config: {
-                      __type: 'object',
+                    name: {
+                      __type: 'string',
                       __required: true,
-                      __child: {
-                        name: {
-                          __type: 'string',
-                          __required: true,
-                        },
-                        public: {
-                          __type: 'boolean',
-                          __required: true,
-                        },
-                      },
+                    },
+                    public: {
+                      __type: 'boolean',
+                      __required: true,
                     },
                   },
                 },
@@ -136,28 +138,28 @@ export class FunctionManager {
             this.logger.error('', error.message);
             return;
           }
-          if (typeof file.fn.handler !== 'function') {
+          if (typeof file.handler !== 'function') {
             this.logger.error(
               '',
               `Expected "handler" export to be a "function"` +
-                ` but got "${typeof file.fn.handler}" in file` +
+                ` but got "${typeof file.handler}" in file` +
                 ` "functions/${fileName}".`,
             );
             return;
           }
-          file.fn.config.name = StringUtility.createSlug(file.fn.config.name);
-          if (this.fns.find((e) => e.config.name === file.fn.config.name)) {
+          file.config.name = StringUtility.createSlug(file.config.name);
+          if (this.fns.find((e) => e.config.name === file.config.name)) {
             this.logger.error(
               '',
-              `Duplicate of "${file.fn.config.name}" function.` +
+              `Duplicate of "${file.config.name}" function.` +
                 ` This is not allowed.`,
             );
             return;
           }
           this.fns.push({
             path: path.join(fnsPath, fileName),
-            config: file.fn.config,
-            handler: file.fn.handler,
+            config: file.config,
+            handler: file.handler,
           });
         }
       });

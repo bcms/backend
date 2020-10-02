@@ -49,7 +49,7 @@ export class FunctionController implements ControllerPrototype {
       );
     }
     return {
-      functions: FunctionManager.fns.map((e) => {
+      functions: FunctionManager.getAll().map((e) => {
         return {
           name: e.config.name,
           public: e.config.public,
@@ -71,9 +71,13 @@ export class FunctionController implements ControllerPrototype {
     const apiRequest = request.query.signature
       ? ApiKeySecurity.requestToApiKeyRequest(request)
       : undefined;
-    const fn = FunctionManager.fns.find(
-      (e) => e.config.name === request.params.name,
-    );
+    const fn = FunctionManager.get(request.params.name);
+    if (!fn) {
+      throw error.occurred(
+        HttpStatus.UNAUTHORIZED,
+        ResponseCode.get('fn001', { name: request.params.name }),
+      );
+    }
     let pub = false;
     if (fn) {
       pub = fn.config.public;

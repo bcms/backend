@@ -23,7 +23,7 @@ import { GroupController } from './group';
 import { TemplateController } from './template';
 import { WidgetController } from './widget';
 import { LanguageController } from './language';
-import { ApiKeyController } from './api';
+import { ApiKeyController, ApiKeyManager } from './api';
 import { MediaController, MediaParserMiddleware } from './media';
 import { Types } from 'mongoose';
 import { EntryController } from './entry/controller';
@@ -132,6 +132,9 @@ export class App extends PurpleCheetah {
   }
 
   protected finalize() {
+    ApiKeyManager.initializeKeys().catch((error) => {
+      this.logger.error('Initialize api key manager', error);
+    });
     this.app.use(
       '/',
       async (
@@ -143,33 +146,17 @@ export class App extends PurpleCheetah {
           next();
           return;
         } else {
-          if (
-            await util.promisify(fs.exists)(
-              path.join(
-                process.cwd(),
-                'node_modules',
-                '@becomes',
-                'cms-ui',
-                'public',
-                'index.html',
-              ),
-            )
-          ) {
-            response.status(200);
-            response.sendFile(
-              path.join(
-                process.cwd(),
-                'node_modules',
-                '@becomes',
-                'cms-ui',
-                'public',
-                '404.html',
-              ),
-            );
-          } else {
-            response.status(404);
-            response.send('404');
-          }
+          response.status(200);
+          response.sendFile(
+            path.join(
+              process.cwd(),
+              'node_modules',
+              '@becomes',
+              'cms-ui',
+              'public',
+              'index.html',
+            ),
+          );
         }
       },
     );

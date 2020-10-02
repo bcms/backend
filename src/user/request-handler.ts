@@ -25,6 +25,7 @@ import { Types } from 'mongoose';
 import { ResponseCode } from '../response-code';
 import { CacheControl } from '../cache';
 import { SocketUtil, SocketEventName } from '../util';
+import { LanguageFactory } from '../language';
 
 export class UserRequestHandler {
   @CreateLogger(UserRequestHandler)
@@ -511,6 +512,13 @@ export class UserRequestHandler {
       throw error.occurred(HttpStatus.FORBIDDEN, ResponseCode.get('u012'));
     }
     this.aSecret.expAt = 0;
+    if (
+      (await CacheControl.user.findAll()).find(
+        (e) => e.roles[0].name === RoleName.ADMIN,
+      )
+    ) {
+      throw error.occurred(HttpStatus.FORBIDDEN, ResponseCode.get('u015'));
+    }
     {
       const userWithSameEmail = await CacheControl.user.findByEmail(data.email);
       if (userWithSameEmail) {
@@ -537,6 +545,14 @@ export class UserRequestHandler {
         HttpStatus.INTERNAL_SERVER_ERROR,
         ResponseCode.get('u011'),
       );
+    }
+    const defaultLanguage = await CacheControl.language.findByCode('en');
+    if (!defaultLanguage) {
+      const language = LanguageFactory.instance;
+      language.code = 'en';
+      language.name = 'English',
+      language.nativeName = 'English';
+      await CacheControl.language.add(language);
     }
     return {
       accessToken: JWTEncoding.encode(

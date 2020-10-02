@@ -88,7 +88,7 @@ export class ApiKeySecurity {
       throw new Error(`Invalid 'key' value was provided.`);
     }
     const key = await CacheControl.apiKey.findById(request.data.key);
-    if (key === null) {
+    if (!key) {
       throw new Error(`Invalid 'key' was provided.`);
     }
     if (key.blocked === true) {

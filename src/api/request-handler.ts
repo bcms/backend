@@ -1,9 +1,5 @@
 import { ApiKeyAccess, ApiKey, FSApiKey } from './models';
-import {
-  ApiKeySecurity,
-  ApiKeySecurityObject,
-  ApiKeyRequestObject,
-} from './security';
+import { ApiKeySecurity, ApiKeyRequestObject } from './security';
 import {
   HttpErrorFactory,
   CreateLogger,
@@ -31,6 +27,7 @@ import {
   BCMSEventConfigMethod,
 } from '../event';
 import { SocketEventName, SocketUtil } from '../util';
+import { ApiKeyManager } from './manager';
 
 export class ApiKeyRequestHandler {
   @CreateLogger(ApiKeyRequestHandler)
@@ -155,14 +152,16 @@ export class ApiKeyRequestHandler {
         }),
       );
     }
-    const key = ApiKeyFactory.instance(
-      jwt.payload.userId,
-      data.name,
-      data.desc,
-      data.blocked,
-      data.access,
+    const rewriteResult = ApiKeyManager.rewriteKey(
+      ApiKeyFactory.instance(
+        jwt.payload.userId,
+        data.name,
+        data.desc,
+        data.blocked,
+        data.access,
+      ),
     );
-    const addResult = await CacheControl.apiKey.add(key);
+    const addResult = await CacheControl.apiKey.add(rewriteResult.key);
     if (addResult === false) {
       throw error.occurred(
         HttpStatus.INTERNAL_SERVER_ERROR,
@@ -172,17 +171,17 @@ export class ApiKeyRequestHandler {
     await EventManager.emit(
       BCMSEventConfigScope.API_KEY,
       BCMSEventConfigMethod.ADD,
-      JSON.parse(JSON.stringify(key)),
+      JSON.parse(JSON.stringify(rewriteResult.key)),
     );
     SocketUtil.emit(SocketEventName.API_KEY, {
       entry: {
-        _id: `${key._id}`,
+        _id: `${rewriteResult.key._id}`,
       },
       message: 'Api Key has been added.',
       source: sid,
       type: 'add',
     });
-    return key;
+    return rewriteResult.key;
   }
 
   static async update(

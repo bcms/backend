@@ -26,3 +26,5 @@ u013:
   msg: Invalid ID "%id%" was provided.
 u014:
   msg: You do not have permission to delete other users.
+u015:
+  msg: Admin exist.

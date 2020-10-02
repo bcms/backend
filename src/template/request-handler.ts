@@ -29,7 +29,7 @@ import {
   BCMSEventConfigScope,
   BCMSEventConfigMethod,
 } from '../event';
-import { ApiKeyRequestObject, ApiKeySecurity } from '../api';
+import { ApiKey, ApiKeyRequestObject, ApiKeySecurity, FSApiKey } from '../api';
 
 export class TemplateRequestHandler {
   @CreateLogger(TemplateRequestHandler)
@@ -464,15 +464,42 @@ export class TemplateRequestHandler {
         ResponseCode.get('tmp006'),
       );
     }
-    const entries = await CacheControl.entry.findAllByTemplateId(
-      `${template._id}`,
-    );
     try {
       await CacheControl.entry.deleteAllByTemplateId(`${template._id}`);
     } catch (e) {
       this.logger.error('deleteById', {
         msg: 'Failed to delete Entries for removed Template.',
         err: e,
+      });
+    }
+    try {
+      await CacheControl.entry.deleteAllByTemplateId(`${template._id}`);
+    } catch (error) {
+      this.logger.error(
+        'deleteById',
+        `Failed to delete entries for template "${template._id}".`,
+      );
+    }
+    const keys = await CacheControl.apiKey.findAll();
+    const updateKeys: Array<FSApiKey | ApiKey> = [];
+    keys.forEach((key) => {
+      if (key.access.templates.find((e) => e._id === template._id)) {
+        const k: FSApiKey | ApiKey = JSON.parse(JSON.stringify(key));
+        k.access.templates = k.access.templates.filter(
+          (e) => e._id !== template._id,
+        );
+        updateKeys.push(k);
+      }
+    });
+    for (const i in updateKeys) {
+      await CacheControl.apiKey.update(updateKeys[i]);
+      SocketUtil.emit(SocketEventName.API_KEY, {
+        entry: {
+          _id: `${updateKeys[i]._id}`,
+        },
+        message: 'Api Key has been updated.',
+        source: '',
+        type: 'update',
       });
     }
     SocketUtil.emit(SocketEventName.TEMPLATE, {
