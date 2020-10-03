@@ -8,7 +8,8 @@
   "scripts": {
     "start": "node dist/bin/bcms-backend.js",
     "dev": "env-cmd nodemon src/bin/bcms-backend.ts --dev",
-    "build": "tsc -p .",
+    "build:ts": "tsc -p .",
+    "build": "node tools.js --build",
     "bundle": "node tools.js --bundle",
     "link": "node tools.js --link",
     "unlink": "node tools.js --unlink",

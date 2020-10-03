@@ -32,6 +32,20 @@ const exec = async (cmd, output) => {
     });
   });
 };
+async function spawn(cmd, args, options) {
+  return new Promise((resolve, reject) => {
+    const proc = childProcess.spawn(cmd, args, options);
+    // proc.stdout.pipe(process.stdout);
+    // proc.stderr.pipe(process.stderr);
+    proc.on('close', (code) => {
+      if (code !== 0) {
+        reject(code);
+      } else {
+        resolve();
+      }
+    });
+  });
+}
 
 const parseArgs = (rawArgs) => {
   const args = {};
@@ -54,6 +68,7 @@ const parseArgs = (rawArgs) => {
     link: args['--link'] === '' || args['--link'] === 'true' || false,
     unlink: args['--unlink'] === '' || args['--unlink'] === 'true' || false,
     publish: args['--publish'] === '' || args['--publish'] === 'true' || false,
+    build: args['--build'] === '' || args['--build'] === 'true' || false,
   };
 };
 const bundle = async () => {
@@ -67,11 +82,7 @@ const bundle = async () => {
     {
       title: 'Compile Typescript.',
       task: async () => {
-        await exec('npm run build');
-        await fse.copy(
-          path.join(__dirname, 'src', 'response-code', 'codes'),
-          path.join(__dirname, 'dist', 'response-code', 'codes'),
-        );
+        await build();
       },
     },
     // {
@@ -125,6 +136,30 @@ const publish = async () => {
   }
   await exec('cd dist && npm publish --access=public');
 };
+const build = async () => {
+  // await exec('npm run build:ts');
+  await spawn('npm', ['run', 'build:ts'], { stdio: 'inherit' });
+  await fse.copy(
+    path.join(__dirname, 'src', 'response-code', 'codes'),
+    path.join(__dirname, 'dist', 'response-code', 'codes'),
+  );
+  const managerFile = (
+    await util.promisify(fs.readFile)(
+      path.join(__dirname, 'dist', 'plugins', 'manager.js'),
+    )
+  )
+    .toString()
+    .replace('var imports = [];', '/*%IMPORTS_START%*/\n/*%IMPORTS_END%*/')
+    .replace(
+      'exports.controllers = [];\nexports.middleware = [];',
+      '/*%ASSETS_START%*/\nexports.controllers = [];\nexports.middleware = [];\n/*%ASSETS_END%*/',
+    )
+    .replace('exports.middleware = exports.controllers = void 0;\n', '');
+  await util.promisify(fs.writeFile)(
+    path.join(__dirname, 'dist', 'plugins', 'manager.js'),
+    managerFile,
+  );
+};
 
 async function main() {
   const options = parseArgs(process.argv);
@@ -136,6 +171,8 @@ async function main() {
     await unlink();
   } else if (options.publish === true) {
     await publish();
+  } else if (options.build === true) {
+    await build();
   }
 }
 main().catch((error) => {
