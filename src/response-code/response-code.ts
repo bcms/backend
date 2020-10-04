@@ -12,6 +12,10 @@ export interface IResponseCode {
 
 export class ResponseCode {
   private static codes: IResponseCode = {};
+  private static registry: Array<{
+    name: string;
+    msg: string;
+  }> = [];
 
   private static async fileTree(dir: string) {
     const ft: string[] = [];
@@ -68,8 +72,26 @@ export class ResponseCode {
           );
         }
         this.codes[key] = data[key];
+        this.registry.forEach((e) => {
+          if (!this.codes[e.name]) {
+            this.codes[e.name] = {
+              msg: e.msg,
+            };
+          }
+        });
       }
     }
+  }
+
+  static register(
+    codes: Array<{
+      name: string;
+      msg: string;
+    }>,
+  ) {
+    codes.forEach((code) => {
+      this.registry.push(code);
+    });
   }
 
   static get(
