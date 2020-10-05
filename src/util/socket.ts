@@ -27,4 +27,10 @@ export class SocketUtil {
   static emit(name: SocketEventName, data: SocketEventData) {
     SocketConnectionService.emitToGroup('global', name, data);
   }
+  static pluginEmit(name: string, payload: any) {
+    SocketConnectionService.emitToGroup('global', 'plugin', {
+      name,
+      payload,
+    });
+  }
 }
