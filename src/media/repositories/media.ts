@@ -10,7 +10,7 @@ import { Model } from 'mongoose';
   entity: {
     schema: Media.schema,
   },
-  name: `${process.env.DB_PRFX}_media`,
+  name: `${process.env.DB_PRFX}_medias`,
 })
 export class MongoMediaRepository
   implements MongoDBRepositoryPrototype<Media, IMedia> {

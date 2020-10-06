@@ -8,7 +8,7 @@ import { FSMedia, MediaSchema } from '../models';
 
 @FSDBRepository({
   schema: MediaSchema,
-  collectionName: `${process.env.DB_PRFX}_media`,
+  collectionName: `${process.env.DB_PRFX}_medias`,
 })
 export class FSMediaRepository implements FSDBRepositoryPrototype<FSMedia> {
   repo: Model<FSMedia>;
