@@ -136,7 +136,35 @@ export class MediaController implements ControllerPrototype {
         ResponseCode.get('mda008', { id: request.params.id }),
       );
     }
-    response.sendFile(MediaUtil.fs.getPath(media));
+    response.sendFile(await MediaUtil.fs.getPath(media));
+    return;
+  }
+
+  @Get('/:id/bin/:size')
+  async getBinaryBySize(request: Request, response: Response) {
+    const error = HttpErrorFactory.instance('getBinary', this.logger);
+    const media = await MediaRequestHandler.getById(
+      request.headers.authorization,
+      request.params.id,
+      request.query.signature
+        ? ApiKeySecurity.requestToApiKeyRequest(request)
+        : undefined,
+    );
+    if (media.type === MediaType.DIR) {
+      throw error.occurred(
+        HttpStatus.FORBIDDEN,
+        ResponseCode.get('mda007', { id: request.params.id }),
+      );
+    }
+    if ((await MediaUtil.fs.exist(media)) === false) {
+      throw error.occurred(
+        HttpStatus.INTERNAL_SERVER_ERROR,
+        ResponseCode.get('mda008', { id: request.params.id }),
+      );
+    }
+    response.sendFile(
+      await MediaUtil.fs.getPath(media, request.params.size as any),
+    );
     return;
   }
 

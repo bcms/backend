@@ -355,7 +355,7 @@ export class MediaRequestHandler {
     }
     return {
       bin: await MediaUtil.fs.get(media),
-      path: MediaUtil.fs.getPath(media),
+      path: await MediaUtil.fs.getPath(media),
     };
   }
 

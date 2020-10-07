@@ -1,16 +1,39 @@
+import * as sharp from 'sharp';
 import * as path from 'path';
 import { FSUtil } from '@becomes/purple-cheetah';
 import { FSMedia, Media, MediaType } from '../media';
 import { CacheControl } from '../cache';
 import * as fse from 'fs-extra';
-import { rename } from 'fs';
 
 export class MediaUtil {
   static get fs() {
     return {
-      getPath(media: Media | FSMedia): string {
+      async getPath(media: Media | FSMedia, size?: 'small'): Promise<string> {
         if (media.type === MediaType.DIR) {
           return path.join(process.cwd(), 'uploads', media.path);
+        }
+        if (size && media.type === MediaType.IMG) {
+          const nameParts = {
+            name: media.name.split('.')[0],
+            ext: media.name.split('.')[1].toLowerCase(),
+          };
+          if (
+            nameParts.ext === 'jpg' ||
+            nameParts.ext === 'jpeg' ||
+            nameParts.ext === 'png'
+          ) {
+            if (size === 'small') {
+              const location = path.join(
+                process.cwd(),
+                'uploads',
+                media.path,
+                `300-${media.name}`,
+              );
+              if (await FSUtil.exist(location)) {
+                return location;
+              }
+            }
+          }
         }
         return path.join(process.cwd(), 'uploads', media.path, media.name);
       },
@@ -24,7 +47,30 @@ export class MediaUtil {
           path.join(process.cwd(), 'uploads', media.path, media.name),
         );
       },
-      async get(media: Media | FSMedia): Promise<Buffer> {
+      async get(media: Media | FSMedia, size?: 'small'): Promise<Buffer> {
+        if (size && media.type === MediaType.IMG) {
+          const nameParts = {
+            name: media.name.split('.')[0],
+            ext: media.name.split('.')[1].toLowerCase(),
+          };
+          if (
+            nameParts.ext === 'jpg' ||
+            nameParts.ext === 'jpeg' ||
+            nameParts.ext === 'png'
+          ) {
+            if (size === 'small') {
+              const location = path.join(
+                process.cwd(),
+                'uploads',
+                media.path,
+                `300-${media.name}`,
+              );
+              if (await FSUtil.exist(location)) {
+                return await FSUtil.read(location);
+              }
+            }
+          }
+        }
         return await FSUtil.read(
           path.join(process.cwd(), 'uploads', media.path, media.name),
         );
@@ -45,11 +91,76 @@ export class MediaUtil {
           binary,
           path.join(process.cwd(), 'uploads', media.path, media.name),
         );
+        if (media.type === MediaType.IMG) {
+          const nameParts = {
+            name: media.name.split('.')[0],
+            ext: media.name.split('.')[1].toLowerCase(),
+          };
+          if (nameParts.ext === 'png') {
+            const output = await sharp(binary)
+              .resize({
+                width: 300,
+                withoutEnlargement: true,
+              })
+              .png({
+                quality: 50,
+              })
+              .toBuffer();
+            await FSUtil.save(
+              output,
+              path.join(
+                process.cwd(),
+                'uploads',
+                media.path,
+                `300-${media.name}`,
+              ),
+            );
+          } else if (nameParts.ext === 'jpg' || nameParts.ext === 'jpeg') {
+            const output = await sharp(binary)
+              .resize({
+                width: 300,
+                withoutEnlargement: true,
+              })
+              .jpeg({
+                quality: 50,
+              })
+              .toBuffer();
+            await FSUtil.save(
+              output,
+              path.join(
+                process.cwd(),
+                'uploads',
+                media.path,
+                `300-${media.name}`,
+              ),
+            );
+          }
+        }
       },
       async removeFile(media: Media | FSMedia) {
         await FSUtil.deleteFile(
           path.join(process.cwd(), 'uploads', media.path, media.name),
         );
+        if (media.type === MediaType.IMG) {
+          const nameParts = {
+            name: media.name.split('.')[0],
+            ext: media.name.split('.')[1].toLowerCase(),
+          };
+          if (
+            nameParts.ext === 'jpg' ||
+            nameParts.ext === 'jpeg' ||
+            nameParts.ext === 'png'
+          ) {
+            await FSUtil.deleteFile(
+              path.join(
+                process.cwd(),
+                'uploads',
+                media.path,
+                `300-${media.name}`,
+              ),
+            );
+          }
+        }
       },
       async removeDir(media: Media | FSMedia) {
         await FSUtil.deleteDir(path.join(process.cwd(), 'uploads', media.path));

@@ -59,8 +59,10 @@ export class EntryParser {
       contentParsed.forEach((content) => {
         const value = content.value as {
           type: PropType;
+          name: string;
           value: PropParsed;
         };
+        value.name = content.name;
         entryParsed.content[contentForLanguage.lng].push(value);
       });
     } else {
@@ -101,8 +103,10 @@ export class EntryParser {
         contentParsed.forEach((content) => {
           const value = content.value as {
             type: PropType;
+            name: string;
             value: PropParsed;
           };
+          value.name = content.name;
           entryParsed.content[contentForLanguage.lng].push(value);
         });
       }

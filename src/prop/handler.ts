@@ -1050,6 +1050,7 @@ export class PropHandler {
     Array<{
       quill: boolean;
       key: string;
+      name: string;
       value: PropParsed;
     }>
   > {
@@ -1062,6 +1063,7 @@ export class PropHandler {
     const output: Array<{
       quill: boolean;
       key: string;
+      name: string;
       value: PropParsed;
     }> = [];
     for (const i in props) {
@@ -1073,12 +1075,14 @@ export class PropHandler {
               output.push({
                 quill: false,
                 key: prop.name,
+                name: prop.name,
                 value: prop.value as string[],
               });
             } else {
               output.push({
                 quill: false,
                 key: prop.name,
+                name: prop.name,
                 value: prop.value[0],
               });
             }
@@ -1090,13 +1094,19 @@ export class PropHandler {
               output.push({
                 quill: false,
                 key: prop.name,
-                value: prop.value as string[],
+                name: prop.name,
+                value: (prop.value as string[]).map((e) =>
+                  e.startsWith('/media') ? e : '/media' + e,
+                ),
               });
             } else {
               output.push({
                 quill: false,
                 key: prop.name,
-                value: prop.value[0],
+                name: prop.name,
+                value: (prop.value[0] as string).startsWith('/media')
+                  ? (prop.value[0] as string)
+                  : (('/media' + prop.value[0]) as string),
               });
             }
           }
@@ -1107,12 +1117,14 @@ export class PropHandler {
               output.push({
                 quill: false,
                 key: prop.name,
+                name: prop.name,
                 value: prop.value as number[],
               });
             } else {
               output.push({
                 quill: false,
                 key: prop.name,
+                name: prop.name,
                 value: prop.value[0],
               });
             }
@@ -1124,12 +1136,14 @@ export class PropHandler {
               output.push({
                 quill: false,
                 key: prop.name,
+                name: prop.name,
                 value: prop.value as number[],
               });
             } else {
               output.push({
                 quill: false,
                 key: prop.name,
+                name: prop.name,
                 value: prop.value[0],
               });
             }
@@ -1141,12 +1155,14 @@ export class PropHandler {
               output.push({
                 quill: false,
                 key: prop.name,
+                name: prop.name,
                 value: prop.value as boolean[],
               });
             } else {
               output.push({
                 quill: false,
                 key: prop.name,
+                name: prop.name,
                 value: prop.value[0],
               });
             }
@@ -1157,6 +1173,7 @@ export class PropHandler {
             output.push({
               quill: false,
               key: prop.name,
+              name: prop.name,
               value: prop.value as PropEnum,
             });
           }
@@ -1174,10 +1191,12 @@ export class PropHandler {
             const groupPointerOutput: {
               quill: boolean;
               key: string;
+              name: string;
               value: PropGroupPointerParsed | PropGroupPointerParsed[];
             } = {
               quill: false,
               key: prop.name,
+              name: prop.name,
               value: [],
             };
             for (const j in value.items) {
@@ -1209,40 +1228,46 @@ export class PropHandler {
             const entryPointerOutput: {
               quill: boolean;
               key: string;
+              name: string;
               value: EntryParsed | EntryParsed[];
             } = {
               quill: false,
               key: prop.name,
+              name: prop.name,
               value: [],
             };
             if (entryPointerDepth < 1) {
               for (const j in value.entryIds) {
-                const entry = await CacheControl.entry.findById(
-                  value.entryIds[j],
-                );
-                if (!entry) {
-                  throw Error(
-                    `[ ${level}[${i}].value.entryIds[${j}] ] --->` +
-                      ` Entry with ID "${value.entryIds[j]}" does not exist.`,
+                if (value.entryIds[j] !== '') {
+                  const entry = await CacheControl.entry.findById(
+                    value.entryIds[j],
                   );
-                }
-                if (!prop.array) {
-                  entryPointerOutput.value = await EntryParser.parse(
-                    entry,
-                    lng,
-                    `${level}[${i}].value.entry[${j}]`,
-                    entryPointerDepth + 1,
-                  );
-                  break;
-                } else {
-                  (entryPointerOutput.value as EntryParsed[]).push(
-                    await EntryParser.parse(
-                      entry,
-                      lng,
-                      `${level}[${i}].value.entry[${j}]`,
-                      entryPointerDepth + 1,
-                    ),
-                  );
+                  // if (!entry) {
+                  //   throw Error(
+                  //     `[ ${level}[${i}].value.entryIds[${j}] ] --->` +
+                  //       ` Entry with ID "${value.entryIds[j]}" does not exist.`,
+                  //   );
+                  // }
+                  if (entry) {
+                    if (!prop.array) {
+                      entryPointerOutput.value = await EntryParser.parse(
+                        entry,
+                        lng,
+                        `${level}[${i}].value.entry[${j}]`,
+                        entryPointerDepth + 1,
+                      );
+                      break;
+                    } else {
+                      (entryPointerOutput.value as EntryParsed[]).push(
+                        await EntryParser.parse(
+                          entry,
+                          lng,
+                          `${level}[${i}].value.entry[${j}]`,
+                          entryPointerDepth + 1,
+                        ),
+                      );
+                    }
+                  }
                 }
               }
             }
@@ -1262,10 +1287,12 @@ export class PropHandler {
             const widgetPointerOutput: {
               quill: boolean;
               key: string;
+              name: string;
               value: PropWidgetParsed;
             } = {
               quill: true,
               key: prop.name,
+              name: General.labelToName(prop.label),
               value: {
                 type: prop.type,
                 value: {},
@@ -1289,6 +1316,7 @@ export class PropHandler {
             output.push({
               quill: true,
               key: prop.name,
+              name: prop.name,
               value: {
                 type: prop.type,
                 value: `<h1>${
@@ -1306,6 +1334,7 @@ export class PropHandler {
             output.push({
               quill: true,
               key: prop.name,
+              name: prop.name,
               value: {
                 type: prop.type,
                 value: `<h2>${
@@ -1323,6 +1352,7 @@ export class PropHandler {
             output.push({
               quill: true,
               key: prop.name,
+              name: prop.name,
               value: {
                 type: prop.type,
                 value: `<h3>${
@@ -1340,6 +1370,7 @@ export class PropHandler {
             output.push({
               quill: true,
               key: prop.name,
+              name: prop.name,
               value: {
                 type: prop.type,
                 value: `<h4>${
@@ -1357,6 +1388,7 @@ export class PropHandler {
             output.push({
               quill: true,
               key: prop.name,
+              name: prop.name,
               value: {
                 type: prop.type,
                 value: `<h5>${
@@ -1374,6 +1406,7 @@ export class PropHandler {
             output.push({
               quill: true,
               key: prop.name,
+              name: prop.name,
               value: {
                 type: prop.type,
                 value: `<code>${
@@ -1391,6 +1424,7 @@ export class PropHandler {
             output.push({
               quill: true,
               key: prop.name,
+              name: prop.name,
               value: {
                 type: prop.type,
                 value: `<p>${this.quillOpsToValue(value.ops)}</p>`,
@@ -1404,6 +1438,7 @@ export class PropHandler {
             output.push({
               quill: true,
               key: prop.name,
+              name: prop.name,
               value: {
                 type: prop.type,
                 value: `<ul>${this.quillOpsListToValue(value.ops, true)}</ul>`,
