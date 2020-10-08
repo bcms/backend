@@ -95,7 +95,7 @@ export class UserRequestHandler {
       );
     }
     const user = await CacheControl.user.findById(jwt.payload.userId);
-    if (!user || user === null) {
+    if (!user) {
       throw error.occurred(
         HttpStatus.INTERNAL_SERVER_ERROR,
         ResponseCode.get('u001'),

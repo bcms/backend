@@ -94,6 +94,7 @@ if (process.env.DB_USE_FS) {
   },
   eventHandlers: [],
 })
+@EnableMongoDB(dbConfig)
 @Application({
   port: parseInt(process.env.API_PORT, 10),
   controllers: [
@@ -122,7 +123,6 @@ if (process.env.DB_USE_FS) {
     }),
   ],
 })
-@EnableMongoDB(dbConfig)
 export class App extends PurpleCheetah {
   protected start() {
     this.app.use(express.static(path.join(process.cwd(), 'public')));

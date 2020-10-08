@@ -8,6 +8,7 @@ import {
   Post,
   Delete,
   Put,
+  Queueable,
 } from '@becomes/purple-cheetah';
 import { Router, Request, Response } from 'express';
 import { Media, FSMedia, MediaType } from './models';
@@ -19,6 +20,7 @@ import { General, MediaUtil } from '../util';
 
 @Controller('/api/media')
 export class MediaController implements ControllerPrototype {
+  private static queueable = Queueable<Buffer>('getBinaryBySize');
   baseUri: string;
   initRouter: any;
   logger: Logger;
@@ -136,8 +138,7 @@ export class MediaController implements ControllerPrototype {
         ResponseCode.get('mda008', { id: request.params.id }),
       );
     }
-    response.sendFile(await MediaUtil.fs.getPath(media));
-    return;
+    return { __file: await MediaUtil.fs.getPath(media) };
   }
 
   @Get('/:id/bin/:size')
@@ -162,10 +163,13 @@ export class MediaController implements ControllerPrototype {
         ResponseCode.get('mda008', { id: request.params.id }),
       );
     }
-    response.sendFile(
-      await MediaUtil.fs.getPath(media, request.params.size as any),
-    );
-    return;
+    // return await MediaUtil.fs.get(media, request.params.size as any);
+    // response.sendFile(
+    //   await MediaUtil.fs.getPath(media, request.params.size as any),
+    // );
+    return {
+      __file: await MediaUtil.fs.getPath(media, request.params.size as any),
+    };
   }
 
   @Post('/file')
