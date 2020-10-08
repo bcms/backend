@@ -4,22 +4,24 @@ import { ApiKey, FSApiKey } from './models';
 
 export class ApiKeyManager {
   static async initializeKeys() {
-    const keys: Array<FSApiKey | ApiKey> = JSON.parse(
-      JSON.stringify(await CacheControl.apiKey.findAll()),
-    );
-    const updateKeys: Array<FSApiKey | ApiKey> = [];
-    keys.forEach((key) => {
-      const rewriteResult = this.rewriteKey(key);
-      if (rewriteResult.modified) {
-        updateKeys.push(rewriteResult.key);
+    setTimeout(async () => {
+      const keys: Array<FSApiKey | ApiKey> = JSON.parse(
+        JSON.stringify(await CacheControl.apiKey.findAll()),
+      );
+      const updateKeys: Array<FSApiKey | ApiKey> = [];
+      keys.forEach((key) => {
+        const rewriteResult = this.rewriteKey(key);
+        if (rewriteResult.modified) {
+          updateKeys.push(rewriteResult.key);
+        }
+      });
+      if (updateKeys.length > 0) {
+        for (const i in updateKeys) {
+          const key = updateKeys[i];
+          await CacheControl.apiKey.update(key);
+        }
       }
-    });
-    if (updateKeys.length > 0) {
-      for (const i in updateKeys) {
-        const key = updateKeys[i];
-        await CacheControl.apiKey.update(key);
-      }
-    }
+    }, 5000);
   }
 
   // tslint:disable-next-line: variable-name
