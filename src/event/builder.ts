@@ -28,16 +28,16 @@ export function BCMSEventBuilder(settings: {
   } catch (e) {
     throw Error(`[ ${__dirname} ] --> ${e.message}`);
   }
-  if (!BCMSEventConfigScope[settings.config.scope]) {
-    throw Error(
-      `[ ${__dirname} ] --> Scope "${settings.config.scope}" is not allowed.`,
-    );
-  }
-  if (!BCMSEventConfigMethod[settings.config.method]) {
-    throw Error(
-      `[ ${__dirname} ] --> Method "${settings.config.method}" is not allowed.`,
-    );
-  }
+  // if (!BCMSEventConfigScope[settings.config.scope]) {
+  //   throw Error(
+  //     `[ ${__dirname} ] --> Scope "${settings.config.scope}" is not allowed.`,
+  //   );
+  // }
+  // if (!BCMSEventConfigMethod[settings.config.method]) {
+  //   throw Error(
+  //     `[ ${__dirname} ] --> Method "${settings.config.method}" is not allowed.`,
+  //   );
+  // }
   if (typeof settings.handler !== 'function') {
     throw Error(
       `[ ${__dirname} ] --> Expected "handler" to be` +
