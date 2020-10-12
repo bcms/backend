@@ -7,8 +7,8 @@ import {
 export interface BCMSEvent {
   config: BCMSEventConfig;
   handler: (
-    scope: BCMSEventConfigScope,
-    method: BCMSEventConfigMethod,
+    scope: BCMSEventConfigScope | string,
+    method: BCMSEventConfigMethod | string,
     data: any,
   ) => Promise<void>;
 }

@@ -17,6 +17,6 @@ export enum BCMSEventConfigMethod {
 }
 
 export interface BCMSEventConfig {
-  scope: BCMSEventConfigScope;
-  method: BCMSEventConfigMethod;
+  scope: BCMSEventConfigScope | string;
+  method: BCMSEventConfigMethod | string;
 }
