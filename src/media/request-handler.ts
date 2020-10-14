@@ -394,7 +394,7 @@ export class MediaRequestHandler {
       throw error.occurred(HttpStatus.BAD_REQUEST, ResponseCode.get('mda009'));
     }
     const jwt = JWTSecurity.checkAndValidateAndGet(authorization, {
-      roles: [RoleName.ADMIN],
+      roles: [RoleName.ADMIN, RoleName.USER],
       permission: PermissionName.WRITE,
       JWTConfig: JWTConfigService.get('user-token-config'),
     });
@@ -489,7 +489,7 @@ export class MediaRequestHandler {
       );
     }
     const jwt = JWTSecurity.checkAndValidateAndGet(authorization, {
-      roles: [RoleName.ADMIN],
+      roles: [RoleName.ADMIN, RoleName.USER],
       permission: PermissionName.WRITE,
       JWTConfig: JWTConfigService.get('user-token-config'),
     });
@@ -572,7 +572,7 @@ export class MediaRequestHandler {
       );
     }
     const jwt = JWTSecurity.checkAndValidateAndGet(authorization, {
-      roles: [RoleName.ADMIN],
+      roles: [RoleName.ADMIN, RoleName.USER],
       permission: PermissionName.WRITE,
       JWTConfig: JWTConfigService.get('user-token-config'),
     });
@@ -693,7 +693,7 @@ export class MediaRequestHandler {
       );
     }
     const jwt = JWTSecurity.checkAndValidateAndGet(authorization, {
-      roles: [RoleName.ADMIN],
+      roles: [RoleName.ADMIN, RoleName.USER],
       permission: PermissionName.DELETE,
       JWTConfig: JWTConfigService.get('user-token-config'),
     });

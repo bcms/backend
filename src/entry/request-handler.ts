@@ -731,7 +731,7 @@ export class EntryRequestHandler {
       }
     } else {
       const jwt = JWTSecurity.checkAndValidateAndGet(authorization, {
-        roles: [RoleName.ADMIN],
+        roles: [RoleName.ADMIN, RoleName.USER],
         permission: PermissionName.DELETE,
         JWTConfig: JWTConfigService.get('user-token-config'),
       });
