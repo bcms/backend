@@ -1096,7 +1096,7 @@ export class PropHandler {
                 key: prop.name,
                 name: prop.name,
                 value: (prop.value as string[]).map((e) =>
-                  e.startsWith('/media') ? e : '/media' + e,
+                  e === '' ? '' : '/media' + e,
                 ),
               });
             } else {
@@ -1104,9 +1104,10 @@ export class PropHandler {
                 quill: false,
                 key: prop.name,
                 name: prop.name,
-                value: (prop.value[0] as string).startsWith('/media')
-                  ? (prop.value[0] as string)
-                  : (('/media' + prop.value[0]) as string),
+                value:
+                  (prop.value[0] as string) === ''
+                    ? ''
+                    : (('/media' + prop.value[0]) as string),
               });
             }
           }
