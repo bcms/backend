@@ -61,6 +61,7 @@ export type PropParsed =
   | PropEnum
   | EntryParsed
   | EntryParsed[]
+  | PropEntryPointer
   | PropGroupPointerParsed
   | PropGroupPointerParsed[]
   | PropWidgetParsed

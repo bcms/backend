@@ -10,6 +10,7 @@ export interface EntryParsedContent {
   [lng: string]: Array<{
     type: PropType;
     value: PropParsed;
+    name: string;
   }>;
 }
 

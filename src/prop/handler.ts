@@ -1230,7 +1230,7 @@ export class PropHandler {
               quill: boolean;
               key: string;
               name: string;
-              value: EntryParsed | EntryParsed[];
+              value: EntryParsed | EntryParsed[] | PropEntryPointer;
             } = {
               quill: false,
               key: prop.name,
@@ -1271,6 +1271,8 @@ export class PropHandler {
                   }
                 }
               }
+            } else {
+              entryPointerOutput.value = value;
             }
             output.push(entryPointerOutput);
           }
