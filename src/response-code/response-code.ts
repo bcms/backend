@@ -108,7 +108,14 @@ export class ResponseCode {
     let msg = '' + c.msg;
     if (vars) {
       for (const key in vars) {
-        msg = c.msg.replace(new RegExp(`%${key}%`, 'g'), vars[key]);
+        let buffer = '' + msg;
+        while (true) {
+          msg = msg.replace(`%${key}%`, vars[key]);
+          if (buffer === msg) {
+            break;
+          }
+          buffer = '' + msg;
+        }
       }
     }
     return {

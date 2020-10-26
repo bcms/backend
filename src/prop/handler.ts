@@ -688,7 +688,7 @@ export class PropHandler {
             break;
           case PropType.ENTRY_POINTER:
             {
-              const value = prop.value as PropEntryPointer;
+              const value = propToCheck.value as PropEntryPointer;
               try {
                 ObjectUtility.compareWithSchema(
                   { value },
@@ -708,7 +708,7 @@ export class PropHandler {
                 if (StringUtility.isIdValid(value.entryIds[j]) === false) {
                   return Error(
                     `[ ${level}.${prop.name}.value.entryIds[${j}] ] -->` +
-                      ` invalid ID "${value.entryIds[j]}" was provided.`,
+                      ` Invalid ID "${value.entryIds[j]}" was provided.`,
                   );
                 }
                 const entry = await CacheControl.entry.findById(
@@ -751,7 +751,7 @@ export class PropHandler {
             break;
           case PropType.WIDGET:
             {
-              const value = prop.value as PropWidget;
+              const value = propToCheck.value as PropWidget;
               try {
                 ObjectUtility.compareWithSchema(
                   {
