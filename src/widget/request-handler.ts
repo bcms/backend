@@ -21,13 +21,14 @@ import {
   UpdateWidgetDataSchema,
 } from './interfaces';
 import { WidgetFactory } from './factories';
-import { PropChange } from '../prop';
+import { PropChange, PropType } from '../prop';
 import { General, SocketUtil, SocketEventName } from '../util';
 import {
   EventManager,
   BCMSEventConfigScope,
   BCMSEventConfigMethod,
 } from '../event';
+import { PropWidget } from 'src/prop/interfaces/quill';
 
 export class WidgetRequestHandler {
   @CreateLogger(WidgetRequestHandler)
@@ -390,13 +391,45 @@ export class WidgetRequestHandler {
         ResponseCode.get('wid006'),
       );
     }
-    // TODO: Remove Widget from Entries.
+    const entries = await CacheControl.entry.findAll();
+    const updatedEntries: string[] = [];
+    for (const i in entries) {
+      const entry = entries[i];
+      for (const j in entry.content) {
+        const content = entry.content[j];
+        const deletePropsIndex: number[] = [];
+        // tslint:disable-next-line: prefer-for-of
+        for (let k = 0; k < content.props.length; k = k + 1) {
+          const prop = content.props[k];
+          if (prop.type === PropType.WIDGET) {
+            const value = prop.value as PropWidget;
+            if (value._id === id) {
+              deletePropsIndex.push(k);
+            }
+          }
+        }
+        if (deletePropsIndex.length > 0) {
+          entry.content[j].props = entry.content[j].props.filter(
+            (e, k) => !deletePropsIndex.includes(k),
+          );
+          updatedEntries.push(`${entry._id}`);
+          await CacheControl.entry.update(entry);
+        }
+      }
+    }
     SocketUtil.emit(SocketEventName.WIDGET, {
       entry: {
         _id: `${widget._id}`,
       },
-      message: 'Widget has been removed.',
-      source: sid,
+      message: {
+        updated: [
+          {
+            name: 'entry',
+            ids: updatedEntries,
+          },
+        ],
+      },
+      source: '',
       type: 'remove',
     });
     await EventManager.emit(
@@ -410,6 +443,31 @@ export class WidgetRequestHandler {
     widget: Widget | FSWidget,
     propChanges: PropChange[],
   ) {
-    // TODO: Update Entries content.
+    const entries = await CacheControl.entry.findAll();
+    for (const i in entries) {
+      const entry = entries[i];
+      for (const j in entry.content) {
+        const content = entry.content[j];
+        for (const k in content.props) {
+          const prop = content.props[k];
+          if (prop.type === PropType.WIDGET) {
+            const value = prop.value as PropWidget;
+            if (value._id === `${widget._id}`) {
+              const output = await PropHandler.applyPropChanges(
+                value.props,
+                propChanges,
+                `${entry._id}.content[${j}].props[${k}].value.props`,
+              );
+              if (output instanceof Error) {
+                throw output;
+              }
+              value.props = output;
+              entry.content[j].props[k].value = value;
+              await CacheControl.entry.update(entry);
+            }
+          }
+        }
+      }
+    }
   }
 }

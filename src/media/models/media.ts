@@ -9,13 +9,10 @@ export enum MediaType {
   GIF = 'GIF',
   OTH = 'OTH',
   PDF = 'PDF',
-  CODE = 'CODE',
   JS = 'JS',
   HTML = 'HTML',
   CSS = 'CSS',
   JAVA = 'JAVA',
-  PHP = 'PHP',
-  FONT = 'FONT',
 }
 
 export interface IMedia extends IEntity {

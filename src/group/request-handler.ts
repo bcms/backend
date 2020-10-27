@@ -209,7 +209,7 @@ export class GroupRequestHandler {
   }
 
   /**
-   * This method will update specified Group and it have a lot
+   * This method will update specified Group and it has a lot
    * of side effect. This is done to remove complex and hard work
    * from the client and to ensure that data is consistent in the
    * database. After updating the Group, `propsUpdate` method

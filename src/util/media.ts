@@ -3,6 +3,7 @@ import * as path from 'path';
 import { FSUtil } from '@becomes/purple-cheetah';
 import { FSMedia, Media, MediaType } from '../media';
 import { CacheControl } from '../cache';
+import { MimeTypes } from './_mimetype';
 import * as fse from 'fs-extra';
 
 export class MediaUtil {
@@ -175,9 +176,35 @@ export class MediaUtil {
   }
   // TODO: Add support for other mimetypes.
   public static mimetypeToMediaType(mimetype: string): MediaType {
+    switch (mimetype) {
+      case 'image/gif': {
+        return MediaType.GIF;
+      }
+      case 'application/pdf': {
+        return MediaType.PDF;
+      }
+      case 'text/html': {
+        return MediaType.HTML;
+      }
+      case 'text/x-java-source': {
+        return MediaType.JAVA;
+      }
+    }
+    if (MimeTypes.js.includes(mimetype)) {
+      return MediaType.JS;
+    }
+    if (MimeTypes.css.includes(mimetype)) {
+      return MediaType.CSS;
+    }
     switch (mimetype.split('/')[0]) {
       case 'image': {
         return MediaType.IMG;
+      }
+      case 'video': {
+        return MediaType.VID;
+      }
+      case 'text': {
+        return MediaType.TXT;
       }
       default: {
         return MediaType.OTH;
