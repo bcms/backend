@@ -1,5 +1,4 @@
 import { ObjectSchema } from '@becomes/purple-cheetah';
-import { EntryParsed } from '../../entry';
 
 export interface PropEntryPointer {
   templateId: string;

@@ -2,10 +2,6 @@ import {
   CreateLogger,
   Logger,
   HttpErrorFactory,
-  JWTSecurity,
-  RoleName,
-  PermissionName,
-  JWTConfigService,
   HttpStatus,
   StringUtility,
   ObjectUtility,
@@ -34,49 +30,16 @@ export class WidgetRequestHandler {
   @CreateLogger(WidgetRequestHandler)
   private static logger: Logger;
 
-  static async getAll(
-    authorization: string,
-  ): Promise<Array<Widget | FSWidget>> {
-    const error = HttpErrorFactory.instance('getAll', this.logger);
-    const jwt = JWTSecurity.checkAndValidateAndGet(authorization, {
-      roles: [RoleName.ADMIN, RoleName.USER],
-      permission: PermissionName.READ,
-      JWTConfig: JWTConfigService.get('user-token-config'),
-    });
-    if (jwt instanceof Error) {
-      throw error.occurred(
-        HttpStatus.UNAUTHORIZED,
-        ResponseCode.get('g001', {
-          msg: jwt.message,
-        }),
-      );
-    }
-    const widgets = await CacheControl.widget.findAll();
-    return widgets;
+  static async getAll(): Promise<Array<Widget | FSWidget>> {
+    return await CacheControl.widget.findAll();
   }
 
-  static async getById(
-    authorization: string,
-    id: string,
-  ): Promise<Widget | FSWidget> {
+  static async getById(id: string): Promise<Widget | FSWidget> {
     const error = HttpErrorFactory.instance('getById', this.logger);
     if (StringUtility.isIdValid(id) === false) {
       throw error.occurred(
         HttpStatus.BAD_REQUEST,
         ResponseCode.get('g004', { id }),
-      );
-    }
-    const jwt = JWTSecurity.checkAndValidateAndGet(authorization, {
-      roles: [RoleName.ADMIN, RoleName.USER],
-      permission: PermissionName.READ,
-      JWTConfig: JWTConfigService.get('user-token-config'),
-    });
-    if (jwt instanceof Error) {
-      throw error.occurred(
-        HttpStatus.UNAUTHORIZED,
-        ResponseCode.get('g001', {
-          msg: jwt.message,
-        }),
       );
     }
     const widget = await CacheControl.widget.findById(id);
@@ -89,10 +52,7 @@ export class WidgetRequestHandler {
     return widget;
   }
 
-  static async getMany(
-    authorization: string,
-    idsString: string,
-  ): Promise<Array<Widget | FSWidget>> {
+  static async getMany(idsString: string): Promise<Array<Widget | FSWidget>> {
     const error = HttpErrorFactory.instance('getMany', this.logger);
     if (!idsString) {
       throw error.occurred(
@@ -113,59 +73,18 @@ export class WidgetRequestHandler {
       }
       return id;
     });
-    const jwt = JWTSecurity.checkAndValidateAndGet(authorization, {
-      roles: [RoleName.ADMIN, RoleName.USER],
-      permission: PermissionName.READ,
-      JWTConfig: JWTConfigService.get('user-token-config'),
-    });
-    if (jwt instanceof Error) {
-      throw error.occurred(
-        HttpStatus.UNAUTHORIZED,
-        ResponseCode.get('g001', {
-          msg: jwt.message,
-        }),
-      );
-    }
     return await CacheControl.widget.findAllById(ids);
   }
 
-  static async count(authorization: string): Promise<number> {
-    const error = HttpErrorFactory.instance('count', this.logger);
-    const jwt = JWTSecurity.checkAndValidateAndGet(authorization, {
-      roles: [RoleName.ADMIN, RoleName.USER],
-      permission: PermissionName.READ,
-      JWTConfig: JWTConfigService.get('user-token-config'),
-    });
-    if (jwt instanceof Error) {
-      throw error.occurred(
-        HttpStatus.UNAUTHORIZED,
-        ResponseCode.get('g001', {
-          msg: jwt.message,
-        }),
-      );
-    }
+  static async count(): Promise<number> {
     return await CacheControl.widget.count();
   }
 
   static async add(
-    authorization: string,
     data: AddWidgetData,
     sid: string,
   ): Promise<Widget | FSWidget> {
     const error = HttpErrorFactory.instance('add', this.logger);
-    const jwt = JWTSecurity.checkAndValidateAndGet(authorization, {
-      roles: [RoleName.ADMIN],
-      permission: PermissionName.WRITE,
-      JWTConfig: JWTConfigService.get('user-token-config'),
-    });
-    if (jwt instanceof Error) {
-      throw error.occurred(
-        HttpStatus.UNAUTHORIZED,
-        ResponseCode.get('g001', {
-          msg: jwt.message,
-        }),
-      );
-    }
     try {
       ObjectUtility.compareWithSchema(data, AddWidgetDataSchema, 'data');
     } catch (e) {
@@ -210,7 +129,6 @@ export class WidgetRequestHandler {
   }
 
   static async update(
-    authorization: string,
     data: UpdateWidgetData,
     sid: string,
   ): Promise<Widget | FSWidget> {
@@ -229,19 +147,6 @@ export class WidgetRequestHandler {
       throw error.occurred(
         HttpStatus.BAD_REQUEST,
         ResponseCode.get('g004', { id: data._id }),
-      );
-    }
-    const jwt = JWTSecurity.checkAndValidateAndGet(authorization, {
-      roles: [RoleName.ADMIN],
-      permission: PermissionName.WRITE,
-      JWTConfig: JWTConfigService.get('user-token-config'),
-    });
-    if (jwt instanceof Error) {
-      throw error.occurred(
-        HttpStatus.UNAUTHORIZED,
-        ResponseCode.get('g001', {
-          msg: jwt.message,
-        }),
       );
     }
     let widget: Widget | FSWidget;
@@ -356,25 +261,12 @@ export class WidgetRequestHandler {
     return widget;
   }
 
-  static async deleteById(authorization: string, id: string, sid: string) {
+  static async deleteById(id: string) {
     const error = HttpErrorFactory.instance('deleteById', this.logger);
     if (StringUtility.isIdValid(id) === false) {
       throw error.occurred(
         HttpStatus.BAD_REQUEST,
         ResponseCode.get('g004', { id }),
-      );
-    }
-    const jwt = JWTSecurity.checkAndValidateAndGet(authorization, {
-      roles: [RoleName.ADMIN],
-      permission: PermissionName.DELETE,
-      JWTConfig: JWTConfigService.get('user-token-config'),
-    });
-    if (jwt instanceof Error) {
-      throw error.occurred(
-        HttpStatus.UNAUTHORIZED,
-        ResponseCode.get('g001', {
-          msg: jwt.message,
-        }),
       );
     }
     const widget = await CacheControl.widget.findById(id);

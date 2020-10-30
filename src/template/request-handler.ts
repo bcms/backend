@@ -2,10 +2,6 @@ import {
   CreateLogger,
   Logger,
   HttpErrorFactory,
-  JWTSecurity,
-  RoleName,
-  PermissionName,
-  JWTConfigService,
   HttpStatus,
   StringUtility,
   ObjectUtility,
@@ -29,35 +25,18 @@ import {
   BCMSEventConfigScope,
   BCMSEventConfigMethod,
 } from '../event';
-import { ApiKey, ApiKeyRequestObject, ApiKeySecurity, FSApiKey } from '../api';
+import { ApiKey, FSApiKey } from '../api';
 
 export class TemplateRequestHandler {
   @CreateLogger(TemplateRequestHandler)
   private static logger: Logger;
   private static queueable = Queueable<Template | FSTemplate | void>('update');
 
-  static async getAll(
-    authorization: string,
-  ): Promise<Array<Template | FSTemplate>> {
-    const error = HttpErrorFactory.instance('getAll', this.logger);
-    const jwt = JWTSecurity.checkAndValidateAndGet(authorization, {
-      roles: [RoleName.ADMIN, RoleName.USER],
-      permission: PermissionName.READ,
-      JWTConfig: JWTConfigService.get('user-token-config'),
-    });
-    if (jwt instanceof Error) {
-      throw error.occurred(
-        HttpStatus.UNAUTHORIZED,
-        ResponseCode.get('g001', {
-          msg: jwt.message,
-        }),
-      );
-    }
+  static async getAll(): Promise<Array<Template | FSTemplate>> {
     return await CacheControl.template.findAll();
   }
 
   static async getMany(
-    authorization: string,
     idsString: string,
   ): Promise<Array<Template | FSTemplate>> {
     const error = HttpErrorFactory.instance('getMany', this.logger);
@@ -80,75 +59,20 @@ export class TemplateRequestHandler {
       }
       return id;
     });
-    const jwt = JWTSecurity.checkAndValidateAndGet(authorization, {
-      roles: [RoleName.ADMIN, RoleName.USER],
-      permission: PermissionName.READ,
-      JWTConfig: JWTConfigService.get('user-token-config'),
-    });
-    if (jwt instanceof Error) {
-      throw error.occurred(
-        HttpStatus.UNAUTHORIZED,
-        ResponseCode.get('g001', {
-          msg: jwt.message,
-        }),
-      );
-    }
     return await CacheControl.template.findAllById(ids);
   }
 
-  static async count(authorization: string): Promise<number> {
-    const error = HttpErrorFactory.instance('count', this.logger);
-    const jwt = JWTSecurity.checkAndValidateAndGet(authorization, {
-      roles: [RoleName.ADMIN, RoleName.USER],
-      permission: PermissionName.READ,
-      JWTConfig: JWTConfigService.get('user-token-config'),
-    });
-    if (jwt instanceof Error) {
-      throw error.occurred(
-        HttpStatus.UNAUTHORIZED,
-        ResponseCode.get('g001', {
-          msg: jwt.message,
-        }),
-      );
-    }
+  static async count(): Promise<number> {
     return await CacheControl.template.count();
   }
 
-  static async getById(
-    authorization: string,
-    id: string,
-    apiRequest?: ApiKeyRequestObject,
-  ): Promise<Template | FSTemplate> {
+  static async getById(id: string): Promise<Template | FSTemplate> {
     const error = HttpErrorFactory.instance('getById', this.logger);
     if (StringUtility.isIdValid(id) === false) {
       throw error.occurred(
         HttpStatus.BAD_REQUEST,
         ResponseCode.get('g004', { id }),
       );
-    }
-    if (apiRequest) {
-      try {
-        await ApiKeySecurity.verify(apiRequest);
-      } catch (e) {
-        throw error.occurred(
-          HttpStatus.UNAUTHORIZED,
-          ResponseCode.get('ak007', { msg: e.message }),
-        );
-      }
-    } else {
-      const jwt = JWTSecurity.checkAndValidateAndGet(authorization, {
-        roles: [RoleName.ADMIN, RoleName.USER],
-        permission: PermissionName.READ,
-        JWTConfig: JWTConfigService.get('user-token-config'),
-      });
-      if (jwt instanceof Error) {
-        throw error.occurred(
-          HttpStatus.UNAUTHORIZED,
-          ResponseCode.get('g001', {
-            msg: jwt.message,
-          }),
-        );
-      }
     }
     const template = await CacheControl.template.findById(id);
     if (!template) {
@@ -161,24 +85,10 @@ export class TemplateRequestHandler {
   }
 
   static async add(
-    authorization: string,
     data: AddTemplateData,
     sid: string,
   ): Promise<Template | FSTemplate> {
     const error = HttpErrorFactory.instance('add', this.logger);
-    const jwt = JWTSecurity.checkAndValidateAndGet(authorization, {
-      roles: [RoleName.ADMIN],
-      permission: PermissionName.WRITE,
-      JWTConfig: JWTConfigService.get('user-token-config'),
-    });
-    if (jwt instanceof Error) {
-      throw error.occurred(
-        HttpStatus.UNAUTHORIZED,
-        ResponseCode.get('g001', {
-          msg: jwt.message,
-        }),
-      );
-    }
     try {
       ObjectUtility.compareWithSchema(data, AddTemplateDataSchema, 'data');
     } catch (e) {
@@ -231,7 +141,6 @@ export class TemplateRequestHandler {
    * all Entries which are belonging to it will be updated.
    */
   static async update(
-    authorization: string,
     data: UpdateTemplateData,
     sid: string,
   ): Promise<Template | FSTemplate> {
@@ -251,19 +160,6 @@ export class TemplateRequestHandler {
         throw error.occurred(
           HttpStatus.BAD_REQUEST,
           ResponseCode.get('g004', { id: data._id }),
-        );
-      }
-      const jwt = JWTSecurity.checkAndValidateAndGet(authorization, {
-        roles: [RoleName.ADMIN],
-        permission: PermissionName.WRITE,
-        JWTConfig: JWTConfigService.get('user-token-config'),
-      });
-      if (jwt instanceof Error) {
-        throw error.occurred(
-          HttpStatus.UNAUTHORIZED,
-          ResponseCode.get('g001', {
-            msg: jwt.message,
-          }),
         );
       }
       let template: Template | FSTemplate;
@@ -429,25 +325,12 @@ export class TemplateRequestHandler {
     })) as Template | FSTemplate;
   }
 
-  static async deleteById(authorization: string, id: string, sid: string) {
+  static async deleteById(id: string, sid: string) {
     const error = HttpErrorFactory.instance('deleteById', this.logger);
     if (StringUtility.isIdValid(id) === false) {
       throw error.occurred(
         HttpStatus.BAD_REQUEST,
         ResponseCode.get('g004', { id }),
-      );
-    }
-    const jwt = JWTSecurity.checkAndValidateAndGet(authorization, {
-      roles: [RoleName.ADMIN],
-      permission: PermissionName.DELETE,
-      JWTConfig: JWTConfigService.get('user-token-config'),
-    });
-    if (jwt instanceof Error) {
-      throw error.occurred(
-        HttpStatus.UNAUTHORIZED,
-        ResponseCode.get('g001', {
-          msg: jwt.message,
-        }),
       );
     }
     const template = await CacheControl.template.findById(id);

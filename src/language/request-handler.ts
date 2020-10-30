@@ -2,10 +2,6 @@ import {
   CreateLogger,
   Logger,
   HttpErrorFactory,
-  JWTSecurity,
-  RoleName,
-  PermissionName,
-  JWTConfigService,
   HttpStatus,
   StringUtility,
   ObjectUtility,
@@ -36,66 +32,20 @@ export class LanguageRequestHandler {
     'deleteById',
   );
 
-  static async getAll(
-    authorization: string,
-  ): Promise<Array<Language | FSLanguage>> {
-    const error = HttpErrorFactory.instance('getAll', this.logger);
-    const jwt = JWTSecurity.checkAndValidateAndGet(authorization, {
-      roles: [RoleName.ADMIN, RoleName.USER],
-      permission: PermissionName.READ,
-      JWTConfig: JWTConfigService.get('user-token-config'),
-    });
-    if (jwt instanceof Error) {
-      throw error.occurred(
-        HttpStatus.UNAUTHORIZED,
-        ResponseCode.get('g001', {
-          msg: jwt.message,
-        }),
-      );
-    }
+  static async getAll(): Promise<Array<Language | FSLanguage>> {
     return await CacheControl.language.findAll();
   }
 
-  static async count(authorization: string): Promise<number> {
-    const error = HttpErrorFactory.instance('count', this.logger);
-    const jwt = JWTSecurity.checkAndValidateAndGet(authorization, {
-      roles: [RoleName.ADMIN, RoleName.USER],
-      permission: PermissionName.READ,
-      JWTConfig: JWTConfigService.get('user-token-config'),
-    });
-    if (jwt instanceof Error) {
-      throw error.occurred(
-        HttpStatus.UNAUTHORIZED,
-        ResponseCode.get('g001', {
-          msg: jwt.message,
-        }),
-      );
-    }
+  static async count(): Promise<number> {
     return await CacheControl.language.count();
   }
 
-  static async getById(
-    authorization: string,
-    id: string,
-  ): Promise<Language | FSLanguage> {
+  static async getById(id: string): Promise<Language | FSLanguage> {
     const error = HttpErrorFactory.instance('getById', this.logger);
     if (StringUtility.isIdValid(id) === false) {
       throw error.occurred(
         HttpStatus.BAD_REQUEST,
         ResponseCode.get('g004', { id }),
-      );
-    }
-    const jwt = JWTSecurity.checkAndValidateAndGet(authorization, {
-      roles: [RoleName.ADMIN, RoleName.USER],
-      permission: PermissionName.READ,
-      JWTConfig: JWTConfigService.get('user-token-config'),
-    });
-    if (jwt instanceof Error) {
-      throw error.occurred(
-        HttpStatus.UNAUTHORIZED,
-        ResponseCode.get('g001', {
-          msg: jwt.message,
-        }),
       );
     }
     const language = await CacheControl.language.findById(id);
@@ -109,7 +59,6 @@ export class LanguageRequestHandler {
   }
 
   static async add(
-    authorization: string,
     data: AddLanguageData,
     sid: string,
   ): Promise<Language | FSLanguage> {
@@ -122,19 +71,6 @@ export class LanguageRequestHandler {
           HttpStatus.BAD_REQUEST,
           ResponseCode.get('g002', {
             msg: e.message,
-          }),
-        );
-      }
-      const jwt = JWTSecurity.checkAndValidateAndGet(authorization, {
-        roles: [RoleName.ADMIN],
-        permission: PermissionName.WRITE,
-        JWTConfig: JWTConfigService.get('user-token-config'),
-      });
-      if (jwt instanceof Error) {
-        throw error.occurred(
-          HttpStatus.UNAUTHORIZED,
-          ResponseCode.get('g001', {
-            msg: jwt.message,
           }),
         );
       }
@@ -183,7 +119,6 @@ export class LanguageRequestHandler {
   }
 
   static async update(
-    authorization: string,
     data: UpdateLanguageData,
     sid: string,
   ): Promise<Language | FSLanguage> {
@@ -202,19 +137,6 @@ export class LanguageRequestHandler {
       throw error.occurred(
         HttpStatus.BAD_REQUEST,
         ResponseCode.get('g004', { id: data._id }),
-      );
-    }
-    const jwt = JWTSecurity.checkAndValidateAndGet(authorization, {
-      roles: [RoleName.ADMIN],
-      permission: PermissionName.WRITE,
-      JWTConfig: JWTConfigService.get('user-token-config'),
-    });
-    if (jwt instanceof Error) {
-      throw error.occurred(
-        HttpStatus.UNAUTHORIZED,
-        ResponseCode.get('g001', {
-          msg: jwt.message,
-        }),
       );
     }
     let language: Language | FSLanguage;
@@ -281,26 +203,13 @@ export class LanguageRequestHandler {
     return language;
   }
 
-  static async deleteById(authorization: string, id: string, sid: string) {
+  static async deleteById(id: string, sid: string) {
     await this.queueable.exec('deleteById', 'free_one_by_one', async () => {
       const error = HttpErrorFactory.instance('deleteById', this.logger);
       if (StringUtility.isIdValid(id) === false) {
         throw error.occurred(
           HttpStatus.BAD_REQUEST,
           ResponseCode.get('g004', { id }),
-        );
-      }
-      const jwt = JWTSecurity.checkAndValidateAndGet(authorization, {
-        roles: [RoleName.ADMIN],
-        permission: PermissionName.DELETE,
-        JWTConfig: JWTConfigService.get('user-token-config'),
-      });
-      if (jwt instanceof Error) {
-        throw error.occurred(
-          HttpStatus.UNAUTHORIZED,
-          ResponseCode.get('g001', {
-            msg: jwt.message,
-          }),
         );
       }
       const language = await CacheControl.language.findById(id);

@@ -6,92 +6,123 @@ import {
   Post,
   Put,
   Delete,
+  RoleName,
+  PermissionName,
 } from '@becomes/purple-cheetah';
-import { Request } from 'express';
+import { Request, Router } from 'express';
 import { GroupLite } from './interfaces';
 import { Group, FSGroup } from './models';
 import { GroupRequestHandler } from './request-handler';
 import { GroupFactory } from './factories';
+import { JWTSecurity } from '../security';
 
 @Controller('/api/group')
 export class GroupController implements ControllerPrototype {
   name: string;
   baseUri: string;
   logger: Logger;
-  router;
+  router: Router;
   initRouter: () => void;
 
-  @Get('/all/lite')
-  async getAllLite(request: Request): Promise<{ groups: GroupLite[] }> {
+  @Get(
+    '/all/lite',
+    JWTSecurity.preRequestHandler(
+      [RoleName.ADMIN, RoleName.USER],
+      PermissionName.READ,
+    ),
+  )
+  async getAllLite(): Promise<{ groups: GroupLite[] }> {
     return {
-      groups: (
-        await GroupRequestHandler.getAll(request.headers.authorization)
-      ).map((e) => {
+      groups: (await GroupRequestHandler.getAll()).map((e) => {
         return GroupFactory.toLite(e);
       }),
     };
   }
 
-  @Get('/all')
-  async getAll(request: Request): Promise<{ groups: Array<Group | FSGroup> }> {
+  @Get(
+    '/all',
+    JWTSecurity.preRequestHandler(
+      [RoleName.ADMIN, RoleName.USER],
+      PermissionName.READ,
+    ),
+  )
+  async getAll(): Promise<{ groups: Array<Group | FSGroup> }> {
     return {
-      groups: await GroupRequestHandler.getAll(request.headers.authorization),
+      groups: await GroupRequestHandler.getAll(),
     };
   }
 
-  @Get('/many/:ids')
+  @Get(
+    '/many/:ids',
+    JWTSecurity.preRequestHandler(
+      [RoleName.ADMIN, RoleName.USER],
+      PermissionName.READ,
+    ),
+  )
   async getMany(request: Request): Promise<{ groups: Array<Group | FSGroup> }> {
     return {
-      groups: await GroupRequestHandler.getMany(
-        request.headers.authorization,
-        request.params.ids,
-      ),
+      groups: await GroupRequestHandler.getMany(request.params.ids),
     };
   }
 
-  @Get('/count')
-  async count(request: Request): Promise<{ count: number }> {
+  @Get(
+    '/count',
+    JWTSecurity.preRequestHandler(
+      [RoleName.ADMIN, RoleName.USER],
+      PermissionName.READ,
+    ),
+  )
+  async count(): Promise<{ count: number }> {
     return {
-      count: await GroupRequestHandler.count(request.headers.authorization),
+      count: await GroupRequestHandler.count(),
     };
   }
 
-  @Get('/:id')
+  @Get(
+    '/:id',
+    JWTSecurity.preRequestHandler(
+      [RoleName.ADMIN, RoleName.USER],
+      PermissionName.READ,
+    ),
+  )
   async getById(request: Request): Promise<{ group: Group | FSGroup }> {
     return {
-      group: await GroupRequestHandler.getById(
-        request.headers.authorization,
-        request.params.id,
-      ),
+      group: await GroupRequestHandler.getById(request.params.id),
     };
   }
 
-  @Post()
+  @Post(
+    '',
+    JWTSecurity.preRequestHandler([RoleName.ADMIN], PermissionName.WRITE),
+  )
   async add(request: Request): Promise<{ group: Group | FSGroup }> {
     return {
       group: await GroupRequestHandler.add(
-        request.headers.authorization,
         request.body,
         request.headers.sid as string,
       ),
     };
   }
 
-  @Put()
+  @Put(
+    '',
+    JWTSecurity.preRequestHandler([RoleName.ADMIN], PermissionName.WRITE),
+  )
   async update(request: Request): Promise<{ group: Group | FSGroup }> {
     return {
       group: await GroupRequestHandler.update(
-        request.headers.authorization,
         request.body,
         request.headers.sid as string,
       ),
     };
   }
 
-  @Delete('/:id')
+  @Delete(
+    '/:id',
+    JWTSecurity.preRequestHandler([RoleName.ADMIN], PermissionName.DELETE),
+  )
   async deleteById(request: Request): Promise<{ message: string }> {
     await GroupRequestHandler.deleteById(
-      request.headers.authorization,
       request.params.id,
       request.headers.sid as string,
     );

@@ -6,11 +6,15 @@ import {
   Post,
   Put,
   Delete,
+  ControllerMethodData,
+  RoleName,
+  PermissionName,
+  JWT,
 } from '@becomes/purple-cheetah';
 import { Router, Request } from 'express';
+import { ApiKeySecurity, JWTSecurity } from '../security';
 import { ApiKeyAccess, ApiKey, FSApiKey } from './models';
 import { ApiKeyRequestHandler } from './request-handler';
-import { ApiKeySecurity } from './security';
 
 @Controller('/api/key')
 export class ApiKeyController implements ControllerPrototype {
@@ -20,65 +24,84 @@ export class ApiKeyController implements ControllerPrototype {
   router: Router;
   initRouter: () => void;
 
-  @Get('/access/list')
-  async getAccessList(request: Request): Promise<{ access: ApiKeyAccess }> {
+  @Get('/access/list', ApiKeySecurity.preRequestHandler())
+  async getAccessList(
+    ...data: ControllerMethodData<ApiKey | FSApiKey>
+  ): Promise<{ access: ApiKeyAccess }> {
     return {
-      access: await ApiKeyRequestHandler.getAccessList(
-        ApiKeySecurity.requestToApiKeyRequest(request),
-      ),
+      access: await ApiKeyRequestHandler.getAccessList(data[3]),
     };
   }
 
-  @Get('/all')
-  async getAll(request: Request): Promise<{ keys: Array<ApiKey | FSApiKey> }> {
+  @Get(
+    '/count',
+    JWTSecurity.preRequestHandler([RoleName.ADMIN], PermissionName.READ),
+  )
+  async count(): Promise<{ count: number }> {
     return {
-      keys: await ApiKeyRequestHandler.getAll(request.headers.authorization),
+      count: await ApiKeyRequestHandler.count(),
     };
   }
 
-  @Get('/count')
-  async count(request: Request): Promise<{ count: number }> {
+  @Get(
+    '/all',
+    JWTSecurity.preRequestHandler([RoleName.ADMIN], PermissionName.READ),
+  )
+  async getAll(): Promise<{ keys: Array<ApiKey | FSApiKey> }> {
     return {
-      count: await ApiKeyRequestHandler.count(request.headers.authorization),
+      keys: await ApiKeyRequestHandler.getAll(),
     };
   }
 
-  @Get('/:id')
-  async getById(request: Request): Promise<{ key: ApiKey | FSApiKey }> {
+  @Get(
+    '/:id',
+    JWTSecurity.preRequestHandler([RoleName.ADMIN], PermissionName.READ),
+  )
+  async getById(
+    ...data: ControllerMethodData<JWT>
+  ): Promise<{ key: ApiKey | FSApiKey }> {
     return {
-      key: await ApiKeyRequestHandler.getById(
-        request.headers.authorization,
-        request.params.id,
-      ),
+      key: await ApiKeyRequestHandler.getById(data[0].params.id),
     };
   }
 
-  @Post()
-  async add(request: Request): Promise<{ key: ApiKey | FSApiKey }> {
+  @Post(
+    '',
+    JWTSecurity.preRequestHandler([RoleName.ADMIN], PermissionName.WRITE),
+  )
+  async add(
+    ...data: ControllerMethodData<JWT>
+  ): Promise<{ key: ApiKey | FSApiKey }> {
     return {
       key: await ApiKeyRequestHandler.add(
-        request.headers.authorization,
-        request.headers.sid as string,
-        request.body,
+        data[3],
+        data[0].headers.sid as string,
+        data[0].body,
       ),
     };
   }
 
-  @Put()
-  async update(request: Request): Promise<{ key: ApiKey | FSApiKey }> {
+  @Put(
+    '',
+    JWTSecurity.preRequestHandler([RoleName.ADMIN], PermissionName.WRITE),
+  )
+  async update(
+    ...data: ControllerMethodData<JWT>
+  ): Promise<{ key: ApiKey | FSApiKey }> {
     return {
       key: await ApiKeyRequestHandler.update(
-        request.headers.authorization,
-        request.headers.sid as string,
-        request.body,
+        data[0].headers.sid as string,
+        data[0].body,
       ),
     };
   }
 
-  @Delete('/:id')
+  @Delete(
+    '/:id',
+    JWTSecurity.preRequestHandler([RoleName.ADMIN], PermissionName.DELETE),
+  )
   async deleteById(request: Request): Promise<{ message: string }> {
     await ApiKeyRequestHandler.deleteById(
-      request.headers.authorization,
       request.headers.sid as string,
       request.params.id,
     );

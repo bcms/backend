@@ -36,7 +36,7 @@ export class ResponseCode {
     return ft;
   }
 
-  static async init() {
+  static async init(): Promise<void> {
     const buffer: Array<{ name: string; data: IResponseCode }> = [];
     const files = await this.fileTree(path.join(__dirname, 'codes'));
     for (const i in files) {
@@ -88,7 +88,7 @@ export class ResponseCode {
       name: string;
       msg: string;
     }>,
-  ) {
+  ): void {
     codes.forEach((code) => {
       this.registry.push(code);
     });
@@ -96,7 +96,9 @@ export class ResponseCode {
 
   static get(
     code: string,
-    vars?: any,
+    vars?: {
+      [key: string]: string;
+    },
   ): {
     code: string;
     message: string;
@@ -109,8 +111,9 @@ export class ResponseCode {
     if (vars) {
       for (const key in vars) {
         let buffer = '' + msg;
+        // eslint-disable-next-line no-constant-condition
         while (true) {
-          msg = msg.replace(`%${key}%`, vars[key]);
+          msg = msg.replace(`%${key}%`, vars[key] as string);
           if (buffer === msg) {
             break;
           }

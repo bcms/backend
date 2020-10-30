@@ -4,7 +4,7 @@ import {
   Controller,
   Get,
   HttpErrorFactory,
-  JWTSecurity,
+  JWTSecurity as JWTSecurityPurpleCheetah,
   RoleName,
   PermissionName,
   JWTConfigService,
@@ -14,7 +14,7 @@ import {
 import { Router, Request } from 'express';
 import { FunctionManager } from './manager';
 import { ResponseCode } from '../response-code';
-import { ApiKeySecurity } from '../api';
+import { ApiKeySecurity, JWTSecurity } from '../security';
 
 @Controller('/api/function')
 export class FunctionController implements ControllerPrototype {
@@ -24,30 +24,19 @@ export class FunctionController implements ControllerPrototype {
   router: Router;
   initRouter: () => void;
 
-  @Get('/available')
-  async getAvailable(
-    request: Request,
-  ): Promise<{
+  @Get(
+    '/available',
+    JWTSecurity.preRequestHandler(
+      [RoleName.ADMIN, RoleName.USER],
+      PermissionName.READ,
+    ),
+  )
+  async getAvailable(): Promise<{
     functions: Array<{
       name: string;
       public: boolean;
     }>;
   }> {
-    const error = HttpErrorFactory.instance('getAvailable', this.logger);
-    const authorization = request.headers.authorization;
-    const jwt = JWTSecurity.checkAndValidateAndGet(authorization, {
-      roles: [RoleName.ADMIN, RoleName.USER],
-      permission: PermissionName.READ,
-      JWTConfig: JWTConfigService.get('user-token-config'),
-    });
-    if (jwt instanceof Error) {
-      throw error.occurred(
-        HttpStatus.UNAUTHORIZED,
-        ResponseCode.get('g001', {
-          msg: jwt.message,
-        }),
-      );
-    }
     return {
       functions: FunctionManager.getAll().map((e) => {
         return {
@@ -63,7 +52,9 @@ export class FunctionController implements ControllerPrototype {
     request: Request,
   ): Promise<{
     success: boolean;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     err?: any;
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     result?: any;
   }> {
     const error = HttpErrorFactory.instance('execute', this.logger);
@@ -93,11 +84,14 @@ export class FunctionController implements ControllerPrototype {
           );
         }
       } else {
-        const jwt = JWTSecurity.checkAndValidateAndGet(authorization, {
-          roles: [RoleName.ADMIN, RoleName.USER],
-          permission: PermissionName.READ,
-          JWTConfig: JWTConfigService.get('user-token-config'),
-        });
+        const jwt = JWTSecurityPurpleCheetah.checkAndValidateAndGet(
+          authorization,
+          {
+            roles: [RoleName.ADMIN, RoleName.USER],
+            permission: PermissionName.READ,
+            JWTConfig: JWTConfigService.get('user-token-config'),
+          },
+        );
         if (jwt instanceof Error) {
           throw error.occurred(
             HttpStatus.UNAUTHORIZED,
@@ -114,6 +108,7 @@ export class FunctionController implements ControllerPrototype {
         `Function with name "${request.params.name}" does not exist.`,
       );
     }
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     let result: any;
     try {
       result = await fn.handler(request);

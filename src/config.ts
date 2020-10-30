@@ -1,4 +1,7 @@
-import { JWTConfigService, JWTEncryptionAlg } from '@becomes/purple-cheetah';
+import {
+  JWTConfigService,
+  JWTEncryptionAlg,
+} from '@becomes/purple-cheetah';
 import { ResponseCode } from './response-code';
 import { CacheControl } from './cache';
 import { FunctionManager } from './function';

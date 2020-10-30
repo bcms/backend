@@ -2,10 +2,6 @@ import {
   CreateLogger,
   Logger,
   HttpErrorFactory,
-  JWTSecurity,
-  RoleName,
-  PermissionName,
-  JWTConfigService,
   HttpStatus,
   StringUtility,
   ObjectUtility,
@@ -37,47 +33,16 @@ export class GroupRequestHandler {
   private static logger: Logger;
   private static queueable = Queueable<Group | FSGroup | void>('update');
 
-  static async getAll(authorization: string): Promise<Array<Group | FSGroup>> {
-    const error = HttpErrorFactory.instance('getAll', this.logger);
-    const jwt = JWTSecurity.checkAndValidateAndGet(authorization, {
-      roles: [RoleName.ADMIN, RoleName.USER],
-      permission: PermissionName.READ,
-      JWTConfig: JWTConfigService.get('user-token-config'),
-    });
-    if (jwt instanceof Error) {
-      throw error.occurred(
-        HttpStatus.UNAUTHORIZED,
-        ResponseCode.get('g001', {
-          msg: jwt.message,
-        }),
-      );
-    }
-    const groups = await CacheControl.group.findAll();
-    return groups;
+  static async getAll(): Promise<Array<Group | FSGroup>> {
+    return await CacheControl.group.findAll();
   }
 
-  static async getById(
-    authorization: string,
-    id: string,
-  ): Promise<Group | FSGroup> {
+  static async getById(id: string): Promise<Group | FSGroup> {
     const error = HttpErrorFactory.instance('getById', this.logger);
     if (StringUtility.isIdValid(id) === false) {
       throw error.occurred(
         HttpStatus.BAD_REQUEST,
         ResponseCode.get('g004', { id }),
-      );
-    }
-    const jwt = JWTSecurity.checkAndValidateAndGet(authorization, {
-      roles: [RoleName.ADMIN, RoleName.USER],
-      permission: PermissionName.READ,
-      JWTConfig: JWTConfigService.get('user-token-config'),
-    });
-    if (jwt instanceof Error) {
-      throw error.occurred(
-        HttpStatus.UNAUTHORIZED,
-        ResponseCode.get('g001', {
-          msg: jwt.message,
-        }),
       );
     }
     const group = await CacheControl.group.findById(id);
@@ -90,10 +55,7 @@ export class GroupRequestHandler {
     return group;
   }
 
-  static async getMany(
-    authorization: string,
-    idsString: string,
-  ): Promise<Array<Group | FSGroup>> {
+  static async getMany(idsString: string): Promise<Array<Group | FSGroup>> {
     const error = HttpErrorFactory.instance('getMany', this.logger);
     if (!idsString) {
       throw error.occurred(
@@ -112,45 +74,14 @@ export class GroupRequestHandler {
       }
       return id;
     });
-    const jwt = JWTSecurity.checkAndValidateAndGet(authorization, {
-      roles: [RoleName.ADMIN, RoleName.USER],
-      permission: PermissionName.READ,
-      JWTConfig: JWTConfigService.get('user-token-config'),
-    });
-    if (jwt instanceof Error) {
-      throw error.occurred(
-        HttpStatus.UNAUTHORIZED,
-        ResponseCode.get('g001', {
-          msg: jwt.message,
-        }),
-      );
-    }
     return await CacheControl.group.findAllById(ids);
   }
 
-  static async count(authorization: string): Promise<number> {
-    const error = HttpErrorFactory.instance('count', this.logger);
-    const jwt = JWTSecurity.checkAndValidateAndGet(authorization, {
-      roles: [RoleName.ADMIN, RoleName.USER],
-      permission: PermissionName.READ,
-      JWTConfig: JWTConfigService.get('user-token-config'),
-    });
-    if (jwt instanceof Error) {
-      throw error.occurred(
-        HttpStatus.UNAUTHORIZED,
-        ResponseCode.get('g001', {
-          msg: jwt.message,
-        }),
-      );
-    }
+  static async count(): Promise<number> {
     return await CacheControl.group.count();
   }
 
-  static async add(
-    authorization: string,
-    data: AddGroupData,
-    sid: string,
-  ): Promise<Group | FSGroup> {
+  static async add(data: AddGroupData, sid: string): Promise<Group | FSGroup> {
     const error = HttpErrorFactory.instance('add', this.logger);
     try {
       ObjectUtility.compareWithSchema(data, AddGroupDataSchema, 'data');
@@ -159,19 +90,6 @@ export class GroupRequestHandler {
         HttpStatus.BAD_REQUEST,
         ResponseCode.get('g002', {
           msg: e.message,
-        }),
-      );
-    }
-    const jwt = JWTSecurity.checkAndValidateAndGet(authorization, {
-      roles: [RoleName.ADMIN],
-      permission: PermissionName.WRITE,
-      JWTConfig: JWTConfigService.get('user-token-config'),
-    });
-    if (jwt instanceof Error) {
-      throw error.occurred(
-        HttpStatus.UNAUTHORIZED,
-        ResponseCode.get('g001', {
-          msg: jwt.message,
         }),
       );
     }
@@ -217,7 +135,6 @@ export class GroupRequestHandler {
    * Groups and Widgets which are using this group.
    */
   static async update(
-    authorization: string,
     data: UpdateGroupData,
     sid: string,
   ): Promise<Group | FSGroup> {
@@ -237,19 +154,6 @@ export class GroupRequestHandler {
         throw error.occurred(
           HttpStatus.BAD_REQUEST,
           ResponseCode.get('g004', { id: data._id }),
-        );
-      }
-      const jwt = JWTSecurity.checkAndValidateAndGet(authorization, {
-        roles: [RoleName.ADMIN],
-        permission: PermissionName.WRITE,
-        JWTConfig: JWTConfigService.get('user-token-config'),
-      });
-      if (jwt instanceof Error) {
-        throw error.occurred(
-          HttpStatus.UNAUTHORIZED,
-          ResponseCode.get('g001', {
-            msg: jwt.message,
-          }),
         );
       }
       let group: Group | FSGroup;
@@ -343,7 +247,10 @@ export class GroupRequestHandler {
           ResponseCode.get('grp005'),
         );
       }
-      let updated: any;
+      let updated: Array<{
+        name: string;
+        ids: string[];
+      }>;
       if (updateEntries) {
         // TODO: It is a very big issue if this fails because
         //        there is no mechanism to reverse the state
@@ -379,25 +286,12 @@ export class GroupRequestHandler {
     })) as Group | FSGroup;
   }
 
-  static async deleteById(authorization: string, id: string, sid: string) {
+  static async deleteById(id: string, sid: string) {
     const error = HttpErrorFactory.instance('deleteById', this.logger);
     if (StringUtility.isIdValid(id) === false) {
       throw error.occurred(
         HttpStatus.BAD_REQUEST,
         ResponseCode.get('g004', { id }),
-      );
-    }
-    const jwt = JWTSecurity.checkAndValidateAndGet(authorization, {
-      roles: [RoleName.ADMIN],
-      permission: PermissionName.DELETE,
-      JWTConfig: JWTConfigService.get('user-token-config'),
-    });
-    if (jwt instanceof Error) {
-      throw error.occurred(
-        HttpStatus.UNAUTHORIZED,
-        ResponseCode.get('g001', {
-          msg: jwt.message,
-        }),
       );
     }
     const group = await CacheControl.group.findById(id);
@@ -414,7 +308,10 @@ export class GroupRequestHandler {
         ResponseCode.get('grp006'),
       );
     }
-    let updated: any;
+    let updated: Array<{
+      name: string;
+      ids: string[];
+    }>;
     // TODO: It is a very big issue if this fails because
     //        there is no mechanism to reverse the state
     //        back to pre fail state.
@@ -450,9 +347,7 @@ export class GroupRequestHandler {
     );
   }
 
-  // tslint:disable-next-line: variable-name
   private static async propsUpdate(
-    // tslint:disable-next-line: variable-name
     groupId: string,
     propChanges: PropChange[],
   ): Promise<

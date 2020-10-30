@@ -1,16 +1,12 @@
 import { ApiKeyAccess, ApiKey, FSApiKey } from './models';
-import { ApiKeySecurity, ApiKeyRequestObject } from './security';
 import {
   HttpErrorFactory,
   CreateLogger,
   Logger,
   HttpStatus,
-  JWTSecurity,
-  RoleName,
-  PermissionName,
-  JWTConfigService,
   StringUtility,
   ObjectUtility,
+  JWT,
 } from '@becomes/purple-cheetah';
 import { CacheControl } from '../cache';
 import { ResponseCode } from '../response-code';
@@ -33,48 +29,19 @@ export class ApiKeyRequestHandler {
   @CreateLogger(ApiKeyRequestHandler)
   private static logger: Logger;
 
-  static async getAccessList(
-    apiRequest?: ApiKeyRequestObject,
-  ): Promise<ApiKeyAccess> {
-    const error = HttpErrorFactory.instance('getKeyAccess', this.logger);
-    try {
-      await ApiKeySecurity.verify(apiRequest, true);
-    } catch (e) {
-      throw error.occurred(
-        HttpStatus.UNAUTHORIZED,
-        ResponseCode.get('ak007', {
-          msg: e.message,
-        }),
-      );
-    }
-    const key = await CacheControl.apiKey.findById(apiRequest.data.key);
+  static async getAccessList(key: ApiKey | FSApiKey): Promise<ApiKeyAccess> {
     return key.access;
   }
 
-  static async getAll(
-    authorization: string,
-  ): Promise<Array<ApiKey | FSApiKey>> {
-    const error = HttpErrorFactory.instance('getAll', this.logger);
-    const jwt = JWTSecurity.checkAndValidateAndGet(authorization, {
-      roles: [RoleName.ADMIN],
-      permission: PermissionName.READ,
-      JWTConfig: JWTConfigService.get('user-token-config'),
-    });
-    if (jwt instanceof Error) {
-      throw error.occurred(
-        HttpStatus.UNAUTHORIZED,
-        ResponseCode.get('g001', {
-          msg: jwt.message,
-        }),
-      );
-    }
+  static async count(): Promise<number> {
+    return await CacheControl.apiKey.count();
+  }
+
+  static async getAll(): Promise<Array<ApiKey | FSApiKey>> {
     return await CacheControl.apiKey.findAll();
   }
 
-  static async getById(
-    authorization: string,
-    id: string,
-  ): Promise<ApiKey | FSApiKey> {
+  static async getById(id: string): Promise<ApiKey | FSApiKey> {
     const error = HttpErrorFactory.instance('getById', this.logger);
     if (StringUtility.isIdValid(id) === false) {
       throw error.occurred(
@@ -82,17 +49,10 @@ export class ApiKeyRequestHandler {
         ResponseCode.get('g004', { id }),
       );
     }
-    const jwt = JWTSecurity.checkAndValidateAndGet(authorization, {
-      roles: [RoleName.ADMIN],
-      permission: PermissionName.READ,
-      JWTConfig: JWTConfigService.get('user-token-config'),
-    });
-    if (jwt instanceof Error) {
+    if (StringUtility.isIdValid(id) === false) {
       throw error.occurred(
-        HttpStatus.UNAUTHORIZED,
-        ResponseCode.get('g001', {
-          msg: jwt.message,
-        }),
+        HttpStatus.BAD_REQUEST,
+        ResponseCode.get('g004', { id }),
       );
     }
     const key = await CacheControl.apiKey.findById(id);
@@ -105,43 +65,12 @@ export class ApiKeyRequestHandler {
     return key;
   }
 
-  static async count(authorization: string): Promise<number> {
-    const error = HttpErrorFactory.instance('count', this.logger);
-    const jwt = JWTSecurity.checkAndValidateAndGet(authorization, {
-      roles: [RoleName.ADMIN],
-      permission: PermissionName.READ,
-      JWTConfig: JWTConfigService.get('user-token-config'),
-    });
-    if (jwt instanceof Error) {
-      throw error.occurred(
-        HttpStatus.UNAUTHORIZED,
-        ResponseCode.get('g001', {
-          msg: jwt.message,
-        }),
-      );
-    }
-    return await CacheControl.apiKey.count();
-  }
-
   static async add(
-    authorization: string,
+    jwt: JWT,
     sid: string,
     data: AddApiKeyData,
   ): Promise<ApiKey | FSApiKey> {
     const error = HttpErrorFactory.instance('add', this.logger);
-    const jwt = JWTSecurity.checkAndValidateAndGet(authorization, {
-      roles: [RoleName.ADMIN],
-      permission: PermissionName.WRITE,
-      JWTConfig: JWTConfigService.get('user-token-config'),
-    });
-    if (jwt instanceof Error) {
-      throw error.occurred(
-        HttpStatus.UNAUTHORIZED,
-        ResponseCode.get('g001', {
-          msg: jwt.message,
-        }),
-      );
-    }
     try {
       ObjectUtility.compareWithSchema(data, AddApiKeyDataSchema, 'data');
     } catch (e) {
@@ -185,7 +114,6 @@ export class ApiKeyRequestHandler {
   }
 
   static async update(
-    authorization: string,
     sid: string,
     data: UpdateApiKeyData,
   ): Promise<ApiKey | FSApiKey> {
@@ -204,19 +132,6 @@ export class ApiKeyRequestHandler {
       throw error.occurred(
         HttpStatus.BAD_REQUEST,
         ResponseCode.get('g004', { id: data._id }),
-      );
-    }
-    const jwt = JWTSecurity.checkAndValidateAndGet(authorization, {
-      roles: [RoleName.ADMIN],
-      permission: PermissionName.WRITE,
-      JWTConfig: JWTConfigService.get('user-token-config'),
-    });
-    if (jwt instanceof Error) {
-      throw error.occurred(
-        HttpStatus.UNAUTHORIZED,
-        ResponseCode.get('g001', {
-          msg: jwt.message,
-        }),
       );
     }
     let key: ApiKey | FSApiKey;
@@ -273,25 +188,12 @@ export class ApiKeyRequestHandler {
     return key;
   }
 
-  static async deleteById(authorization: string, sid: string, id: string) {
+  static async deleteById(sid: string, id: string) {
     const error = HttpErrorFactory.instance('deleteById', this.logger);
     if (StringUtility.isIdValid(id) === false) {
       throw error.occurred(
         HttpStatus.BAD_REQUEST,
         ResponseCode.get('g004', { id }),
-      );
-    }
-    const jwt = JWTSecurity.checkAndValidateAndGet(authorization, {
-      roles: [RoleName.ADMIN],
-      permission: PermissionName.DELETE,
-      JWTConfig: JWTConfigService.get('user-token-config'),
-    });
-    if (jwt instanceof Error) {
-      throw error.occurred(
-        HttpStatus.UNAUTHORIZED,
-        ResponseCode.get('g001', {
-          msg: jwt.message,
-        }),
       );
     }
     const key = await CacheControl.apiKey.findById(id);

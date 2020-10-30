@@ -4,17 +4,13 @@ import {
   CreateLogger,
   Logger,
   HttpErrorFactory,
-  RoleName,
-  JWTSecurity,
-  PermissionName,
-  JWTConfigService,
   HttpStatus,
   StringUtility,
   ObjectUtility,
+  JWT,
 } from '@becomes/purple-cheetah';
 import { Media, FSMedia, MediaType } from './models';
 import { ResponseCode } from '../response-code';
-import { ApiKeyRequestObject, ApiKeySecurity } from '../api';
 import { CacheControl } from '../cache';
 import {
   MediaAggregate,
@@ -24,7 +20,7 @@ import {
   UpdateMediaDataSchema,
 } from './interfaces';
 import { MediaFactory } from './factories';
-import { MediaUtil, SocketUtil, SocketEventName, General } from '../util';
+import { MediaUtil, SocketUtil, SocketEventName } from '../util';
 import {
   EventManager,
   BCMSEventConfigScope,
@@ -35,105 +31,46 @@ export class MediaRequestHandler {
   @CreateLogger(MediaRequestHandler)
   private static logger: Logger;
 
-  static async getAll(
-    authorization: string,
-    apiRequest?: ApiKeyRequestObject,
-  ): Promise<Array<Media | FSMedia>> {
-    const error = HttpErrorFactory.instance('getAll', this.logger);
-    if (apiRequest) {
-      try {
-        await ApiKeySecurity.verify(apiRequest);
-      } catch (e) {
-        throw error.occurred(
-          HttpStatus.UNAUTHORIZED,
-          ResponseCode.get('ak007', { msg: e.message }),
-        );
-      }
-    } else {
-      const jwt = JWTSecurity.checkAndValidateAndGet(authorization, {
-        roles: [RoleName.ADMIN, RoleName.USER],
-        permission: PermissionName.READ,
-        JWTConfig: JWTConfigService.get('user-token-config'),
-      });
-      if (jwt instanceof Error) {
-        throw error.occurred(
-          HttpStatus.UNAUTHORIZED,
-          ResponseCode.get('g001', {
-            msg: jwt.message,
-          }),
-        );
+  private static getAllChildren(
+    media: Media | FSMedia,
+    allMedia: Array<Media | FSMedia>,
+  ): string[] {
+    const ids: string[] = [
+      typeof media._id === 'string' ? media._id : media._id.toHexString(),
+    ];
+    if (media.hasChildren) {
+      const children = allMedia.filter((e) => e.parentId === media._id);
+      for (const i in children) {
+        const child = children[i];
+        if (child.hasChildren) {
+          this.getAllChildren(child, allMedia).forEach((id) => {
+            ids.push(id);
+          });
+        } else {
+          ids.push(
+            typeof child._id === 'string' ? child._id : child._id.toHexString(),
+          );
+        }
       }
     }
+    return ids;
+  }
+
+  static async getAll(): Promise<Array<Media | FSMedia>> {
     return await CacheControl.media.findAll();
   }
 
-  static async getAllAggregated(
-    authorization: string,
-    apiRequest?: ApiKeyRequestObject,
-  ): Promise<MediaAggregate[]> {
-    const error = HttpErrorFactory.instance('getAllAggregated', this.logger);
-    if (apiRequest) {
-      try {
-        await ApiKeySecurity.verify(apiRequest);
-      } catch (e) {
-        throw error.occurred(
-          HttpStatus.UNAUTHORIZED,
-          ResponseCode.get('ak007', { msg: e.message }),
-        );
-      }
-    } else {
-      const jwt = JWTSecurity.checkAndValidateAndGet(authorization, {
-        roles: [RoleName.ADMIN, RoleName.USER],
-        permission: PermissionName.READ,
-        JWTConfig: JWTConfigService.get('user-token-config'),
-      });
-      if (jwt instanceof Error) {
-        throw error.occurred(
-          HttpStatus.UNAUTHORIZED,
-          ResponseCode.get('g001', {
-            msg: jwt.message,
-          }),
-        );
-      }
-    }
+  static async getAllAggregated(): Promise<MediaAggregate[]> {
     return MediaFactory.aggregateFromRoot(await CacheControl.media.findAll());
   }
 
-  static async getAllByParentId(
-    authorization: string,
-    id: string,
-    apiRequest?: ApiKeyRequestObject,
-  ): Promise<Array<Media | FSMedia>> {
+  static async getAllByParentId(id: string): Promise<Array<Media | FSMedia>> {
     const error = HttpErrorFactory.instance('getAllByParentId', this.logger);
     if (StringUtility.isIdValid(id) === false) {
       throw error.occurred(
         HttpStatus.BAD_REQUEST,
         ResponseCode.get('g004', { id }),
       );
-    }
-    if (apiRequest) {
-      try {
-        await ApiKeySecurity.verify(apiRequest);
-      } catch (e) {
-        throw error.occurred(
-          HttpStatus.UNAUTHORIZED,
-          ResponseCode.get('ak007', { msg: e.message }),
-        );
-      }
-    } else {
-      const jwt = JWTSecurity.checkAndValidateAndGet(authorization, {
-        roles: [RoleName.ADMIN, RoleName.USER],
-        permission: PermissionName.READ,
-        JWTConfig: JWTConfigService.get('user-token-config'),
-      });
-      if (jwt instanceof Error) {
-        throw error.occurred(
-          HttpStatus.UNAUTHORIZED,
-          ResponseCode.get('g001', {
-            msg: jwt.message,
-          }),
-        );
-      }
     }
     const media = await CacheControl.media.findById(id);
     if (!media) {
@@ -145,11 +82,7 @@ export class MediaRequestHandler {
     return MediaUtil.getChildren(media);
   }
 
-  static async getMany(
-    authorization: string,
-    idsString: string,
-    apiRequest?: ApiKeyRequestObject,
-  ): Promise<Array<Media | FSMedia>> {
+  static async getMany(idsString: string): Promise<Array<Media | FSMedia>> {
     const error = HttpErrorFactory.instance('getMany', this.logger);
     const ids = idsString.split('-');
     for (const i in ids) {
@@ -160,68 +93,16 @@ export class MediaRequestHandler {
         );
       }
     }
-    if (apiRequest) {
-      try {
-        await ApiKeySecurity.verify(apiRequest);
-      } catch (e) {
-        throw error.occurred(
-          HttpStatus.UNAUTHORIZED,
-          ResponseCode.get('ak007', { msg: e.message }),
-        );
-      }
-    } else {
-      const jwt = JWTSecurity.checkAndValidateAndGet(authorization, {
-        roles: [RoleName.ADMIN, RoleName.USER],
-        permission: PermissionName.READ,
-        JWTConfig: JWTConfigService.get('user-token-config'),
-      });
-      if (jwt instanceof Error) {
-        throw error.occurred(
-          HttpStatus.UNAUTHORIZED,
-          ResponseCode.get('g001', {
-            msg: jwt.message,
-          }),
-        );
-      }
-    }
     return await CacheControl.media.findAllById(ids);
   }
 
-  static async getById(
-    authorization: string,
-    mediaId: string,
-    apiRequest?: ApiKeyRequestObject,
-  ): Promise<Media | FSMedia> {
+  static async getById(mediaId: string): Promise<Media | FSMedia> {
     const error = HttpErrorFactory.instance('getById', this.logger);
     if (StringUtility.isIdValid(mediaId) === false) {
       throw error.occurred(
         HttpStatus.BAD_REQUEST,
         ResponseCode.get('g004', { id: mediaId }),
       );
-    }
-    if (apiRequest) {
-      try {
-        await ApiKeySecurity.verify(apiRequest);
-      } catch (e) {
-        throw error.occurred(
-          HttpStatus.UNAUTHORIZED,
-          ResponseCode.get('ak007', { msg: e.message }),
-        );
-      }
-    } else {
-      const jwt = JWTSecurity.checkAndValidateAndGet(authorization, {
-        roles: [RoleName.ADMIN, RoleName.USER],
-        permission: PermissionName.READ,
-        JWTConfig: JWTConfigService.get('user-token-config'),
-      });
-      if (jwt instanceof Error) {
-        throw error.occurred(
-          HttpStatus.UNAUTHORIZED,
-          ResponseCode.get('g001', {
-            msg: jwt.message,
-          }),
-        );
-      }
     }
     const media = await CacheControl.media.findById(mediaId);
     if (!media) {
@@ -233,41 +114,13 @@ export class MediaRequestHandler {
     return media;
   }
 
-  static async getByIdAggregated(
-    authorization: string,
-    mediaId: string,
-    apiRequest?: ApiKeyRequestObject,
-  ): Promise<MediaAggregate> {
+  static async getByIdAggregated(mediaId: string): Promise<MediaAggregate> {
     const error = HttpErrorFactory.instance('getByIdAggregated', this.logger);
     if (StringUtility.isIdValid(mediaId) === false) {
       throw error.occurred(
         HttpStatus.BAD_REQUEST,
         ResponseCode.get('g004', { id: mediaId }),
       );
-    }
-    if (apiRequest) {
-      try {
-        await ApiKeySecurity.verify(apiRequest);
-      } catch (e) {
-        throw error.occurred(
-          HttpStatus.UNAUTHORIZED,
-          ResponseCode.get('ak007', { msg: e.message }),
-        );
-      }
-    } else {
-      const jwt = JWTSecurity.checkAndValidateAndGet(authorization, {
-        roles: [RoleName.ADMIN, RoleName.USER],
-        permission: PermissionName.READ,
-        JWTConfig: JWTConfigService.get('user-token-config'),
-      });
-      if (jwt instanceof Error) {
-        throw error.occurred(
-          HttpStatus.UNAUTHORIZED,
-          ResponseCode.get('g001', {
-            msg: jwt.message,
-          }),
-        );
-      }
     }
     const media = await CacheControl.media.findById(mediaId);
     if (!media) {
@@ -299,9 +152,7 @@ export class MediaRequestHandler {
   }
 
   static async getBinary(
-    authorization: string,
     mediaId: string,
-    apiRequest?: ApiKeyRequestObject,
   ): Promise<{ bin: Buffer; path: string }> {
     const error = HttpErrorFactory.instance('getBinary', this.logger);
     if (StringUtility.isIdValid(mediaId) === false) {
@@ -309,30 +160,6 @@ export class MediaRequestHandler {
         HttpStatus.BAD_REQUEST,
         ResponseCode.get('g004', { id: mediaId }),
       );
-    }
-    if (apiRequest) {
-      try {
-        await ApiKeySecurity.verify(apiRequest);
-      } catch (e) {
-        throw error.occurred(
-          HttpStatus.UNAUTHORIZED,
-          ResponseCode.get('ak007', { msg: e.message }),
-        );
-      }
-    } else {
-      const jwt = JWTSecurity.checkAndValidateAndGet(authorization, {
-        roles: [RoleName.ADMIN, RoleName.USER],
-        permission: PermissionName.READ,
-        JWTConfig: JWTConfigService.get('user-token-config'),
-      });
-      if (jwt instanceof Error) {
-        throw error.occurred(
-          HttpStatus.UNAUTHORIZED,
-          ResponseCode.get('g001', {
-            msg: jwt.message,
-          }),
-        );
-      }
     }
     const media = await CacheControl.media.findById(mediaId);
     if (!media) {
@@ -359,26 +186,12 @@ export class MediaRequestHandler {
     };
   }
 
-  static async count(authorization: string): Promise<number> {
-    const error = HttpErrorFactory.instance('count', this.logger);
-    const jwt = JWTSecurity.checkAndValidateAndGet(authorization, {
-      roles: [RoleName.ADMIN, RoleName.USER],
-      permission: PermissionName.READ,
-      JWTConfig: JWTConfigService.get('user-token-config'),
-    });
-    if (jwt instanceof Error) {
-      throw error.occurred(
-        HttpStatus.UNAUTHORIZED,
-        ResponseCode.get('g001', {
-          msg: jwt.message,
-        }),
-      );
-    }
+  static async count(): Promise<number> {
     return await CacheControl.media.count();
   }
 
   static async addFile(
-    authorization: string,
+    jwt: JWT,
     sid: string,
     parentId?: string,
     file?: Express.Multer.File,
@@ -392,19 +205,6 @@ export class MediaRequestHandler {
     }
     if (!file) {
       throw error.occurred(HttpStatus.BAD_REQUEST, ResponseCode.get('mda009'));
-    }
-    const jwt = JWTSecurity.checkAndValidateAndGet(authorization, {
-      roles: [RoleName.ADMIN, RoleName.USER],
-      permission: PermissionName.WRITE,
-      JWTConfig: JWTConfigService.get('user-token-config'),
-    });
-    if (jwt instanceof Error) {
-      throw error.occurred(
-        HttpStatus.UNAUTHORIZED,
-        ResponseCode.get('g001', {
-          msg: jwt.message,
-        }),
-      );
     }
     let parent: Media | FSMedia;
     if (parentId) {
@@ -467,7 +267,7 @@ export class MediaRequestHandler {
   }
 
   static async addDir(
-    authorization: string,
+    jwt: JWT,
     data: AddMediaDirData,
     sid: string,
   ): Promise<Media | FSMedia> {
@@ -486,19 +286,6 @@ export class MediaRequestHandler {
       throw error.occurred(
         HttpStatus.BAD_REQUEST,
         ResponseCode.get('mda010', { id: data.parentId }),
-      );
-    }
-    const jwt = JWTSecurity.checkAndValidateAndGet(authorization, {
-      roles: [RoleName.ADMIN, RoleName.USER],
-      permission: PermissionName.WRITE,
-      JWTConfig: JWTConfigService.get('user-token-config'),
-    });
-    if (jwt instanceof Error) {
-      throw error.occurred(
-        HttpStatus.UNAUTHORIZED,
-        ResponseCode.get('g001', {
-          msg: jwt.message,
-        }),
       );
     }
     let parent: Media | FSMedia;
@@ -550,7 +337,6 @@ export class MediaRequestHandler {
   }
 
   static async update(
-    authorization: string,
     data: UpdateMediaData,
     sid: string,
   ): Promise<Media | FSMedia> {
@@ -569,19 +355,6 @@ export class MediaRequestHandler {
       throw error.occurred(
         HttpStatus.BAD_REQUEST,
         ResponseCode.get('mda010', { id: data._id }),
-      );
-    }
-    const jwt = JWTSecurity.checkAndValidateAndGet(authorization, {
-      roles: [RoleName.ADMIN, RoleName.USER],
-      permission: PermissionName.WRITE,
-      JWTConfig: JWTConfigService.get('user-token-config'),
-    });
-    if (jwt instanceof Error) {
-      throw error.occurred(
-        HttpStatus.UNAUTHORIZED,
-        ResponseCode.get('g001', {
-          msg: jwt.message,
-        }),
       );
     }
     const media: Media | FSMedia = JSON.parse(
@@ -684,25 +457,12 @@ export class MediaRequestHandler {
     return media;
   }
 
-  static async deleteById(authorization: string, id: string, sid: string) {
+  static async deleteById(id: string, sid: string) {
     const error = HttpErrorFactory.instance('deleteById', this.logger);
     if (StringUtility.isIdValid(id) === false) {
       throw error.occurred(
         HttpStatus.BAD_REQUEST,
         ResponseCode.get('g004', { id }),
-      );
-    }
-    const jwt = JWTSecurity.checkAndValidateAndGet(authorization, {
-      roles: [RoleName.ADMIN, RoleName.USER],
-      permission: PermissionName.DELETE,
-      JWTConfig: JWTConfigService.get('user-token-config'),
-    });
-    if (jwt instanceof Error) {
-      throw error.occurred(
-        HttpStatus.UNAUTHORIZED,
-        ResponseCode.get('g001', {
-          msg: jwt.message,
-        }),
       );
     }
     const media = await CacheControl.media.findById(id);
@@ -749,30 +509,5 @@ export class MediaRequestHandler {
       BCMSEventConfigMethod.DELETE,
       JSON.parse(JSON.stringify(media)),
     );
-  }
-
-  private static getAllChildren(
-    media: Media | FSMedia,
-    allMedia: Array<Media | FSMedia>,
-  ): string[] {
-    const ids: string[] = [
-      typeof media._id === 'string' ? media._id : media._id.toHexString(),
-    ];
-    if (media.hasChildren) {
-      const children = allMedia.filter((e) => e.parentId === media._id);
-      for (const i in children) {
-        const child = children[i];
-        if (child.hasChildren) {
-          this.getAllChildren(child, allMedia).forEach((id) => {
-            ids.push(id);
-          });
-        } else {
-          ids.push(
-            typeof child._id === 'string' ? child._id : child._id.toHexString(),
-          );
-        }
-      }
-    }
-    return ids;
   }
 }

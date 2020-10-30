@@ -1,8 +1,15 @@
 import * as crypto from 'crypto';
-import { StringUtility } from '@becomes/purple-cheetah';
-import { CacheControl } from '../cache';
-import { ApiKey, FSApiKey } from './models';
+import {
+  ControllerMethodPreRequestHandler,
+  HttpErrorFactory,
+  HttpStatus,
+  Logger,
+  StringUtility,
+} from '@becomes/purple-cheetah';
+import { ResponseCode } from '../response-code';
+import { ApiKey, FSApiKey } from '../api';
 import { Request } from 'express';
+import { CacheControl } from '../cache';
 
 export interface ApiKeySecurityObject {
   key: string;
@@ -11,21 +18,43 @@ export interface ApiKeySecurityObject {
   signature: string;
 }
 
-export interface ApiKeyRequestObject {
+export interface ApiKeyRequestObject<T> {
   data: ApiKeySecurityObject;
-  payload: any;
+  payload: T;
   requestMethod: string;
   path: string;
 }
 
 export class ApiKeySecurity {
+  private static logger = new Logger('ApiSecurityPreRequestHandler');
+
+  static preRequestHandler(): ControllerMethodPreRequestHandler<
+    ApiKey | FSApiKey
+  > {
+    return async (request) => {
+      return await this.verificationWrapper(request);
+    };
+  }
+  static async verificationWrapper(request: Request) {
+    const error = HttpErrorFactory.instance(request.originalUrl, this.logger);
+    try {
+      return await ApiKeySecurity.verify(
+        ApiKeySecurity.requestToApiKeyRequest(request),
+      );
+    } catch (e) {
+      throw error.occurred(
+        HttpStatus.UNAUTHORIZED,
+        ResponseCode.get('ak007', { msg: e.message }),
+      );
+    }
+  }
   /** Method for creating request signature object. */
-  static sign(config: {
+  static sign<T>(config: {
     key: {
       id: string;
       secret: string;
     };
-    payload: any;
+    payload: T;
   }): ApiKeySecurityObject {
     const data: ApiKeySecurityObject = {
       key: config.key.id,
@@ -33,7 +62,7 @@ export class ApiKeySecurity {
       nonce: crypto.randomBytes(16).toString('hex').substring(0, 6),
       signature: '',
     };
-    let payloadAsString: string = '';
+    let payloadAsString = '';
     if (typeof config.payload === 'object') {
       payloadAsString = Buffer.from(
         encodeURIComponent(JSON.stringify(config.payload)),
@@ -46,7 +75,7 @@ export class ApiKeySecurity {
     data.signature = hmac.digest('hex');
     return data;
   }
-  static requestToApiKeyRequest(request: Request): ApiKeyRequestObject {
+  static requestToApiKeyRequest<T>(request: Request): ApiKeyRequestObject<T> {
     return {
       data: {
         key: '' + request.query.key,
@@ -59,12 +88,15 @@ export class ApiKeySecurity {
       path: request.originalUrl,
     };
   }
-  static async verifyRequest(request: Request, skipAccess?: boolean) {
+  static async verifyRequest(
+    request: Request,
+    skipAccess?: boolean,
+  ): Promise<ApiKey | FSApiKey> {
     return await this.verify(this.requestToApiKeyRequest(request), skipAccess);
   }
   /** Method used for verifying a request signature object. */
-  static async verify(
-    request: ApiKeyRequestObject,
+  static async verify<T>(
+    request: ApiKeyRequestObject<T>,
     skipAccess?: boolean,
   ): Promise<ApiKey | FSApiKey> {
     request.path = request.path.split('?')[0];
@@ -94,7 +126,7 @@ export class ApiKeySecurity {
     if (key.blocked === true) {
       throw new Error('This Key is blocked.');
     }
-    let payloadAsString: string = '';
+    let payloadAsString = '';
     if (typeof request.payload === 'object') {
       payloadAsString = Buffer.from(
         encodeURIComponent(JSON.stringify(request.payload)),
@@ -123,11 +155,8 @@ export class ApiKeySecurity {
       return;
     }
     if (
-      ApiKeySecurity.verifyAccess(
-        key,
-        request.requestMethod as any,
-        request.path,
-      ) === false
+      ApiKeySecurity.verifyAccess(key, request.requestMethod, request.path) ===
+      false
     ) {
       throw Error(`Key is not allowed to access this resource.`);
     }
@@ -140,7 +169,9 @@ export class ApiKeySecurity {
     path: string,
   ): boolean {
     method = method.toLowerCase();
-    if (path.startsWith('/api/media') && method === 'get') {
+    if (path.startsWith('/api/key/access/list')) {
+      return true;
+    } else if (path.startsWith('/api/media') && method === 'get') {
       return true;
     } else if (path.startsWith('/api/function')) {
       const p = path.replace('/api/function/', '');

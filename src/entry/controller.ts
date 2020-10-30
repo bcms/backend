@@ -6,12 +6,14 @@ import {
   Post,
   Put,
   Delete,
+  RoleName,
+  PermissionName,
 } from '@becomes/purple-cheetah';
 import { Router, Request } from 'express';
 import { Entry, FSEntry } from './models';
 import { EntryLite, EntryParsed } from './interfaces';
 import { EntryRequestHandler } from './request-handler';
-import { ApiKeySecurity } from '../api';
+import { JWTApiSecurity, JWTSecurity } from '../security';
 
 @Controller('/api/entry')
 export class EntryController implements ControllerPrototype {
@@ -21,140 +23,167 @@ export class EntryController implements ControllerPrototype {
   router: Router;
   initRouter: () => void;
 
-  @Get('/all')
-  async getAll(request: Request): Promise<{ entries: Array<Entry | FSEntry> }> {
+  @Get(
+    '/all',
+    JWTSecurity.preRequestHandler(
+      [RoleName.ADMIN, RoleName.USER],
+      PermissionName.READ,
+    ),
+  )
+  async getAll(): Promise<{ entries: Array<Entry | FSEntry> }> {
     return {
-      entries: await EntryRequestHandler.getAll(request.headers.authorization),
+      entries: await EntryRequestHandler.getAll(),
     };
   }
 
-  @Get('/all/lite')
-  async getAllLite(request: Request): Promise<{ entries: EntryLite[] }> {
+  @Get(
+    '/all/lite',
+    JWTSecurity.preRequestHandler(
+      [RoleName.ADMIN, RoleName.USER],
+      PermissionName.READ,
+    ),
+  )
+  async getAllLite(): Promise<{ entries: EntryLite[] }> {
     return {
-      entries: await EntryRequestHandler.getAllLite(
-        request.headers.authorization,
-      ),
+      entries: await EntryRequestHandler.getAllLite(),
     };
   }
 
-  @Get('/many/lite/:ids')
+  @Get(
+    '/many/lite/:ids',
+    JWTSecurity.preRequestHandler(
+      [RoleName.ADMIN, RoleName.USER],
+      PermissionName.READ,
+    ),
+  )
   async getManyLite(request: Request): Promise<{ entries: EntryLite[] }> {
     return {
-      entries: await EntryRequestHandler.getManyLite(
-        request.headers.authorization,
-        request.params.ids,
-      ),
+      entries: await EntryRequestHandler.getManyLite(request.params.ids),
     };
   }
 
-  @Get('/all/:templateId')
+  @Get(
+    '/all/:templateId',
+    JWTApiSecurity.preRequestHandler(
+      [RoleName.ADMIN, RoleName.USER],
+      PermissionName.READ,
+    ),
+  )
   async getAllByTemplateId(
     request: Request,
   ): Promise<{ entries: Array<Entry | FSEntry> }> {
     return {
       entries: await EntryRequestHandler.getAllByTemplateId(
-        request.headers.authorization,
         request.params.templateId,
-        request.query.signature
-          ? ApiKeySecurity.requestToApiKeyRequest(request)
-          : undefined,
       ),
     };
   }
 
-  @Get('/all/:templateId/parse')
+  @Get(
+    '/all/:templateId/parse',
+    JWTApiSecurity.preRequestHandler(
+      [RoleName.ADMIN, RoleName.USER],
+      PermissionName.READ,
+    ),
+  )
   async getAllByTemplateIdParsed(
     request: Request,
   ): Promise<{ entries: EntryParsed[] }> {
     return {
       entries: await EntryRequestHandler.getAllByTemplateIdParsed(
-        request.headers.authorization,
         request.params.templateId,
-        request.query.signature
-          ? ApiKeySecurity.requestToApiKeyRequest(request)
-          : undefined,
       ),
     };
   }
 
-  @Get('/all/:templateId/lite')
+  @Get(
+    '/all/:templateId/lite',
+    JWTApiSecurity.preRequestHandler(
+      [RoleName.ADMIN, RoleName.USER],
+      PermissionName.READ,
+    ),
+  )
   async getAllLiteByTemplateId(
     request: Request,
   ): Promise<{ entries: EntryLite[] }> {
     return {
       entries: await EntryRequestHandler.getAllLiteByTemplateId(
-        request.headers.authorization,
         request.params.templateId,
-        request.query.signature
-          ? ApiKeySecurity.requestToApiKeyRequest(request)
-          : undefined,
       ),
     };
   }
 
-  @Get('/count/:templateId')
+  @Get(
+    '/count/:templateId',
+    JWTApiSecurity.preRequestHandler(
+      [RoleName.ADMIN, RoleName.USER],
+      PermissionName.READ,
+    ),
+  )
   async countByTemplateId(request: Request): Promise<{ count: number }> {
     return {
       count: await EntryRequestHandler.countByTemplateId(
-        request.headers.authorization,
         request.params.templateId,
-        request.query.signature
-          ? ApiKeySecurity.requestToApiKeyRequest(request)
-          : undefined,
       ),
     };
   }
 
-  @Get('/:templateId/:id')
+  @Get(
+    '/:templateId/:id',
+    JWTApiSecurity.preRequestHandler(
+      [RoleName.ADMIN, RoleName.USER],
+      PermissionName.READ,
+    ),
+  )
   async getById(request: Request): Promise<{ entry: Entry | FSEntry }> {
     return {
-      entry: await EntryRequestHandler.getById(
-        request.headers.authorization,
-        request.params.id,
-        request.query.signature
-          ? ApiKeySecurity.requestToApiKeyRequest(request)
-          : undefined,
-      ),
+      entry: await EntryRequestHandler.getById(request.params.id),
     };
   }
 
-  @Post('/:templateId')
+  @Post(
+    '/:templateId',
+    JWTApiSecurity.preRequestHandler(
+      [RoleName.ADMIN, RoleName.USER],
+      PermissionName.WRITE,
+    ),
+  )
   async add(request: Request): Promise<{ entry: Entry | FSEntry }> {
     return {
       entry: await EntryRequestHandler.add(
-        request.headers.authorization,
         request.body,
         request.headers.sid as string,
-        request.query.signature
-          ? ApiKeySecurity.requestToApiKeyRequest(request)
-          : undefined,
       ),
     };
   }
 
-  @Put('/:templateId')
+  @Put(
+    '/:templateId',
+    JWTApiSecurity.preRequestHandler(
+      [RoleName.ADMIN, RoleName.USER],
+      PermissionName.READ,
+    ),
+  )
   async update(request: Request): Promise<{ entry: Entry | FSEntry }> {
     return {
       entry: await EntryRequestHandler.update(
-        request.headers.authorization,
         request.body,
         request.headers.sid as string,
-        request.query.signature
-          ? ApiKeySecurity.requestToApiKeyRequest(request)
-          : undefined,
       ),
     };
   }
 
-  @Delete('/:templateId/:id')
+  @Delete(
+    '/:templateId/:id',
+    JWTApiSecurity.preRequestHandler(
+      [RoleName.ADMIN, RoleName.USER],
+      PermissionName.DELETE,
+    ),
+  )
   async deleteById(request: Request): Promise<{ message: string }> {
     await EntryRequestHandler.deleteById(
-      request.headers.authorization,
       request.params.id,
       request.headers.sid as string,
-      request.query.signature
-        ? ApiKeySecurity.requestToApiKeyRequest(request)
-        : undefined,
     );
     return {
       message: 'Success.',

@@ -6,8 +6,11 @@ import {
   Post,
   Put,
   Delete,
+  RoleName,
+  PermissionName,
 } from '@becomes/purple-cheetah';
 import { Router, Request } from 'express';
+import { JWTSecurity } from '../security';
 import { Language, FSLanguage } from './models';
 import { LanguageRequestHandler } from './request-handler';
 
@@ -19,62 +22,79 @@ export class LanguageController implements ControllerPrototype {
   router: Router;
   initRouter: () => void;
 
-  @Get('/all')
-  async getAll(
-    request: Request,
-  ): Promise<{ languages: Array<Language | FSLanguage> }> {
+  @Get(
+    '/all',
+    JWTSecurity.preRequestHandler(
+      [RoleName.ADMIN, RoleName.USER],
+      PermissionName.READ,
+    ),
+  )
+  async getAll(): Promise<{ languages: Array<Language | FSLanguage> }> {
     return {
-      languages: await LanguageRequestHandler.getAll(
-        request.headers.authorization,
-      ),
+      languages: await LanguageRequestHandler.getAll(),
     };
   }
 
-  @Get('/count')
-  async count(request: Request): Promise<{ count: number }> {
+  @Get(
+    '/count',
+    JWTSecurity.preRequestHandler(
+      [RoleName.ADMIN, RoleName.USER],
+      PermissionName.READ,
+    ),
+  )
+  async count(): Promise<{ count: number }> {
     return {
-      count: await LanguageRequestHandler.count(request.headers.authorization),
+      count: await LanguageRequestHandler.count(),
     };
   }
 
-  @Get('/:id')
+  @Get(
+    '/:id',
+    JWTSecurity.preRequestHandler(
+      [RoleName.ADMIN, RoleName.USER],
+      PermissionName.READ,
+    ),
+  )
   async getById(
     request: Request,
   ): Promise<{ language: Language | FSLanguage }> {
     return {
-      language: await LanguageRequestHandler.getById(
-        request.headers.authorization,
-        request.params.id,
-      ),
+      language: await LanguageRequestHandler.getById(request.params.id),
     };
   }
 
-  @Post()
+  @Post(
+    '',
+    JWTSecurity.preRequestHandler([RoleName.ADMIN], PermissionName.WRITE),
+  )
   async add(request: Request): Promise<{ language: Language | FSLanguage }> {
     return {
       language: await LanguageRequestHandler.add(
-        request.headers.authorization,
         request.body,
         request.headers.sid as string,
       ),
     };
   }
 
-  @Put()
+  @Put(
+    '',
+    JWTSecurity.preRequestHandler([RoleName.ADMIN], PermissionName.WRITE),
+  )
   async update(request: Request): Promise<{ language: Language | FSLanguage }> {
     return {
       language: await LanguageRequestHandler.update(
-        request.headers.authorization,
         request.body,
         request.headers.sid as string,
       ),
     };
   }
 
-  @Delete('/:id')
+  @Delete(
+    '/:id',
+    JWTSecurity.preRequestHandler([RoleName.ADMIN], PermissionName.DELETE),
+  )
   async deleteById(request: Request): Promise<{ message: string }> {
     await LanguageRequestHandler.deleteById(
-      request.headers.authorization,
       request.params.id,
       request.headers.sid as string,
     );

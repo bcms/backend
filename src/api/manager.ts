@@ -3,7 +3,7 @@ import { FunctionManager } from '../function';
 import { ApiKey, FSApiKey } from './models';
 
 export class ApiKeyManager {
-  static async initializeKeys() {
+  static async initializeKeys(): Promise<void> {
     setTimeout(async () => {
       const keys: Array<FSApiKey | ApiKey> = JSON.parse(
         JSON.stringify(await CacheControl.apiKey.findAll()),
@@ -24,9 +24,8 @@ export class ApiKeyManager {
     }, 5000);
   }
 
-  // tslint:disable-next-line: variable-name
   static rewriteKey(_key: FSApiKey | ApiKey) {
-    const key = JSON.parse(JSON.stringify(_key));
+    const key: FSApiKey | ApiKey = JSON.parse(JSON.stringify(_key));
     let modified = false;
     const fns = FunctionManager.getAll();
     fns.forEach((fn) => {

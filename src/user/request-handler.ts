@@ -6,12 +6,12 @@ import {
   HttpErrorFactory,
   JWTSecurity,
   RoleName,
-  PermissionName,
   JWTConfigService,
   HttpStatus,
   ObjectUtility,
   JWTEncoding,
   StringUtility,
+  JWT,
 } from '@becomes/purple-cheetah';
 import { FSUser, User, ProtectedUser } from './models';
 import { UserFactory, RefreshTokenFactory } from './factories';
@@ -21,7 +21,6 @@ import {
   AddUserData,
   AddUserDataSchema,
 } from './interfaces';
-import { Types } from 'mongoose';
 import { ResponseCode } from '../response-code';
 import { CacheControl } from '../cache';
 import { SocketUtil, SocketEventName } from '../util';
@@ -35,21 +34,7 @@ export class UserRequestHandler {
     code: '',
   };
 
-  static async count(authorization: string): Promise<number> {
-    const error = HttpErrorFactory.instance('count', this.logger);
-    const jwt = JWTSecurity.checkAndValidateAndGet(authorization, {
-      roles: [RoleName.ADMIN, RoleName.USER],
-      permission: PermissionName.READ,
-      JWTConfig: JWTConfigService.get('user-token-config'),
-    });
-    if (jwt instanceof Error) {
-      throw error.occurred(
-        HttpStatus.UNAUTHORIZED,
-        ResponseCode.get('g001', {
-          msg: jwt.message,
-        }),
-      );
-    }
+  static async count(): Promise<number> {
     return await CacheControl.user.count();
   }
 
@@ -58,42 +43,15 @@ export class UserRequestHandler {
     return userCount > 0 ? true : false;
   }
 
-  static async getAll(authorization: string): Promise<ProtectedUser[]> {
-    const error = HttpErrorFactory.instance('getAll', this.logger);
-    const jwt = JWTSecurity.checkAndValidateAndGet(authorization, {
-      roles: [RoleName.ADMIN, RoleName.USER],
-      permission: PermissionName.READ,
-      JWTConfig: JWTConfigService.get('user-token-config'),
-    });
-    if (jwt instanceof Error) {
-      throw error.occurred(
-        HttpStatus.UNAUTHORIZED,
-        ResponseCode.get('g001', {
-          msg: jwt.message,
-        }),
-      );
-    }
+  static async getAll(): Promise<ProtectedUser[]> {
     const users = await CacheControl.user.findAll();
     return (users as Array<FSUser | User>).map((user) => {
       return UserFactory.removeProtected(user);
     });
   }
 
-  static async getByAccessToken(authorization: string): Promise<ProtectedUser> {
+  static async getByAccessToken(jwt: JWT): Promise<ProtectedUser> {
     const error = HttpErrorFactory.instance('getByAccessToken', this.logger);
-    const jwt = JWTSecurity.checkAndValidateAndGet(authorization, {
-      roles: [RoleName.ADMIN, RoleName.USER],
-      permission: PermissionName.READ,
-      JWTConfig: JWTConfigService.get('user-token-config'),
-    });
-    if (jwt instanceof Error) {
-      throw error.occurred(
-        HttpStatus.UNAUTHORIZED,
-        ResponseCode.get('g001', {
-          msg: jwt.message,
-        }),
-      );
-    }
     const user = await CacheControl.user.findById(jwt.payload.userId);
     if (!user) {
       throw error.occurred(
@@ -104,24 +62,8 @@ export class UserRequestHandler {
     return UserFactory.removeProtected(user);
   }
 
-  static async getById(
-    authorization: string,
-    id: string,
-  ): Promise<ProtectedUser> {
+  static async getById(id: string): Promise<ProtectedUser> {
     const error = HttpErrorFactory.instance('getById', this.logger);
-    const jwt = JWTSecurity.checkAndValidateAndGet(authorization, {
-      roles: [RoleName.ADMIN, RoleName.USER],
-      permission: PermissionName.READ,
-      JWTConfig: JWTConfigService.get('user-token-config'),
-    });
-    if (jwt instanceof Error) {
-      throw error.occurred(
-        HttpStatus.UNAUTHORIZED,
-        ResponseCode.get('g001', {
-          msg: jwt.message,
-        }),
-      );
-    }
     const user = await CacheControl.user.findById(id);
     if (!user || user === null) {
       throw error.occurred(
@@ -135,7 +77,7 @@ export class UserRequestHandler {
   }
 
   static async update(
-    authorization: string,
+    jwt: JWT,
     data: UpdateUserData,
     sid: string,
   ): Promise<ProtectedUser> {
@@ -147,19 +89,6 @@ export class UserRequestHandler {
         HttpStatus.BAD_REQUEST,
         ResponseCode.get('g002', {
           msg: e.message,
-        }),
-      );
-    }
-    const jwt = JWTSecurity.checkAndValidateAndGet(authorization, {
-      roles: [RoleName.ADMIN, RoleName.USER],
-      permission: PermissionName.WRITE,
-      JWTConfig: JWTConfigService.get('user-token-config'),
-    });
-    if (jwt instanceof Error) {
-      throw error.occurred(
-        HttpStatus.UNAUTHORIZED,
-        ResponseCode.get('g001', {
-          msg: jwt.message,
         }),
       );
     }
@@ -336,11 +265,7 @@ export class UserRequestHandler {
     return UserFactory.removeProtected(user);
   }
 
-  static async add(
-    authorization: string,
-    data: AddUserData,
-    sid: string,
-  ): Promise<ProtectedUser> {
+  static async add(data: AddUserData, sid: string): Promise<ProtectedUser> {
     const error = HttpErrorFactory.instance('add', this.logger);
     try {
       ObjectUtility.compareWithSchema(data, AddUserDataSchema, 'data');
@@ -349,19 +274,6 @@ export class UserRequestHandler {
         HttpStatus.BAD_REQUEST,
         ResponseCode.get('g002', {
           msg: e.message,
-        }),
-      );
-    }
-    const jwt = JWTSecurity.checkAndValidateAndGet(authorization, {
-      roles: [RoleName.ADMIN],
-      permission: PermissionName.WRITE,
-      JWTConfig: JWTConfigService.get('user-token-config'),
-    });
-    if (jwt instanceof Error) {
-      throw error.occurred(
-        HttpStatus.UNAUTHORIZED,
-        ResponseCode.get('g001', {
-          msg: jwt.message,
         }),
       );
     }
@@ -387,7 +299,7 @@ export class UserRequestHandler {
       lastName: data.customPool.personal.lastName,
     });
     user.password = await bcrypt.hash(data.password, 10);
-    const addUserResult = await CacheControl.user.add(user as any);
+    const addUserResult = await CacheControl.user.add(user);
     if (addUserResult === false) {
       throw error.occurred(
         HttpStatus.INTERNAL_SERVER_ERROR,
@@ -405,25 +317,12 @@ export class UserRequestHandler {
     return UserFactory.removeProtected(user);
   }
 
-  static async makeAnAdmin(authorization: string, id: string, sid: string) {
+  static async makeAnAdmin(id: string, sid: string) {
     const error = HttpErrorFactory.instance('makeAnAdmin', this.logger);
     if (StringUtility.isIdValid(id) === false) {
       throw error.occurred(
         HttpStatus.BAD_REQUEST,
         ResponseCode.get('u013', { id }),
-      );
-    }
-    const jwt = JWTSecurity.checkAndValidateAndGet(authorization, {
-      roles: [RoleName.ADMIN],
-      permission: PermissionName.WRITE,
-      JWTConfig: JWTConfigService.get('user-token-config'),
-    });
-    if (jwt instanceof Error) {
-      throw error.occurred(
-        HttpStatus.UNAUTHORIZED,
-        ResponseCode.get('g001', {
-          msg: jwt.message,
-        }),
       );
     }
     const user = await CacheControl.user.findById(id);
@@ -434,7 +333,7 @@ export class UserRequestHandler {
       );
     }
     user.roles[0].name = RoleName.ADMIN;
-    const updateUserResult = await CacheControl.user.update(user as any);
+    const updateUserResult = await CacheControl.user.update(user);
     if (updateUserResult === false) {
       throw error.occurred(
         HttpStatus.INTERNAL_SERVER_ERROR,
@@ -539,7 +438,7 @@ export class UserRequestHandler {
     const refreshToken = RefreshTokenFactory.instance;
     user.password = await bcrypt.hash(data.password, 10);
     user.refreshTokens.push(refreshToken);
-    const addUserResult = await CacheControl.user.add(user as any);
+    const addUserResult = await CacheControl.user.add(user);
     if (addUserResult === false) {
       throw error.occurred(
         HttpStatus.INTERNAL_SERVER_ERROR,
@@ -550,16 +449,13 @@ export class UserRequestHandler {
     if (!defaultLanguage) {
       const language = LanguageFactory.instance;
       language.code = 'en';
-      language.name = 'English',
-      language.nativeName = 'English';
+      (language.name = 'English'), (language.nativeName = 'English');
       await CacheControl.language.add(language);
     }
     return {
       accessToken: JWTEncoding.encode(
         JWTSecurity.createToken(
-          user._id instanceof Types.ObjectId
-            ? (user._id as any).toHexString()
-            : user._id,
+          `${user._id}`,
           user.roles,
           JWTConfigService.get('user-token-config'),
           user.customPool,
@@ -569,26 +465,13 @@ export class UserRequestHandler {
     };
   }
 
-  static async delete(authorization: string, id: string, sid: string) {
+  static async delete(jwt: JWT, id: string, sid: string) {
     const error = HttpErrorFactory.instance('delete', this.logger);
     if (StringUtility.isIdValid(id) === false) {
       throw error.occurred(
         HttpStatus.BAD_REQUEST,
         ResponseCode.get('u013', {
           id,
-        }),
-      );
-    }
-    const jwt = JWTSecurity.checkAndValidateAndGet(authorization, {
-      roles: [RoleName.ADMIN, RoleName.USER],
-      permission: PermissionName.DELETE,
-      JWTConfig: JWTConfigService.get('user-token-config'),
-    });
-    if (jwt instanceof Error) {
-      throw error.occurred(
-        HttpStatus.UNAUTHORIZED,
-        ResponseCode.get('g001', {
-          msg: jwt.message,
         }),
       );
     }

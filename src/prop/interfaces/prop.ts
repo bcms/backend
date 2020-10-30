@@ -33,22 +33,24 @@ export enum PropType {
   WIDGET = 'WIDGET',
 }
 
+export type PropValue =
+  | string[]
+  | boolean[]
+  | number[]
+  | PropEnum
+  | PropGroupPointer
+  | PropEntryPointer
+  | PropMedia[]
+  | PropQuill
+  | PropWidget;
+
 export interface Prop {
   type: PropType;
   required: boolean;
   name: string;
   label: string;
   array: boolean;
-  value:
-    | string[]
-    | boolean[]
-    | number[]
-    | PropEnum
-    | PropGroupPointer
-    | PropEntryPointer
-    | PropMedia[]
-    | PropQuill
-    | PropWidget;
+  value: PropValue;
 }
 
 export type PropParsed =

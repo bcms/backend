@@ -6,9 +6,11 @@ import {
   Post,
   Put,
   Delete,
+  RoleName,
+  PermissionName,
 } from '@becomes/purple-cheetah';
 import { Request } from 'express';
-import { ApiKeySecurity } from '../api';
+import { JWTApiSecurity, JWTSecurity } from '../security';
 import { Template, FSTemplate } from './models';
 import { TemplateRequestHandler } from './request-handler';
 
@@ -20,77 +22,94 @@ export class TemplateController implements ControllerPrototype {
   router;
   initRouter: () => void;
 
-  @Get('/all')
-  async getAll(
-    request: Request,
-  ): Promise<{ templates: Array<Template | FSTemplate> }> {
+  @Get(
+    '/all',
+    JWTSecurity.preRequestHandler(
+      [RoleName.ADMIN, RoleName.USER],
+      PermissionName.READ,
+    ),
+  )
+  async getAll(): Promise<{ templates: Array<Template | FSTemplate> }> {
     return {
-      templates: await TemplateRequestHandler.getAll(
-        request.headers.authorization,
-      ),
+      templates: await TemplateRequestHandler.getAll(),
     };
   }
 
-  @Get('/many/:ids')
+  @Get(
+    '/many/:ids',
+    JWTSecurity.preRequestHandler(
+      [RoleName.ADMIN, RoleName.USER],
+      PermissionName.READ,
+    ),
+  )
   async getMany(
     request: Request,
   ): Promise<{ templates: Array<Template | FSTemplate> }> {
     return {
-      templates: await TemplateRequestHandler.getMany(
-        request.headers.authorization,
-        request.params.ids,
-      ),
+      templates: await TemplateRequestHandler.getMany(request.params.ids),
     };
   }
 
-  @Get('/count')
-  async count(request: Request): Promise<{ count: number }> {
+  @Get(
+    '/count',
+    JWTSecurity.preRequestHandler(
+      [RoleName.ADMIN, RoleName.USER],
+      PermissionName.READ,
+    ),
+  )
+  async count(): Promise<{ count: number }> {
     return {
-      count: await TemplateRequestHandler.count(request.headers.authorization),
+      count: await TemplateRequestHandler.count(),
     };
   }
 
-  @Get('/:id')
+  @Get(
+    '/:id',
+    JWTApiSecurity.preRequestHandler(
+      [RoleName.ADMIN, RoleName.USER],
+      PermissionName.READ,
+    ),
+  )
   async getById(
     request: Request,
   ): Promise<{ template: Template | FSTemplate }> {
     return {
-      template: await TemplateRequestHandler.getById(
-        request.headers.authorization,
-        request.params.id,
-        request.query.signature
-          ? ApiKeySecurity.requestToApiKeyRequest(request)
-          : undefined,
-      ),
+      template: await TemplateRequestHandler.getById(request.params.id),
     };
   }
 
-  @Post()
+  @Post(
+    '',
+    JWTSecurity.preRequestHandler([RoleName.ADMIN], PermissionName.WRITE),
+  )
   async add(request: Request): Promise<{ template: Template | FSTemplate }> {
     return {
       template: await TemplateRequestHandler.add(
-        request.headers.authorization,
         request.body,
         request.headers.sid as string,
       ),
     };
   }
 
-  @Put()
+  @Put(
+    '',
+    JWTSecurity.preRequestHandler([RoleName.ADMIN], PermissionName.WRITE),
+  )
   async update(request: Request): Promise<{ template: Template | FSTemplate }> {
     return {
       template: await TemplateRequestHandler.update(
-        request.headers.authorization,
         request.body,
         request.headers.sid as string,
       ),
     };
   }
 
-  @Delete('/:id')
+  @Delete(
+    '/:id',
+    JWTSecurity.preRequestHandler([RoleName.ADMIN], PermissionName.DELETE),
+  )
   async deleteById(request: Request): Promise<{ message: string }> {
     await TemplateRequestHandler.deleteById(
-      request.headers.authorization,
       request.params.id,
       request.headers.sid as string,
     );

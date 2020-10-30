@@ -1,4 +1,4 @@
-import { Prop, PropSchema, PropType } from './prop';
+import { PropType, PropValue } from './prop';
 import { ObjectSchema } from '@becomes/purple-cheetah';
 
 export interface PropChange {
@@ -7,7 +7,7 @@ export interface PropChange {
     type: PropType;
     required: boolean;
     array: boolean;
-    value?: any;
+    value?: PropValue;
   };
   remove?: string;
   update?: {
@@ -17,6 +17,7 @@ export interface PropChange {
     };
     move: number;
     required: boolean;
+    enumItems?: string[];
   };
 }
 
@@ -72,6 +73,13 @@ export const PropChangeSchema: ObjectSchema = {
       required: {
         __type: 'boolean',
         __required: true,
+      },
+      enumItems: {
+        __type: 'array',
+        __required: false,
+        __child: {
+          __type: 'string',
+        },
       },
     },
   },

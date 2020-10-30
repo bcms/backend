@@ -881,23 +881,22 @@ export class PropHandler {
         prop.required = change.add.required;
         if (typeof change.add.value !== 'undefined') {
           if (prop.type === PropType.GROUP_POINTER) {
-            if (StringUtility.isIdValid(change.add.value._id) === false) {
+            const valueChange = change.add.value as PropGroupPointer;
+            if (StringUtility.isIdValid(valueChange._id) === false) {
               return Error(
                 `Specified in "changes[${i}]._id", invalid` +
-                  ` ID "${change.add.value._id}" was provided.`,
+                  ` ID "${valueChange._id}" was provided.`,
               );
             }
-            const group = await CacheControl.group.findById(
-              change.add.value._id,
-            );
+            const group = await CacheControl.group.findById(valueChange._id);
             if (!group) {
               return Error(
                 `Specified in "changes[${i}]._id", invalid` +
-                  ` ID "${change.add.value._id}" was provided.`,
+                  ` ID "${valueChange._id}" was provided.`,
               );
             }
             const value: PropGroupPointer = {
-              _id: change.add.value._id,
+              _id: valueChange._id,
               items: [
                 {
                   props: group.props,
@@ -931,6 +930,9 @@ export class PropHandler {
             props[j].label = change.update.label.new;
             props[j].name = General.labelToName(change.update.label.new);
             props[j].required = change.update.required;
+            if (change.update.enumItems) {
+              (props[j].value as PropEnum).items = change.update.enumItems;
+            }
             if (change.update.move !== 0) {
               if (change.update.move > 0 && j < props.length - 1) {
                 const propBuffer = JSON.parse(JSON.stringify(props[j + 1]));
@@ -1453,7 +1455,7 @@ export class PropHandler {
     }
     return output;
   }
-  static quillOpsToValue(ops: PropQuillOption[], isList?: boolean): string {
+  static quillOpsToValue(ops: PropQuillOption[]): string {
     const checker = {
       link: false,
       bold: false,
@@ -1586,6 +1588,7 @@ export class PropHandler {
     };
     while (opPointer < ops.length) {
       const opsChunk: PropQuillOption[] = [];
+      // eslint-disable-next-line no-constant-condition
       while (true) {
         if (opPointer > ops.length - 1) {
           break;

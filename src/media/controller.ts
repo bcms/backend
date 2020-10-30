@@ -8,124 +8,132 @@ import {
   Post,
   Delete,
   Put,
-  Queueable,
+  RoleName,
+  PermissionName,
+  ControllerMethodData,
+  JWT,
 } from '@becomes/purple-cheetah';
-import { Router, Request, Response } from 'express';
+import { Router, Request } from 'express';
 import { Media, FSMedia, MediaType } from './models';
 import { MediaRequestHandler } from './request-handler';
-import { ApiKeySecurity } from '../api';
 import { MediaAggregate } from './interfaces';
 import { ResponseCode } from '../response-code';
-import { General, MediaUtil } from '../util';
+import { MediaUtil } from '../util';
+import { JWTApiSecurity, JWTSecurity } from '../security';
 
 @Controller('/api/media')
 export class MediaController implements ControllerPrototype {
-  private static queueable = Queueable<Buffer>('getBinaryBySize');
   baseUri: string;
-  initRouter: any;
+  initRouter: () => void;
   logger: Logger;
   name: string;
   router: Router;
 
-  @Get('/all')
-  async getAll(request: Request): Promise<{ media: Array<Media | FSMedia> }> {
+  @Get(
+    '/all',
+    JWTApiSecurity.preRequestHandler(
+      [RoleName.ADMIN, RoleName.USER],
+      PermissionName.READ,
+    ),
+  )
+  async getAll(): Promise<{ media: Array<Media | FSMedia> }> {
     return {
-      media: await MediaRequestHandler.getAll(
-        request.headers.authorization,
-        request.query.signature
-          ? ApiKeySecurity.requestToApiKeyRequest(request)
-          : undefined,
-      ),
+      media: await MediaRequestHandler.getAll(),
     };
   }
 
-  @Get('/all/aggregate')
-  async getAllAggregated(
-    request: Request,
-  ): Promise<{ media: MediaAggregate[] }> {
+  @Get(
+    '/all/aggregate',
+    JWTApiSecurity.preRequestHandler(
+      [RoleName.ADMIN, RoleName.USER],
+      PermissionName.READ,
+    ),
+  )
+  async getAllAggregated(): Promise<{ media: MediaAggregate[] }> {
     return {
-      media: await MediaRequestHandler.getAllAggregated(
-        request.headers.authorization,
-        request.query.signature
-          ? ApiKeySecurity.requestToApiKeyRequest(request)
-          : undefined,
-      ),
+      media: await MediaRequestHandler.getAllAggregated(),
     };
   }
 
-  @Get('/all/parent/:id')
+  @Get(
+    '/all/parent/:id',
+    JWTApiSecurity.preRequestHandler(
+      [RoleName.ADMIN, RoleName.USER],
+      PermissionName.READ,
+    ),
+  )
   async getAllByParentId(
     request: Request,
   ): Promise<{ media: Array<Media | FSMedia> }> {
     return {
-      media: await MediaRequestHandler.getAllByParentId(
-        request.headers.authorization,
-        request.params.id,
-        request.query.signature
-          ? ApiKeySecurity.requestToApiKeyRequest(request)
-          : undefined,
-      ),
+      media: await MediaRequestHandler.getAllByParentId(request.params.id),
     };
   }
 
-  @Get('/many/:ids')
+  @Get(
+    '/many/:ids',
+    JWTApiSecurity.preRequestHandler(
+      [RoleName.ADMIN, RoleName.USER],
+      PermissionName.READ,
+    ),
+  )
   async getMany(request: Request): Promise<{ media: Array<Media | FSMedia> }> {
     return {
-      media: await MediaRequestHandler.getMany(
-        request.headers.authorization,
-        request.params.ids,
-        request.query.signature
-          ? ApiKeySecurity.requestToApiKeyRequest(request)
-          : undefined,
-      ),
+      media: await MediaRequestHandler.getMany(request.params.ids),
     };
   }
 
-  @Get('/count')
-  async count(request: Request): Promise<{ count: number }> {
+  @Get(
+    '/count',
+    JWTApiSecurity.preRequestHandler(
+      [RoleName.ADMIN, RoleName.USER],
+      PermissionName.READ,
+    ),
+  )
+  async count(): Promise<{ count: number }> {
     return {
-      count: await MediaRequestHandler.count(request.headers.authorization),
+      count: await MediaRequestHandler.count(),
     };
   }
 
-  @Get('/:id')
+  @Get(
+    '/:id',
+    JWTApiSecurity.preRequestHandler(
+      [RoleName.ADMIN, RoleName.USER],
+      PermissionName.READ,
+    ),
+  )
   async getById(request: Request): Promise<{ media: Media | FSMedia }> {
     return {
-      media: await MediaRequestHandler.getById(
-        request.headers.authorization,
-        request.params.id,
-        request.query.signature
-          ? ApiKeySecurity.requestToApiKeyRequest(request)
-          : undefined,
-      ),
+      media: await MediaRequestHandler.getById(request.params.id),
     };
   }
 
-  @Get('/:id/aggregate')
+  @Get(
+    '/:id/aggregate',
+    JWTApiSecurity.preRequestHandler(
+      [RoleName.ADMIN, RoleName.USER],
+      PermissionName.READ,
+    ),
+  )
   async getByIdAggregated(
     request: Request,
   ): Promise<{ media: MediaAggregate }> {
     return {
-      media: await MediaRequestHandler.getByIdAggregated(
-        request.headers.authorization,
-        request.params.id,
-        request.query.signature
-          ? ApiKeySecurity.requestToApiKeyRequest(request)
-          : undefined,
-      ),
+      media: await MediaRequestHandler.getByIdAggregated(request.params.id),
     };
   }
 
-  @Get('/:id/bin')
-  async getBinary(request: Request, response: Response) {
+  @Get(
+    '/:id/bin',
+    JWTApiSecurity.preRequestHandler(
+      [RoleName.ADMIN, RoleName.USER],
+      PermissionName.READ,
+    ),
+  )
+  async getBinary(request: Request) {
     const error = HttpErrorFactory.instance('getBinary', this.logger);
-    const media = await MediaRequestHandler.getById(
-      request.headers.authorization,
-      request.params.id,
-      request.query.signature
-        ? ApiKeySecurity.requestToApiKeyRequest(request)
-        : undefined,
-    );
+    const media = await MediaRequestHandler.getById(request.params.id);
     if (media.type === MediaType.DIR) {
       throw error.occurred(
         HttpStatus.FORBIDDEN,
@@ -141,16 +149,16 @@ export class MediaController implements ControllerPrototype {
     return { __file: await MediaUtil.fs.getPath(media) };
   }
 
-  @Get('/:id/bin/:size')
-  async getBinaryBySize(request: Request, response: Response) {
+  @Get(
+    '/:id/bin/:size',
+    JWTApiSecurity.preRequestHandler(
+      [RoleName.ADMIN, RoleName.USER],
+      PermissionName.READ,
+    ),
+  )
+  async getBinaryBySize(request: Request) {
     const error = HttpErrorFactory.instance('getBinary', this.logger);
-    const media = await MediaRequestHandler.getById(
-      request.headers.authorization,
-      request.params.id,
-      request.query.signature
-        ? ApiKeySecurity.requestToApiKeyRequest(request)
-        : undefined,
-    );
+    const media = await MediaRequestHandler.getById(request.params.id);
     if (media.type === MediaType.DIR) {
       throw error.occurred(
         HttpStatus.FORBIDDEN,
@@ -168,49 +176,78 @@ export class MediaController implements ControllerPrototype {
     //   await MediaUtil.fs.getPath(media, request.params.size as any),
     // );
     return {
-      __file: await MediaUtil.fs.getPath(media, request.params.size as any),
+      __file: await MediaUtil.fs.getPath(
+        media,
+        request.params.size ? 'small' : undefined,
+      ),
     };
   }
 
-  @Post('/file')
-  async addFile(request: Request): Promise<{ media: Media | FSMedia }> {
-    this.logger.warn('addFile', request.headers.upload_file_error_message);
+  @Post(
+    '/file',
+    JWTSecurity.preRequestHandler(
+      [RoleName.ADMIN, RoleName.USER],
+      PermissionName.WRITE,
+    ),
+  )
+  async addFile(
+    ...data: ControllerMethodData<JWT>
+  ): Promise<{ media: Media | FSMedia }> {
+    this.logger.warn('addFile', data[0].headers.upload_file_error_message);
     return {
       media: await MediaRequestHandler.addFile(
-        request.headers.authorization,
-        request.headers.sid as string,
-        request.query.parentId ? '' + request.query.parentId : undefined,
-        request.file,
+        data[3],
+        data[0].headers.sid as string,
+        data[0].query.parentId ? '' + data[0].query.parentId : undefined,
+        data[0].file,
       ),
     };
   }
 
-  @Post('/dir')
-  async addDir(request: Request): Promise<{ media: Media | FSMedia }> {
+  @Post(
+    '/dir',
+    JWTSecurity.preRequestHandler(
+      [RoleName.ADMIN, RoleName.USER],
+      PermissionName.WRITE,
+    ),
+  )
+  async addDir(
+    ...data: ControllerMethodData<JWT>
+  ): Promise<{ media: Media | FSMedia }> {
     return {
       media: await MediaRequestHandler.addDir(
-        request.headers.authorization,
-        request.body,
-        request.headers.sid as string,
+        data[3],
+        data[0].body,
+        data[0].headers.sid as string,
       ),
     };
   }
 
-  @Put('/:id')
+  @Put(
+    '/:id',
+    JWTSecurity.preRequestHandler(
+      [RoleName.ADMIN, RoleName.USER],
+      PermissionName.WRITE,
+    ),
+  )
   async update(request: Request): Promise<{ media: Media | FSMedia }> {
     return {
       media: await MediaRequestHandler.update(
-        request.headers.authorization,
         request.body,
         request.headers.sid as string,
       ),
     };
   }
 
-  @Delete('/:id')
+  @Delete(
+    '/:id',
+    JWTSecurity.preRequestHandler(
+      [RoleName.ADMIN, RoleName.USER],
+      PermissionName.DELETE,
+    ),
+  )
   async deleteById(request: Request): Promise<{ message: string }> {
     await MediaRequestHandler.deleteById(
-      request.headers.authorization,
       request.params.id,
       request.headers.sid as string,
     );
