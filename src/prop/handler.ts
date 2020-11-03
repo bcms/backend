@@ -1432,7 +1432,7 @@ export class PropHandler {
               name: prop.name,
               value: {
                 type: prop.type,
-                value: `<p>${this.quillOpsToValue(value.ops)}</p>`,
+                value: `<p>${this.quillOpsToValue(value.ops).replace(/\n/g, '<br></br>')}</p>`,
               },
             });
           }
