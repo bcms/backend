@@ -153,7 +153,7 @@ export class MediaRequestHandler {
 
   static async getBinary(
     mediaId: string,
-  ): Promise<{ bin: Buffer; path: string }> {
+  ): Promise<{ __file: string }> {
     const error = HttpErrorFactory.instance('getBinary', this.logger);
     if (StringUtility.isIdValid(mediaId) === false) {
       throw error.occurred(
@@ -181,8 +181,8 @@ export class MediaRequestHandler {
       );
     }
     return {
-      bin: await MediaUtil.fs.get(media),
-      path: await MediaUtil.fs.getPath(media),
+      // bin: await MediaUtil.fs.get(media),
+      __file: await MediaUtil.fs.getPath(media),
     };
   }
 

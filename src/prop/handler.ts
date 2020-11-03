@@ -20,12 +20,10 @@ import {
   PropQuill,
   PropQuillOption,
   PropQuillSchema,
-} from './interfaces/quill';
-import {
   PropWidget,
   PropWidgetParsed,
   PropWidgetSchema,
-} from './interfaces/quill/widget';
+} from './interfaces';
 import { EntryParsed, EntryParser } from '../entry';
 
 interface Pointer {
