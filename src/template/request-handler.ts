@@ -271,6 +271,7 @@ export class TemplateRequestHandler {
         template.props,
         template.props,
         'template.props',
+        true,
       );
       if (output instanceof Error) {
         throw error.occurred(

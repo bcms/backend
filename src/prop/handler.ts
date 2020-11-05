@@ -429,6 +429,7 @@ export class PropHandler {
     propsToCheck: Prop[],
     props: Prop[],
     level?: string,
+    inTemplate?: boolean,
   ): Promise<Error> {
     if (!level) {
       level = 'root';
@@ -702,29 +703,32 @@ export class PropHandler {
               } catch (e) {
                 return Error(`[ ${level}.${prop.name} ] --> ${e.message}`);
               }
-              for (const j in value.entryIds) {
-                if (StringUtility.isIdValid(value.entryIds[j]) === false) {
-                  return Error(
-                    `[ ${level}.${prop.name}.value.entryIds[${j}] ] -->` +
-                      ` Invalid ID "${value.entryIds[j]}" was provided.`,
+              if (!inTemplate) {
+                for (const j in value.entryIds) {
+                  if (StringUtility.isIdValid(value.entryIds[j]) === false) {
+                    return Error(
+                      `[ ${level}.${prop.name}.value.entryIds[${j}] ] -->` +
+                        ` Invalid ID "${value.entryIds[j]}" was provided.`,
+                    );
+                  }
+                  const entry = await CacheControl.entry.findById(
+                    value.entryIds[j],
                   );
-                }
-                const entry = await CacheControl.entry.findById(
-                  value.entryIds[j],
-                );
-                if (!entry) {
-                  return Error(
-                    `[ ${level}.${prop.name}.value.entryIds[${j}] ] -->` +
-                      ` entry with ID "${value.entryIds[j]}" does not exist.`,
-                  );
+                  if (!entry) {
+                    return Error(
+                      `[ ${level}.${prop.name}.value.entryIds[${j}] ] -->` +
+                        ` entry with ID "${value.entryIds[j]}" does not exist.`,
+                    );
+                  }
                 }
               }
               if (StringUtility.isIdValid(value.templateId) === false) {
                 return Error(
                   `[ ${level}.${prop.name}.value.templateId ] -->` +
-                    ` invalid ID "${value.templateId}" was provided.`,
+                    ` Invalid ID "${value.templateId}" was provided.`,
                 );
               }
+
               const template = await CacheControl.template.findById(
                 value.templateId,
               );
@@ -1430,7 +1434,10 @@ export class PropHandler {
               name: prop.name,
               value: {
                 type: prop.type,
-                value: `<p>${this.quillOpsToValue(value.ops).replace(/\n/g, '<br></br>')}</p>`,
+                value: `<p>${this.quillOpsToValue(value.ops).replace(
+                  /\n/g,
+                  '<br></br>',
+                )}</p>`,
               },
             });
           }
