@@ -15,6 +15,7 @@ import {
   RoleName,
   PermissionName,
   JWTConfigService,
+  RequestLoggerMiddleware,
 } from '@becomes/purple-cheetah';
 import { SwaggerController, SwaggerMiddleware } from './swagger';
 import { UserController } from './user';
@@ -122,6 +123,7 @@ if (process.env.DB_USE_FS) {
       return new e.PluginMiddleware();
     }),
   ],
+  requestLoggerMiddleware: new RequestLoggerMiddleware(),
 })
 export class App extends PurpleCheetah {
   protected start() {
