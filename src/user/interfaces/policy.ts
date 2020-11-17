@@ -12,6 +12,7 @@ export interface UserPolicy {
   customPortal: UserPolicyCRUD;
   templates: Array<{ _id: string } & UserPolicyCRUD>;
   webhooks: Array<{ _id: string } & UserPolicyCRUD>;
+  plugins?: Array<{ name: string } & UserPolicyCRUD>;
 }
 
 export const UserPolicyCRUDSchema: ObjectSchema = {
@@ -65,6 +66,20 @@ export const UserPolicySchema: ObjectSchema = {
       __type: 'object',
       __content: {
         _id: {
+          __type: 'string',
+          __required: true,
+        },
+        ...UserPolicyCRUDSchema,
+      },
+    },
+  },
+  plugins: {
+    __type: 'array',
+    __required: false,
+    __child: {
+      __type: 'object',
+      __content: {
+        name: {
           __type: 'string',
           __required: true,
         },

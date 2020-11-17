@@ -242,12 +242,16 @@ export class UserRequestHandler {
           change = true;
           user.customPool.policy.webhooks = data.customPool.policy.webhooks;
         }
+        if (typeof data.customPool.policy.plugins !== 'undefined') {
+          change = true;
+          user.customPool.policy.plugins = data.customPool.policy.plugins;
+        }
       }
     }
     if (change === false) {
       throw error.occurred(HttpStatus.BAD_REQUEST, ResponseCode.get('g003'));
     }
-    const updateUserResult = await CacheControl.user.update(user as any);
+    const updateUserResult = await CacheControl.user.update(user);
     if (updateUserResult === false) {
       throw error.occurred(
         HttpStatus.INTERNAL_SERVER_ERROR,

@@ -32,6 +32,11 @@ export interface UpdateUserData {
           _id: string;
         }
       >;
+      plugins?: Array<
+        UserPolicyCRUD & {
+          name: string;
+        }
+      >;
     };
   };
 }

@@ -36,6 +36,7 @@ export class UserFactory {
             },
             templates: [],
             webhooks: [],
+            plugins: [],
           },
         },
       );
@@ -71,6 +72,7 @@ export class UserFactory {
             },
             templates: [],
             webhooks: [],
+            plugins: [],
           },
         },
       );
@@ -134,6 +136,7 @@ export class UserFactory {
             },
             templates: [],
             webhooks: [],
+            plugins: [],
           },
         },
       );
@@ -187,6 +190,7 @@ export class UserFactory {
             },
             templates: [],
             webhooks: [],
+            plugins: [],
           },
         },
       );
@@ -250,6 +254,7 @@ export class UserFactory {
             },
             templates: [],
             webhooks: [],
+            plugins: [],
           },
         },
       );
@@ -303,6 +308,7 @@ export class UserFactory {
             },
             templates: [],
             webhooks: [],
+            plugins: [],
           },
         },
       );
@@ -310,7 +316,7 @@ export class UserFactory {
   }
 
   static removeProtected(user: User | FSUser): ProtectedUser {
-    const u = JSON.parse(JSON.stringify(user));
+    const u: User | FSUser = JSON.parse(JSON.stringify(user));
     delete u.password;
     delete u.refreshTokens;
     return JSON.parse(JSON.stringify(u));
