@@ -1,4 +1,4 @@
-import { FSDBEntity, ObjectSchema, Role } from '@becomes/purple-cheetah';
+import { FSDBEntity, Role } from '@becomes/purple-cheetah';
 import { RefreshToken, UserCustomPool } from '../interfaces';
 
 export class FSUser implements FSDBEntity {

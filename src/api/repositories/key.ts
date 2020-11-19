@@ -14,7 +14,7 @@ import { Model } from 'mongoose';
 })
 export class MongoApiKeyRepository
   implements MongoDBRepositoryPrototype<ApiKey, IApiKey> {
-  repo: Model<IApiKey, {}>;
+  repo: Model<IApiKey>;
   logger: Logger;
 
   findAll: () => Promise<ApiKey[]>;

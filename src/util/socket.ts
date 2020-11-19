@@ -13,6 +13,7 @@ export enum SocketEventName {
 
 export interface SocketEventData {
   type: 'add' | 'update' | 'remove';
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   message: any;
   source: string;
   entry: {
@@ -27,6 +28,7 @@ export class SocketUtil {
   static emit(name: SocketEventName, data: SocketEventData) {
     SocketConnectionService.emitToGroup('global', name, data);
   }
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   static pluginEmit(name: string, payload: any) {
     SocketConnectionService.emitToGroup('global', 'plugin', {
       name,

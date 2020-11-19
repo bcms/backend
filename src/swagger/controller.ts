@@ -19,6 +19,7 @@ export class SwaggerController implements ControllerPrototype {
   router: Router;
   initRouter: () => void;
 
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   private swaggerHandler: any;
 
   @Get()

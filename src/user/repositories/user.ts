@@ -14,13 +14,14 @@ import { Model } from 'mongoose';
 })
 export class MongoUserRepository
   implements MongoDBRepositoryPrototype<User, IUser> {
-  repo: Model<IUser, {}>;
+  repo: Model<IUser>;
   logger: Logger;
 
   findAll: () => Promise<User[]>;
   findAllById: (ids: string[]) => Promise<User[]>;
   findAllBy: <Q>(query: Q) => Promise<User[]>;
   findById: (id: string) => Promise<User>;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   findBy: (query: any) => Promise<User>;
   add: (e: User) => Promise<boolean>;
   update: (e: User) => Promise<boolean>;

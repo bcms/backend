@@ -4,6 +4,7 @@ import { ObjectUtility } from '@becomes/purple-cheetah';
 
 export function BCMSFunctionBuilder(settings: {
   config: BCMSFunctionConfig;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   handler: (request: Request) => Promise<any>;
 }): BCMSFunction {
   try {

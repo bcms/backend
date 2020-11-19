@@ -1,7 +1,6 @@
 import { Group, FSGroup } from '../models';
 import { Types } from 'mongoose';
 import { GroupLite } from '../interfaces';
-import { ObjectPropSchema } from '@becomes/purple-cheetah';
 
 export class GroupFactory {
   static instance(): Group | FSGroup {

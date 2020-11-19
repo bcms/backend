@@ -10,7 +10,7 @@ import { AuthRequestHandler } from './request-handler';
 @Controller('/api/auth')
 export class AuthController implements ControllerPrototype {
   baseUri: string;
-  initRouter: any;
+  initRouter: () => void;
   logger: Logger;
   name: string;
   router: Router;

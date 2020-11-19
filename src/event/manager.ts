@@ -141,20 +141,6 @@ export class EventManager {
             this.logger.error('run', error.message);
             return;
           }
-          // if (!BCMSEventConfigScope[file.event.config.scope]) {
-          //   this.logger.error(
-          //     'run',
-          //     `[ ${__dirname} ] --> Scope "${file.event.config.scope}" is not allowed.`,
-          //   );
-          //   return;
-          // }
-          // if (!BCMSEventConfigMethod[file.event.config.method]) {
-          //   this.logger.error(
-          //     'run',
-          //     `[ ${__dirname} ] --> Method "${file.event.config.method}" is not allowed.`,
-          //   );
-          //   return;
-          // }
           if (typeof file.event.handler !== 'function') {
             this.logger.error(
               '',
@@ -177,6 +163,7 @@ export class EventManager {
   public static async emit(
     scope: BCMSEventConfigScope | string,
     method: BCMSEventConfigMethod | string,
+    // eslint-disable-next-line @typescript-eslint/no-explicit-any
     data: any,
   ) {
     this.events.forEach(async (event) => {

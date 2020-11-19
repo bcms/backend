@@ -11,7 +11,6 @@ import * as bcrypt from 'bcrypt';
 import { RefreshTokenFactory } from '../user';
 import { General } from '../util';
 import { ResponseCode } from '../response-code';
-import { Types } from 'mongoose';
 import { CacheControl } from '../cache';
 
 // TODO: Add IP blacklist
@@ -60,7 +59,7 @@ export class AuthRequestHandler {
     }
     const refreshToken = RefreshTokenFactory.instance;
     user.refreshTokens.push(refreshToken);
-    const updateUserResult = await CacheControl.user.update(user as any);
+    const updateUserResult = await CacheControl.user.update(user);
     if (updateUserResult === false) {
       throw error.occurred(
         HttpStatus.INTERNAL_SERVER_ERROR,
@@ -70,9 +69,7 @@ export class AuthRequestHandler {
     return {
       accessToken: JWTEncoding.encode(
         JWTSecurity.createToken(
-          user._id instanceof Types.ObjectId
-            ? (user._id as any).toHexString()
-            : user._id,
+          `${user._id}`,
           user.roles,
           JWTConfigService.get('user-token-config'),
           user.customPool,
@@ -95,7 +92,7 @@ export class AuthRequestHandler {
     const rt = user.refreshTokens.find((e) => e.value === auth);
     if (rt.expAt < Date.now()) {
       user.refreshTokens = user.refreshTokens.filter((e) => e.value !== auth);
-      const updateUserResult = await CacheControl.user.update(user as any);
+      const updateUserResult = await CacheControl.user.update(user);
       if (updateUserResult === false) {
         throw error.occurred(
           HttpStatus.INTERNAL_SERVER_ERROR,
@@ -106,9 +103,7 @@ export class AuthRequestHandler {
     }
     return JWTEncoding.encode(
       JWTSecurity.createToken(
-        user._id instanceof Types.ObjectId
-          ? (user._id as any).toHexString()
-          : user._id,
+        `${user._id}`,
         user.roles,
         JWTConfigService.get('user-token-config'),
         user.customPool,
@@ -129,7 +124,7 @@ export class AuthRequestHandler {
     user.refreshTokens = user.refreshTokens.filter(
       (e) => e.value !== refreshTokenValue,
     );
-    const updateUserResult = await CacheControl.user.update(user as any);
+    const updateUserResult = await CacheControl.user.update(user);
     if (updateUserResult === false) {
       throw error.occurred(
         HttpStatus.INTERNAL_SERVER_ERROR,

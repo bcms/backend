@@ -5,7 +5,6 @@ import {
   IEntity,
   Entity,
   Queueable,
-  QueueableItem,
   QueueablePrototype,
 } from '@becomes/purple-cheetah';
 import { Types } from 'mongoose';
@@ -18,7 +17,7 @@ export abstract class CacheHandler<
   N extends MongoDBRepositoryPrototype<K, J>
 > {
   protected cache: Array<T | K> = [];
-  protected countLatch: boolean = false;
+  protected countLatch = false;
   protected queueable: QueueablePrototype<T | K | Array<T | K> | boolean>;
 
   constructor(protected repo: M | N, queueable: string[]) {
@@ -57,13 +56,7 @@ export abstract class CacheHandler<
       'free_one_by_one',
       async () => {
         await this.checkCountLatch();
-        return this.cache.filter((e) =>
-          ids.includes(
-            e._id instanceof Types.ObjectId
-              ? (e._id as any).toHexString()
-              : e._id,
-          ),
-        );
+        return this.cache.filter((e) => ids.includes(`${e._id}`));
       },
     )) as Array<T | K>;
   }
@@ -100,7 +93,7 @@ export abstract class CacheHandler<
         console.error(`Cache Entity with ID "${id}" already exist.`);
         return false;
       }
-      const addResult = await this.repo.add(entity as any);
+      const addResult = await this.repo.add(entity as T & K);
       if (addResult === false) {
         return false;
       }
@@ -115,13 +108,8 @@ export abstract class CacheHandler<
       const id =
         typeof entity._id === 'string' ? entity._id : entity._id.toHexString();
       for (const i in this.cache) {
-        if (
-          id ===
-          (typeof this.cache[i]._id === 'string'
-            ? this.cache[i]._id
-            : (this.cache[i]._id as any).toHexString())
-        ) {
-          const updateResult = await this.repo.update(entity as any);
+        if (id === `${this.cache[i]._id}`) {
+          const updateResult = await this.repo.update(entity as T & K);
           if (updateResult === false) {
             return false;
           }
@@ -142,12 +130,7 @@ export abstract class CacheHandler<
       async () => {
         await this.checkCountLatch();
         for (let i = 0; i < this.cache.length; i = i + 1) {
-          if (
-            id ===
-            (typeof this.cache[i]._id === 'string'
-              ? this.cache[i]._id
-              : (this.cache[i]._id as any).toHexString())
-          ) {
+          if (id === `${this.cache[i]._id}`) {
             const deleteResult = await this.repo.deleteById(id);
             if (deleteResult === false) {
               return false;

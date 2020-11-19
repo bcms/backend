@@ -1,7 +1,5 @@
 import * as express from 'express';
 import * as path from 'path';
-import * as util from 'util';
-import * as fs from 'fs';
 
 import {
   Application,

@@ -1,6 +1,5 @@
 import {
   MongoDBRepositoryPrototype,
-  IEntity,
   Logger,
   MongoDBRepository,
 } from '@becomes/purple-cheetah';
@@ -30,7 +29,7 @@ export class MongoEntryRepository
   async count(): Promise<number> {
     return await this.repo.find().countDocuments();
   }
-  async countByTemplateId(templateId): Promise<number> {
+  async countByTemplateId(templateId: string): Promise<number> {
     return await this.repo.find({ templateId }).countDocuments();
   }
 

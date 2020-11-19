@@ -1,13 +1,12 @@
 import {
   BCMSEventConfig,
-  BCMSEventConfigScope,
-  BCMSEventConfigMethod,
 } from './interfaces';
 import { BCMSEvent } from './interfaces';
 import { ObjectUtility } from '@becomes/purple-cheetah';
 
 export function BCMSEventBuilder(settings: {
   config: BCMSEventConfig;
+  // eslint-disable-next-line @typescript-eslint/no-explicit-any
   handler: (data: any) => Promise<void>;
 }): BCMSEvent {
   try {
@@ -28,16 +27,6 @@ export function BCMSEventBuilder(settings: {
   } catch (e) {
     throw Error(`[ ${__dirname} ] --> ${e.message}`);
   }
-  // if (!BCMSEventConfigScope[settings.config.scope]) {
-  //   throw Error(
-  //     `[ ${__dirname} ] --> Scope "${settings.config.scope}" is not allowed.`,
-  //   );
-  // }
-  // if (!BCMSEventConfigMethod[settings.config.method]) {
-  //   throw Error(
-  //     `[ ${__dirname} ] --> Method "${settings.config.method}" is not allowed.`,
-  //   );
-  // }
   if (typeof settings.handler !== 'function') {
     throw Error(
       `[ ${__dirname} ] --> Expected "handler" to be` +

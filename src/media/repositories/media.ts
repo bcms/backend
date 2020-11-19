@@ -14,7 +14,7 @@ import { Model } from 'mongoose';
 })
 export class MongoMediaRepository
   implements MongoDBRepositoryPrototype<Media, IMedia> {
-  repo: Model<IMedia, {}>;
+  repo: Model<IMedia>;
   logger: Logger;
 
   findAll: () => Promise<Media[]>;

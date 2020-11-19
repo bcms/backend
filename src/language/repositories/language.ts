@@ -14,7 +14,7 @@ import { Model } from 'mongoose';
 })
 export class MongoLanguageRepository
   implements MongoDBRepositoryPrototype<Language, ILanguage> {
-  repo: Model<ILanguage, {}>;
+  repo: Model<ILanguage>;
   logger: Logger;
 
   findAll: () => Promise<Language[]>;
