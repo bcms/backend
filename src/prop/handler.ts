@@ -1489,38 +1489,29 @@ export class PropHandler {
     while (opPointer < ops.length) {
       const op = ops[opPointer];
       if (!op.attributes) {
-        let justInsert = true;
         if (checker.link === true) {
-          justInsert = false;
           checker.link = false;
           value += '</a>';
         }
         if (checker.underline === true) {
-          justInsert = false;
           checker.underline = false;
           value += '</u>';
         }
         if (checker.italic === true) {
-          justInsert = false;
           checker.italic = false;
           value += '</i>';
         }
         if (checker.bold === true) {
-          justInsert = false;
           checker.bold = false;
           value += '</strong>';
         }
         if (checker.list.in === true) {
-          justInsert = false;
           checker.list.in = false;
           value += '</ul>';
           for (let k = 0; k < checker.list.level; k = k + 1) {
             value += '</ul>';
           }
           checker.list.level = 0;
-        }
-        if (justInsert) {
-          value += op.insert;
         }
       } else {
         if (op.attributes.bold) {
@@ -1566,16 +1557,6 @@ export class PropHandler {
             checker.link = false;
             value += '</a>';
           }
-        }
-        if (op.attributes.header && ops[opPointer - 1]) {
-          value =
-            value.substring(
-              0,
-              value.length - ops[opPointer - 1].insert.length - 2, // -2 is for \n
-            ) +
-            `<h${op.attributes.header}>` +
-            ops[opPointer - 1].insert +
-            `</h${op.attributes.header}><br />`;
         }
       }
       if (op.insert.endsWith('\n')) {
