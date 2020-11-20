@@ -10,6 +10,7 @@ export interface PropQuillOption {
     list?: string;
     indent?: number;
     link?: string;
+    header?: number;
   };
 }
 
@@ -48,6 +49,10 @@ export const PropQuillOptionSchema: ObjectSchema = {
       },
       link: {
         __type: 'string',
+        __required: false,
+      },
+      header: {
+        __type: 'number',
         __required: false,
       },
     },

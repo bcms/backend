@@ -27,6 +27,9 @@ export class PropFactory {
       case PropType.ENTRY_POINTER: {
         return this.entryPointer(array);
       }
+      case PropType.RICH_TEXT: {
+        return this.richText(array);
+      }
     }
   }
   static string(array?: boolean): Prop {
@@ -115,6 +118,19 @@ export class PropFactory {
         templateId: '',
         entryIds: [],
         displayProp: 'title',
+      },
+    };
+  }
+  static richText(array?: boolean): Prop {
+    return {
+      name: 'rich-text',
+      label: 'Rich Text',
+      array: array ? array : false,
+      required: true,
+      type: PropType.RICH_TEXT,
+      value: {
+        ops: [],
+        text: '',
       },
     };
   }
