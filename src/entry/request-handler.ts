@@ -354,8 +354,34 @@ export class EntryRequestHandler {
     const meta: EntryMeta[] = [];
     const content: EntryContent[] = [];
     for (const i in languages) {
-      const lngMeta = data.meta.find((e) => e.lng === languages[i].code);
-      const lngContent = data.content.find((e) => e.lng === languages[i].code);
+      const dataMeta = data.meta.find((e) => e.lng === languages[i].code);
+      const lngMeta: EntryMeta = {
+        lng: dataMeta.lng,
+        props: dataMeta.props.map((prop) => {
+          return {
+            array: prop.array,
+            label: prop.label,
+            name: prop.name,
+            required: prop.required,
+            type: prop.type,
+            value: prop.value,
+          };
+        }),
+      };
+      const dataContent = data.content.find((e) => e.lng === languages[i].code);
+      const lngContent: EntryContent = {
+        lng: dataContent.lng,
+        props: dataContent.props.map((prop) => {
+          return {
+            array: prop.array,
+            label: prop.label,
+            name: prop.name,
+            required: prop.required,
+            type: prop.type,
+            value: prop.value,
+          };
+        }),
+      };
       if (!lngMeta) {
         throw error.occurred(
           HttpStatus.BAD_REQUEST,
