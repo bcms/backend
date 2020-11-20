@@ -62,20 +62,27 @@ export abstract class CacheHandler<
   }
 
   async findById(id: string): Promise<T | K> {
-    return (await this.queueable.exec(
-      'findById',
-      'free_one_by_one',
-      async () => {
-        await this.checkCountLatch();
-        return this.cache.find(
-          (e) =>
-            id ===
-            (e._id instanceof Types.ObjectId
-              ? (e._id as Types.ObjectId).toHexString()
-              : e._id),
-        );
-      },
-    )) as T | K;
+    const all = await this.findAll();
+    return all.find(
+      (e) =>
+        id ===
+        (e._id instanceof Types.ObjectId
+          ? (e._id as Types.ObjectId).toHexString()
+          : e._id));
+    // return (await this.queueable.exec(
+    //   'findById',
+    //   'free_one_by_one',
+    //   async () => {
+    //     await this.checkCountLatch();
+    //     return this.cache.find(
+    //       (e) =>
+    //         id ===
+    //         (e._id instanceof Types.ObjectId
+    //           ? (e._id as Types.ObjectId).toHexString()
+    //           : e._id),
+    //     );
+    //   },
+    // )) as T | K;
   }
 
   async add(entity: T | K): Promise<boolean> {

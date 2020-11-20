@@ -1459,7 +1459,6 @@ export class PropHandler {
         case PropType.RICH_TEXT:
           {
             const value = prop.value as PropQuill;
-            console.log(JSON.stringify(value, null, '  '));
             output.push({
               quill: false,
               key: prop.name,
