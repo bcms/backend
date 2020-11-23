@@ -157,6 +157,24 @@ export class EntryRequestHandler {
     return entry;
   }
 
+  static async getByIdLite(id: string): Promise<EntryLite> {
+    const error = HttpErrorFactory.instance('getById', this.logger);
+    if (StringUtility.isIdValid(id) === false) {
+      throw error.occurred(
+        HttpStatus.BAD_REQUEST,
+        ResponseCode.get('g004', { id }),
+      );
+    }
+    const entry = await CacheControl.entry.findById(id);
+    if (!entry) {
+      throw error.occurred(
+        HttpStatus.NOT_FOUNT,
+        ResponseCode.get('etr001', { id }),
+      );
+    }
+    return EntryFactory.toLite(entry);
+  }
+
   static async add(data: AddEntryData, sid: string): Promise<Entry | FSEntry> {
     const error = HttpErrorFactory.instance('add', this.logger);
     try {

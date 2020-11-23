@@ -23,6 +23,17 @@ export class WidgetController implements ControllerPrototype {
   initRouter: () => void;
 
   @Get(
+    '/:id/where-is-it-used',
+    JWTSecurity.preRequestHandler(
+      [RoleName.ADMIN, RoleName.USER],
+      PermissionName.READ,
+    ),
+  )
+  async whereIsItUsed(request: Request) {
+    return await WidgetRequestHandler.whereIsItUsed(request.params.id);
+  }
+
+  @Get(
     '/all',
     JWTSecurity.preRequestHandler(
       [RoleName.ADMIN, RoleName.USER],

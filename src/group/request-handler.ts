@@ -17,7 +17,13 @@ import {
   UpdateGroupData,
   UpdateGroupDataSchema,
 } from './interfaces';
-import { PropHandler, PropChange } from '../prop';
+import {
+  PropHandler,
+  PropChange,
+  Prop,
+  PropType,
+  PropGroupPointer,
+} from '../prop';
 import { General, SocketUtil, SocketEventName } from '../util';
 import { Widget, FSWidget } from '../widget';
 import { Template, FSTemplate } from '../template';
@@ -32,6 +38,84 @@ export class GroupRequestHandler {
   @CreateLogger(GroupRequestHandler)
   private static logger: Logger;
   private static queueable = Queueable<Group | FSGroup | void>('update');
+
+  static async whereIsItUsed(
+    id: string,
+  ): Promise<{
+    templateIds: string[];
+    groupIds: string[];
+    widgetIds: string[];
+  }> {
+    const error = HttpErrorFactory.instance('whereIsItUsed', this.logger);
+    const output: {
+      templateIds: string[];
+      groupIds: string[];
+      widgetIds: string[];
+    } = {
+      groupIds: [],
+      templateIds: [],
+      widgetIds: [],
+    };
+    if (StringUtility.isIdValid(id) === false) {
+      throw error.occurred(
+        HttpStatus.BAD_REQUEST,
+        ResponseCode.get('g004', { id }),
+      );
+    }
+    const group = await CacheControl.group.findById(id);
+    if (!group) {
+      throw error.occurred(
+        HttpStatus.NOT_FOUNT,
+        ResponseCode.get('grp001', { id }),
+      );
+    }
+    const search = async (
+      targetGroupId: string,
+      props: Prop[],
+    ): Promise<boolean> => {
+      for (const i in props) {
+        const prop = props[i];
+        if (prop.type === PropType.GROUP_POINTER) {
+          const value = prop.value as PropGroupPointer;
+          if (value._id === targetGroupId) {
+            return true;
+          } else {
+            const group = await CacheControl.group.findById(value._id);
+            return search(targetGroupId, group.props);
+          }
+        }
+      }
+      return false;
+    };
+    {
+      const templates = await CacheControl.template.findAll();
+      for (const i in templates) {
+        const template = templates[i];
+        if (await search(`${group._id}`, template.props)) {
+          output.templateIds.push(`${template._id}`);
+        }
+      }
+    }
+    {
+      const groups = await CacheControl.group.findAll();
+      for (const i in groups) {
+        const group = groups[i];
+        if (await search(`${group._id}`, group.props)) {
+          output.groupIds.push(`${group._id}`);
+        }
+      }
+    }
+    {
+      const widgets = await CacheControl.widget.findAll();
+      for (const i in widgets) {
+        const widget = widgets[i];
+        if (await search(`${group._id}`, widget.props)) {
+          output.widgetIds.push(`${widget._id}`);
+        }
+      }
+    }
+    return output;
+  }
 
   static async getAll(): Promise<Array<Group | FSGroup>> {
     return await CacheControl.group.findAll();

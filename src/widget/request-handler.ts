@@ -30,6 +30,56 @@ export class WidgetRequestHandler {
   @CreateLogger(WidgetRequestHandler)
   private static logger: Logger;
 
+  static async whereIsItUsed(
+    id: string,
+  ): Promise<{
+    entries: Array<{
+      id: string;
+      templateId: string;
+      lngCodes: string[];
+    }>;
+  }> {
+    const entries: {
+      [id: string]: {
+        id: string;
+        templateId: string;
+        lngCodes: string[];
+      };
+    } = {};
+    (await CacheControl.entry.findAll()).forEach((entry) => {
+      for (const i in entry.content) {
+        const content = entry.content[i];
+        for (const j in content.props) {
+          const prop = content.props[j];
+          if (prop.type === PropType.WIDGET) {
+            const value = prop.value as PropWidget;
+            if (value._id === id) {
+              const eid = `${entry._id}`;
+              if (entries[eid]) {
+                entries[eid].lngCodes.push(content.lng);
+              } else {
+                entries[eid] = {
+                  id: eid,
+                  templateId: entry.templateId,
+                  lngCodes: [content.lng],
+                };
+              }
+            }
+          }
+        }
+      }
+    });
+    return {
+      entries: Object.keys(entries).map((id) => {
+        return {
+          id: entries[id].id,
+          templateId: entries[id].templateId,
+          lngCodes: entries[id].lngCodes,
+        };
+      }),
+    };
+  }
+
   static async getAll(): Promise<Array<Widget | FSWidget>> {
     return await CacheControl.widget.findAll();
   }

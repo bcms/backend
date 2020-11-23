@@ -40,25 +40,25 @@ export abstract class CacheHandler<
   }
 
   async findAll(): Promise<Array<T | K>> {
-    return (await this.queueable.exec(
-      'findAll',
-      'first_done_free_all',
-      async () => {
-        await this.checkCountLatch();
-        return this.cache;
-      },
-    )) as Array<T | K>;
+    await this.checkCountLatch();
+    return this.cache;
+    // return (await this.queueable.exec(
+    //   'findAll',
+    //   'first_done_free_all',
+    //   async () => {
+    //   },
+    // )) as Array<T | K>;
   }
 
   async findAllById(ids: string[]): Promise<Array<T | K>> {
-    return (await this.queueable.exec(
-      'findAllById',
-      'free_one_by_one',
-      async () => {
-        await this.checkCountLatch();
-        return this.cache.filter((e) => ids.includes(`${e._id}`));
-      },
-    )) as Array<T | K>;
+    await this.checkCountLatch();
+    return this.cache.filter((e) => ids.includes(`${e._id}`));
+    // return (await this.queueable.exec(
+    //   'findAllById',
+    //   'free_one_by_one',
+    //   async () => {
+    //   },
+    // )) as Array<T | K>;
   }
 
   async findById(id: string): Promise<T | K> {
@@ -68,7 +68,8 @@ export abstract class CacheHandler<
         id ===
         (e._id instanceof Types.ObjectId
           ? (e._id as Types.ObjectId).toHexString()
-          : e._id));
+          : e._id),
+    );
     // return (await this.queueable.exec(
     //   'findById',
     //   'free_one_by_one',
@@ -86,70 +87,60 @@ export abstract class CacheHandler<
   }
 
   async add(entity: T | K): Promise<boolean> {
-    return (await this.queueable.exec('add', 'free_one_by_one', async () => {
-      await this.checkCountLatch();
-      const id =
-        typeof entity._id === 'string' ? entity._id : entity._id.toHexString();
-      if (
-        this.cache.find(
-          (e) =>
-            id === (typeof e._id === 'string' ? e._id : e._id.toHexString()),
-        )
-      ) {
-        // tslint:disable-next-line: no-console
-        console.error(`Cache Entity with ID "${id}" already exist.`);
-        return false;
-      }
-      const addResult = await this.repo.add(entity as T & K);
-      if (addResult === false) {
-        return false;
-      }
-      this.cache.push(entity);
-      return true;
-    })) as boolean;
+    await this.checkCountLatch();
+    const id = `${entity._id}`;
+    if (this.cache.find((e) => id === `${e._id}`)) {
+      console.error(`Cache Entity with ID "${id}" already exist.`);
+      return false;
+    }
+    const addResult = await this.repo.add(entity as T & K);
+    if (addResult === false) {
+      return false;
+    }
+    this.cache.push(entity);
+    return true;
+    // return (await this.queueable.exec('add', 'free_one_by_one', async () => {
+    // })) as boolean;
   }
 
   async update(entity: T | K): Promise<boolean> {
-    return (await this.queueable.exec('update', 'free_one_by_one', async () => {
-      await this.checkCountLatch();
-      const id =
-        typeof entity._id === 'string' ? entity._id : entity._id.toHexString();
-      for (const i in this.cache) {
-        if (id === `${this.cache[i]._id}`) {
-          const updateResult = await this.repo.update(entity as T & K);
-          if (updateResult === false) {
-            return false;
-          }
-          this.cache[i] = entity;
-          return true;
+    await this.checkCountLatch();
+    const id = `${entity._id}`;
+    for (const i in this.cache) {
+      if (id === `${this.cache[i]._id}`) {
+        const updateResult = await this.repo.update(entity as T & K);
+        if (updateResult === false) {
+          return false;
         }
+        this.cache[i] = entity;
+        return true;
       }
-      // tslint:disable-next-line: no-console
-      console.error(`Cache Entity with ID "${id}" does not exist.`);
-      return false;
-    })) as boolean;
+    }
+    console.error(`Cache Entity with ID "${id}" does not exist.`);
+    return false;
+    // return (await this.queueable.exec('update', 'free_one_by_one', async () => {
+    // })) as boolean;
   }
 
   async deleteById(id: string): Promise<boolean> {
-    return (await this.queueable.exec(
-      'deleteById',
-      'free_one_by_one',
-      async () => {
-        await this.checkCountLatch();
-        for (let i = 0; i < this.cache.length; i = i + 1) {
-          if (id === `${this.cache[i]._id}`) {
-            const deleteResult = await this.repo.deleteById(id);
-            if (deleteResult === false) {
-              return false;
-            }
-            this.cache.splice(i, 1);
-            return true;
-          }
+    await this.checkCountLatch();
+    for (let i = 0; i < this.cache.length; i = i + 1) {
+      if (id === `${this.cache[i]._id}`) {
+        const deleteResult = await this.repo.deleteById(id);
+        if (deleteResult === false) {
+          return false;
         }
-        // tslint:disable-next-line: no-console
-        console.error(`Cache Entity with ID "${id}" does not exist.`);
-        return false;
-      },
-    )) as boolean;
+        this.cache.splice(i, 1);
+        return true;
+      }
+    }
+    console.error(`Cache Entity with ID "${id}" does not exist.`);
+    return false;
+    // return (await this.queueable.exec(
+    //   'deleteById',
+    //   'free_one_by_one',
+    //   async () => {
+    //   },
+    // )) as boolean;
   }
 }

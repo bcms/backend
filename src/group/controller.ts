@@ -25,6 +25,17 @@ export class GroupController implements ControllerPrototype {
   initRouter: () => void;
 
   @Get(
+    '/:id/where-is-it-used',
+    JWTSecurity.preRequestHandler(
+      [RoleName.ADMIN, RoleName.USER],
+      PermissionName.READ,
+    ),
+  )
+  async whereIsItUsed(request: Request) {
+    return await GroupRequestHandler.whereIsItUsed(request.params.id);
+  }
+
+  @Get(
     '/all/lite',
     JWTSecurity.preRequestHandler(
       [RoleName.ADMIN, RoleName.USER],

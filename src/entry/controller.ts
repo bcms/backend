@@ -141,6 +141,19 @@ export class EntryController implements ControllerPrototype {
     };
   }
 
+  @Get(
+    '/:templateId/:id/lite',
+    JWTApiSecurity.preRequestHandler(
+      [RoleName.ADMIN, RoleName.USER],
+      PermissionName.READ,
+    ),
+  )
+  async getByIdLite(request: Request): Promise<{ entry: EntryLite }> {
+    return {
+      entry: await EntryRequestHandler.getByIdLite(request.params.id),
+    };
+  }
+
   @Post(
     '/:templateId',
     JWTApiSecurity.preRequestHandler(
