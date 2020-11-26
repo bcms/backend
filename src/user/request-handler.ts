@@ -453,7 +453,9 @@ export class UserRequestHandler {
     if (!defaultLanguage) {
       const language = LanguageFactory.instance;
       language.code = 'en';
-      (language.name = 'English'), (language.nativeName = 'English');
+      language.def = true;
+      language.name = 'English';
+      language.nativeName = 'English';
       await CacheControl.language.add(language);
     }
     return {
