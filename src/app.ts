@@ -28,6 +28,7 @@ import { Types } from 'mongoose';
 import { EntryController } from './entry/controller';
 import { FunctionController } from './function';
 import { controllers, middleware } from './plugins';
+import { EntryChangeSocketHandler } from './socket';
 
 let dbConfig: MongoDBConfig;
 if (process.env.DB_USE_FS) {
@@ -91,7 +92,7 @@ if (process.env.DB_USE_FS) {
     }
     return true;
   },
-  eventHandlers: [],
+  eventHandlers: [new EntryChangeSocketHandler()],
 })
 @EnableMongoDB(dbConfig)
 @Application({
