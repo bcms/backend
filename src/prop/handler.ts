@@ -823,6 +823,7 @@ export class PropHandler {
     _props: Prop[],
     changes: PropChange[],
     level?: string,
+    groupPropsChanges?: boolean,
   ): Promise<Prop[] | Error> {
     if (!level) {
       level = 'props';
@@ -941,7 +942,11 @@ export class PropHandler {
                 props[j + 1] = JSON.parse(JSON.stringify(props[j]));
                 props[j] = propBuffer;
               } else if (change.update.move < 0 && j > 0) {
-                if (props[0] && props[0].name === 'title') {
+                if (
+                  props[0] &&
+                  props[0].name === 'title' &&
+                  !groupPropsChanges
+                ) {
                   if (j > 2) {
                     const propBuffer = JSON.parse(JSON.stringify(props[j - 1]));
                     props[j - 1] = JSON.parse(JSON.stringify(props[j]));
@@ -1002,6 +1007,7 @@ export class PropHandler {
                 value.items[j].props,
                 changes,
                 `${level}[${i}].value.items[${j}].props`,
+                true,
               );
               if (result instanceof Error) {
                 return Error(

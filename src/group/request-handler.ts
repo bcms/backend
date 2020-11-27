@@ -281,6 +281,7 @@ export class GroupRequestHandler {
           group.props,
           data.propChanges,
           `(group: ${group.name}).props`,
+          true,
         );
         if (o instanceof Error) {
           throw error.occurred(
