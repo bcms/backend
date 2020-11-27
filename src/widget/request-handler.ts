@@ -211,12 +211,9 @@ export class WidgetRequestHandler {
       widget = JSON.parse(JSON.stringify(w));
     }
     let changeDetected = false;
-    if (typeof data.label !== 'undefined') {
+    if (typeof data.label !== 'undefined' && data.label !== widget.label) {
       const name = General.labelToName(data.label);
       if (widget.name !== name) {
-        changeDetected = true;
-        widget.label = data.label;
-        widget.name = name;
         if (await CacheControl.widget.findByName(widget.name)) {
           throw error.occurred(
             HttpStatus.FORBIDDEN,
@@ -224,6 +221,9 @@ export class WidgetRequestHandler {
           );
         }
       }
+      changeDetected = true;
+      widget.label = data.label;
+      widget.name = name;
     }
     if (typeof data.desc !== 'undefined' && data.desc !== widget.desc) {
       changeDetected = true;

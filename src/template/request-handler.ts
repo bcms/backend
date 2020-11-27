@@ -174,12 +174,9 @@ export class TemplateRequestHandler {
         template = JSON.parse(JSON.stringify(t));
       }
       let changeDetected = false;
-      if (typeof data.label !== 'undefined') {
+      if (typeof data.label !== 'undefined' && data.label !== template.label) {
         const name = General.labelToName(data.label);
-        if (name !== template.name) {
-          changeDetected = true;
-          template.label = data.label;
-          template.name = name;
+        if (template.name !== name) {
           if (await CacheControl.template.findByName(template.name)) {
             throw error.occurred(
               HttpStatus.FORBIDDEN,
@@ -187,6 +184,9 @@ export class TemplateRequestHandler {
             );
           }
         }
+        changeDetected = true;
+        template.label = data.label;
+        template.name = name;
       }
       if (typeof data.desc !== 'undefined' && template.desc !== data.desc) {
         changeDetected = true;

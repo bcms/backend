@@ -252,19 +252,19 @@ export class GroupRequestHandler {
         group = JSON.parse(JSON.stringify(g));
       }
       let changeDetected = false;
-      if (typeof data.label !== 'undefined') {
+      if (typeof data.label !== 'undefined' && data.label !== group.label) {
         const name = General.labelToName(data.label);
         if (group.name !== name) {
-          changeDetected = true;
-          group.label = data.label;
-          group.name = name;
-          if (await CacheControl.group.findByName(group.name)) {
+          if (await CacheControl.group.findByName(name)) {
             throw error.occurred(
               HttpStatus.FORBIDDEN,
               ResponseCode.get('grp002', { name: group.name }),
             );
           }
         }
+        changeDetected = true;
+        group.label = data.label;
+        group.name = name;
       }
       if (typeof data.desc === 'string' && data.desc !== group.desc) {
         changeDetected = true;
