@@ -104,16 +104,24 @@ export class LanguageRequestHandler {
         BCMSEventConfigMethod.ADD,
         JSON.parse(JSON.stringify(language)),
       );
-      (await CacheControl.entry.findAll()).forEach(async (entry) => {
-        const template = await CacheControl.template.findById(`${entry._id}`);
+      const entries = await CacheControl.entry.findAll();
+      for (const i in entries) {
+        const entry = entries[i];
+        const template = await CacheControl.template.findById(
+          `${entry.templateId}`,
+        );
         if (template) {
           entry.meta.push({
             lng: language.code,
             props: template.props,
           });
+          entry.content.push({
+            lng: language.code,
+            props: [],
+          });
           await CacheControl.entry.update(entry);
         }
-      });
+      }
       return language;
     })) as Language | FSLanguage;
   }
