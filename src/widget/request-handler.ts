@@ -239,6 +239,8 @@ export class WidgetRequestHandler {
       const result = await PropHandler.applyPropChanges(
         widget.props,
         data.propChanges,
+        'widget.props',
+        true,
       );
       if (result instanceof Error) {
         throw error.occurred(
