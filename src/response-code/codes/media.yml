@@ -18,3 +18,7 @@ mda009:
   msg: Missing file.
 mda010:
   msg: Invalid Media ID "%id%" was provided.
+mda011:
+  msg: Missing "act" query.
+mda012:
+  msg: Unauthorized.

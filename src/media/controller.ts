@@ -12,6 +12,8 @@ import {
   PermissionName,
   ControllerMethodData,
   JWT,
+  JWTSecurity as JWTSecurityPC,
+  JWTConfigService,
 } from '@becomes/purple-cheetah';
 import { Router, Request } from 'express';
 import { Media, FSMedia, MediaType } from './models';
@@ -149,6 +151,39 @@ export class MediaController implements ControllerPrototype {
     return { __file: await MediaUtil.fs.getPath(media) };
   }
 
+  @Get('/:id/bin/act')
+  async getBinaryByAccessToken(request: Request) {
+    const error = HttpErrorFactory.instance('getBinary', this.logger);
+    if (!request.query.act) {
+      throw error.occurred(HttpStatus.BAD_REQUEST, ResponseCode.get('mda011'));
+    }
+    const jwt = JWTSecurityPC.checkAndValidateAndGet(
+      request.query.act as string,
+      {
+        roles: [RoleName.ADMIN, RoleName.USER],
+        permission: PermissionName.READ,
+        JWTConfig: JWTConfigService.get('user-token-config'),
+      },
+    );
+    if (jwt instanceof Error) {
+      throw error.occurred(HttpStatus.UNAUTHORIZED, ResponseCode.get('mda012'));
+    }
+    const media = await MediaRequestHandler.getById(request.params.id);
+    if (media.type === MediaType.DIR) {
+      throw error.occurred(
+        HttpStatus.FORBIDDEN,
+        ResponseCode.get('mda007', { id: request.params.id }),
+      );
+    }
+    if ((await MediaUtil.fs.exist(media)) === false) {
+      throw error.occurred(
+        HttpStatus.INTERNAL_SERVER_ERROR,
+        ResponseCode.get('mda008', { id: request.params.id }),
+      );
+    }
+    return { __file: await MediaUtil.fs.getPath(media) };
+  }
+
   @Get(
     '/:id/bin/:size',
     JWTApiSecurity.preRequestHandler(
@@ -171,10 +206,44 @@ export class MediaController implements ControllerPrototype {
         ResponseCode.get('mda008', { id: request.params.id }),
       );
     }
-    // return await MediaUtil.fs.get(media, request.params.size as any);
-    // response.sendFile(
-    //   await MediaUtil.fs.getPath(media, request.params.size as any),
-    // );
+    return {
+      __file: await MediaUtil.fs.getPath(
+        media,
+        request.params.size ? 'small' : undefined,
+      ),
+    };
+  }
+
+  @Get('/:id/bin/:size/act')
+  async getBinaryBySizeAndAccessToken(request: Request) {
+    const error = HttpErrorFactory.instance('getBinary', this.logger);
+    if (!request.query.act) {
+      throw error.occurred(HttpStatus.BAD_REQUEST, ResponseCode.get('mda011'));
+    }
+    const jwt = JWTSecurityPC.checkAndValidateAndGet(
+      request.query.act as string,
+      {
+        roles: [RoleName.ADMIN, RoleName.USER],
+        permission: PermissionName.READ,
+        JWTConfig: JWTConfigService.get('user-token-config'),
+      },
+    );
+    if (jwt instanceof Error) {
+      throw error.occurred(HttpStatus.UNAUTHORIZED, ResponseCode.get('mda012'));
+    }
+    const media = await MediaRequestHandler.getById(request.params.id);
+    if (media.type === MediaType.DIR) {
+      throw error.occurred(
+        HttpStatus.FORBIDDEN,
+        ResponseCode.get('mda007', { id: request.params.id }),
+      );
+    }
+    if ((await MediaUtil.fs.exist(media)) === false) {
+      throw error.occurred(
+        HttpStatus.INTERNAL_SERVER_ERROR,
+        ResponseCode.get('mda008', { id: request.params.id }),
+      );
+    }
     return {
       __file: await MediaUtil.fs.getPath(
         media,

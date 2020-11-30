@@ -704,6 +704,16 @@ export class PropHandler {
                 return Error(`[ ${level}.${prop.name} ] --> ${e.message}`);
               }
               if (!inTemplate) {
+                if (
+                  !prop.array &&
+                  prop.required &&
+                  value.entryIds.length === 0
+                ) {
+                  return Error(
+                    `[ ${level}.${prop.name}.value.entryIds ] -->` +
+                      ` Property is required but ID was not provided.`,
+                  );
+                }
                 for (const j in value.entryIds) {
                   if (StringUtility.isIdValid(value.entryIds[j]) === false) {
                     return Error(
