@@ -711,7 +711,7 @@ export class PropHandler {
                 ) {
                   return Error(
                     `[ ${level}.${prop.name}.value.entryIds ] -->` +
-                      ` Property is required but ID was not provided.`,
+                      ` Property is required but ID was no0t provided.`,
                   );
                 }
                 for (const j in value.entryIds) {
