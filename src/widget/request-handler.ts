@@ -214,7 +214,7 @@ export class WidgetRequestHandler {
     if (typeof data.label !== 'undefined' && data.label !== widget.label) {
       const name = General.labelToName(data.label);
       if (widget.name !== name) {
-        if (await CacheControl.widget.findByName(widget.name)) {
+        if (await CacheControl.widget.findByName(name)) {
           throw error.occurred(
             HttpStatus.FORBIDDEN,
             ResponseCode.get('wid002', { name: widget.name }),

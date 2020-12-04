@@ -177,7 +177,7 @@ export class TemplateRequestHandler {
       if (typeof data.label !== 'undefined' && data.label !== template.label) {
         const name = General.labelToName(data.label);
         if (template.name !== name) {
-          if (await CacheControl.template.findByName(template.name)) {
+          if (await CacheControl.template.findByName(name)) {
             throw error.occurred(
               HttpStatus.FORBIDDEN,
               ResponseCode.get('tmp002', { name: template.name }),

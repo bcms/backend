@@ -1,6 +1,7 @@
 import {
   JWTConfigService,
   JWTEncryptionAlg,
+  FSDBManager,
 } from '@becomes/purple-cheetah';
 import { ResponseCode } from './response-code';
 import { CacheControl } from './cache';
@@ -18,6 +19,9 @@ export class Config {
       issuer: process.env.JWT_ISSUER,
       secret: process.env.JWT_SECRET,
     });
+    if (process.env.DEV === 'true') {
+      await FSDBManager.init(process.cwd());
+    }
     CacheControl.init();
     await FunctionManager.init();
     await EventManager.init();

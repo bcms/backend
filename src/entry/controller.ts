@@ -8,12 +8,18 @@ import {
   Delete,
   RoleName,
   PermissionName,
+  ControllerMethodData,
+  JWT,
 } from '@becomes/purple-cheetah';
 import { Router, Request } from 'express';
 import { Entry, FSEntry } from './models';
 import { EntryLite, EntryParsed } from './interfaces';
 import { EntryRequestHandler } from './request-handler';
-import { JWTApiSecurity, JWTSecurity } from '../security';
+import {
+  JWTApiSecurity,
+  JWTSecurity,
+  JWTApiSecurityPreRequestHandlerOutput,
+} from '../security';
 
 @Controller('/api/entry')
 export class EntryController implements ControllerPrototype {
@@ -161,11 +167,15 @@ export class EntryController implements ControllerPrototype {
       PermissionName.WRITE,
     ),
   )
-  async add(request: Request): Promise<{ entry: Entry | FSEntry }> {
+  async add(
+    ...data: ControllerMethodData<JWTApiSecurityPreRequestHandlerOutput>
+  ): Promise<{ entry: Entry | FSEntry }> {
+    console.log(data);
     return {
       entry: await EntryRequestHandler.add(
-        request.body,
-        request.headers.sid as string,
+        data[0].body,
+        data[0].headers.sid as string,
+        data[3].type === 'jwt' ? (data[3].value as JWT).payload.userId : '',
       ),
     };
   }

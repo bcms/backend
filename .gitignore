@@ -26,7 +26,7 @@ lerna-debug.log*
 
 # IDEs and editors
 .env
-bcms-config.js
+bcms.db.json
 /.idea
 .project
 .classpath

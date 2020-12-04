@@ -512,7 +512,6 @@ export class GroupRequestHandler {
         if (output instanceof Error) {
           throw output;
         }
-        this.logger.warn('', output);
         if (output.changesFound) {
           updated.template.push(`${template._id}`);
           template.props = output.props;

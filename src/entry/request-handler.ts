@@ -175,7 +175,7 @@ export class EntryRequestHandler {
     return EntryFactory.toLite(entry);
   }
 
-  static async add(data: AddEntryData, sid: string): Promise<Entry | FSEntry> {
+  static async add(data: AddEntryData, sid: string, userId: string): Promise<Entry | FSEntry> {
     const error = HttpErrorFactory.instance('add', this.logger);
     try {
       ObjectUtility.compareWithSchema(data, AddEntryDataSchema, 'data');
@@ -193,7 +193,6 @@ export class EntryRequestHandler {
         ResponseCode.get('g004', { id: data.templateId }),
       );
     }
-    let userId: string;
     const template = await CacheControl.template.findById(data.templateId);
     if (!template) {
       throw error.occurred(
