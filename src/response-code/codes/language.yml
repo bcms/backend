@@ -12,3 +12,6 @@ lng006:
   msg: Failed to delete Language from the database.
 lng007:
   msg: Default Language cannot be deleted.
+lng008:
+  msg: Cannot perform request since there will be no languages left.
+

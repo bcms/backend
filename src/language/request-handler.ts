@@ -227,12 +227,18 @@ export class LanguageRequestHandler {
           ResponseCode.get('lng001', { id }),
         );
       }
-      if (language.def) {
+      if ((await CacheControl.language.count()) < 2) {
         throw error.occurred(
           HttpStatus.INTERNAL_SERVER_ERROR,
-          ResponseCode.get('lng007'),
+          ResponseCode.get('lng008'),
         );
       }
+      // if (language.def) {
+      //   throw error.occurred(
+      //     HttpStatus.INTERNAL_SERVER_ERROR,
+      //     ResponseCode.get('lng007'),
+      //   );
+      // }
       const deleteResult = await CacheControl.language.deleteById(id);
       if (deleteResult === false) {
         throw error.occurred(
