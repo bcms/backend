@@ -14,6 +14,7 @@ import {
   PermissionName,
   JWTConfigService,
   RequestLoggerMiddleware,
+  FSUtil,
 } from '@becomes/purple-cheetah';
 import { SwaggerController, SwaggerMiddleware } from './swagger';
 import { UserController } from './user';
@@ -144,6 +145,8 @@ export class App extends PurpleCheetah {
     ApiKeyManager.initializeKeys().catch((error) => {
       this.logger.error('Initialize api key manager', error);
     });
+    let indexPath = path.join(process.cwd(), 'public', 'index.html');
+    let checkIndex = true;
     this.app.use(
       '/',
       async (
@@ -156,16 +159,20 @@ export class App extends PurpleCheetah {
           return;
         } else {
           response.status(200);
-          response.sendFile(
-            path.join(
-              process.cwd(),
-              'node_modules',
-              '@becomes',
-              'cms-ui',
-              'public',
-              'index.html',
-            ),
-          );
+          if (checkIndex) {
+            checkIndex = false;
+            if (!(await FSUtil.exist(indexPath))) {
+              indexPath = path.join(
+                process.cwd(),
+                'node_modules',
+                '@becomes',
+                'cms-ui',
+                'public',
+                'index.html',
+              );
+            }
+          }
+          response.sendFile(indexPath);
         }
       },
     );
