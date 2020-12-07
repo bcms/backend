@@ -19,7 +19,7 @@ export class Config {
       issuer: process.env.JWT_ISSUER,
       secret: process.env.JWT_SECRET,
     });
-    if (process.env.DEV === 'true') {
+    if (process.env.DB_USE_FS === 'true') {
       await FSDBManager.init(process.cwd());
     }
     CacheControl.init();
