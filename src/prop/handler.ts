@@ -1343,9 +1343,9 @@ export class PropHandler {
               value: {
                 type: prop.type,
                 value: `<h1>${
-                  value.text.endsWith('\n')
-                    ? value.text.substring(0, value.text.length - 1)
-                    : value.text
+                  value.ops[0].insert.endsWith('\n')
+                    ? value.ops[0].insert.substring(0, value.ops[0].insert.length - 1)
+                    : value.ops[0].insert
                 }</h1>`,
               },
             });
@@ -1361,9 +1361,9 @@ export class PropHandler {
               value: {
                 type: prop.type,
                 value: `<h2>${
-                  value.text.endsWith('\n')
-                    ? value.text.substring(0, value.text.length - 1)
-                    : value.text
+                  value.ops[0].insert.endsWith('\n')
+                    ? value.ops[0].insert.substring(0, value.ops[0].insert.length - 1)
+                    : value.ops[0].insert
                 }</h2>`,
               },
             });
@@ -1379,9 +1379,9 @@ export class PropHandler {
               value: {
                 type: prop.type,
                 value: `<h3>${
-                  value.text.endsWith('\n')
-                    ? value.text.substring(0, value.text.length - 1)
-                    : value.text
+                  value.ops[0].insert.endsWith('\n')
+                    ? value.ops[0].insert.substring(0, value.ops[0].insert.length - 1)
+                    : value.ops[0].insert
                 }</h3>`,
               },
             });
@@ -1397,9 +1397,9 @@ export class PropHandler {
               value: {
                 type: prop.type,
                 value: `<h4>${
-                  value.text.endsWith('\n')
-                    ? value.text.substring(0, value.text.length - 1)
-                    : value.text
+                  value.ops[0].insert.endsWith('\n')
+                    ? value.ops[0].insert.substring(0, value.ops[0].insert.length - 1)
+                    : value.ops[0].insert
                 }</h4>`,
               },
             });
@@ -1415,9 +1415,9 @@ export class PropHandler {
               value: {
                 type: prop.type,
                 value: `<h5>${
-                  value.text.endsWith('\n')
-                    ? value.text.substring(0, value.text.length - 1)
-                    : value.text
+                  value.ops[0].insert.endsWith('\n')
+                    ? value.ops[0].insert.substring(0, value.ops[0].insert.length - 1)
+                    : value.ops[0].insert
                 }</h5>`,
               },
             });
