@@ -268,6 +268,7 @@ export class WidgetRequestHandler {
       widget.props,
       widget.props,
       'widget.props',
+      true,
     );
     if (output instanceof Error) {
       throw error.occurred(

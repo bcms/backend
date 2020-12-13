@@ -316,6 +316,7 @@ export class GroupRequestHandler {
         group.props,
         group.props,
         'group.props',
+        true
       );
       if (output instanceof Error) {
         throw error.occurred(
