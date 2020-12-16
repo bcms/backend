@@ -152,7 +152,7 @@ export class ApiKeySecurity {
       throw new Error('Invalid signature.');
     }
     if (skipAccess && skipAccess === true) {
-      return;
+      return key;
     }
     if (
       ApiKeySecurity.verifyAccess(key, request.requestMethod, request.path) ===

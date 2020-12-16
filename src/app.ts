@@ -26,10 +26,12 @@ import { LanguageController } from './language';
 import { ApiKeyController, ApiKeyManager } from './api';
 import { MediaController, MediaParserMiddleware } from './media';
 import { Types } from 'mongoose';
-import { EntryController } from './entry/controller';
+import { EntryController } from './entry';
 import { FunctionController } from './function';
 import { controllers, middleware } from './plugins';
 import { EntryChangeSocketHandler } from './socket';
+import { ApiKeySecurity } from './security';
+import { CypressController } from './cypress';
 
 let dbConfig: MongoDBConfig;
 if (process.env.DB_USE_FS) {
@@ -83,13 +85,38 @@ if (process.env.DB_USE_FS) {
     };
   },
   verifyConnection: async (socket) => {
-    const jwt = JWTSecurity.checkAndValidateAndGet(socket.request._query.at, {
-      roles: [RoleName.ADMIN, RoleName.USER],
-      permission: PermissionName.READ,
-      JWTConfig: JWTConfigService.get('user-token-config'),
-    });
-    if (jwt instanceof Error) {
-      return false;
+    if (socket.request._query.signature) {
+      try {
+        const key = await ApiKeySecurity.verify(
+          {
+            path: '',
+            requestMethod: 'POST',
+            data: {
+              key: socket.request._query.key,
+              nonce: socket.request._query.nonce,
+              timestamp: socket.request._query.timestamp,
+              signature: socket.request._query.signature,
+            },
+            payload: {},
+          },
+          true,
+        );
+        if (!key) {
+          return false;
+        }
+      } catch (error) {
+        console.error(error);
+        return false;
+      }
+    } else {
+      const jwt = JWTSecurity.checkAndValidateAndGet(socket.request._query.at, {
+        roles: [RoleName.ADMIN, RoleName.USER],
+        permission: PermissionName.READ,
+        JWTConfig: JWTConfigService.get('user-token-config'),
+      });
+      if (jwt instanceof Error) {
+        return false;
+      }
     }
     return true;
   },
@@ -100,6 +127,7 @@ if (process.env.DB_USE_FS) {
   port: parseInt(process.env.API_PORT, 10),
   controllers: [
     process.env.DEV === 'true' ? new SwaggerController() : undefined,
+    process.env.CYPRESS === 'true' ? new CypressController() : undefined,
     new UserController(),
     new AuthController(),
     new GroupController(),

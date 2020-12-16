@@ -170,7 +170,6 @@ export class EntryController implements ControllerPrototype {
   async add(
     ...data: ControllerMethodData<JWTApiSecurityPreRequestHandlerOutput>
   ): Promise<{ entry: Entry | FSEntry }> {
-    console.log(data);
     return {
       entry: await EntryRequestHandler.add(
         data[0].body,
