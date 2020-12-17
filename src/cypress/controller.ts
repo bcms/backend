@@ -48,9 +48,9 @@ export class CypressController implements ControllerPrototype {
     for (const i in ids) {
       await CacheControl.widget.deleteById(`${ids[i]}`);
     }
-    ids = (await CacheControl.user.findAll()).map((e) => e._id).splice(1);
+    ids = (await CacheControl.user.findAll()).map((e) => e._id).slice(1);
     for (const i in ids) {
-      await CacheControl.media.deleteById(`${ids[i]}`);
+      await CacheControl.user.deleteById(`${ids[i]}`);
     }
     return {
       message: 'OK',
