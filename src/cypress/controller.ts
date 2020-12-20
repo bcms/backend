@@ -32,7 +32,9 @@ export class CypressController implements ControllerPrototype {
     for (const i in ids) {
       await CacheControl.group.deleteById(`${ids[i]}`);
     }
-    ids = (await CacheControl.language.findAll()).map((e) => e._id);
+    ids = (await CacheControl.language.findAll())
+      .filter((e) => e.code !== 'en')
+      .map((e) => e._id);
     for (const i in ids) {
       await CacheControl.language.deleteById(`${ids[i]}`);
     }
