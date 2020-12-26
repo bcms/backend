@@ -10,6 +10,8 @@ import {
   PermissionName,
   ControllerMethodData,
   JWT,
+  Entity,
+  FSDBEntity,
 } from '@becomes/purple-cheetah';
 import { Router, Request } from 'express';
 import { Entry, FSEntry } from './models';
@@ -86,6 +88,23 @@ export class EntryController implements ControllerPrototype {
   }
 
   @Get(
+    '/all/:templateId/index',
+    JWTApiSecurity.preRequestHandler(
+      [RoleName.ADMIN, RoleName.USER],
+      PermissionName.READ,
+    ),
+  )
+  async getAllByTemplateIdIndexed(
+    request: Request,
+  ): Promise<{ entries: Array<Entity | FSDBEntity> }> {
+    return {
+      entries: await EntryRequestHandler.getAllByTemplateIdIndexed(
+        request.params.templateId,
+      ),
+    };
+  }
+
+  @Get(
     '/all/:templateId/parse',
     JWTApiSecurity.preRequestHandler(
       [RoleName.ADMIN, RoleName.USER],
@@ -144,6 +163,19 @@ export class EntryController implements ControllerPrototype {
   async getById(request: Request): Promise<{ entry: Entry | FSEntry }> {
     return {
       entry: await EntryRequestHandler.getById(request.params.id),
+    };
+  }
+
+  @Get(
+    '/:templateId/:id/parse',
+    JWTApiSecurity.preRequestHandler(
+      [RoleName.ADMIN, RoleName.USER],
+      PermissionName.READ,
+    ),
+  )
+  async getByIdParsed(request: Request): Promise<{ entry: EntryParsed }> {
+    return {
+      entry: await EntryRequestHandler.getByIdParsed(request.params.id),
     };
   }
 

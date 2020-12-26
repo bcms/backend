@@ -6,6 +6,8 @@ import {
   HttpStatus,
   StringUtility,
   ObjectUtility,
+  Entity,
+  FSDBEntity,
 } from '@becomes/purple-cheetah';
 import { ResponseCode } from '../response-code';
 import { CacheControl } from '../cache';
@@ -107,6 +109,28 @@ export class EntryRequestHandler {
     }
     return entriesParsed;
   }
+  static async getAllByTemplateIdIndexed(
+    templateId: string,
+  ): Promise<Array<Entity | FSDBEntity>> {
+    const error = HttpErrorFactory.instance(
+      'getAllByTemplateIdIndexed',
+      this.logger,
+    );
+    if (StringUtility.isIdValid(templateId) === false) {
+      throw error.occurred(
+        HttpStatus.BAD_REQUEST,
+        ResponseCode.get('g004', { templateId }),
+      );
+    }
+    const entries = await CacheControl.entry.findAllByTemplateId(templateId);
+    return entries.map((e) => {
+      return {
+        _id: `${e._id}`,
+        createdAt: e.createdAt,
+        updatedAt: e.updatedAt,
+      };
+    });
+  }
 
   static async getAllLiteByTemplateId(
     templateId: string,
@@ -157,6 +181,24 @@ export class EntryRequestHandler {
     return entry;
   }
 
+  static async getByIdParsed(id: string): Promise<EntryParsed> {
+    const error = HttpErrorFactory.instance('getById', this.logger);
+    if (StringUtility.isIdValid(id) === false) {
+      throw error.occurred(
+        HttpStatus.BAD_REQUEST,
+        ResponseCode.get('g004', { id }),
+      );
+    }
+    const entry = await CacheControl.entry.findById(id);
+    if (!entry) {
+      throw error.occurred(
+        HttpStatus.NOT_FOUNT,
+        ResponseCode.get('etr001', { id }),
+      );
+    }
+    return await EntryParser.parse(entry);
+  }
+
   static async getByIdLite(id: string): Promise<EntryLite> {
     const error = HttpErrorFactory.instance('getById', this.logger);
     if (StringUtility.isIdValid(id) === false) {
@@ -175,7 +217,11 @@ export class EntryRequestHandler {
     return EntryFactory.toLite(entry);
   }
 
-  static async add(data: AddEntryData, sid: string, userId: string): Promise<Entry | FSEntry> {
+  static async add(
+    data: AddEntryData,
+    sid: string,
+    userId: string,
+  ): Promise<Entry | FSEntry> {
     const error = HttpErrorFactory.instance('add', this.logger);
     try {
       ObjectUtility.compareWithSchema(data, AddEntryDataSchema, 'data');
