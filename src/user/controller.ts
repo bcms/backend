@@ -15,6 +15,7 @@ import { Request, Router } from 'express';
 import { UserRequestHandler } from './request-handler';
 import { ProtectedUser } from './models';
 import { JWTSecurity } from '../security';
+import { UserCustomPool } from './interfaces';
 
 @Controller('/api/user')
 export class UserController implements ControllerPrototype {
@@ -65,7 +66,7 @@ export class UserController implements ControllerPrototype {
     ),
   )
   async getByAccessToken(
-    ...data: ControllerMethodData<JWT>
+    ...data: ControllerMethodData<JWT<UserCustomPool>>
   ): Promise<{ user: ProtectedUser }> {
     return {
       user: await UserRequestHandler.getByAccessToken(data[3]),
@@ -93,7 +94,7 @@ export class UserController implements ControllerPrototype {
     ),
   )
   async update(
-    ...data: ControllerMethodData<JWT>
+    ...data: ControllerMethodData<JWT<UserCustomPool>>
   ): Promise<{ user: ProtectedUser }> {
     return {
       user: await UserRequestHandler.update(
@@ -155,7 +156,7 @@ export class UserController implements ControllerPrototype {
     ),
   )
   async delete(
-    ...data: ControllerMethodData<JWT>
+    ...data: ControllerMethodData<JWT<UserCustomPool>>
   ): Promise<{ message: string }> {
     await UserRequestHandler.delete(
       data[3],

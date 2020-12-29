@@ -22,6 +22,7 @@ import { MediaAggregate } from './interfaces';
 import { ResponseCode } from '../response-code';
 import { MediaUtil } from '../util';
 import { JWTApiSecurity, JWTSecurity } from '../security';
+import { UserCustomPool } from '../user';
 
 @Controller('/api/media')
 export class MediaController implements ControllerPrototype {
@@ -260,7 +261,7 @@ export class MediaController implements ControllerPrototype {
     ),
   )
   async addFile(
-    ...data: ControllerMethodData<JWT>
+    ...data: ControllerMethodData<JWT<UserCustomPool>>
   ): Promise<{ media: Media | FSMedia }> {
     this.logger.warn('addFile', data[0].headers.upload_file_error_message);
     return {
@@ -281,7 +282,7 @@ export class MediaController implements ControllerPrototype {
     ),
   )
   async addDir(
-    ...data: ControllerMethodData<JWT>
+    ...data: ControllerMethodData<JWT<UserCustomPool>>
   ): Promise<{ media: Media | FSMedia }> {
     return {
       media: await MediaRequestHandler.addDir(

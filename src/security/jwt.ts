@@ -10,6 +10,7 @@ import {
   RoleName,
 } from '@becomes/purple-cheetah';
 import { Request } from 'express';
+import { UserCustomPool } from '../user';
 import { ResponseCode } from '../response-code';
 
 export class JWTSecurity {
@@ -18,7 +19,7 @@ export class JWTSecurity {
   static preRequestHandler(
     roles: RoleName[],
     permission: PermissionName,
-  ): ControllerMethodPreRequestHandler<JWT> {
+  ): ControllerMethodPreRequestHandler<JWT<UserCustomPool>> {
     return async (request) => {
       return this.verificationWrapper(request, roles, permission);
     };
@@ -27,9 +28,9 @@ export class JWTSecurity {
     request: Request,
     roles: RoleName[],
     permission: PermissionName,
-  ): JWT {
+  ): JWT<UserCustomPool> {
     const error = HttpErrorFactory.instance(request.originalUrl, this.logger);
-    const jwt = JWTSecurityPurpleCheetah.checkAndValidateAndGet(
+    const jwt = JWTSecurityPurpleCheetah.checkAndValidateAndGet<UserCustomPool>(
       request.headers.authorization,
       {
         roles,

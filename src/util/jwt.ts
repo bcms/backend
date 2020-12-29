@@ -8,7 +8,7 @@ import {
   HttpStatus,
 } from '@becomes/purple-cheetah';
 import { ResponseCode } from '../response-code';
-import { UserPolicy } from '../user';
+import { UserCustomPool, UserPolicy } from '../user';
 
 export class JWTUtil {
   public static checkAuthorization(
@@ -19,8 +19,8 @@ export class JWTUtil {
       config: JWTConfig;
     },
     errorHandler: HttpError,
-  ): JWT {
-    const jwt = JWTSecurity.checkAndValidateAndGet(auth.header, {
+  ): JWT<UserCustomPool> {
+    const jwt = JWTSecurity.checkAndValidateAndGet<UserCustomPool>(auth.header, {
       roles: auth.roles,
       permission: auth.permission,
       JWTConfig: auth.config,

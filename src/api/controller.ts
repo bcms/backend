@@ -12,6 +12,7 @@ import {
   JWT,
 } from '@becomes/purple-cheetah';
 import { Router, Request } from 'express';
+import { UserCustomPool } from '../user';
 import { ApiKeySecurity, JWTSecurity } from '../security';
 import { ApiKeyAccess, ApiKey, FSApiKey } from './models';
 import { ApiKeyRequestHandler } from './request-handler';
@@ -58,7 +59,7 @@ export class ApiKeyController implements ControllerPrototype {
     JWTSecurity.preRequestHandler([RoleName.ADMIN], PermissionName.READ),
   )
   async getById(
-    ...data: ControllerMethodData<JWT>
+    ...data: ControllerMethodData<JWT<UserCustomPool>>
   ): Promise<{ key: ApiKey | FSApiKey }> {
     return {
       key: await ApiKeyRequestHandler.getById(data[0].params.id),
@@ -70,7 +71,7 @@ export class ApiKeyController implements ControllerPrototype {
     JWTSecurity.preRequestHandler([RoleName.ADMIN], PermissionName.WRITE),
   )
   async add(
-    ...data: ControllerMethodData<JWT>
+    ...data: ControllerMethodData<JWT<UserCustomPool>>
   ): Promise<{ key: ApiKey | FSApiKey }> {
     return {
       key: await ApiKeyRequestHandler.add(
@@ -86,7 +87,7 @@ export class ApiKeyController implements ControllerPrototype {
     JWTSecurity.preRequestHandler([RoleName.ADMIN], PermissionName.WRITE),
   )
   async update(
-    ...data: ControllerMethodData<JWT>
+    ...data: ControllerMethodData<JWT<UserCustomPool>>
   ): Promise<{ key: ApiKey | FSApiKey }> {
     return {
       key: await ApiKeyRequestHandler.update(

@@ -26,6 +26,7 @@ import {
   BCMSEventConfigScope,
   BCMSEventConfigMethod,
 } from '../event';
+import { UserCustomPool } from '../user';
 
 export class MediaRequestHandler {
   @CreateLogger(MediaRequestHandler)
@@ -191,7 +192,7 @@ export class MediaRequestHandler {
   }
 
   static async addFile(
-    jwt: JWT,
+    jwt: JWT<UserCustomPool>,
     sid: string,
     parentId?: string,
     file?: Express.Multer.File,
@@ -267,7 +268,7 @@ export class MediaRequestHandler {
   }
 
   static async addDir(
-    jwt: JWT,
+    jwt: JWT<UserCustomPool>,
     data: AddMediaDirData,
     sid: string,
   ): Promise<Media | FSMedia> {

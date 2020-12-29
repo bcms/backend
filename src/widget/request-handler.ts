@@ -17,14 +17,13 @@ import {
   UpdateWidgetDataSchema,
 } from './interfaces';
 import { WidgetFactory } from './factories';
-import { PropChange, PropType } from '../prop';
+import { PropChange, PropType, PropWidget } from '../prop';
 import { General, SocketUtil, SocketEventName } from '../util';
 import {
   EventManager,
   BCMSEventConfigScope,
   BCMSEventConfigMethod,
 } from '../event';
-import { PropWidget } from 'src/prop/interfaces/quill';
 
 export class WidgetRequestHandler {
   @CreateLogger(WidgetRequestHandler)

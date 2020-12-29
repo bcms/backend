@@ -22,6 +22,7 @@ import {
   JWTSecurity,
   JWTApiSecurityPreRequestHandlerOutput,
 } from '../security';
+import { UserCustomPool } from '../user';
 
 @Controller('/api/entry')
 export class EntryController implements ControllerPrototype {
@@ -206,7 +207,7 @@ export class EntryController implements ControllerPrototype {
       entry: await EntryRequestHandler.add(
         data[0].body,
         data[0].headers.sid as string,
-        data[3].type === 'jwt' ? (data[3].value as JWT).payload.userId : '',
+        data[3].type === 'jwt' ? (data[3].value as JWT<UserCustomPool>).payload.userId : '',
       ),
     };
   }

@@ -4,13 +4,14 @@ import {
   PermissionName,
   RoleName,
 } from '@becomes/purple-cheetah';
+import { UserCustomPool } from '../user';
 import { ApiKey, FSApiKey } from '../api';
 import { ApiKeySecurity } from './api';
 import { JWTSecurity } from './jwt';
 
 export interface JWTApiSecurityPreRequestHandlerOutput {
   type: 'jwt' | 'api';
-  value: JWT | ApiKey | FSApiKey;
+  value: JWT<UserCustomPool> | ApiKey | FSApiKey;
 }
 
 export class JWTApiSecurity {

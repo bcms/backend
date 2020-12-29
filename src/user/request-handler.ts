@@ -20,6 +20,7 @@ import {
   UpdateUserDataSchema,
   AddUserData,
   AddUserDataSchema,
+  UserCustomPool,
 } from './interfaces';
 import { ResponseCode } from '../response-code';
 import { CacheControl } from '../cache';
@@ -50,7 +51,7 @@ export class UserRequestHandler {
     });
   }
 
-  static async getByAccessToken(jwt: JWT): Promise<ProtectedUser> {
+  static async getByAccessToken(jwt: JWT<UserCustomPool>): Promise<ProtectedUser> {
     const error = HttpErrorFactory.instance('getByAccessToken', this.logger);
     const user = await CacheControl.user.findById(jwt.payload.userId);
     if (!user) {
@@ -77,7 +78,7 @@ export class UserRequestHandler {
   }
 
   static async update(
-    jwt: JWT,
+    jwt: JWT<UserCustomPool>,
     data: UpdateUserData,
     sid: string,
   ): Promise<ProtectedUser> {
@@ -471,7 +472,7 @@ export class UserRequestHandler {
     };
   }
 
-  static async delete(jwt: JWT, id: string, sid: string) {
+  static async delete(jwt: JWT<UserCustomPool>, id: string, sid: string) {
     const error = HttpErrorFactory.instance('delete', this.logger);
     if (StringUtility.isIdValid(id) === false) {
       throw error.occurred(

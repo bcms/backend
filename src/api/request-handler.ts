@@ -24,6 +24,7 @@ import {
 } from '../event';
 import { SocketEventName, SocketUtil } from '../util';
 import { ApiKeyManager } from './manager';
+import { UserCustomPool } from '../user';
 
 export class ApiKeyRequestHandler {
   @CreateLogger(ApiKeyRequestHandler)
@@ -66,7 +67,7 @@ export class ApiKeyRequestHandler {
   }
 
   static async add(
-    jwt: JWT,
+    jwt: JWT<UserCustomPool>,
     sid: string,
     data: AddApiKeyData,
   ): Promise<ApiKey | FSApiKey> {
