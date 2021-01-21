@@ -51,4 +51,8 @@ export class EntryCacheHandler extends CacheHandler<
       return true;
     });
   }
+
+  async findAllByStatus(statusId: string): Promise<Array<Entry | FSEntry>> {
+    
+  } 
 }

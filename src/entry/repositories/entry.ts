@@ -26,18 +26,27 @@ export class MongoEntryRepository
   update: (e: Entry) => Promise<boolean>;
   deleteById: (id: string) => Promise<boolean>;
   deleteAllById: (ids: string[]) => Promise<number | boolean>;
-  async count(): Promise<number> {
-    return await this.repo.find().countDocuments();
-  }
-  async countByTemplateId(templateId: string): Promise<number> {
-    return await this.repo.find({ templateId }).countDocuments();
-  }
 
+  async findAllByStatus(status: string): Promise<Entry[]> {
+    return await this.repo.find({ status });
+  }
   async findAllByTemplateId(templateId: string): Promise<Entry[]> {
     return await this.repo.find({ templateId });
   }
-
+  async clearAllStatuses(currentStatus: string) {
+    await this.repo.updateMany(
+      { status: currentStatus },
+      { $set: { status: '' } },
+    );
+  }
   async deleteAllByTemplateId(templateId: string) {
     await this.repo.deleteMany({ templateId });
+  }
+
+  async countByTemplateId(templateId: string): Promise<number> {
+    return await this.repo.find({ templateId }).countDocuments();
+  }
+  async count(): Promise<number> {
+    return await this.repo.find().countDocuments();
   }
 }

@@ -7,6 +7,7 @@ import {
   ApiKeyCacheHandler,
   MediaCacheHandler,
   EntryCacheHandler,
+  StatusCacheHandler,
 } from './handlers';
 
 export class CacheControl {
@@ -18,6 +19,7 @@ export class CacheControl {
   static apiKey: ApiKeyCacheHandler;
   static media: MediaCacheHandler;
   static entry: EntryCacheHandler;
+  static status: StatusCacheHandler;
 
   static init() {
     this.user = new UserCacheHandler();
@@ -28,5 +30,6 @@ export class CacheControl {
     this.apiKey = new ApiKeyCacheHandler();
     this.media = new MediaCacheHandler();
     this.entry = new EntryCacheHandler();
+    this.status = new StatusCacheHandler();
   }
 }

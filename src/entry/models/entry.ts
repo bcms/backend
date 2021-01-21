@@ -15,6 +15,7 @@ export interface EntryContent {
 export interface IEntry extends IEntity {
   templateId: string;
   userId: string;
+  status?: string;
   meta: EntryMeta[];
   content: EntryContent[];
 }
@@ -29,6 +30,7 @@ export class Entry implements Entity {
     public userId: string,
     public meta: EntryMeta[],
     public content: EntryContent[],
+    public status?: string,
   ) {}
 
   static get schema(): Schema {
@@ -38,6 +40,7 @@ export class Entry implements Entity {
       updatedAt: Number,
       templateId: String,
       userId: String,
+      status: String,
       meta: [Object],
       content: [Object],
     });
@@ -94,6 +97,10 @@ export const EntrySchema: ObjectSchema = {
   userId: {
     __type: 'string',
     __required: true,
+  },
+  status: {
+    __type: 'string',
+    __required: false,
   },
   meta: {
     __type: 'array',

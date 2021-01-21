@@ -6,3 +6,4 @@ export * from './language';
 export * from './media';
 export * from './api-key';
 export * from './entry';
+export * from './status';

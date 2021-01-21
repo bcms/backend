@@ -13,6 +13,7 @@ export class EntryFactory {
         '',
         [],
         [],
+        '',
       );
     } else {
       return new Entry(
@@ -23,6 +24,7 @@ export class EntryFactory {
         '',
         [],
         [],
+        '',
       );
     }
   }

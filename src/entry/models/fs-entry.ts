@@ -11,5 +11,6 @@ export class FSEntry implements FSDBEntity {
     public userId: string,
     public meta: EntryMeta[],
     public content: EntryContent[],
+    public status?: string,
   ) {}
 }
