@@ -11,6 +11,7 @@ export enum SocketEventName {
   API_KEY = 'apiKey',
   PLUGIN = 'plugin',
   ENTRY_CHANGE = 'entryChange',
+  STATUS = 'status',
 }
 
 export interface SocketEventData {

@@ -5,9 +5,9 @@ import {
   ObjectUtility,
   StringUtility,
 } from '@becomes/purple-cheetah';
-import { CacheControl } from 'src/cache';
-import { ResponseCode } from 'src/response-code';
-import { General } from 'src/util';
+import { CacheControl } from '../cache';
+import { ResponseCode } from '../response-code';
+import { General, SocketUtil, SocketEventName } from '../util';
 import { StatusFactory } from './factory';
 import { FSStatus, Status } from './models';
 import {
@@ -37,7 +37,10 @@ export class StatusRequestHandler {
     }
     return status;
   }
-  static async add(data: AddStatusData): Promise<Status | FSStatus> {
+  static async add(
+    data: AddStatusData,
+    sid: string,
+  ): Promise<Status | FSStatus> {
     const error = HttpErrorFactory.instance('add', this.logger);
     try {
       ObjectUtility.compareWithSchema(data, AddStatusDataSchema, 'data');
@@ -77,9 +80,20 @@ export class StatusRequestHandler {
         ResponseCode.get('sts003'),
       );
     }
+    SocketUtil.emit(SocketEventName.STATUS, {
+      entry: {
+        _id: `${status._id}`,
+      },
+      message: 'Status hes been added.',
+      source: sid,
+      type: 'add',
+    });
     return status;
   }
-  static async update(data: UpdateStatusData): Promise<Status | FSStatus> {
+  static async update(
+    data: UpdateStatusData,
+    sid: string,
+  ): Promise<Status | FSStatus> {
     const error = HttpErrorFactory.instance('update', this.logger);
     if (!StringUtility.isIdValid(data._id)) {
       throw error.occurred(
@@ -143,9 +157,17 @@ export class StatusRequestHandler {
         ResponseCode.get('sts004'),
       );
     }
+    SocketUtil.emit(SocketEventName.STATUS, {
+      entry: {
+        _id: `${status._id}`,
+      },
+      message: 'Status hes been updated.',
+      source: sid,
+      type: 'update',
+    });
     return status;
   }
-  static async deleteById(id: string): Promise<void> {
+  static async deleteById(id: string, sid: string): Promise<void> {
     const error = HttpErrorFactory.instance('deleteById', this.logger);
     if (!StringUtility.isIdValid(id)) {
       throw error.occurred(
@@ -162,6 +184,21 @@ export class StatusRequestHandler {
         }),
       );
     }
-    
+    await CacheControl.entry.clearAllStatuses(`${status._id}`);
+    const deleteResult = await CacheControl.status.deleteById(`${status._id}`);
+    if (!deleteResult) {
+      throw error.occurred(
+        HttpStatus.INTERNAL_SERVER_ERROR,
+        ResponseCode.get('sts005'),
+      );
+    }
+    SocketUtil.emit(SocketEventName.STATUS, {
+      entry: {
+        _id: `${status._id}`,
+      },
+      message: 'Status hes been deleted.',
+      source: sid,
+      type: 'remove',
+    });
   }
 }

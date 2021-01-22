@@ -32,6 +32,7 @@ import { controllers, middleware } from './plugins';
 import { EntryChangeSocketHandler } from './socket';
 import { ApiKeySecurity } from './security';
 import { CypressController } from './cypress';
+import { StatusController } from './status';
 
 let dbConfig: MongoDBConfig;
 if (process.env.DB_USE_FS) {
@@ -138,6 +139,7 @@ if (process.env.DB_USE_FS) {
     new MediaController(),
     new EntryController(),
     new FunctionController(),
+    new StatusController(),
     ...controllers.map((e) => {
       return new e.PluginController();
     }),

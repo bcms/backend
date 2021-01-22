@@ -35,6 +35,13 @@ export class FSEntryRepository implements FSDBRepositoryPrototype<FSEntry> {
     return this.repo.find((e) => e.templateId === templateId);
   }
   async clearAllStatuses(currentStatus: string) {
+    this.repo.updateMany(
+      (e) => e.status === currentStatus,
+      (e) => {
+        e.status = '';
+        return e;
+      },
+    );
   }
   async deleteAllByTemplateId(templateId: string) {
     this.repo.deleteMany((e) => e.templateId === templateId);

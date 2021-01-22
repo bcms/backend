@@ -46,13 +46,20 @@ export class EntryCacheHandler extends CacheHandler<
 
   async deleteAllByTemplateId(templateId: string) {
     await this.queueable.exec('count', 'first_done_free_all', async () => {
+      await this.checkCountLatch();
       this.cache = this.cache.filter((e) => e.templateId !== templateId);
       await this.repo.deleteAllByTemplateId(templateId);
       return true;
     });
   }
 
-  async findAllByStatus(statusId: string): Promise<Array<Entry | FSEntry>> {
-    
-  } 
+  async clearAllStatuses(statusId: string): Promise<void> {
+    await this.checkCountLatch();
+    this.cache.forEach((e) => {
+      if (e.status === statusId) {
+        e.status = '';
+      }
+    });
+    await this.repo.clearAllStatuses(statusId);
+  }
 }

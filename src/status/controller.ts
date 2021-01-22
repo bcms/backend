@@ -10,6 +10,7 @@ import {
   RoleName,
 } from '@becomes/purple-cheetah';
 import { Request, Router } from 'express';
+import { CacheControl } from '../cache';
 import { JWTApiSecurity } from '../security';
 import { FSStatus, Status } from './models';
 import { StatusRequestHandler } from './request-handler';
@@ -36,6 +37,19 @@ export class StatusController implements ControllerPrototype {
   }
 
   @Get(
+    '/count',
+    JWTApiSecurity.preRequestHandler(
+      [RoleName.ADMIN, RoleName.USER],
+      PermissionName.READ,
+    ),
+  )
+  async count(): Promise<{ count: number }> {
+    return {
+      count: await CacheControl.status.count(),
+    };
+  }
+
+  @Get(
     '/:id',
     JWTApiSecurity.preRequestHandler(
       [RoleName.ADMIN, RoleName.USER],
@@ -54,7 +68,10 @@ export class StatusController implements ControllerPrototype {
   )
   async add(request: Request): Promise<{ status: Status | FSStatus }> {
     return {
-      status: await StatusRequestHandler.add(request.body),
+      status: await StatusRequestHandler.add(
+        request.body,
+        request.headers.sid as string,
+      ),
     };
   }
 
@@ -64,7 +81,10 @@ export class StatusController implements ControllerPrototype {
   )
   async update(request: Request): Promise<{ status: Status | FSStatus }> {
     return {
-      status: await StatusRequestHandler.update(request.body),
+      status: await StatusRequestHandler.update(
+        request.body,
+        request.headers.sid as string,
+      ),
     };
   }
 
@@ -77,7 +97,10 @@ export class StatusController implements ControllerPrototype {
   ): Promise<{
     message: 'Success.';
   }> {
-    await StatusRequestHandler.deleteById(request.params.id);
+    await StatusRequestHandler.deleteById(
+      request.params.id,
+      request.headers.sid as string,
+    );
     return {
       message: 'Success.',
     };
