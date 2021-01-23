@@ -19,7 +19,7 @@ export class EntryCacheHandler extends CacheHandler<
   constructor() {
     super(
       EntryRepo,
-      ['count', 'findAllByTemplateId', 'deleteAllByTemplateId'],
+      ['count', 'findAllByTemplateId'],
       new Logger('EntryCacheHandler'),
     );
   }
@@ -50,12 +50,10 @@ export class EntryCacheHandler extends CacheHandler<
   }
 
   async deleteAllByTemplateId(templateId: string) {
-    await this.queueable.exec('count', 'first_done_free_all', async () => {
-      await this.checkCountLatch();
-      this.cache = this.cache.filter((e) => e.templateId !== templateId);
-      await this.repo.deleteAllByTemplateId(templateId);
-      return true;
-    });
+    await this.checkCountLatch();
+    this.cache = this.cache.filter((e) => e.templateId !== templateId);
+    await this.repo.deleteAllByTemplateId(templateId);
+    return true;
   }
 
   async clearAllStatuses(statusId: string): Promise<void> {

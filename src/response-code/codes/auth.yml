@@ -8,3 +8,5 @@ a004:
   msg: Failed to update User in the database.
 a005:
   msg: Invalid authorization.
+a006:
+  mag: No permission to access "%path%".
