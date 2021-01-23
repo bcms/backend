@@ -7,6 +7,7 @@ import {
   FSWidgetRepository,
   MongoWidgetRepository,
 } from '../../widget';
+import { Logger } from '@becomes/purple-cheetah';
 
 export class WidgetCacheHandler extends CacheHandler<
   FSWidget,
@@ -16,7 +17,11 @@ export class WidgetCacheHandler extends CacheHandler<
   MongoWidgetRepository
 > {
   constructor() {
-    super(WidgetRepo, ['findByName', 'count']);
+    super(
+      WidgetRepo,
+      ['findByName', 'count'],
+      new Logger('WidgetCacheHandler'),
+    );
   }
 
   async findByName(name: string): Promise<Widget | FSWidget> {

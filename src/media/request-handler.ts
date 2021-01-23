@@ -152,9 +152,7 @@ export class MediaRequestHandler {
     );
   }
 
-  static async getBinary(
-    mediaId: string,
-  ): Promise<{ __file: string }> {
+  static async getBinary(mediaId: string): Promise<{ __file: string }> {
     const error = HttpErrorFactory.instance('getBinary', this.logger);
     if (StringUtility.isIdValid(mediaId) === false) {
       throw error.occurred(
@@ -243,7 +241,17 @@ export class MediaRequestHandler {
       media.name = crypto.randomBytes(6).toString('hex') + '-' + media.name;
     }
     await MediaUtil.fs.save(media, file.buffer);
-    const addResult = await CacheControl.media.add(media);
+    const addResult = await CacheControl.media.add(media, async () => {
+      SocketUtil.emit(SocketEventName.MEDIA, {
+        entry: {
+          _id: `${media._id}`,
+        },
+        message: '',
+        source: '',
+        type: 'remove',
+      });
+      await MediaUtil.fs.removeFile(media);
+    });
     if (addResult === false) {
       await MediaUtil.fs.removeFile(media);
       throw error.occurred(
@@ -313,7 +321,17 @@ export class MediaRequestHandler {
       media.name = crypto.randomBytes(6).toString('hex') + '-' + media.name;
       media.path = parent ? parent.path + '/' + media.name : '/' + media.name;
     }
-    const addResult = await CacheControl.media.add(media);
+    const addResult = await CacheControl.media.add(media, async () => {
+      SocketUtil.emit(SocketEventName.MEDIA, {
+        entry: {
+          _id: `${media._id}`,
+        },
+        message: '',
+        source: '',
+        type: 'remove',
+      });
+      await MediaUtil.fs.removeDir(media);
+    });
     if (addResult === false) {
       throw error.occurred(
         HttpStatus.INTERNAL_SERVER_ERROR,
@@ -428,7 +446,16 @@ export class MediaRequestHandler {
       }
     }
     for (const i in mediaToUpdate) {
-      await CacheControl.media.update(mediaToUpdate[i]);
+      await CacheControl.media.update(mediaToUpdate[i], async (type) => {
+        SocketUtil.emit(SocketEventName.MEDIA, {
+          entry: {
+            _id: `${mediaToUpdate[i]._id}`,
+          },
+          message: '',
+          source: '',
+          type,
+        });
+      });
     }
     for (const i in fsChanges) {
       if (fsChanges[i].rename) {
@@ -475,13 +502,32 @@ export class MediaRequestHandler {
     }
     let children: string[] = [];
     if (media.type === MediaType.DIR) {
+      // TODO: Find a way to resolve media delete on FS level. (temp dir?)
       children = this.getAllChildren(media, await CacheControl.media.findAll());
       for (const i in children) {
-        await CacheControl.media.deleteById(children[i]);
+        await CacheControl.media.deleteById(children[i], async () => {
+          SocketUtil.emit(SocketEventName.MEDIA, {
+            entry: {
+              _id: `${children[i]}`,
+            },
+            message: '',
+            source: '',
+            type: 'add',
+          });
+        });
       }
       await MediaUtil.fs.removeDir(media);
     } else {
-      const deleteResult = await CacheControl.media.deleteById(id);
+      const deleteResult = await CacheControl.media.deleteById(id, async () => {
+        SocketUtil.emit(SocketEventName.MEDIA, {
+          entry: {
+            _id: `${id}`,
+          },
+          message: '',
+          source: '',
+          type: 'add',
+        });
+      });
       if (deleteResult === false) {
         throw error.occurred(
           HttpStatus.INTERNAL_SERVER_ERROR,

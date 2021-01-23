@@ -6,8 +6,10 @@ import {
   Entity,
   Queueable,
   QueueablePrototype,
+  Logger,
 } from '@becomes/purple-cheetah';
 import { Types } from 'mongoose';
+import { CacheWriteBuffer } from './write-buffer';
 
 export abstract class CacheHandler<
   T extends FSDBEntity,
@@ -20,7 +22,11 @@ export abstract class CacheHandler<
   protected countLatch = false;
   protected queueable: QueueablePrototype<T | K | Array<T | K> | boolean>;
 
-  constructor(protected repo: M | N, queueable: string[]) {
+  constructor(
+    protected repo: M | N,
+    queueable: string[],
+    protected logger: Logger,
+  ) {
     this.queueable = Queueable(
       'findAll',
       'findAllById',
@@ -42,23 +48,11 @@ export abstract class CacheHandler<
   async findAll(): Promise<Array<T | K>> {
     await this.checkCountLatch();
     return this.cache;
-    // return (await this.queueable.exec(
-    //   'findAll',
-    //   'first_done_free_all',
-    //   async () => {
-    //   },
-    // )) as Array<T | K>;
   }
 
   async findAllById(ids: string[]): Promise<Array<T | K>> {
     await this.checkCountLatch();
     return this.cache.filter((e) => ids.includes(`${e._id}`));
-    // return (await this.queueable.exec(
-    //   'findAllById',
-    //   'free_one_by_one',
-    //   async () => {
-    //   },
-    // )) as Array<T | K>;
   }
 
   async findById(id: string): Promise<T | K> {
@@ -70,77 +64,119 @@ export abstract class CacheHandler<
           ? (e._id as Types.ObjectId).toHexString()
           : e._id),
     );
-    // return (await this.queueable.exec(
-    //   'findById',
-    //   'free_one_by_one',
-    //   async () => {
-    //     await this.checkCountLatch();
-    //     return this.cache.find(
-    //       (e) =>
-    //         id ===
-    //         (e._id instanceof Types.ObjectId
-    //           ? (e._id as Types.ObjectId).toHexString()
-    //           : e._id),
-    //     );
-    //   },
-    // )) as T | K;
   }
 
-  async add(entity: T | K): Promise<boolean> {
+  async add(entity: T | K, onError?: () => Promise<void>): Promise<boolean> {
     await this.checkCountLatch();
     const id = `${entity._id}`;
     if (this.cache.find((e) => id === `${e._id}`)) {
       console.error(`Cache Entity with ID "${id}" already exist.`);
       return false;
     }
-    const addResult = await this.repo.add(entity as T & K);
-    if (addResult === false) {
-      return false;
-    }
     this.cache.push(entity);
+    CacheWriteBuffer.push({
+      eid: id,
+      type: 'add',
+      entity: JSON.stringify(entity),
+      repo: this.repo as
+        | FSDBRepositoryPrototype<FSDBEntity>
+        | MongoDBRepositoryPrototype<Entity, IEntity>,
+      onError: async () => {
+        this.logger.error('add', 'Failed to add entity to the database.');
+        for (let i = 0; i < this.cache.length; i++) {
+          if (`${this.cache[i]._id}` === id) {
+            this.cache.splice(i, 1);
+            break;
+          }
+        }
+        if (onError) {
+          await onError();
+        }
+      },
+    });
     return true;
-    // return (await this.queueable.exec('add', 'free_one_by_one', async () => {
-    // })) as boolean;
+    // const addResult = await this.repo.add(entity as T & K);
+    // if (addResult === false) {
+    //   return false;
+    // }
+    // this.cache.push(entity);
+    // return true;
   }
 
-  async update(entity: T | K): Promise<boolean> {
+  async update(
+    entity: T | K,
+    onError?: (type: 'update' | 'add') => Promise<void>,
+  ): Promise<boolean> {
     await this.checkCountLatch();
     const id = `${entity._id}`;
     for (const i in this.cache) {
       if (id === `${this.cache[i]._id}`) {
-        const updateResult = await this.repo.update(entity as T & K);
-        if (updateResult === false) {
-          return false;
-        }
+        // const updateResult = await this.repo.update(entity as T & K);
+        // if (updateResult === false) {
+        //   return false;
+        // }
         this.cache[i] = entity;
+        CacheWriteBuffer.push({
+          eid: id,
+          type: 'update',
+          repo: this.repo as
+            | FSDBRepositoryPrototype<FSDBEntity>
+            | MongoDBRepositoryPrototype<Entity, IEntity>,
+          entity: JSON.stringify(entity),
+          onError: async (error, type, dbEntity) => {
+            let found = false;
+            for (const j in this.cache) {
+              if (id === `${this.cache[j]._id}`) {
+                this.cache[j] = dbEntity as T | K;
+                found = true;
+                break;
+              }
+            }
+            if (!found) {
+              this.cache.push(dbEntity as T | K);
+            }
+            if (onError) {
+              await onError(found ? 'update' : 'add');
+            }
+          },
+        });
         return true;
       }
     }
     console.error(`Cache Entity with ID "${id}" does not exist.`);
     return false;
-    // return (await this.queueable.exec('update', 'free_one_by_one', async () => {
-    // })) as boolean;
   }
 
-  async deleteById(id: string): Promise<boolean> {
+  async deleteById(
+    id: string,
+    onError?: () => Promise<void>,
+  ): Promise<boolean> {
     await this.checkCountLatch();
     for (let i = 0; i < this.cache.length; i = i + 1) {
       if (id === `${this.cache[i]._id}`) {
-        const deleteResult = await this.repo.deleteById(id);
-        if (deleteResult === false) {
-          return false;
-        }
+        // const deleteResult = await this.repo.deleteById(id);
+        // if (deleteResult === false) {
+        //   return false;
+        // }
         this.cache.splice(i, 1);
+        CacheWriteBuffer.push({
+          eid: id,
+          type: 'remove',
+          repo: this.repo as
+            | FSDBRepositoryPrototype<FSDBEntity>
+            | MongoDBRepositoryPrototype<Entity, IEntity>,
+          entity: JSON.stringify(this.cache[i]),
+          onError: async (error, type, dbEntity) => {
+            this.cache.push(dbEntity as T | K);
+            if (onError) {
+              await onError();
+            }
+          },
+        });
         return true;
       }
     }
     console.error(`Cache Entity with ID "${id}" does not exist.`);
     return false;
-    // return (await this.queueable.exec(
-    //   'deleteById',
-    //   'free_one_by_one',
-    //   async () => {
-    //   },
-    // )) as boolean;
   }
 }

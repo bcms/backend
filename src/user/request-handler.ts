@@ -51,7 +51,9 @@ export class UserRequestHandler {
     });
   }
 
-  static async getByAccessToken(jwt: JWT<UserCustomPool>): Promise<ProtectedUser> {
+  static async getByAccessToken(
+    jwt: JWT<UserCustomPool>,
+  ): Promise<ProtectedUser> {
     const error = HttpErrorFactory.instance('getByAccessToken', this.logger);
     const user = await CacheControl.user.findById(jwt.payload.userId);
     if (!user) {
@@ -252,7 +254,19 @@ export class UserRequestHandler {
     if (change === false) {
       throw error.occurred(HttpStatus.BAD_REQUEST, ResponseCode.get('g003'));
     }
-    const updateUserResult = await CacheControl.user.update(user);
+    const updateUserResult = await CacheControl.user.update(
+      user,
+      async (type) => {
+        SocketUtil.emit(SocketEventName.USER, {
+          entry: {
+            _id: `${user._id}`,
+          },
+          message: '',
+          source: '',
+          type,
+        });
+      },
+    );
     if (updateUserResult === false) {
       throw error.occurred(
         HttpStatus.INTERNAL_SERVER_ERROR,
@@ -304,7 +318,16 @@ export class UserRequestHandler {
       lastName: data.customPool.personal.lastName,
     });
     user.password = await bcrypt.hash(data.password, 10);
-    const addUserResult = await CacheControl.user.add(user);
+    const addUserResult = await CacheControl.user.add(user, async () => {
+      SocketUtil.emit(SocketEventName.USER, {
+        entry: {
+          _id: `${user._id}`,
+        },
+        message: '',
+        source: '',
+        type: 'remove',
+      });
+    });
     if (addUserResult === false) {
       throw error.occurred(
         HttpStatus.INTERNAL_SERVER_ERROR,
@@ -338,7 +361,19 @@ export class UserRequestHandler {
       );
     }
     user.roles[0].name = RoleName.ADMIN;
-    const updateUserResult = await CacheControl.user.update(user);
+    const updateUserResult = await CacheControl.user.update(
+      user,
+      async (type) => {
+        SocketUtil.emit(SocketEventName.USER, {
+          entry: {
+            _id: `${user._id}`,
+          },
+          message: '',
+          source: '',
+          type,
+        });
+      },
+    );
     if (updateUserResult === false) {
       throw error.occurred(
         HttpStatus.INTERNAL_SERVER_ERROR,
@@ -443,7 +478,16 @@ export class UserRequestHandler {
     const refreshToken = RefreshTokenFactory.instance;
     user.password = await bcrypt.hash(data.password, 10);
     user.refreshTokens.push(refreshToken);
-    const addUserResult = await CacheControl.user.add(user);
+    const addUserResult = await CacheControl.user.add(user, async () => {
+      SocketUtil.emit(SocketEventName.USER, {
+        entry: {
+          _id: `${user._id}`,
+        },
+        message: '',
+        source: '',
+        type: 'remove',
+      });
+    });
     if (addUserResult === false) {
       throw error.occurred(
         HttpStatus.INTERNAL_SERVER_ERROR,
@@ -457,7 +501,16 @@ export class UserRequestHandler {
       language.def = true;
       language.name = 'English';
       language.nativeName = 'English';
-      await CacheControl.language.add(language);
+      await CacheControl.language.add(language, async () => {
+        SocketUtil.emit(SocketEventName.LANGUAGE, {
+          entry: {
+            _id: `${language._id}`,
+          },
+          message: '',
+          source: '',
+          type: 'remove',
+        });
+      });
     }
     return {
       accessToken: JWTEncoding.encode(
@@ -497,7 +550,19 @@ export class UserRequestHandler {
         }),
       );
     }
-    const deleteUserResult = await CacheControl.user.deleteById(id);
+    const deleteUserResult = await CacheControl.user.deleteById(
+      id,
+      async () => {
+        SocketUtil.emit(SocketEventName.USER, {
+          entry: {
+            _id: `${user._id}`,
+          },
+          message: '',
+          source: '',
+          type: 'add',
+        });
+      },
+    );
     if (deleteUserResult === false) {
       throw error.occurred(
         HttpStatus.INTERNAL_SERVER_ERROR,

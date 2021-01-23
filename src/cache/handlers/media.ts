@@ -7,6 +7,7 @@ import {
   FSMediaRepository,
   MongoMediaRepository,
 } from '../../media';
+import { Logger } from '@becomes/purple-cheetah';
 
 export class MediaCacheHandler extends CacheHandler<
   FSMedia,
@@ -16,15 +17,19 @@ export class MediaCacheHandler extends CacheHandler<
   MongoMediaRepository
 > {
   constructor() {
-    super(MediaRepo, [
-      'findAllByIsInRoot',
-      'findAllByPath',
-      'findAllByParentId',
-      'findAllByContainingPath',
-      'findByPath',
-      'findByNameAndPath',
-      'count',
-    ]);
+    super(
+      MediaRepo,
+      [
+        'findAllByIsInRoot',
+        'findAllByPath',
+        'findAllByParentId',
+        'findAllByContainingPath',
+        'findByPath',
+        'findByNameAndPath',
+        'count',
+      ],
+      new Logger('MediaCacheHandler'),
+    );
   }
 
   async count(): Promise<number> {

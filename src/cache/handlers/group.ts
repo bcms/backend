@@ -8,6 +8,7 @@ import {
   MongoGroupRepository,
 } from '../../group';
 import { PropType, PropGroupPointer } from '../../prop';
+import { Logger } from '@becomes/purple-cheetah';
 
 export class GroupCacheHandler extends CacheHandler<
   FSGroup,
@@ -17,7 +18,11 @@ export class GroupCacheHandler extends CacheHandler<
   MongoGroupRepository
 > {
   constructor() {
-    super(GroupRepo, ['findByName', 'count', 'findAllByPropsGroupId']);
+    super(
+      GroupRepo,
+      ['findByName', 'count', 'findAllByPropsGroupId'],
+      new Logger('GroupCacheHandler'),
+    );
   }
 
   async findByName(name: string): Promise<Group | FSGroup> {

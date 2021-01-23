@@ -7,6 +7,7 @@ import {
   FSApiKeyRepository,
   MongoApiKeyRepository,
 } from '../../api';
+import { Logger } from '@becomes/purple-cheetah';
 
 export class ApiKeyCacheHandler extends CacheHandler<
   FSApiKey,
@@ -16,7 +17,7 @@ export class ApiKeyCacheHandler extends CacheHandler<
   MongoApiKeyRepository
 > {
   constructor() {
-    super(ApiKeyRepo, ['count']);
+    super(ApiKeyRepo, ['count'], new Logger('ApiKeyCacheHandler'));
   }
 
   async count(): Promise<number> {

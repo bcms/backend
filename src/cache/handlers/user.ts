@@ -7,6 +7,7 @@ import {
   FSUserRepository,
   MongoUserRepository,
 } from '../../user';
+import { Logger } from '@becomes/purple-cheetah';
 
 export class UserCacheHandler extends CacheHandler<
   FSUser,
@@ -33,6 +34,7 @@ export class UserCacheHandler extends CacheHandler<
       //     open: false,
       //   },
       // }
+      new Logger('UserCacheHandler'),
     );
   }
 

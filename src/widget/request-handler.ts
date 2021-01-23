@@ -154,7 +154,16 @@ export class WidgetRequestHandler {
         ResponseCode.get('wid002', { name: widget.name }),
       );
     }
-    const addResult = await CacheControl.widget.add(widget);
+    const addResult = await CacheControl.widget.add(widget, async () => {
+      SocketUtil.emit(SocketEventName.WIDGET, {
+        entry: {
+          _id: `${widget._id}`,
+        },
+        message: '',
+        source: '',
+        type: 'remove',
+      });
+    });
     if (addResult === false) {
       throw error.occurred(
         HttpStatus.INTERNAL_SERVER_ERROR,
@@ -277,7 +286,19 @@ export class WidgetRequestHandler {
         }),
       );
     }
-    const updateResult = await CacheControl.widget.update(widget);
+    const updateResult = await CacheControl.widget.update(
+      widget,
+      async (type) => {
+        SocketUtil.emit(SocketEventName.WIDGET, {
+          entry: {
+            _id: `${widget._id}`,
+          },
+          message: '',
+          source: '',
+          type,
+        });
+      },
+    );
     if (updateResult === false) {
       throw error.occurred(
         HttpStatus.INTERNAL_SERVER_ERROR,
@@ -328,7 +349,16 @@ export class WidgetRequestHandler {
         ResponseCode.get('wid001', { id }),
       );
     }
-    const deleteResult = await CacheControl.widget.deleteById(id);
+    const deleteResult = await CacheControl.widget.deleteById(id, async () => {
+      SocketUtil.emit(SocketEventName.WIDGET, {
+        entry: {
+          _id: `${id}`,
+        },
+        message: '',
+        source: '',
+        type: 'add',
+      });
+    });
     if (deleteResult === false) {
       throw error.occurred(
         HttpStatus.INTERNAL_SERVER_ERROR,
@@ -357,7 +387,16 @@ export class WidgetRequestHandler {
             (e, k) => !deletePropsIndex.includes(k),
           );
           updatedEntries.push(`${entry._id}`);
-          await CacheControl.entry.update(entry);
+          await CacheControl.entry.update(entry, async (type) => {
+            SocketUtil.emit(SocketEventName.ENTRY, {
+              entry: {
+                _id: `${entry._id}`,
+              },
+              message: '',
+              source: '',
+              type,
+            });
+          });
         }
       }
     }

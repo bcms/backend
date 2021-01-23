@@ -73,7 +73,16 @@ export class StatusRequestHandler {
       }
       status.color = data.color;
     }
-    const addResult = await CacheControl.status.add(status);
+    const addResult = await CacheControl.status.add(status, async () => {
+      SocketUtil.emit(SocketEventName.STATUS, {
+        entry: {
+          _id: `${status._id}`,
+        },
+        message: '',
+        source: '',
+        type: 'remove',
+      });
+    });
     if (!addResult) {
       throw error.occurred(
         HttpStatus.INTERNAL_SERVER_ERROR,
@@ -150,7 +159,19 @@ export class StatusRequestHandler {
     if (!changeDetected) {
       throw error.occurred(HttpStatus.BAD_REQUEST, ResponseCode.get('g003'));
     }
-    const updateResult = await CacheControl.status.update(status);
+    const updateResult = await CacheControl.status.update(
+      status,
+      async (type) => {
+        SocketUtil.emit(SocketEventName.STATUS, {
+          entry: {
+            _id: `${status._id}`,
+          },
+          message: '',
+          source: '',
+          type,
+        });
+      },
+    );
     if (!updateResult) {
       throw error.occurred(
         HttpStatus.INTERNAL_SERVER_ERROR,
@@ -185,7 +206,19 @@ export class StatusRequestHandler {
       );
     }
     await CacheControl.entry.clearAllStatuses(`${status._id}`);
-    const deleteResult = await CacheControl.status.deleteById(`${status._id}`);
+    const deleteResult = await CacheControl.status.deleteById(
+      `${status._id}`,
+      async () => {
+        SocketUtil.emit(SocketEventName.STATUS, {
+          entry: {
+            _id: `${status._id}`,
+          },
+          message: '',
+          source: '',
+          type: 'add',
+        });
+      },
+    );
     if (!deleteResult) {
       throw error.occurred(
         HttpStatus.INTERNAL_SERVER_ERROR,

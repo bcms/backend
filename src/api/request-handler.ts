@@ -91,7 +91,19 @@ export class ApiKeyRequestHandler {
         data.access,
       ),
     );
-    const addResult = await CacheControl.apiKey.add(rewriteResult.key);
+    const addResult = await CacheControl.apiKey.add(
+      rewriteResult.key,
+      async () => {
+        SocketUtil.emit(SocketEventName.API_KEY, {
+          entry: {
+            _id: `${rewriteResult.key._id}`,
+          },
+          message: '',
+          source: '',
+          type: 'remove',
+        });
+      },
+    );
     if (addResult === false) {
       throw error.occurred(
         HttpStatus.INTERNAL_SERVER_ERROR,
@@ -166,7 +178,16 @@ export class ApiKeyRequestHandler {
     if (!changeDetected) {
       throw error.occurred(HttpStatus.FORBIDDEN, ResponseCode.get('g003'));
     }
-    const updateResult = await CacheControl.apiKey.update(key);
+    const updateResult = await CacheControl.apiKey.update(key, async (type) => {
+      SocketUtil.emit(SocketEventName.API_KEY, {
+        entry: {
+          _id: `${key._id}`,
+        },
+        message: '',
+        source: '',
+        type,
+      });
+    });
     if (!updateResult) {
       throw error.occurred(
         HttpStatus.INTERNAL_SERVER_ERROR,
@@ -204,7 +225,16 @@ export class ApiKeyRequestHandler {
         ResponseCode.get('sk001', { id }),
       );
     }
-    const deleteResult = await CacheControl.apiKey.deleteById(id);
+    const deleteResult = await CacheControl.apiKey.deleteById(id, async () => {
+      SocketUtil.emit(SocketEventName.API_KEY, {
+        entry: {
+          _id: `${key._id}`,
+        },
+        message: '',
+        source: '',
+        type: 'add',
+      });
+    });
     if (!deleteResult) {
       throw error.occurred(
         HttpStatus.INTERNAL_SERVER_ERROR,

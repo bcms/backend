@@ -110,7 +110,19 @@ export class TemplateRequestHandler {
         ResponseCode.get('tmp002', { name: template.name }),
       );
     }
-    const addTemplateResult = await CacheControl.template.add(template);
+    const addTemplateResult = await CacheControl.template.add(
+      template,
+      async () => {
+        SocketUtil.emit(SocketEventName.TEMPLATE, {
+          entry: {
+            _id: `${template._id}`,
+          },
+          message: '',
+          source: '',
+          type: 'remove',
+        });
+      },
+    );
     if (addTemplateResult === false) {
       throw error.occurred(
         HttpStatus.INTERNAL_SERVER_ERROR,
@@ -281,7 +293,19 @@ export class TemplateRequestHandler {
           }),
         );
       }
-      const updateResult = await CacheControl.template.update(template);
+      const updateResult = await CacheControl.template.update(
+        template,
+        async (type) => {
+          SocketUtil.emit(SocketEventName.TEMPLATE, {
+            entry: {
+              _id: `${template._id}`,
+            },
+            message: '',
+            source: '',
+            type,
+          });
+        },
+      );
       if (updateResult === false) {
         throw error.occurred(
           HttpStatus.INTERNAL_SERVER_ERROR,
@@ -341,7 +365,19 @@ export class TemplateRequestHandler {
         ResponseCode.get('tmp001', { id }),
       );
     }
-    const deleteResult = await CacheControl.template.deleteById(id);
+    const deleteResult = await CacheControl.template.deleteById(
+      id,
+      async () => {
+        SocketUtil.emit(SocketEventName.TEMPLATE, {
+          entry: {
+            _id: `${id}`,
+          },
+          message: '',
+          source: '',
+          type: 'add',
+        });
+      },
+    );
     if (deleteResult === false) {
       throw error.occurred(
         HttpStatus.INTERNAL_SERVER_ERROR,
@@ -376,7 +412,16 @@ export class TemplateRequestHandler {
       }
     });
     for (const i in updateKeys) {
-      await CacheControl.apiKey.update(updateKeys[i]);
+      await CacheControl.apiKey.update(updateKeys[i], async (type) => {
+        SocketUtil.emit(SocketEventName.API_KEY, {
+          entry: {
+            _id: `${updateKeys[i]}`,
+          },
+          message: '',
+          source: '',
+          type,
+        });
+      });
       SocketUtil.emit(SocketEventName.API_KEY, {
         entry: {
           _id: `${updateKeys[i]._id}`,
@@ -421,7 +466,16 @@ export class TemplateRequestHandler {
         }
         entry.meta[j].props = result;
       }
-      await CacheControl.entry.update(entry);
+      await CacheControl.entry.update(entry, async (type) => {
+        SocketUtil.emit(SocketEventName.ENTRY, {
+          entry: {
+            _id: `${entry._id}`,
+          },
+          message: '',
+          source: '',
+          type,
+        });
+      });
     }
     return entries.map((e) => `${e._id}`);
   }

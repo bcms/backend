@@ -187,7 +187,16 @@ export class GroupRequestHandler {
         ResponseCode.get('grp002', { name: group.name }),
       );
     }
-    const addGroupResult = await CacheControl.group.add(group);
+    const addGroupResult = await CacheControl.group.add(group, async () => {
+      SocketUtil.emit(SocketEventName.GROUP, {
+        entry: {
+          _id: `${group._id}`,
+        },
+        message: 'Unsuccessful group add.',
+        source: '',
+        type: 'remove',
+      });
+    });
     if (addGroupResult === false) {
       throw error.occurred(
         HttpStatus.INTERNAL_SERVER_ERROR,
@@ -326,7 +335,19 @@ export class GroupRequestHandler {
           }),
         );
       }
-      const updateResult = await CacheControl.group.update(group);
+      const updateResult = await CacheControl.group.update(
+        group,
+        async (type) => {
+          SocketUtil.emit(SocketEventName.GROUP, {
+            entry: {
+              _id: `${group._id}`,
+            },
+            message: '',
+            source: '',
+            type,
+          });
+        },
+      );
       if (updateResult === false) {
         throw error.occurred(
           HttpStatus.INTERNAL_SERVER_ERROR,
@@ -387,7 +408,16 @@ export class GroupRequestHandler {
         ResponseCode.get('grp001', { id }),
       );
     }
-    const deleteResult = await CacheControl.group.deleteById(id);
+    const deleteResult = await CacheControl.group.deleteById(id, async () => {
+      SocketUtil.emit(SocketEventName.GROUP, {
+        entry: {
+          _id: `${group._id}`,
+        },
+        message: '',
+        source: '',
+        type: 'add',
+      });
+    });
     if (deleteResult === false) {
       throw error.occurred(
         HttpStatus.INTERNAL_SERVER_ERROR,
@@ -470,7 +500,16 @@ export class GroupRequestHandler {
         if (output.changesFound) {
           updated.group.push(`${group._id}`);
           group.props = output.props;
-          await CacheControl.group.update(group);
+          await CacheControl.group.update(group, async (type) => {
+            SocketUtil.emit(SocketEventName.GROUP, {
+              entry: {
+                _id: `${group._id}`,
+              },
+              message: '',
+              source: '',
+              type,
+            });
+          });
         }
       }
     }
@@ -493,7 +532,16 @@ export class GroupRequestHandler {
         if (output.changesFound) {
           updated.widget.push(`${widget._id}`);
           widget.props = output.props;
-          await CacheControl.widget.update(widget);
+          await CacheControl.widget.update(widget, async (type) => {
+            SocketUtil.emit(SocketEventName.WIDGET, {
+              entry: {
+                _id: `${widget._id}`,
+              },
+              message: '',
+              source: '',
+              type,
+            });
+          });
         }
       }
     }
@@ -516,7 +564,16 @@ export class GroupRequestHandler {
         if (output.changesFound) {
           updated.template.push(`${template._id}`);
           template.props = output.props;
-          await CacheControl.template.update(template);
+          await CacheControl.template.update(template, async (type) => {
+            SocketUtil.emit(SocketEventName.TEMPLATE, {
+              entry: {
+                _id: `${template._id}`,
+              },
+              message: '',
+              source: '',
+              type,
+            });
+          });
         }
       }
     }
@@ -547,7 +604,16 @@ export class GroupRequestHandler {
           }
           if (changeInEntry) {
             updated.entry.push(`${entry._id}`);
-            await CacheControl.entry.update(entry);
+            await CacheControl.entry.update(entry, async (type) => {
+              SocketUtil.emit(SocketEventName.ENTRY, {
+                entry: {
+                  _id: `${entry._id}`,
+                },
+                message: '',
+                source: '',
+                type,
+              });
+            });
           }
         }
       }

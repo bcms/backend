@@ -1,3 +1,4 @@
+import { Logger } from '@becomes/purple-cheetah';
 import {
   FSStatus,
   FSStatusRepository,
@@ -16,9 +17,9 @@ export class StatusCacheHandler extends CacheHandler<
   StatusRepository
 > {
   constructor() {
-    super(StatusRepo, ['count']);
+    super(StatusRepo, ['count'], new Logger('StatusCacheHandler'));
   }
-  
+
   async findByName(name: string): Promise<FSStatus | Status> {
     await this.checkCountLatch();
     return this.cache.find((e) => e.name === name);

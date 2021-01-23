@@ -7,6 +7,7 @@ import {
   FSTemplateRepository,
   MongoTemplateRepository,
 } from '../../template';
+import { Logger } from '@becomes/purple-cheetah';
 
 export class TemplateCacheHandler extends CacheHandler<
   FSTemplate,
@@ -16,7 +17,11 @@ export class TemplateCacheHandler extends CacheHandler<
   MongoTemplateRepository
 > {
   constructor() {
-    super(TemplateRepo, ['findByName', 'count']);
+    super(
+      TemplateRepo,
+      ['findByName', 'count'],
+      new Logger('TemplateCacheHandler'),
+    );
   }
 
   async findByName(name: string): Promise<Template | FSTemplate> {

@@ -342,7 +342,16 @@ export class EntryRequestHandler {
     entry.userId = userId;
     entry.meta = meta;
     entry.content = content;
-    const addResult = await CacheControl.entry.add(entry);
+    const addResult = await CacheControl.entry.add(entry, async () => {
+      SocketUtil.emit(SocketEventName.ENTRY, {
+        entry: {
+          _id: `${entry._id}`,
+        },
+        message: '',
+        source: '',
+        type: 'remove',
+      });
+    });
     if (addResult === false) {
       throw error.occurred(
         HttpStatus.INTERNAL_SERVER_ERROR,
@@ -530,7 +539,19 @@ export class EntryRequestHandler {
     }
     entry.meta = meta;
     entry.content = content;
-    const updateResult = await CacheControl.entry.update(entry);
+    const updateResult = await CacheControl.entry.update(
+      entry,
+      async (type) => {
+        SocketUtil.emit(SocketEventName.ENTRY, {
+          entry: {
+            _id: `${entry._id}`,
+          },
+          message: '',
+          source: '',
+          type,
+        });
+      },
+    );
     if (updateResult === false) {
       throw error.occurred(
         HttpStatus.INTERNAL_SERVER_ERROR,
@@ -571,7 +592,16 @@ export class EntryRequestHandler {
         ResponseCode.get('etr001', { id }),
       );
     }
-    const deleteResult = await CacheControl.entry.deleteById(id);
+    const deleteResult = await CacheControl.entry.deleteById(id, async () => {
+      SocketUtil.emit(SocketEventName.ENTRY, {
+        entry: {
+          _id: `${entry._id}`,
+        },
+        message: '',
+        source: '',
+        type: 'add',
+      });
+    });
     if (deleteResult === false) {
       throw error.occurred(
         HttpStatus.INTERNAL_SERVER_ERROR,

@@ -7,6 +7,7 @@ import {
   FSLanguageRepository,
   MongoLanguageRepository,
 } from '../../language';
+import { Logger } from '@becomes/purple-cheetah';
 
 export class LanguageCacheHandler extends CacheHandler<
   FSLanguage,
@@ -16,7 +17,11 @@ export class LanguageCacheHandler extends CacheHandler<
   MongoLanguageRepository
 > {
   constructor() {
-    super(LanguageRepo, ['findByCode', 'findDefault', 'count']);
+    super(
+      LanguageRepo,
+      ['findByCode', 'findDefault', 'count'],
+      new Logger('LanguageCacheHandler'),
+    );
   }
 
   async findByCode(code: string): Promise<Language | FSLanguage> {

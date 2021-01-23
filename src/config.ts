@@ -4,7 +4,7 @@ import {
   FSDBManager,
 } from '@becomes/purple-cheetah';
 import { ResponseCode } from './response-code';
-import { CacheControl } from './cache';
+import { CacheControl, CacheWriteBuffer } from './cache';
 import { FunctionManager } from './function';
 import { EventManager } from './event';
 import { JobManager } from './job';
@@ -22,6 +22,7 @@ export class Config {
     if (process.env.DB_USE_FS === 'true') {
       await FSDBManager.init(process.cwd());
     }
+    CacheWriteBuffer.init();
     CacheControl.init();
     await FunctionManager.init();
     await EventManager.init();

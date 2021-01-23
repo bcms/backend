@@ -7,6 +7,7 @@ import {
   FSEntryRepository,
   MongoEntryRepository,
 } from '../../entry';
+import { Logger } from '@becomes/purple-cheetah';
 
 export class EntryCacheHandler extends CacheHandler<
   FSEntry,
@@ -16,7 +17,11 @@ export class EntryCacheHandler extends CacheHandler<
   MongoEntryRepository
 > {
   constructor() {
-    super(EntryRepo, ['count', 'findAllByTemplateId', 'deleteAllByTemplateId']);
+    super(
+      EntryRepo,
+      ['count', 'findAllByTemplateId', 'deleteAllByTemplateId'],
+      new Logger('EntryCacheHandler'),
+    );
   }
 
   async findAllByTemplateId(

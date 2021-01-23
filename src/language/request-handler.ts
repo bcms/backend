@@ -84,7 +84,16 @@ export class LanguageRequestHandler {
           ResponseCode.get('lng002', { code: language.code }),
         );
       }
-      const addResult = await CacheControl.language.add(language);
+      const addResult = await CacheControl.language.add(language, async () => {
+        SocketUtil.emit(SocketEventName.LANGUAGE, {
+          entry: {
+            _id: `${language._id}`,
+          },
+          message: '',
+          source: '',
+          type: 'remove',
+        });
+      });
       if (addResult === false) {
         throw error.occurred(
           HttpStatus.INTERNAL_SERVER_ERROR,
@@ -119,7 +128,16 @@ export class LanguageRequestHandler {
             lng: language.code,
             props: [],
           });
-          await CacheControl.entry.update(entry);
+          await CacheControl.entry.update(entry, async (type) => {
+            SocketUtil.emit(SocketEventName.ENTRY, {
+              entry: {
+                _id: `${entry._id}`,
+              },
+              message: '',
+              source: '',
+              type,
+            });
+          });
         }
       }
       return language;
@@ -172,7 +190,19 @@ export class LanguageRequestHandler {
     if (!changeDetected) {
       throw error.occurred(HttpStatus.FORBIDDEN, ResponseCode.get('g003'));
     }
-    const updateResult = await CacheControl.language.update(language);
+    const updateResult = await CacheControl.language.update(
+      language,
+      async (type) => {
+        SocketUtil.emit(SocketEventName.LANGUAGE, {
+          entry: {
+            _id: `${language._id}`,
+          },
+          message: '',
+          source: '',
+          type,
+        });
+      },
+    );
     if (updateResult === false) {
       throw error.occurred(
         HttpStatus.INTERNAL_SERVER_ERROR,
@@ -180,7 +210,16 @@ export class LanguageRequestHandler {
       );
     }
     if (switchDefault) {
-      await CacheControl.language.update(switchDefault);
+      await CacheControl.language.update(switchDefault, async (type) => {
+        SocketUtil.emit(SocketEventName.LANGUAGE, {
+          entry: {
+            _id: `${switchDefault._id}`,
+          },
+          message: '',
+          source: '',
+          type,
+        });
+      });
       SocketUtil.emit(SocketEventName.LANGUAGE, {
         entry: {
           _id: `${switchDefault._id}`,
@@ -239,7 +278,19 @@ export class LanguageRequestHandler {
       //     ResponseCode.get('lng007'),
       //   );
       // }
-      const deleteResult = await CacheControl.language.deleteById(id);
+      const deleteResult = await CacheControl.language.deleteById(
+        id,
+        async () => {
+          SocketUtil.emit(SocketEventName.LANGUAGE, {
+            entry: {
+              _id: id,
+            },
+            message: '',
+            source: '',
+            type: 'add',
+          });
+        },
+      );
       if (deleteResult === false) {
         throw error.occurred(
           HttpStatus.INTERNAL_SERVER_ERROR,
@@ -256,7 +307,16 @@ export class LanguageRequestHandler {
       });
       (await CacheControl.entry.findAll()).forEach(async (entry) => {
         entry.meta = entry.meta.filter((m) => m.lng !== language.code);
-        await CacheControl.entry.update(entry);
+        await CacheControl.entry.update(entry, async (type) => {
+          SocketUtil.emit(SocketEventName.ENTRY, {
+            entry: {
+              _id: `${entry._id}`,
+            },
+            message: '',
+            source: '',
+            type,
+          });
+        });
       });
       await EventManager.emit(
         BCMSEventConfigScope.LANGUAGE,
