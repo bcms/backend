@@ -1,6 +1,7 @@
 import { IEntity, Entity, ObjectSchema } from '@becomes/purple-cheetah';
 import { Types, Schema } from 'mongoose';
 
+// eslint-disable-next-line no-shadow
 export enum MediaType {
   DIR = 'DIR',
   IMG = 'IMG',

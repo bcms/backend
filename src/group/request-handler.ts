@@ -80,8 +80,8 @@ export class GroupRequestHandler {
           if (value._id === targetGroupId) {
             return true;
           } else {
-            const group = await CacheControl.group.findById(value._id);
-            return search(targetGroupId, group.props);
+            const g = await CacheControl.group.findById(value._id);
+            return search(targetGroupId, g.props);
           }
         }
       }
@@ -99,9 +99,9 @@ export class GroupRequestHandler {
     {
       const groups = await CacheControl.group.findAll();
       for (const i in groups) {
-        const group = groups[i];
-        if (await search(`${group._id}`, group.props)) {
-          output.groupIds.push(`${group._id}`);
+        const g = groups[i];
+        if (await search(`${group._id}`, g.props)) {
+          output.groupIds.push(`${g._id}`);
         }
       }
     }
@@ -316,7 +316,7 @@ export class GroupRequestHandler {
         group.props,
         group.props,
         'group.props',
-        true
+        true,
       );
       if (output instanceof Error) {
         throw error.occurred(

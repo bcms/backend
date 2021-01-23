@@ -1,5 +1,6 @@
 import { SocketConnectionService } from '@becomes/purple-cheetah';
 
+// eslint-disable-next-line no-shadow
 export enum SocketEventName {
   USER = 'user',
   TEMPLATE = 'template',

@@ -21,7 +21,7 @@ export class MongoApiKeyRepository
   findAllById: (ids: string[]) => Promise<ApiKey[]>;
   findAllBy: <Q>(query: Q) => Promise<ApiKey[]>;
   findById: (id: string) => Promise<ApiKey>;
-  findBy: (query: any) => Promise<ApiKey>;
+  findBy: <Q>(query: Q) => Promise<ApiKey>;
   add: (e: ApiKey) => Promise<boolean>;
   update: (e: ApiKey) => Promise<boolean>;
   deleteById: (id: string) => Promise<boolean>;

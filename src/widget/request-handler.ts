@@ -69,11 +69,11 @@ export class WidgetRequestHandler {
       }
     });
     return {
-      entries: Object.keys(entries).map((id) => {
+      entries: Object.keys(entries).map((eid) => {
         return {
-          id: entries[id].id,
-          templateId: entries[id].templateId,
-          lngCodes: entries[id].lngCodes,
+          id: entries[eid].id,
+          templateId: entries[eid].templateId,
+          lngCodes: entries[eid].lngCodes,
         };
       }),
     };

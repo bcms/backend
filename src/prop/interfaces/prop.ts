@@ -7,6 +7,7 @@ import { PropQuill, PropWidgetParsed } from './quill';
 import { PropWidget } from './quill';
 import { EntryParsed } from '../../entry';
 
+// eslint-disable-next-line no-shadow
 export enum PropType {
   STRING = 'STRING',
   NUMBER = 'NUMBER',

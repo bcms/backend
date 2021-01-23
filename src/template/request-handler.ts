@@ -358,7 +358,7 @@ export class TemplateRequestHandler {
     }
     try {
       await CacheControl.entry.deleteAllByTemplateId(`${template._id}`);
-    } catch (error) {
+    } catch (e) {
       this.logger.error(
         'deleteById',
         `Failed to delete entries for template "${template._id}".`,

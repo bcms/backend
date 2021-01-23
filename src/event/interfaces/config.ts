@@ -1,3 +1,5 @@
+/* eslint-disable no-shadow */
+
 export enum BCMSEventConfigScope {
   ENTRY = 'ENTRY',
   GROUP = 'GROUP',
