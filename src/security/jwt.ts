@@ -46,30 +46,29 @@ export class JWTSecurity {
         }),
       );
     }
-    if (
-      jwt.payload.roles[0].name !== RoleName.ADMIN &&
-      !this.policyCheck(
-        request.originalUrl,
-        request.method.toLowerCase(),
-        jwt.payload.customPool.policy,
-      )
-    ) {
-      throw error.occurred(
-        HttpStatus.FORBIDDEN,
-        ResponseCode.get('a006', { path: request.originalUrl }),
-      );
-    }
+    // if (
+    //   jwt.payload.roles[0].name !== RoleName.ADMIN &&
+    //   !this.policyCheck(
+    //     request.originalUrl,
+    //     request.method.toLowerCase(),
+    //     jwt.payload.customPool.policy,
+    //   )
+    // ) {
+    //   throw error.occurred(
+    //     HttpStatus.FORBIDDEN,
+    //     ResponseCode.get('a006', { path: request.originalUrl }),
+    //   );
+    // }
     return jwt;
   }
-  static policyCheck(
-    path: string,
-    method: string,
-    policy: UserPolicy,
-  ): boolean {
-    const pathParts = path.split('/').slice(2);
-    if (pathParts[0] === 'template') {
-      if (policy.)
-    }
-    return false;
-  }
+  // static policyCheck(
+  //   path: string,
+  //   method: string,
+  //   policy: UserPolicy,
+  // ): boolean {
+  //   const pathParts = path.split('/').slice(2);
+  //   if (pathParts[0] === 'template') {
+  //   }
+  //   return false;
+  // }
 }

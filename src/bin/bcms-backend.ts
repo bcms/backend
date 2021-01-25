@@ -2,6 +2,7 @@
 
 import { Config } from '../config';
 import { App } from '../app';
+import { PurpleCheetah } from '@becomes/purple-cheetah';
 
 interface Args {
   dev: boolean;
@@ -28,6 +29,7 @@ function parseArgs(rawArgs: string[]): Args {
   };
 }
 const arg = parseArgs(process.argv);
+let app: PurpleCheetah;
 
 if (arg.dev) {
   process.env.DEV = 'true';
@@ -35,10 +37,13 @@ if (arg.dev) {
 
 Config.init()
   .then(() => {
-    new App().listen();
+    app = new App();
+    app.listen();
   })
   .catch((error) => {
     // tslint:disable-next-line: no-console
     console.error(error);
     process.exit(1);
   });
+
+export const Application = app;

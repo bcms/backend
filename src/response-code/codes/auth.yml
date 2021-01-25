@@ -9,4 +9,4 @@ a004:
 a005:
   msg: Invalid authorization.
 a006:
-  mag: No permission to access "%path%".
+  msg: No permission to access "%path%".
