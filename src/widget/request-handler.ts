@@ -426,9 +426,8 @@ export class WidgetRequestHandler {
   static async propsUpdate(
     widget: Widget | FSWidget,
     propChanges: PropChange[],
-    entries?: Array<Entry | FSEntry>,
   ) {
-    entries = await CacheControl.entry.findAll();
+    const entries = await CacheControl.entry.findAll();
     for (const i in entries) {
       const entry = entries[i];
       for (const j in entry.content) {
