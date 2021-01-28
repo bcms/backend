@@ -403,7 +403,7 @@ export class TemplateRequestHandler {
     const keys = await CacheControl.apiKey.findAll();
     const updateKeys: Array<FSApiKey | ApiKey> = [];
     keys.forEach((key) => {
-      if (key.access.templates.find((e) => e._id === template._id)) {
+      if (key.access.templates.find((e) => e._id === `${template._id}`)) {
         const k: FSApiKey | ApiKey = JSON.parse(JSON.stringify(key));
         k.access.templates = k.access.templates.filter(
           (e) => e._id !== template._id,
