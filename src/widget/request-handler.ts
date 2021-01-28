@@ -24,6 +24,7 @@ import {
   BCMSEventConfigScope,
   BCMSEventConfigMethod,
 } from '../event';
+import { Entry, FSEntry } from '../entry';
 
 export class WidgetRequestHandler {
   @CreateLogger(WidgetRequestHandler)
@@ -422,11 +423,12 @@ export class WidgetRequestHandler {
     );
   }
 
-  private static async propsUpdate(
+  static async propsUpdate(
     widget: Widget | FSWidget,
     propChanges: PropChange[],
+    entries?: Array<Entry | FSEntry>,
   ) {
-    const entries = await CacheControl.entry.findAll();
+    entries = await CacheControl.entry.findAll();
     for (const i in entries) {
       const entry = entries[i];
       for (const j in entry.content) {

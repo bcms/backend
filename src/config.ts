@@ -20,7 +20,7 @@ export class Config {
       secret: process.env.JWT_SECRET,
     });
     if (process.env.DB_USE_FS === 'true') {
-      await FSDBManager.init(process.cwd());
+      await FSDBManager.init(process.cwd(), 'bcms.db.json');
     }
     CacheWriteBuffer.init();
     CacheControl.init();

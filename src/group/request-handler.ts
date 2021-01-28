@@ -23,6 +23,7 @@ import {
   Prop,
   PropType,
   PropGroupPointer,
+  PropWidget,
 } from '../prop';
 import { General, SocketUtil, SocketEventName } from '../util';
 import { Widget, FSWidget } from '../widget';
@@ -514,6 +515,7 @@ export class GroupRequestHandler {
       }
     }
     // Update Widgets which are using this Group.
+    const updatedWidgets: Array<Widget | FSWidget> = [];
     {
       const widgets = await CacheControl.widget.findAll();
       for (const i in widgets) {
@@ -532,6 +534,7 @@ export class GroupRequestHandler {
         if (output.changesFound) {
           updated.widget.push(`${widget._id}`);
           widget.props = output.props;
+          updatedWidgets.push(widget);
           await CacheControl.widget.update(widget, async (type) => {
             SocketUtil.emit(SocketEventName.WIDGET, {
               entry: {
@@ -579,43 +582,97 @@ export class GroupRequestHandler {
     }
     // Update Entries which are using this Group.
     {
-      for (const i in updated.template) {
-        const entries = await CacheControl.entry.findAllByTemplateId(
-          updated.template[i],
-        );
-        for (const j in entries) {
-          const entry: Entry | FSEntry = JSON.parse(JSON.stringify(entries[j]));
-          let changeInEntry = false;
-          for (const k in entry.meta) {
-            const meta = entry.meta[k];
-            const output = await PropHandler.propsUpdateTargetGroup(
-              groupId,
-              meta.props,
-              propChanges,
-              `(entry: ${entry._id}).meta[${k}].props`,
-            );
-            if (output instanceof Error) {
-              throw output;
+      const entries: Array<Entry | FSEntry> = JSON.parse(
+        JSON.stringify(await CacheControl.entry.findAll()),
+      );
+      const updateEntries: {
+        [id: string]: boolean;
+      } = {};
+      for (const i in entries) {
+        const entry = entries[i];
+        for (const j in updated.template) {
+          // const entries = await CacheControl.entry.findAllByTemplateId(
+          //   updated.template[i],
+          // );
+          // const entries = _entries.filter(
+          //   (e) => e.templateId === updated.template[i],
+          // );
+          if (entry.templateId === updated.template[j]) {
+            let changeInEntry = false;
+            for (const k in entry.meta) {
+              const meta = entry.meta[k];
+              const output = await PropHandler.propsUpdateTargetGroup(
+                groupId,
+                meta.props,
+                propChanges,
+                `(entry: ${entry._id}).meta[${k}].props`,
+              );
+              if (output instanceof Error) {
+                throw output;
+              }
+              if (output.changesFound) {
+                changeInEntry = true;
+                entries[i].meta[k].props = output.props;
+                // entry.meta[k].props = output.props;
+              }
             }
-            if (output.changesFound) {
-              changeInEntry = true;
-              entry.meta[k].props = output.props;
+            if (changeInEntry) {
+              // updated.entry.push(`${entry._id}`);
+              updateEntries[`${entry._id}`] = true;
+              // await CacheControl.entry.update(entry, async (type) => {
+              //   SocketUtil.emit(SocketEventName.ENTRY, {
+              //     entry: {
+              //       _id: `${entry._id}`,
+              //     },
+              //     message: '',
+              //     source: '',
+              //     type,
+              //   });
+              // });
             }
-          }
-          if (changeInEntry) {
-            updated.entry.push(`${entry._id}`);
-            await CacheControl.entry.update(entry, async (type) => {
-              SocketUtil.emit(SocketEventName.ENTRY, {
-                entry: {
-                  _id: `${entry._id}`,
-                },
-                message: '',
-                source: '',
-                type,
-              });
-            });
           }
         }
+        for (const j in entry.content) {
+          const content = entry.content[j];
+          for (const k in content.props) {
+            const prop = content.props[k];
+            if (prop.type === PropType.WIDGET) {
+              const value = prop.value as PropWidget;
+              for (const n in updatedWidgets) {
+                if (value._id === `${updatedWidgets[n]._id}`) {
+                  const output = await PropHandler.propsUpdateTargetGroup(
+                    groupId,
+                    value.props,
+                    propChanges,
+                    `(entry: ${entry._id}).meta[${k}].props`,
+                  );
+                  if (output instanceof Error) {
+                    throw output;
+                  }
+                  if (output.changesFound) {
+                    (entries[i].content[j].props[k].value as PropWidget).props =
+                      output.props;
+                    updateEntries[`${entry._id}`] = true;
+                  }
+                }
+              }
+            }
+          }
+        }
+      }
+      for (const i in updateEntries) {
+        updated.entry.push(i);
+        const entry = entries.find((e) => `${e._id}` === i);
+        await CacheControl.entry.update(entry, async (type) => {
+          SocketUtil.emit(SocketEventName.ENTRY, {
+            entry: {
+              _id: `${entry._id}`,
+            },
+            message: '',
+            source: '',
+            type,
+          });
+        });
       }
     }
     return Object.keys(updated).map((key) => {
