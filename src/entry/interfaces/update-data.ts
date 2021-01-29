@@ -9,6 +9,7 @@ import { ObjectSchema } from '@becomes/purple-cheetah';
 export interface UpdateEntryData {
   _id: string;
   templateId: string;
+  status?: string;
   meta: EntryMeta[];
   content: EntryContent[];
 }
@@ -21,6 +22,10 @@ export const UpdateEntryDataSchema: ObjectSchema = {
   templateId: {
     __type: 'string',
     __required: true,
+  },
+  status: {
+    __type: 'string',
+    __required: false,
   },
   meta: {
     __type: 'array',

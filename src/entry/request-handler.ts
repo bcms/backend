@@ -342,6 +342,7 @@ export class EntryRequestHandler {
     entry.userId = userId;
     entry.meta = meta;
     entry.content = content;
+    entry.status = data.status ? data.status : '';
     const addResult = await CacheControl.entry.add(entry, async () => {
       SocketUtil.emit(SocketEventName.ENTRY, {
         entry: {
@@ -539,6 +540,7 @@ export class EntryRequestHandler {
     }
     entry.meta = meta;
     entry.content = content;
+    entry.status = data.status ? data.status : '';
     const updateResult = await CacheControl.entry.update(
       entry,
       async (type) => {
