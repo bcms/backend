@@ -10,6 +10,9 @@ export class FSWidget implements FSDBEntity {
     public name: string,
     public label: string,
     public desc: string,
+    public previewImage: string,
+    public previewScript: string,
+    public previewStyle: string,
     public props: Prop[],
   ) {}
 }

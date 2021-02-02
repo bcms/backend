@@ -10,6 +10,9 @@ export interface IWidget extends IEntity {
   name: string;
   label: string;
   desc: string;
+  previewImage: string;
+  previewScript: string;
+  previewStyle: string;
   props: Prop[];
 }
 
@@ -22,8 +25,12 @@ export class Widget implements Entity {
     public name: string,
     public label: string,
     public desc: string,
+    public previewImage: string,
+    public previewScript: string,
+    public previewStyle: string,
     public props: Prop[],
-  ) {}
+  ) {
+  }
 
   public static get schema(): Schema {
     return new Schema({
@@ -33,6 +40,9 @@ export class Widget implements Entity {
       name: String,
       label: String,
       desc: String,
+      previewImage: String,
+      previewScript: String,
+      previewStatus: String,
       props: [Object],
     });
   }
@@ -62,5 +72,17 @@ export const WidgetSchema: ObjectSchema = {
   desc: {
     __type: 'string',
     __required: true,
+  },
+  previewImage: {
+    __type: 'string',
+    __required: false,
+  },
+  previewScript: {
+    __type: 'string',
+    __required: false,
+  },
+  previewStyle: {
+    __type: 'string',
+    __required: false,
   },
 };

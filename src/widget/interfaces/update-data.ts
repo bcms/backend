@@ -6,6 +6,9 @@ export interface UpdateWidgetData {
   label?: string;
   desc?: string;
   propChanges?: PropChange[];
+  previewImage?: string;
+  previewScript?: string;
+  previewStyle?: string;
 }
 
 export const UpdateWidgetDataSchema: ObjectSchema = {
@@ -28,5 +31,17 @@ export const UpdateWidgetDataSchema: ObjectSchema = {
       __type: 'object',
       __content: PropChangeSchema,
     },
+  },
+  previewImage: {
+    __type: 'string',
+    __required: false,
+  },
+  previewScript: {
+    __type: 'string',
+    __required: false,
+  },
+  previewStyle: {
+    __type: 'string',
+    __required: false,
   },
 };

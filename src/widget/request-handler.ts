@@ -8,7 +8,6 @@ import {
 } from '@becomes/purple-cheetah';
 import { ResponseCode } from '../response-code';
 import { CacheControl } from '../cache';
-import { PropHandler } from '../prop/handler';
 import { Widget, FSWidget } from './models';
 import {
   AddWidgetData,
@@ -17,14 +16,13 @@ import {
   UpdateWidgetDataSchema,
 } from './interfaces';
 import { WidgetFactory } from './factories';
-import { PropChange, PropType, PropWidget } from '../prop';
+import { PropChange, PropType, PropWidget, PropHandler } from '../prop';
 import { General, SocketUtil, SocketEventName } from '../util';
 import {
   EventManager,
   BCMSEventConfigScope,
   BCMSEventConfigMethod,
 } from '../event';
-import { Entry, FSEntry } from '../entry';
 
 export class WidgetRequestHandler {
   @CreateLogger(WidgetRequestHandler)
@@ -149,6 +147,9 @@ export class WidgetRequestHandler {
     widget.label = data.label;
     widget.name = General.labelToName(data.label);
     widget.desc = data.desc;
+    widget.previewImage = data.previewImage;
+    widget.previewScript = data.previewScript;
+    widget.previewStyle = data.previewStyle;
     if (await CacheControl.widget.findByName(widget.name)) {
       throw error.occurred(
         HttpStatus.FORBIDDEN,
@@ -234,9 +235,22 @@ export class WidgetRequestHandler {
       widget.label = data.label;
       widget.name = name;
     }
+    console.log(data);
     if (typeof data.desc !== 'undefined' && data.desc !== widget.desc) {
       changeDetected = true;
       widget.desc = data.desc;
+    }
+    if (data.previewImage && data.previewImage !== widget.previewImage) {
+      changeDetected = true;
+      widget.previewImage = data.previewImage;
+    }
+    if (data.previewScript && data.previewScript !== widget.previewScript) {
+      changeDetected = true;
+      widget.previewScript = data.previewScript;
+    }
+    if (data.previewStyle && data.previewStyle !== widget.previewStyle) {
+      changeDetected = true;
+      widget.previewStyle = data.previewStyle;
     }
     let updateEntries = false;
     if (
