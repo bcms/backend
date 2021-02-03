@@ -11,18 +11,16 @@ import {
 import { Types } from 'mongoose';
 import { CacheWriteBuffer } from './write-buffer';
 
-export abstract class CacheHandler<
-  T extends FSDBEntity,
+export abstract class CacheHandler<T extends FSDBEntity,
   K extends Entity,
   J extends IEntity,
   M extends FSDBRepositoryPrototype<T>,
-  N extends MongoDBRepositoryPrototype<K, J>
-> {
+  N extends MongoDBRepositoryPrototype<K, J>> {
   protected cache: Array<T | K> = [];
   protected countLatch = false;
   protected queueable: QueueablePrototype<T | K | Array<T | K> | boolean>;
 
-  constructor(
+  protected constructor(
     protected repo: M | N,
     queueable: string[],
     protected logger: Logger,
@@ -60,13 +58,21 @@ export abstract class CacheHandler<
     return all.find(
       (e) =>
         id ===
-        (e._id instanceof Types.ObjectId
-          ? (e._id as Types.ObjectId).toHexString()
-          : e._id),
+        (
+          e._id instanceof Types.ObjectId
+          ? (
+            e._id as Types.ObjectId
+          ).toHexString()
+          : e._id
+        ),
     );
   }
 
-  async add(entity: T | K, onError?: () => Promise<void>): Promise<boolean> {
+  async add(
+    entity: T | K,
+    onError?: () => Promise<void>,
+    onSuccess?: () => Promise<void>,
+  ): Promise<boolean> {
     await this.checkCountLatch();
     const id = `${entity._id}`;
     if (this.cache.find((e) => id === `${e._id}`)) {
@@ -82,15 +88,26 @@ export abstract class CacheHandler<
         | FSDBRepositoryPrototype<FSDBEntity>
         | MongoDBRepositoryPrototype<Entity, IEntity>,
       onError: async () => {
-        this.logger.error('add', 'Failed to add entity to the database.');
+        this.logger.error(
+          'add',
+          'Failed to add entity to the database.',
+        );
         for (let i = 0; i < this.cache.length; i++) {
           if (`${this.cache[i]._id}` === id) {
-            this.cache.splice(i, 1);
+            this.cache.splice(
+              i,
+              1,
+            );
             break;
           }
         }
         if (onError) {
           await onError();
+        }
+      },
+      async onSuccess(): Promise<void> {
+        if (onSuccess) {
+          await onSuccess();
         }
       },
     });
@@ -106,6 +123,7 @@ export abstract class CacheHandler<
   async update(
     entity: T | K,
     onError?: (type: 'update' | 'add') => Promise<void>,
+    onSuccess?: () => Promise<void>,
   ): Promise<boolean> {
     await this.checkCountLatch();
     const id = `${entity._id}`;
@@ -139,6 +157,11 @@ export abstract class CacheHandler<
               await onError(found ? 'update' : 'add');
             }
           },
+          async onSuccess(): Promise<void> {
+            if (onSuccess) {
+              await onSuccess();
+            }
+          },
         });
         return true;
       }
@@ -150,6 +173,7 @@ export abstract class CacheHandler<
   async deleteById(
     id: string,
     onError?: () => Promise<void>,
+    onSuccess?: () => Promise<void>,
   ): Promise<boolean> {
     await this.checkCountLatch();
     for (let i = 0; i < this.cache.length; i = i + 1) {
@@ -158,7 +182,10 @@ export abstract class CacheHandler<
         // if (deleteResult === false) {
         //   return false;
         // }
-        this.cache.splice(i, 1);
+        this.cache.splice(
+          i,
+          1,
+        );
         CacheWriteBuffer.push({
           eid: id,
           type: 'remove',
@@ -170,6 +197,11 @@ export abstract class CacheHandler<
             this.cache.push(dbEntity as T | K);
             if (onError) {
               await onError();
+            }
+          },
+          async onSuccess(): Promise<void> {
+            if (onSuccess) {
+              await onSuccess();
             }
           },
         });

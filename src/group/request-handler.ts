@@ -47,7 +47,10 @@ export class GroupRequestHandler {
     groupIds: string[];
     widgetIds: string[];
   }> {
-    const error = HttpErrorFactory.instance('whereIsItUsed', this.logger);
+    const error = HttpErrorFactory.instance(
+      'whereIsItUsed',
+      this.logger,
+    );
     const output: {
       templateIds: string[];
       groupIds: string[];
@@ -60,14 +63,20 @@ export class GroupRequestHandler {
     if (StringUtility.isIdValid(id) === false) {
       throw error.occurred(
         HttpStatus.BAD_REQUEST,
-        ResponseCode.get('g004', { id }),
+        ResponseCode.get(
+          'g004',
+          { id },
+        ),
       );
     }
     const group = await CacheControl.group.findById(id);
     if (!group) {
       throw error.occurred(
         HttpStatus.NOT_FOUNT,
-        ResponseCode.get('grp001', { id }),
+        ResponseCode.get(
+          'grp001',
+          { id },
+        ),
       );
     }
     const search = async (
@@ -82,7 +91,10 @@ export class GroupRequestHandler {
             return true;
           } else {
             const g = await CacheControl.group.findById(value._id);
-            return search(targetGroupId, g.props);
+            return search(
+              targetGroupId,
+              g.props,
+            );
           }
         }
       }
@@ -92,7 +104,10 @@ export class GroupRequestHandler {
       const templates = await CacheControl.template.findAll();
       for (const i in templates) {
         const template = templates[i];
-        if (await search(`${group._id}`, template.props)) {
+        if (await search(
+          `${group._id}`,
+          template.props,
+        )) {
           output.templateIds.push(`${template._id}`);
         }
       }
@@ -101,7 +116,10 @@ export class GroupRequestHandler {
       const groups = await CacheControl.group.findAll();
       for (const i in groups) {
         const g = groups[i];
-        if (await search(`${group._id}`, g.props)) {
+        if (await search(
+          `${group._id}`,
+          g.props,
+        )) {
           output.groupIds.push(`${g._id}`);
         }
       }
@@ -110,7 +128,10 @@ export class GroupRequestHandler {
       const widgets = await CacheControl.widget.findAll();
       for (const i in widgets) {
         const widget = widgets[i];
-        if (await search(`${group._id}`, widget.props)) {
+        if (await search(
+          `${group._id}`,
+          widget.props,
+        )) {
           output.widgetIds.push(`${widget._id}`);
         }
       }
@@ -123,38 +144,56 @@ export class GroupRequestHandler {
   }
 
   static async getById(id: string): Promise<Group | FSGroup> {
-    const error = HttpErrorFactory.instance('getById', this.logger);
+    const error = HttpErrorFactory.instance(
+      'getById',
+      this.logger,
+    );
     if (StringUtility.isIdValid(id) === false) {
       throw error.occurred(
         HttpStatus.BAD_REQUEST,
-        ResponseCode.get('g004', { id }),
+        ResponseCode.get(
+          'g004',
+          { id },
+        ),
       );
     }
     const group = await CacheControl.group.findById(id);
     if (!group) {
       throw error.occurred(
         HttpStatus.NOT_FOUNT,
-        ResponseCode.get('grp001', { id }),
+        ResponseCode.get(
+          'grp001',
+          { id },
+        ),
       );
     }
     return group;
   }
 
   static async getMany(idsString: string): Promise<Array<Group | FSGroup>> {
-    const error = HttpErrorFactory.instance('getMany', this.logger);
+    const error = HttpErrorFactory.instance(
+      'getMany',
+      this.logger,
+    );
     if (!idsString) {
       throw error.occurred(
         HttpStatus.BAD_REQUEST,
-        ResponseCode.get('g010', {
-          param: 'ids',
-        }),
+        ResponseCode.get(
+          'g010',
+          {
+            param: 'ids',
+          },
+        ),
       );
     }
     const ids: string[] = idsString.split('-').map((id, i) => {
       if (StringUtility.isIdValid(id) === false) {
         throw error.occurred(
           HttpStatus.BAD_REQUEST,
-          ResponseCode.get('g004', { id: `ids[${i}]: ${id}` }),
+          ResponseCode.get(
+            'g004',
+            { id: `ids[${i}]: ${id}` },
+          ),
         );
       }
       return id;
@@ -167,15 +206,25 @@ export class GroupRequestHandler {
   }
 
   static async add(data: AddGroupData, sid: string): Promise<Group | FSGroup> {
-    const error = HttpErrorFactory.instance('add', this.logger);
+    const error = HttpErrorFactory.instance(
+      'add',
+      this.logger,
+    );
     try {
-      ObjectUtility.compareWithSchema(data, AddGroupDataSchema, 'data');
+      ObjectUtility.compareWithSchema(
+        data,
+        AddGroupDataSchema,
+        'data',
+      );
     } catch (e) {
       throw error.occurred(
         HttpStatus.BAD_REQUEST,
-        ResponseCode.get('g002', {
-          msg: e.message,
-        }),
+        ResponseCode.get(
+          'g002',
+          {
+            msg: e.message,
+          },
+        ),
       );
     }
     const group = GroupFactory.instance();
@@ -185,33 +234,45 @@ export class GroupRequestHandler {
     if (await CacheControl.group.findByName(group.name)) {
       throw error.occurred(
         HttpStatus.FORBIDDEN,
-        ResponseCode.get('grp002', { name: group.name }),
+        ResponseCode.get(
+          'grp002',
+          { name: group.name },
+        ),
       );
     }
-    const addGroupResult = await CacheControl.group.add(group, async () => {
-      SocketUtil.emit(SocketEventName.GROUP, {
-        entry: {
-          _id: `${group._id}`,
-        },
-        message: 'Unsuccessful group add.',
-        source: '',
-        type: 'remove',
-      });
-    });
+    const addGroupResult = await CacheControl.group.add(
+      group,
+      async () => {
+        SocketUtil.emit(
+          SocketEventName.GROUP,
+          {
+            entry: {
+              _id: `${group._id}`,
+            },
+            message: 'Unsuccessful group add.',
+            source: '',
+            type: 'remove',
+          },
+        );
+      },
+    );
     if (addGroupResult === false) {
       throw error.occurred(
         HttpStatus.INTERNAL_SERVER_ERROR,
         ResponseCode.get('grp003'),
       );
     }
-    SocketUtil.emit(SocketEventName.GROUP, {
-      entry: {
-        _id: `${group._id}`,
+    SocketUtil.emit(
+      SocketEventName.GROUP,
+      {
+        entry: {
+          _id: `${group._id}`,
+        },
+        message: 'Group has been added.',
+        source: sid,
+        type: 'add',
       },
-      message: 'Group has been added.',
-      source: sid,
-      type: 'add',
-    });
+    );
     await EventManager.emit(
       BCMSEventConfigScope.GROUP,
       BCMSEventConfigMethod.ADD,
@@ -232,193 +293,262 @@ export class GroupRequestHandler {
     data: UpdateGroupData,
     sid: string,
   ): Promise<Group | FSGroup> {
-    return (await this.queueable.exec('update', 'free_one_by_one', async () => {
-      const error = HttpErrorFactory.instance('update', this.logger);
-      try {
-        ObjectUtility.compareWithSchema(data, UpdateGroupDataSchema, 'data');
-      } catch (err) {
-        throw error.occurred(
-          HttpStatus.BAD_REQUEST,
-          ResponseCode.get('g002', {
-            msg: err.message,
-          }),
-        );
-      }
-      if (StringUtility.isIdValid(data._id) === false) {
-        throw error.occurred(
-          HttpStatus.BAD_REQUEST,
-          ResponseCode.get('g004', { id: data._id }),
-        );
-      }
-      let group: Group | FSGroup;
-      {
-        const g = await CacheControl.group.findById(data._id);
-        if (!g) {
-          throw error.occurred(
-            HttpStatus.NOT_FOUNT,
-            ResponseCode.get('grp001', { id: data._id }),
+    return (
+      await this.queueable.exec('update',
+        'free_one_by_one',
+        async () => {
+          const error = HttpErrorFactory.instance(
+            'update',
+            this.logger,
           );
-        }
-        group = JSON.parse(JSON.stringify(g));
-      }
-      let changeDetected = false;
-      if (typeof data.label !== 'undefined' && data.label !== group.label) {
-        const name = General.labelToName(data.label);
-        if (group.name !== name) {
-          if (await CacheControl.group.findByName(name)) {
+          try {
+            ObjectUtility.compareWithSchema(
+              data,
+              UpdateGroupDataSchema,
+              'data',
+            );
+          } catch (err) {
             throw error.occurred(
-              HttpStatus.FORBIDDEN,
-              ResponseCode.get('grp002', { name: group.name }),
+              HttpStatus.BAD_REQUEST,
+              ResponseCode.get(
+                'g002',
+                {
+                  msg: err.message,
+                },
+              ),
             );
           }
-        }
-        changeDetected = true;
-        group.label = data.label;
-        group.name = name;
-      }
-      if (typeof data.desc === 'string' && data.desc !== group.desc) {
-        changeDetected = true;
-        group.desc = data.desc;
-      }
-      let updateEntries = false;
-      if (
-        typeof data.propChanges !== 'undefined' &&
-        data.propChanges.length > 0
-      ) {
-        updateEntries = true;
-        changeDetected = true;
-        const o = await PropHandler.applyPropChanges(
-          group.props,
-          data.propChanges,
-          `(group: ${group.name}).props`,
-          true,
-        );
-        if (o instanceof Error) {
-          throw error.occurred(
-            HttpStatus.BAD_REQUEST,
-            ResponseCode.get('g009', {
-              msg: o.message,
-            }),
-          );
-        }
-        group.props = o;
-      }
-      if (!changeDetected) {
-        throw error.occurred(HttpStatus.FORBIDDEN, ResponseCode.get('g003'));
-      }
-      const result = await PropHandler.testInfiniteLoop(group.props, {
-        group: [
+          if (StringUtility.isIdValid(data._id) === false) {
+            throw error.occurred(
+              HttpStatus.BAD_REQUEST,
+              ResponseCode.get(
+                'g004',
+                { id: data._id },
+              ),
+            );
+          }
+          let group: Group | FSGroup;
           {
-            _id: `${group._id}`,
-            label: group.label,
-          },
-        ],
-      });
-      if (result instanceof Error) {
-        throw error.occurred(
-          HttpStatus.BAD_REQUEST,
-          ResponseCode.get('g008', {
-            msg: result.message,
-          }),
-        );
-      }
-      const output = await PropHandler.propsChecker(
-        group.props,
-        group.props,
-        'group.props',
-        true,
-      );
-      if (output instanceof Error) {
-        throw error.occurred(
-          HttpStatus.BAD_REQUEST,
-          ResponseCode.get('g007', {
-            msg: output.message,
-          }),
-        );
-      }
-      const updateResult = await CacheControl.group.update(
-        group,
-        async (type) => {
-          SocketUtil.emit(SocketEventName.GROUP, {
-            entry: {
-              _id: `${group._id}`,
+            const g = await CacheControl.group.findById(data._id);
+            if (!g) {
+              throw error.occurred(
+                HttpStatus.NOT_FOUNT,
+                ResponseCode.get(
+                  'grp001',
+                  { id: data._id },
+                ),
+              );
+            }
+            group = JSON.parse(JSON.stringify(g));
+          }
+          let changeDetected = false;
+          if (typeof data.label !== 'undefined' && data.label !== group.label) {
+            const name = General.labelToName(data.label);
+            if (group.name !== name) {
+              if (await CacheControl.group.findByName(name)) {
+                throw error.occurred(
+                  HttpStatus.FORBIDDEN,
+                  ResponseCode.get(
+                    'grp002',
+                    { name: group.name },
+                  ),
+                );
+              }
+            }
+            changeDetected = true;
+            group.label = data.label;
+            group.name = name;
+          }
+          if (typeof data.desc === 'string' && data.desc !== group.desc) {
+            changeDetected = true;
+            group.desc = data.desc;
+          }
+          let updateEntries = false;
+          if (
+            typeof data.propChanges !== 'undefined' &&
+            data.propChanges.length > 0
+          ) {
+            updateEntries = true;
+            changeDetected = true;
+            const o = await PropHandler.applyPropChanges(
+              group.props,
+              data.propChanges,
+              `(group: ${group.name}).props`,
+              true,
+            );
+            if (o instanceof Error) {
+              throw error.occurred(
+                HttpStatus.BAD_REQUEST,
+                ResponseCode.get(
+                  'g009',
+                  {
+                    msg: o.message,
+                  },
+                ),
+              );
+            }
+            group.props = o;
+          }
+          if (!changeDetected) {
+            throw error.occurred(
+              HttpStatus.FORBIDDEN,
+              ResponseCode.get('g003'),
+            );
+          }
+          const result = await PropHandler.testInfiniteLoop(
+            group.props,
+            {
+              group: [
+                {
+                  _id: `${group._id}`,
+                  label: group.label,
+                },
+              ],
             },
-            message: '',
-            source: '',
-            type,
-          });
-        },
-      );
-      if (updateResult === false) {
-        throw error.occurred(
-          HttpStatus.INTERNAL_SERVER_ERROR,
-          ResponseCode.get('grp005'),
-        );
-      }
-      let updated: Array<{
-        name: string;
-        ids: string[];
-      }>;
-      if (updateEntries) {
-        // TODO: It is a very big issue if this fails because
-        //        there is no mechanism to reverse the state
-        //        back to pre fail state.
-        try {
-          updated = await this.propsUpdate(`${group._id}`, data.propChanges);
-        } catch (e) {
-          this.logger.error('update', e);
-          throw error.occurred(
-            HttpStatus.INTERNAL_SERVER_ERROR,
-            ResponseCode.get('grp007', {
-              msg: e.message,
-            }),
           );
-        }
-      }
-      SocketUtil.emit(SocketEventName.GROUP, {
-        entry: {
-          _id: `${group._id}`,
+          if (result instanceof Error) {
+            throw error.occurred(
+              HttpStatus.BAD_REQUEST,
+              ResponseCode.get(
+                'g008',
+                {
+                  msg: result.message,
+                },
+              ),
+            );
+          }
+          const output = await PropHandler.propsChecker(
+            group.props,
+            group.props,
+            'group.props',
+            true,
+          );
+          if (output instanceof Error) {
+            throw error.occurred(
+              HttpStatus.BAD_REQUEST,
+              ResponseCode.get(
+                'g007',
+                {
+                  msg: output.message,
+                },
+              ),
+            );
+          }
+          const updateResult = await CacheControl.group.update(
+            group,
+            async (type) => {
+              SocketUtil.emit(
+                SocketEventName.GROUP,
+                {
+                  entry: {
+                    _id: `${group._id}`,
+                  },
+                  message: '',
+                  source: '',
+                  type,
+                },
+              );
+            },
+          );
+          if (updateResult === false) {
+            throw error.occurred(
+              HttpStatus.INTERNAL_SERVER_ERROR,
+              ResponseCode.get('grp005'),
+            );
+          }
+          let updated: Array<{
+            name: string;
+            ids: string[];
+          }>;
+          if (updateEntries) {
+            // TODO: It is a very big issue if this fails because
+            //        there is no mechanism to reverse the state
+            //        back to pre fail state.
+            try {
+              updated = await this.propsUpdate(
+                `${group._id}`,
+                data.propChanges,
+              );
+            } catch (e) {
+              this.logger.error(
+                'update',
+                e,
+              );
+              throw error.occurred(
+                HttpStatus.INTERNAL_SERVER_ERROR,
+                ResponseCode.get(
+                  'grp007',
+                  {
+                    msg: e.message,
+                  },
+                ),
+              );
+            }
+          }
+          SocketUtil.emit(
+            SocketEventName.GROUP,
+            {
+              entry: {
+                _id: `${group._id}`,
+              },
+              message: {
+                updated,
+              },
+              source: sid,
+              type: 'update',
+            },
+          );
+          await EventManager.emit(
+            BCMSEventConfigScope.GROUP,
+            BCMSEventConfigMethod.UPDATE,
+            JSON.parse(JSON.stringify(group)),
+          );
+          return group;
         },
-        message: {
-          updated,
-        },
-        source: sid,
-        type: 'update',
-      });
-      await EventManager.emit(
-        BCMSEventConfigScope.GROUP,
-        BCMSEventConfigMethod.UPDATE,
-        JSON.parse(JSON.stringify(group)),
-      );
-      return group;
-    })) as Group | FSGroup;
+      )
+    ) as Group | FSGroup;
   }
 
   static async deleteById(id: string, sid: string) {
-    const error = HttpErrorFactory.instance('deleteById', this.logger);
+    const error = HttpErrorFactory.instance(
+      'deleteById',
+      this.logger,
+    );
     if (StringUtility.isIdValid(id) === false) {
       throw error.occurred(
         HttpStatus.BAD_REQUEST,
-        ResponseCode.get('g004', { id }),
+        ResponseCode.get(
+          'g004',
+          { id },
+        ),
       );
     }
     const group = await CacheControl.group.findById(id);
     if (!group) {
       throw error.occurred(
         HttpStatus.NOT_FOUNT,
-        ResponseCode.get('grp001', { id }),
+        ResponseCode.get(
+          'grp001',
+          { id },
+        ),
       );
     }
-    const deleteResult = await CacheControl.group.deleteById(id, async () => {
-      SocketUtil.emit(SocketEventName.GROUP, {
-        entry: {
-          _id: `${group._id}`,
-        },
-        message: '',
-        source: '',
-        type: 'add',
-      });
-    });
+    const deleteResult = await CacheControl.group.deleteById(
+      id,
+      async () => {
+        SocketUtil.emit(
+          SocketEventName.GROUP,
+          {
+            entry: {
+              _id: `${group._id}`,
+            },
+            message: '',
+            source: '',
+            type: 'add',
+          },
+        );
+      },
+    );
     if (deleteResult === false) {
       throw error.occurred(
         HttpStatus.INTERNAL_SERVER_ERROR,
@@ -433,30 +563,42 @@ export class GroupRequestHandler {
     //        there is no mechanism to reverse the state
     //        back to pre fail state.
     try {
-      updated = await this.propsUpdate(`${group._id}`, [
-        {
-          remove: `${group._id}`,
-        },
-      ]);
+      updated = await this.propsUpdate(
+        `${group._id}`,
+        [
+          {
+            remove: `${group._id}`,
+          },
+        ],
+      );
     } catch (e) {
-      this.logger.error('update', e);
+      this.logger.error(
+        'update',
+        e,
+      );
       throw error.occurred(
         HttpStatus.INTERNAL_SERVER_ERROR,
-        ResponseCode.get('grp007', {
-          msg: e.message,
-        }),
+        ResponseCode.get(
+          'grp007',
+          {
+            msg: e.message,
+          },
+        ),
       );
     }
-    SocketUtil.emit(SocketEventName.GROUP, {
-      entry: {
-        _id: `${group._id}`,
+    SocketUtil.emit(
+      SocketEventName.GROUP,
+      {
+        entry: {
+          _id: `${group._id}`,
+        },
+        message: {
+          updated,
+        },
+        source: sid,
+        type: 'remove',
       },
-      message: {
-        updated,
-      },
-      source: sid,
-      type: 'remove',
-    });
+    );
     await EventManager.emit(
       BCMSEventConfigScope.GROUP,
       BCMSEventConfigMethod.DELETE,
@@ -467,12 +609,10 @@ export class GroupRequestHandler {
   private static async propsUpdate(
     groupId: string,
     propChanges: PropChange[],
-  ): Promise<
-    Array<{
-      name: string;
-      ids: string[];
-    }>
-  > {
+  ): Promise<Array<{
+    name: string;
+    ids: string[];
+  }>> {
     const updated: {
       entry: string[];
       group: string[];
@@ -501,16 +641,22 @@ export class GroupRequestHandler {
         if (output.changesFound) {
           updated.group.push(`${group._id}`);
           group.props = output.props;
-          await CacheControl.group.update(group, async (type) => {
-            SocketUtil.emit(SocketEventName.GROUP, {
-              entry: {
-                _id: `${group._id}`,
-              },
-              message: '',
-              source: '',
-              type,
-            });
-          });
+          await CacheControl.group.update(
+            group,
+            async (type) => {
+              SocketUtil.emit(
+                SocketEventName.GROUP,
+                {
+                  entry: {
+                    _id: `${group._id}`,
+                  },
+                  message: '',
+                  source: '',
+                  type,
+                },
+              );
+            },
+          );
         }
       }
     }
@@ -535,16 +681,22 @@ export class GroupRequestHandler {
           updated.widget.push(`${widget._id}`);
           widget.props = output.props;
           updatedWidgets.push(widget);
-          await CacheControl.widget.update(widget, async (type) => {
-            SocketUtil.emit(SocketEventName.WIDGET, {
-              entry: {
-                _id: `${widget._id}`,
-              },
-              message: '',
-              source: '',
-              type,
-            });
-          });
+          await CacheControl.widget.update(
+            widget,
+            async (type) => {
+              SocketUtil.emit(
+                SocketEventName.WIDGET,
+                {
+                  entry: {
+                    _id: `${widget._id}`,
+                  },
+                  message: '',
+                  source: '',
+                  type,
+                },
+              );
+            },
+          );
         }
       }
     }
@@ -567,16 +719,22 @@ export class GroupRequestHandler {
         if (output.changesFound) {
           updated.template.push(`${template._id}`);
           template.props = output.props;
-          await CacheControl.template.update(template, async (type) => {
-            SocketUtil.emit(SocketEventName.TEMPLATE, {
-              entry: {
-                _id: `${template._id}`,
-              },
-              message: '',
-              source: '',
-              type,
-            });
-          });
+          await CacheControl.template.update(
+            template,
+            async (type) => {
+              SocketUtil.emit(
+                SocketEventName.TEMPLATE,
+                {
+                  entry: {
+                    _id: `${template._id}`,
+                  },
+                  message: '',
+                  source: '',
+                  type,
+                },
+              );
+            },
+          );
         }
       }
     }
@@ -650,7 +808,9 @@ export class GroupRequestHandler {
                     throw output;
                   }
                   if (output.changesFound) {
-                    (entries[i].content[j].props[k].value as PropWidget).props =
+                    (
+                      entries[i].content[j].props[k].value as PropWidget
+                    ).props =
                       output.props;
                     updateEntries[`${entry._id}`] = true;
                   }
@@ -663,16 +823,22 @@ export class GroupRequestHandler {
       for (const i in updateEntries) {
         updated.entry.push(i);
         const entry = entries.find((e) => `${e._id}` === i);
-        await CacheControl.entry.update(entry, async (type) => {
-          SocketUtil.emit(SocketEventName.ENTRY, {
-            entry: {
-              _id: `${entry._id}`,
-            },
-            message: '',
-            source: '',
-            type,
-          });
-        });
+        await CacheControl.entry.update(
+          entry,
+          async (type) => {
+            SocketUtil.emit(
+              SocketEventName.ENTRY,
+              {
+                entry: {
+                  _id: `${entry._id}`,
+                },
+                message: '',
+                source: '',
+                type,
+              },
+            );
+          },
+        );
       }
     }
     return Object.keys(updated).map((key) => {

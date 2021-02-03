@@ -37,33 +37,46 @@ export class EntryRequestHandler {
   }
 
   static async getAllLite(): Promise<EntryLite[]> {
-    return (await CacheControl.entry.findAll()).map((entry) => {
+    return (
+      await CacheControl.entry.findAll()
+    ).map((entry) => {
       return EntryFactory.toLite(entry);
     });
   }
 
   static async getManyLite(idsString: string): Promise<EntryLite[]> {
-    const error = HttpErrorFactory.instance('getManyLite', this.logger);
+    const error = HttpErrorFactory.instance(
+      'getManyLite',
+      this.logger,
+    );
     if (!idsString) {
       throw error.occurred(
         HttpStatus.BAD_REQUEST,
-        ResponseCode.get('g010', {
-          param: 'ids',
-        }),
+        ResponseCode.get(
+          'g010',
+          {
+            param: 'ids',
+          },
+        ),
       );
     }
     const ids: string[] = idsString.split('-').map((id, i) => {
       if (StringUtility.isIdValid(id) === false) {
         throw error.occurred(
           HttpStatus.BAD_REQUEST,
-          ResponseCode.get('g004', {
-            id: `ids[${i}]: ${id}`,
-          }),
+          ResponseCode.get(
+            'g004',
+            {
+              id: `ids[${i}]: ${id}`,
+            },
+          ),
         );
       }
       return id;
     });
-    return (await CacheControl.entry.findAllById(ids)).map((entry) => {
+    return (
+      await CacheControl.entry.findAllById(ids)
+    ).map((entry) => {
       return EntryFactory.toLite(entry);
     });
   }
@@ -71,11 +84,17 @@ export class EntryRequestHandler {
   static async getAllByTemplateId(
     templateId: string,
   ): Promise<Array<Entry | FSEntry>> {
-    const error = HttpErrorFactory.instance('getAllByTemplateId', this.logger);
+    const error = HttpErrorFactory.instance(
+      'getAllByTemplateId',
+      this.logger,
+    );
     if (StringUtility.isIdValid(templateId) === false) {
       throw error.occurred(
         HttpStatus.BAD_REQUEST,
-        ResponseCode.get('g004', { templateId }),
+        ResponseCode.get(
+          'g004',
+          { templateId },
+        ),
       );
     }
     return await CacheControl.entry.findAllByTemplateId(templateId);
@@ -91,7 +110,10 @@ export class EntryRequestHandler {
     if (StringUtility.isIdValid(templateId) === false) {
       throw error.occurred(
         HttpStatus.BAD_REQUEST,
-        ResponseCode.get('g004', { templateId }),
+        ResponseCode.get(
+          'g004',
+          { templateId },
+        ),
       );
     }
     const entries = await CacheControl.entry.findAllByTemplateId(templateId);
@@ -109,6 +131,7 @@ export class EntryRequestHandler {
     }
     return entriesParsed;
   }
+
   static async getAllByTemplateIdIndexed(
     templateId: string,
   ): Promise<Array<Entity | FSDBEntity>> {
@@ -119,7 +142,10 @@ export class EntryRequestHandler {
     if (StringUtility.isIdValid(templateId) === false) {
       throw error.occurred(
         HttpStatus.BAD_REQUEST,
-        ResponseCode.get('g004', { templateId }),
+        ResponseCode.get(
+          'g004',
+          { templateId },
+        ),
       );
     }
     const entries = await CacheControl.entry.findAllByTemplateId(templateId);
@@ -142,10 +168,15 @@ export class EntryRequestHandler {
     if (StringUtility.isIdValid(templateId) === false) {
       throw error.occurred(
         HttpStatus.BAD_REQUEST,
-        ResponseCode.get('g004', { templateId }),
+        ResponseCode.get(
+          'g004',
+          { templateId },
+        ),
       );
     }
-    return (await CacheControl.entry.findAllByTemplateId(templateId)).map(
+    return (
+      await CacheControl.entry.findAllByTemplateId(templateId)
+    ).map(
       (entry) => {
         return EntryFactory.toLite(entry);
       },
@@ -153,65 +184,98 @@ export class EntryRequestHandler {
   }
 
   static async countByTemplateId(templateId: string): Promise<number> {
-    const error = HttpErrorFactory.instance('countByTemplateId', this.logger);
+    const error = HttpErrorFactory.instance(
+      'countByTemplateId',
+      this.logger,
+    );
     if (StringUtility.isIdValid(templateId) === false) {
       throw error.occurred(
         HttpStatus.BAD_REQUEST,
-        ResponseCode.get('g004', { templateId }),
+        ResponseCode.get(
+          'g004',
+          { templateId },
+        ),
       );
     }
     return await CacheControl.entry.countByTemplateId(templateId);
   }
 
   static async getById(id: string): Promise<Entry | FSEntry> {
-    const error = HttpErrorFactory.instance('getById', this.logger);
+    const error = HttpErrorFactory.instance(
+      'getById',
+      this.logger,
+    );
     if (StringUtility.isIdValid(id) === false) {
       throw error.occurred(
         HttpStatus.BAD_REQUEST,
-        ResponseCode.get('g004', { id }),
+        ResponseCode.get(
+          'g004',
+          { id },
+        ),
       );
     }
     const entry = await CacheControl.entry.findById(id);
     if (!entry) {
       throw error.occurred(
         HttpStatus.NOT_FOUNT,
-        ResponseCode.get('etr001', { id }),
+        ResponseCode.get(
+          'etr001',
+          { id },
+        ),
       );
     }
     return entry;
   }
 
   static async getByIdParsed(id: string): Promise<EntryParsed> {
-    const error = HttpErrorFactory.instance('getById', this.logger);
+    const error = HttpErrorFactory.instance(
+      'getByIdParsed',
+      this.logger,
+    );
     if (StringUtility.isIdValid(id) === false) {
       throw error.occurred(
         HttpStatus.BAD_REQUEST,
-        ResponseCode.get('g004', { id }),
+        ResponseCode.get(
+          'g004',
+          { id },
+        ),
       );
     }
     const entry = await CacheControl.entry.findById(id);
     if (!entry) {
       throw error.occurred(
         HttpStatus.NOT_FOUNT,
-        ResponseCode.get('etr001', { id }),
+        ResponseCode.get(
+          'etr001',
+          { id },
+        ),
       );
     }
     return await EntryParser.parse(entry);
   }
 
   static async getByIdLite(id: string): Promise<EntryLite> {
-    const error = HttpErrorFactory.instance('getById', this.logger);
+    const error = HttpErrorFactory.instance(
+      'getByIdLite',
+      this.logger,
+    );
     if (StringUtility.isIdValid(id) === false) {
       throw error.occurred(
         HttpStatus.BAD_REQUEST,
-        ResponseCode.get('g004', { id }),
+        ResponseCode.get(
+          'g004',
+          { id },
+        ),
       );
     }
     const entry = await CacheControl.entry.findById(id);
     if (!entry) {
       throw error.occurred(
         HttpStatus.NOT_FOUNT,
-        ResponseCode.get('etr001', { id }),
+        ResponseCode.get(
+          'etr001',
+          { id },
+        ),
       );
     }
     return EntryFactory.toLite(entry);
@@ -222,30 +286,46 @@ export class EntryRequestHandler {
     sid: string,
     userId: string,
   ): Promise<Entry | FSEntry> {
-    const error = HttpErrorFactory.instance('add', this.logger);
+    const error = HttpErrorFactory.instance(
+      'add',
+      this.logger,
+    );
     try {
-      ObjectUtility.compareWithSchema(data, AddEntryDataSchema, 'data');
+      ObjectUtility.compareWithSchema(
+        data,
+        AddEntryDataSchema,
+        'data',
+      );
     } catch (e) {
       throw error.occurred(
         HttpStatus.BAD_REQUEST,
-        ResponseCode.get('g002', {
-          msg: e.message,
-        }),
+        ResponseCode.get(
+          'g002',
+          {
+            msg: e.message,
+          },
+        ),
       );
     }
     if (StringUtility.isIdValid(data.templateId) === false) {
       throw error.occurred(
         HttpStatus.BAD_REQUEST,
-        ResponseCode.get('g004', { id: data.templateId }),
+        ResponseCode.get(
+          'g004',
+          { id: data.templateId },
+        ),
       );
     }
     const template = await CacheControl.template.findById(data.templateId);
     if (!template) {
       throw error.occurred(
         HttpStatus.NOT_FOUNT,
-        ResponseCode.get('tmp001', {
-          id: data.templateId,
-        }),
+        ResponseCode.get(
+          'tmp001',
+          {
+            id: data.templateId,
+          },
+        ),
       );
     }
     const languages = await CacheControl.language.findAll();
@@ -257,19 +337,25 @@ export class EntryRequestHandler {
       if (!lngMeta) {
         throw error.occurred(
           HttpStatus.BAD_REQUEST,
-          ResponseCode.get('etr002', {
-            lng: languages[i].name,
-            prop: 'meta',
-          }),
+          ResponseCode.get(
+            'etr002',
+            {
+              lng: languages[i].name,
+              prop: 'meta',
+            },
+          ),
         );
       }
       if (!lngContent) {
         throw error.occurred(
           HttpStatus.BAD_REQUEST,
-          ResponseCode.get('etr002', {
-            lng: languages[i].name,
-            prop: 'content',
-          }),
+          ResponseCode.get(
+            'etr002',
+            {
+              lng: languages[i].name,
+              prop: 'content',
+            },
+          ),
         );
       }
       const metaCheckResult = await PropHandler.propsChecker(
@@ -280,10 +366,13 @@ export class EntryRequestHandler {
       if (metaCheckResult instanceof Error) {
         throw error.occurred(
           HttpStatus.BAD_REQUEST,
-          ResponseCode.get('etr003', {
-            error: metaCheckResult.message,
-            prop: 'meta',
-          }),
+          ResponseCode.get(
+            'etr003',
+            {
+              error: metaCheckResult.message,
+              prop: 'meta',
+            },
+          ),
         );
       }
       const contentCheckResult = await PropHandler.propsValidate(
@@ -293,10 +382,13 @@ export class EntryRequestHandler {
       if (contentCheckResult instanceof Error) {
         throw error.occurred(
           HttpStatus.BAD_REQUEST,
-          ResponseCode.get('etr003', {
-            error: contentCheckResult.message,
-            prop: 'content',
-          }),
+          ResponseCode.get(
+            'etr003',
+            {
+              error: contentCheckResult.message,
+              prop: 'content',
+            },
+          ),
         );
       }
       let title = false;
@@ -343,33 +435,42 @@ export class EntryRequestHandler {
     entry.meta = meta;
     entry.content = content;
     entry.status = data.status ? data.status : '';
-    const addResult = await CacheControl.entry.add(entry, async () => {
-      SocketUtil.emit(SocketEventName.ENTRY, {
-        entry: {
-          _id: `${entry._id}`,
-        },
-        message: '',
-        source: '',
-        type: 'remove',
-      });
-    });
+    const addResult = await CacheControl.entry.add(
+      entry,
+      async () => {
+        SocketUtil.emit(
+          SocketEventName.ENTRY,
+          {
+            entry: {
+              _id: `${entry._id}`,
+            },
+            message: '',
+            source: '',
+            type: 'remove',
+          },
+        );
+      },
+    );
     if (addResult === false) {
       throw error.occurred(
         HttpStatus.INTERNAL_SERVER_ERROR,
         ResponseCode.get('etr004'),
       );
     }
-    SocketUtil.emit(SocketEventName.ENTRY, {
-      entry: {
-        _id: `${entry._id}`,
-        additional: {
-          templateId: entry.templateId,
+    SocketUtil.emit(
+      SocketEventName.ENTRY,
+      {
+        entry: {
+          _id: `${entry._id}`,
+          additional: {
+            templateId: entry.templateId,
+          },
         },
+        message: 'Entry added.',
+        source: sid,
+        type: 'add',
       },
-      message: 'Entry added.',
-      source: sid,
-      type: 'add',
-    });
+    );
     await EventManager.emit(
       BCMSEventConfigScope.ENTRY,
       BCMSEventConfigMethod.ADD,
@@ -382,45 +483,67 @@ export class EntryRequestHandler {
     data: UpdateEntryData,
     sid: string,
   ): Promise<Entry | FSEntry> {
-    const error = HttpErrorFactory.instance('update', this.logger);
+    const error = HttpErrorFactory.instance(
+      'update',
+      this.logger,
+    );
     try {
-      ObjectUtility.compareWithSchema(data, AddEntryDataSchema, 'data');
+      ObjectUtility.compareWithSchema(
+        data,
+        AddEntryDataSchema,
+        'data',
+      );
     } catch (e) {
       throw error.occurred(
         HttpStatus.BAD_REQUEST,
-        ResponseCode.get('g002', {
-          msg: e.message,
-        }),
+        ResponseCode.get(
+          'g002',
+          {
+            msg: e.message,
+          },
+        ),
       );
     }
     if (StringUtility.isIdValid(data.templateId) === false) {
       throw error.occurred(
         HttpStatus.BAD_REQUEST,
-        ResponseCode.get('g004', { id: `templateId: ${data.templateId}` }),
+        ResponseCode.get(
+          'g004',
+          { id: `templateId: ${data.templateId}` },
+        ),
       );
     }
     if (StringUtility.isIdValid(data._id) === false) {
       throw error.occurred(
         HttpStatus.BAD_REQUEST,
-        ResponseCode.get('g004', { id: `_id: ${data._id}` }),
+        ResponseCode.get(
+          'g004',
+          { id: `_id: ${data._id}` },
+        ),
       );
     }
     const entry = await CacheControl.entry.findById(data._id);
     if (!entry) {
       throw error.occurred(
         HttpStatus.NOT_FOUNT,
-        ResponseCode.get('etr001', {
-          id: data._id,
-        }),
+        ResponseCode.get(
+          'etr001',
+          {
+            id: data._id,
+          },
+        ),
       );
     }
     const template = await CacheControl.template.findById(data.templateId);
     if (!template) {
       throw error.occurred(
         HttpStatus.NOT_FOUNT,
-        ResponseCode.get('tmp001', {
-          id: data.templateId,
-        }),
+        ResponseCode.get(
+          'tmp001',
+          {
+            id: data.templateId,
+          },
+        ),
       );
     }
     const languages = await CacheControl.language.findAll();
@@ -458,19 +581,25 @@ export class EntryRequestHandler {
       if (!lngMeta) {
         throw error.occurred(
           HttpStatus.BAD_REQUEST,
-          ResponseCode.get('etr002', {
-            lng: languages[i].name,
-            prop: 'meta',
-          }),
+          ResponseCode.get(
+            'etr002',
+            {
+              lng: languages[i].name,
+              prop: 'meta',
+            },
+          ),
         );
       }
       if (!lngContent) {
         throw error.occurred(
           HttpStatus.BAD_REQUEST,
-          ResponseCode.get('etr002', {
-            lng: languages[i].name,
-            prop: 'content',
-          }),
+          ResponseCode.get(
+            'etr002',
+            {
+              lng: languages[i].name,
+              prop: 'content',
+            },
+          ),
         );
       }
       const metaCheckResult = await PropHandler.propsChecker(
@@ -481,10 +610,13 @@ export class EntryRequestHandler {
       if (metaCheckResult instanceof Error) {
         throw error.occurred(
           HttpStatus.BAD_REQUEST,
-          ResponseCode.get('etr003', {
-            error: metaCheckResult.message,
-            prop: 'meta',
-          }),
+          ResponseCode.get(
+            'etr003',
+            {
+              error: metaCheckResult.message,
+              prop: 'meta',
+            },
+          ),
         );
       }
       const contentCheckResult = await PropHandler.propsValidate(
@@ -494,10 +626,13 @@ export class EntryRequestHandler {
       if (contentCheckResult instanceof Error) {
         throw error.occurred(
           HttpStatus.BAD_REQUEST,
-          ResponseCode.get('etr003', {
-            error: contentCheckResult.message,
-            prop: 'content',
-          }),
+          ResponseCode.get(
+            'etr003',
+            {
+              error: contentCheckResult.message,
+              prop: 'content',
+            },
+          ),
         );
       }
       let title = false;
@@ -544,14 +679,17 @@ export class EntryRequestHandler {
     const updateResult = await CacheControl.entry.update(
       entry,
       async (type) => {
-        SocketUtil.emit(SocketEventName.ENTRY, {
-          entry: {
-            _id: `${entry._id}`,
+        SocketUtil.emit(
+          SocketEventName.ENTRY,
+          {
+            entry: {
+              _id: `${entry._id}`,
+            },
+            message: '',
+            source: '',
+            type,
           },
-          message: '',
-          source: '',
-          type,
-        });
+        );
       },
     );
     if (updateResult === false) {
@@ -560,17 +698,20 @@ export class EntryRequestHandler {
         ResponseCode.get('etr004'),
       );
     }
-    SocketUtil.emit(SocketEventName.ENTRY, {
-      entry: {
-        _id: `${entry._id}`,
-        additional: {
-          templateId: entry.templateId,
+    SocketUtil.emit(
+      SocketEventName.ENTRY,
+      {
+        entry: {
+          _id: `${entry._id}`,
+          additional: {
+            templateId: entry.templateId,
+          },
         },
+        message: 'Entry updated.',
+        source: sid,
+        type: 'update',
       },
-      message: 'Entry updated.',
-      source: sid,
-      type: 'update',
-    });
+    );
     await EventManager.emit(
       BCMSEventConfigScope.ENTRY,
       BCMSEventConfigMethod.UPDATE,
@@ -580,47 +721,65 @@ export class EntryRequestHandler {
   }
 
   static async deleteById(id: string, sid: string) {
-    const error = HttpErrorFactory.instance('deleteById', this.logger);
+    const error = HttpErrorFactory.instance(
+      'deleteById',
+      this.logger,
+    );
     if (StringUtility.isIdValid(id) === false) {
       throw error.occurred(
         HttpStatus.BAD_REQUEST,
-        ResponseCode.get('g004', { id }),
+        ResponseCode.get(
+          'g004',
+          { id },
+        ),
       );
     }
     const entry = await CacheControl.entry.findById(id);
     if (!entry) {
       throw error.occurred(
         HttpStatus.NOT_FOUNT,
-        ResponseCode.get('etr001', { id }),
+        ResponseCode.get(
+          'etr001',
+          { id },
+        ),
       );
     }
-    const deleteResult = await CacheControl.entry.deleteById(id, async () => {
-      SocketUtil.emit(SocketEventName.ENTRY, {
-        entry: {
-          _id: `${entry._id}`,
-        },
-        message: '',
-        source: '',
-        type: 'add',
-      });
-    });
+    const deleteResult = await CacheControl.entry.deleteById(
+      id,
+      async () => {
+        SocketUtil.emit(
+          SocketEventName.ENTRY,
+          {
+            entry: {
+              _id: `${entry._id}`,
+            },
+            message: '',
+            source: '',
+            type: 'add',
+          },
+        );
+      },
+    );
     if (deleteResult === false) {
       throw error.occurred(
         HttpStatus.INTERNAL_SERVER_ERROR,
         ResponseCode.get('etr006'),
       );
     }
-    SocketUtil.emit(SocketEventName.ENTRY, {
-      entry: {
-        _id: `${entry._id}`,
-        additional: {
-          templateId: entry.templateId,
+    SocketUtil.emit(
+      SocketEventName.ENTRY,
+      {
+        entry: {
+          _id: `${entry._id}`,
+          additional: {
+            templateId: entry.templateId,
+          },
         },
+        message: 'Entry removed.',
+        source: sid,
+        type: 'remove',
       },
-      message: 'Entry removed.',
-      source: sid,
-      type: 'remove',
-    });
+    );
     await EventManager.emit(
       BCMSEventConfigScope.ENTRY,
       BCMSEventConfigMethod.DELETE,
