@@ -1,14 +1,14 @@
 import {
   CreateLogger,
-  Logger,
   HttpErrorFactory,
   HttpStatus,
-  StringUtility,
+  Logger,
   ObjectUtility,
+  StringUtility,
 } from '@becomes/purple-cheetah';
 import { ResponseCode } from '../response-code';
 import { CacheControl } from '../cache';
-import { Widget, FSWidget } from './models';
+import { FSWidget, Widget } from './models';
 import {
   AddWidgetData,
   AddWidgetDataSchema,
@@ -16,12 +16,12 @@ import {
   UpdateWidgetDataSchema,
 } from './interfaces';
 import { WidgetFactory } from './factories';
-import { PropChange, PropType, PropWidget, PropHandler } from '../prop';
-import { General, SocketUtil, SocketEventName } from '../util';
+import { PropChange, PropHandler, PropType, PropWidget } from '../prop';
+import { General, SocketEventName, SocketUtil } from '../util';
 import {
-  EventManager,
-  BCMSEventConfigScope,
   BCMSEventConfigMethod,
+  BCMSEventConfigScope,
+  EventManager,
 } from '../event';
 
 export class WidgetRequestHandler {
@@ -44,7 +44,9 @@ export class WidgetRequestHandler {
         lngCodes: string[];
       };
     } = {};
-    (await CacheControl.entry.findAll()).forEach((entry) => {
+    (
+      await CacheControl.entry.findAll()
+    ).forEach((entry) => {
       for (const i in entry.content) {
         const content = entry.content[i];
         for (const j in content.props) {
@@ -83,40 +85,58 @@ export class WidgetRequestHandler {
   }
 
   static async getById(id: string): Promise<Widget | FSWidget> {
-    const error = HttpErrorFactory.instance('getById', this.logger);
+    const error = HttpErrorFactory.instance(
+      'getById',
+      this.logger,
+    );
     if (StringUtility.isIdValid(id) === false) {
       throw error.occurred(
         HttpStatus.BAD_REQUEST,
-        ResponseCode.get('g004', { id }),
+        ResponseCode.get(
+          'g004',
+          { id },
+        ),
       );
     }
     const widget = await CacheControl.widget.findById(id);
     if (!widget) {
       throw error.occurred(
         HttpStatus.NOT_FOUNT,
-        ResponseCode.get('wid001', { id }),
+        ResponseCode.get(
+          'wid001',
+          { id },
+        ),
       );
     }
     return widget;
   }
 
   static async getMany(idsString: string): Promise<Array<Widget | FSWidget>> {
-    const error = HttpErrorFactory.instance('getMany', this.logger);
+    const error = HttpErrorFactory.instance(
+      'getMany',
+      this.logger,
+    );
     if (!idsString) {
       throw error.occurred(
         HttpStatus.BAD_REQUEST,
-        ResponseCode.get('g010', {
-          param: 'ids',
-        }),
+        ResponseCode.get(
+          'g010',
+          {
+            param: 'ids',
+          },
+        ),
       );
     }
     const ids: string[] = idsString.split('-').map((id, i) => {
       if (StringUtility.isIdValid(id) === false) {
         throw error.occurred(
           HttpStatus.BAD_REQUEST,
-          ResponseCode.get('g004', {
-            id: `ids[${i}]: ${id}`,
-          }),
+          ResponseCode.get(
+            'g004',
+            {
+              id: `ids[${i}]: ${id}`,
+            },
+          ),
         );
       }
       return id;
@@ -132,15 +152,25 @@ export class WidgetRequestHandler {
     data: AddWidgetData,
     sid: string,
   ): Promise<Widget | FSWidget> {
-    const error = HttpErrorFactory.instance('add', this.logger);
+    const error = HttpErrorFactory.instance(
+      'add',
+      this.logger,
+    );
     try {
-      ObjectUtility.compareWithSchema(data, AddWidgetDataSchema, 'data');
+      ObjectUtility.compareWithSchema(
+        data,
+        AddWidgetDataSchema,
+        'data',
+      );
     } catch (e) {
       throw error.occurred(
         HttpStatus.BAD_REQUEST,
-        ResponseCode.get('g002', {
-          msg: e.message,
-        }),
+        ResponseCode.get(
+          'g002',
+          {
+            msg: e.message,
+          },
+        ),
       );
     }
     const widget = WidgetFactory.instance();
@@ -153,33 +183,45 @@ export class WidgetRequestHandler {
     if (await CacheControl.widget.findByName(widget.name)) {
       throw error.occurred(
         HttpStatus.FORBIDDEN,
-        ResponseCode.get('wid002', { name: widget.name }),
+        ResponseCode.get(
+          'wid002',
+          { name: widget.name },
+        ),
       );
     }
-    const addResult = await CacheControl.widget.add(widget, async () => {
-      SocketUtil.emit(SocketEventName.WIDGET, {
-        entry: {
-          _id: `${widget._id}`,
-        },
-        message: '',
-        source: '',
-        type: 'remove',
-      });
-    });
+    const addResult = await CacheControl.widget.add(
+      widget,
+      async () => {
+        SocketUtil.emit(
+          SocketEventName.WIDGET,
+          {
+            entry: {
+              _id: `${widget._id}`,
+            },
+            message: '',
+            source: '',
+            type: 'remove',
+          },
+        );
+      },
+    );
     if (addResult === false) {
       throw error.occurred(
         HttpStatus.INTERNAL_SERVER_ERROR,
         ResponseCode.get('wid003'),
       );
     }
-    SocketUtil.emit(SocketEventName.WIDGET, {
-      entry: {
-        _id: `${widget._id}`,
+    SocketUtil.emit(
+      SocketEventName.WIDGET,
+      {
+        entry: {
+          _id: `${widget._id}`,
+        },
+        message: 'Widget has been added.',
+        source: sid,
+        type: 'add',
       },
-      message: 'Widget has been added.',
-      source: sid,
-      type: 'add',
-    });
+    );
     await EventManager.emit(
       BCMSEventConfigScope.WIDGET,
       BCMSEventConfigMethod.ADD,
@@ -192,21 +234,34 @@ export class WidgetRequestHandler {
     data: UpdateWidgetData,
     sid: string,
   ): Promise<Widget | FSWidget> {
-    const error = HttpErrorFactory.instance('update', this.logger);
+    const error = HttpErrorFactory.instance(
+      'update',
+      this.logger,
+    );
     try {
-      ObjectUtility.compareWithSchema(data, UpdateWidgetDataSchema, 'data');
+      ObjectUtility.compareWithSchema(
+        data,
+        UpdateWidgetDataSchema,
+        'data',
+      );
     } catch (err) {
       throw error.occurred(
         HttpStatus.BAD_REQUEST,
-        ResponseCode.get('g002', {
-          msg: err.message,
-        }),
+        ResponseCode.get(
+          'g002',
+          {
+            msg: err.message,
+          },
+        ),
       );
     }
     if (StringUtility.isIdValid(data._id) === false) {
       throw error.occurred(
         HttpStatus.BAD_REQUEST,
-        ResponseCode.get('g004', { id: data._id }),
+        ResponseCode.get(
+          'g004',
+          { id: data._id },
+        ),
       );
     }
     let widget: Widget | FSWidget;
@@ -215,27 +270,34 @@ export class WidgetRequestHandler {
       if (!w) {
         throw error.occurred(
           HttpStatus.NOT_FOUNT,
-          ResponseCode.get('wid001', { id: data._id }),
+          ResponseCode.get(
+            'wid001',
+            { id: data._id },
+          ),
         );
       }
       widget = JSON.parse(JSON.stringify(w));
     }
     let changeDetected = false;
+    let newLabel = '';
     if (typeof data.label !== 'undefined' && data.label !== widget.label) {
       const name = General.labelToName(data.label);
       if (widget.name !== name) {
         if (await CacheControl.widget.findByName(name)) {
           throw error.occurred(
             HttpStatus.FORBIDDEN,
-            ResponseCode.get('wid002', { name: widget.name }),
+            ResponseCode.get(
+              'wid002',
+              { name: widget.name },
+            ),
           );
         }
       }
       changeDetected = true;
+      newLabel = data.label;
       widget.label = data.label;
       widget.name = name;
     }
-    console.log(data);
     if (typeof data.desc !== 'undefined' && data.desc !== widget.desc) {
       changeDetected = true;
       widget.desc = data.desc;
@@ -268,23 +330,32 @@ export class WidgetRequestHandler {
       if (result instanceof Error) {
         throw error.occurred(
           HttpStatus.BAD_REQUEST,
-          ResponseCode.get('g009', {
-            msg: result.message,
-          }),
+          ResponseCode.get(
+            'g009',
+            {
+              msg: result.message,
+            },
+          ),
         );
       }
       widget.props = result;
     }
     if (!changeDetected) {
-      throw error.occurred(HttpStatus.FORBIDDEN, ResponseCode.get('g003'));
+      throw error.occurred(
+        HttpStatus.FORBIDDEN,
+        ResponseCode.get('g003'),
+      );
     }
     let output = await PropHandler.testInfiniteLoop(widget.props);
     if (output instanceof Error) {
       throw error.occurred(
         HttpStatus.BAD_REQUEST,
-        ResponseCode.get('g008', {
-          msg: output.message,
-        }),
+        ResponseCode.get(
+          'g008',
+          {
+            msg: output.message,
+          },
+        ),
       );
     }
     output = await PropHandler.propsChecker(
@@ -296,22 +367,28 @@ export class WidgetRequestHandler {
     if (output instanceof Error) {
       throw error.occurred(
         HttpStatus.BAD_REQUEST,
-        ResponseCode.get('g007', {
-          msg: output.message,
-        }),
+        ResponseCode.get(
+          'g007',
+          {
+            msg: output.message,
+          },
+        ),
       );
     }
     const updateResult = await CacheControl.widget.update(
       widget,
       async (type) => {
-        SocketUtil.emit(SocketEventName.WIDGET, {
-          entry: {
-            _id: `${widget._id}`,
+        SocketUtil.emit(
+          SocketEventName.WIDGET,
+          {
+            entry: {
+              _id: `${widget._id}`,
+            },
+            message: '',
+            source: '',
+            type,
           },
-          message: '',
-          source: '',
-          type,
-        });
+        );
       },
     );
     if (updateResult === false) {
@@ -320,27 +397,40 @@ export class WidgetRequestHandler {
         ResponseCode.get('wid005'),
       );
     }
-    if (updateEntries) {
+    if (updateEntries || newLabel) {
       try {
-        await this.propsUpdate(widget, data.propChanges);
+        await this.propsUpdate(
+          widget,
+          data.propChanges ? data.propChanges : [],
+          newLabel,
+        );
       } catch (e) {
-        this.logger.error('update', e);
+        this.logger.error(
+          'update',
+          e,
+        );
         throw error.occurred(
           HttpStatus.INTERNAL_SERVER_ERROR,
-          ResponseCode.get('wid007', {
-            msg: e.message,
-          }),
+          ResponseCode.get(
+            'wid007',
+            {
+              msg: e.message,
+            },
+          ),
         );
       }
     }
-    SocketUtil.emit(SocketEventName.WIDGET, {
-      entry: {
-        _id: `${widget._id}`,
+    SocketUtil.emit(
+      SocketEventName.WIDGET,
+      {
+        entry: {
+          _id: `${widget._id}`,
+        },
+        message: 'Widget has been updated.',
+        source: sid,
+        type: 'update',
       },
-      message: 'Widget has been updated.',
-      source: sid,
-      type: 'update',
-    });
+    );
     await EventManager.emit(
       BCMSEventConfigScope.WIDGET,
       BCMSEventConfigMethod.UPDATE,
@@ -350,30 +440,45 @@ export class WidgetRequestHandler {
   }
 
   static async deleteById(id: string) {
-    const error = HttpErrorFactory.instance('deleteById', this.logger);
+    const error = HttpErrorFactory.instance(
+      'deleteById',
+      this.logger,
+    );
     if (StringUtility.isIdValid(id) === false) {
       throw error.occurred(
         HttpStatus.BAD_REQUEST,
-        ResponseCode.get('g004', { id }),
+        ResponseCode.get(
+          'g004',
+          { id },
+        ),
       );
     }
     const widget = await CacheControl.widget.findById(id);
     if (!widget) {
       throw error.occurred(
         HttpStatus.NOT_FOUNT,
-        ResponseCode.get('wid001', { id }),
+        ResponseCode.get(
+          'wid001',
+          { id },
+        ),
       );
     }
-    const deleteResult = await CacheControl.widget.deleteById(id, async () => {
-      SocketUtil.emit(SocketEventName.WIDGET, {
-        entry: {
-          _id: `${id}`,
-        },
-        message: '',
-        source: '',
-        type: 'add',
-      });
-    });
+    const deleteResult = await CacheControl.widget.deleteById(
+      id,
+      async () => {
+        SocketUtil.emit(
+          SocketEventName.WIDGET,
+          {
+            entry: {
+              _id: `${id}`,
+            },
+            message: '',
+            source: '',
+            type: 'add',
+          },
+        );
+      },
+    );
     if (deleteResult === false) {
       throw error.occurred(
         HttpStatus.INTERNAL_SERVER_ERROR,
@@ -402,34 +507,43 @@ export class WidgetRequestHandler {
             (e, k) => !deletePropsIndex.includes(k),
           );
           updatedEntries.push(`${entry._id}`);
-          await CacheControl.entry.update(entry, async (type) => {
-            SocketUtil.emit(SocketEventName.ENTRY, {
-              entry: {
-                _id: `${entry._id}`,
-              },
-              message: '',
-              source: '',
-              type,
-            });
-          });
+          await CacheControl.entry.update(
+            entry,
+            async (type) => {
+              SocketUtil.emit(
+                SocketEventName.ENTRY,
+                {
+                  entry: {
+                    _id: `${entry._id}`,
+                  },
+                  message: '',
+                  source: '',
+                  type,
+                },
+              );
+            },
+          );
         }
       }
     }
-    SocketUtil.emit(SocketEventName.WIDGET, {
-      entry: {
-        _id: `${widget._id}`,
+    SocketUtil.emit(
+      SocketEventName.WIDGET,
+      {
+        entry: {
+          _id: `${widget._id}`,
+        },
+        message: {
+          updated: [
+            {
+              name: 'entry',
+              ids: updatedEntries,
+            },
+          ],
+        },
+        source: '',
+        type: 'remove',
       },
-      message: {
-        updated: [
-          {
-            name: 'entry',
-            ids: updatedEntries,
-          },
-        ],
-      },
-      source: '',
-      type: 'remove',
-    });
+    );
     await EventManager.emit(
       BCMSEventConfigScope.WIDGET,
       BCMSEventConfigMethod.DELETE,
@@ -440,6 +554,7 @@ export class WidgetRequestHandler {
   static async propsUpdate(
     widget: Widget | FSWidget,
     propChanges: PropChange[],
+    newLabel: string,
   ) {
     const entries = await CacheControl.entry.findAll();
     for (const i in entries) {
@@ -451,17 +566,55 @@ export class WidgetRequestHandler {
           if (prop.type === PropType.WIDGET) {
             const value = prop.value as PropWidget;
             if (value._id === `${widget._id}`) {
-              const output = await PropHandler.applyPropChanges(
-                value.props,
-                propChanges,
-                `${entry._id}.content[${j}].props[${k}].value.props`,
-              );
-              if (output instanceof Error) {
-                throw output;
+              let update = false;
+              if (newLabel) {
+                entry.content[j].props[k].label = newLabel;
+                update = true;
               }
-              value.props = output;
-              entry.content[j].props[k].value = value;
-              await CacheControl.entry.update(entry);
+              if (propChanges.length > 0) {
+                const output = await PropHandler.applyPropChanges(
+                  value.props,
+                  propChanges,
+                  `${entry._id}.content[${j}].props[${k}].value.props`,
+                );
+                if (output instanceof Error) {
+                  throw output;
+                }
+                value.props = output;
+                entry.content[j].props[k].value = value;
+                update = true;
+              }
+              if (update) {
+                await CacheControl.entry.update(
+                  entry,
+                  async (type) => {
+                    SocketUtil.emit(
+                      SocketEventName.ENTRY,
+                      {
+                        entry: {
+                          _id: `${entry._id}`,
+                        },
+                        message: '',
+                        source: '',
+                        type,
+                      },
+                    );
+                  },
+                  async () => {
+                    SocketUtil.emit(
+                      SocketEventName.ENTRY,
+                      {
+                        entry: {
+                          _id: `${entry._id}`,
+                        },
+                        message: '',
+                        source: '',
+                        type: 'update',
+                      },
+                    );
+                  },
+                );
+              }
             }
           }
         }

@@ -294,7 +294,8 @@ export class GroupRequestHandler {
     sid: string,
   ): Promise<Group | FSGroup> {
     return (
-      await this.queueable.exec('update',
+      await this.queueable.exec(
+        'update',
         'free_one_by_one',
         async () => {
           const error = HttpErrorFactory.instance(
@@ -485,6 +486,7 @@ export class GroupRequestHandler {
               );
             }
           }
+          console.log(updated);
           SocketUtil.emit(
             SocketEventName.GROUP,
             {
@@ -595,7 +597,7 @@ export class GroupRequestHandler {
         message: {
           updated,
         },
-        source: sid,
+        source: '',
         type: 'remove',
       },
     );

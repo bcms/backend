@@ -58,7 +58,20 @@ export class CacheWriteBuffer {
                   );
                 });
               } else {
-
+                obj.onSuccess().catch(error => {
+                  this.logger.error(
+                    obj.eid,
+                    {
+                      message:
+                        'Failed in "onSuccess" handler.',
+                      obj: {
+                        entity: obj.entity,
+                        type: obj.type,
+                      },
+                      catchError: error,
+                    },
+                  );
+                });
               }
             }
               break;
@@ -88,6 +101,21 @@ export class CacheWriteBuffer {
                       },
                     );
                   });
+              } else {
+                obj.onSuccess().catch(error => {
+                  this.logger.error(
+                    obj.eid,
+                    {
+                      message:
+                        'Failed in "onSuccess" handler.',
+                      obj: {
+                        entity: obj.entity,
+                        type: obj.type,
+                      },
+                      catchError: error,
+                    },
+                  );
+                });
               }
             }
               break;
@@ -115,6 +143,21 @@ export class CacheWriteBuffer {
                       },
                     );
                   });
+              } else {
+                obj.onSuccess().catch(error => {
+                  this.logger.error(
+                    obj.eid,
+                    {
+                      message:
+                        'Failed in "onSuccess" handler.',
+                      obj: {
+                        entity: obj.entity,
+                        type: obj.type,
+                      },
+                      catchError: error,
+                    },
+                  );
+                });
               }
             }
               break;
@@ -130,7 +173,7 @@ export class CacheWriteBuffer {
       async () => {
         await this.watcherHandler();
       },
-      10000,
+      100,
     );
   }
 

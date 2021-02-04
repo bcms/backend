@@ -125,6 +125,19 @@ export class LanguageRequestHandler {
                 },
               );
             },
+            async () => {
+              SocketUtil.emit(
+                SocketEventName.LANGUAGE,
+                {
+                  entry: {
+                    _id: `${language._id}`,
+                  },
+                  message: 'Language has been added.',
+                  source: sid,
+                  type: 'add',
+                },
+              );
+            },
           );
           // if (addResult === false) {
           //   throw error.occurred(
@@ -132,17 +145,6 @@ export class LanguageRequestHandler {
           //     ResponseCode.get('lng003'),
           //   );
           // }
-          SocketUtil.emit(
-            SocketEventName.LANGUAGE,
-            {
-              entry: {
-                _id: `${language._id}`,
-              },
-              message: 'Language has been added.',
-              source: sid,
-              type: 'add',
-            },
-          );
           await EventManager.emit(
             BCMSEventConfigScope.LANGUAGE,
             BCMSEventConfigMethod.ADD,
@@ -171,6 +173,9 @@ export class LanguageRequestHandler {
                     {
                       entry: {
                         _id: `${entry._id}`,
+                        additional: {
+                          templateId: entry.templateId,
+                        },
                       },
                       message: '',
                       source: '',
@@ -184,6 +189,9 @@ export class LanguageRequestHandler {
                     {
                       entry: {
                         _id: `${entry._id}`,
+                        additional: {
+                          templateId: entry.templateId,
+                        },
                       },
                       message: '',
                       source: '',
@@ -397,6 +405,19 @@ export class LanguageRequestHandler {
               },
             );
           },
+          async () => {
+            SocketUtil.emit(
+              SocketEventName.LANGUAGE,
+              {
+                entry: {
+                  _id: `${language._id}`,
+                },
+                message: 'Language has been removed.',
+                source: sid,
+                type: 'remove',
+              },
+            );
+          },
         );
         // if (deleteResult === false) {
         //   throw error.occurred(
@@ -404,17 +425,6 @@ export class LanguageRequestHandler {
         //     ResponseCode.get('lng006'),
         //   );
         // }
-        SocketUtil.emit(
-          SocketEventName.LANGUAGE,
-          {
-            entry: {
-              _id: `${language._id}`,
-            },
-            message: 'Language has been removed.',
-            source: sid,
-            type: 'remove',
-          },
-        );
         const entries = await CacheControl.entry.findAll();
         for (const i in entries) {
           const entry = entries[i];
@@ -429,6 +439,9 @@ export class LanguageRequestHandler {
                 {
                   entry: {
                     _id: `${entry._id}`,
+                    additional: {
+                      templateId: entry.templateId,
+                    },
                   },
                   message: '',
                   source: '',
