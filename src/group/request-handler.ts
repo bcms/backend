@@ -496,7 +496,7 @@ export class GroupRequestHandler {
               message: {
                 updated,
               },
-              source: sid,
+              source: '',
               type: 'update',
             },
           );
