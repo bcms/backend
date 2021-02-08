@@ -60,10 +60,10 @@ export abstract class CacheHandler<T extends FSDBEntity,
         id ===
         (
           e._id instanceof Types.ObjectId
-          ? (
-            e._id as Types.ObjectId
-          ).toHexString()
-          : e._id
+            ? (
+              e._id as Types.ObjectId
+            ).toHexString()
+            : e._id
         ),
     );
   }
@@ -73,6 +73,9 @@ export abstract class CacheHandler<T extends FSDBEntity,
     onError?: () => Promise<void>,
     onSuccess?: () => Promise<void>,
   ): Promise<boolean> {
+    if (!entity) {
+      throw Error('Entity if undefined.');
+    }
     await this.checkCountLatch();
     const id = `${entity._id}`;
     if (this.cache.find((e) => id === `${e._id}`)) {
@@ -125,6 +128,9 @@ export abstract class CacheHandler<T extends FSDBEntity,
     onError?: (type: 'update' | 'add') => Promise<void>,
     onSuccess?: () => Promise<void>,
   ): Promise<boolean> {
+    if (!entity) {
+      throw Error('Entity if undefined.');
+    }
     await this.checkCountLatch();
     const id = `${entity._id}`;
     for (const i in this.cache) {
