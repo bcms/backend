@@ -20,6 +20,7 @@ export interface EntryParsed {
   updatedAt: number;
   templateId: string;
   userId: string;
+  status: string;
   meta: EntryParsedMeta;
   content: EntryParsedContent;
 }

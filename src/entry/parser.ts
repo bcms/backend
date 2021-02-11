@@ -1,6 +1,8 @@
 import { PropHandler, PropParsed, PropType } from '../prop';
 import { EntryParsed } from './interfaces';
 import { Entry, FSEntry } from './models';
+import { FSStatus, Status } from '../status';
+import { CacheControl } from '../cache';
 
 export class EntryParser {
   static async parse(
@@ -15,12 +17,17 @@ export class EntryParser {
     if (!depth) {
       depth = 0;
     }
+    let status: Status | FSStatus;
+    if (entry.status) {
+      status = await CacheControl.status.findById(entry.status);
+    }
     const entryParsed: EntryParsed = {
       _id: `${entry._id}`,
       createdAt: entry.createdAt,
       updatedAt: entry.updatedAt,
       templateId: entry.templateId,
       userId: entry.userId,
+      status: status ? status.name : '',
       meta: {},
       content: {},
     };
