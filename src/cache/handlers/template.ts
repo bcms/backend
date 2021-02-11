@@ -9,13 +9,11 @@ import {
 } from '../../template';
 import { Logger } from '@becomes/purple-cheetah';
 
-export class TemplateCacheHandler extends CacheHandler<
-  FSTemplate,
+export class TemplateCacheHandler extends CacheHandler<FSTemplate,
   Template,
   ITemplate,
   FSTemplateRepository,
-  MongoTemplateRepository
-> {
+  MongoTemplateRepository> {
   constructor() {
     super(
       TemplateRepo,
@@ -25,14 +23,8 @@ export class TemplateCacheHandler extends CacheHandler<
   }
 
   async findByName(name: string): Promise<Template | FSTemplate> {
-    return (await this.queueable.exec(
-      'findByName',
-      'free_one_by_one',
-      async () => {
-        await this.checkCountLatch();
-        return this.cache.find((e) => e.name === name);
-      },
-    )) as Template | FSTemplate;
+    await this.checkCountLatch();
+    return this.cache.find((e) => e.name === name);
   }
 
   async count(): Promise<number> {

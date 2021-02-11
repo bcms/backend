@@ -9,13 +9,11 @@ import {
 } from '../../language';
 import { Logger } from '@becomes/purple-cheetah';
 
-export class LanguageCacheHandler extends CacheHandler<
-  FSLanguage,
+export class LanguageCacheHandler extends CacheHandler<FSLanguage,
   Language,
   ILanguage,
   FSLanguageRepository,
-  MongoLanguageRepository
-> {
+  MongoLanguageRepository> {
   constructor() {
     super(
       LanguageRepo,
@@ -25,14 +23,8 @@ export class LanguageCacheHandler extends CacheHandler<
   }
 
   async findByCode(code: string): Promise<Language | FSLanguage> {
-    return (await this.queueable.exec(
-      'findByCode',
-      'free_one_by_one',
-      async () => {
-        await this.checkCountLatch();
-        return this.cache.find((e) => e.code === code);
-      },
-    )) as Language | FSLanguage;
+    await this.checkCountLatch();
+    return this.cache.find((e) => e.code === code);
   }
 
   async findDefault(): Promise<Language | FSLanguage> {

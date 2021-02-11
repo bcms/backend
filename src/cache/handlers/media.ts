@@ -9,13 +9,11 @@ import {
 } from '../../media';
 import { Logger } from '@becomes/purple-cheetah';
 
-export class MediaCacheHandler extends CacheHandler<
-  FSMedia,
+export class MediaCacheHandler extends CacheHandler<FSMedia,
   Media,
   IMedia,
   FSMediaRepository,
-  MongoMediaRepository
-> {
+  MongoMediaRepository> {
   constructor() {
     super(
       MediaRepo,
@@ -41,74 +39,38 @@ export class MediaCacheHandler extends CacheHandler<
   }
 
   async findAllByIsInRoot(isInRoot: boolean): Promise<Array<Media | FSMedia>> {
-    return (await this.queueable.exec(
-      'findAllByIsInRoot',
-      'free_one_by_one',
-      async () => {
-        await this.checkCountLatch();
-        return this.cache.filter((e) => e.isInRoot === isInRoot);
-      },
-    )) as Array<Media | FSMedia>;
+    await this.checkCountLatch();
+    return this.cache.filter((e) => e.isInRoot === isInRoot);
   }
 
   async findAllByParentIdDepth1(
     parentId: string,
   ): Promise<Array<Media | FSMedia>> {
-    return (await this.queueable.exec(
-      'findAllByParentId',
-      'free_one_by_one',
-      async () => {
-        await this.checkCountLatch();
-        return this.cache.filter((e) => e.parentId === parentId);
-      },
-    )) as Array<Media | FSMedia>;
+    await this.checkCountLatch();
+    return this.cache.filter((e) => e.parentId === parentId);
   }
 
   async findAllByPath(path: string): Promise<Array<Media | FSMedia>> {
-    return (await this.queueable.exec(
-      'findAllByPath',
-      'free_one_by_one',
-      async () => {
-        await this.checkCountLatch();
-        return this.cache.filter((e) => e.path === path);
-      },
-    )) as Array<Media | FSMedia>;
+    await this.checkCountLatch();
+    return this.cache.filter((e) => e.path === path);
   }
 
   async findAllByContainingPath(path: string): Promise<Array<Media | FSMedia>> {
-    return (await this.queueable.exec(
-      'findAllByContainingPath',
-      'free_one_by_one',
-      async () => {
-        await this.checkCountLatch();
-        return this.cache.filter((e) => e.path.startsWith(path));
-      },
-    )) as Array<Media | FSMedia>;
+    await this.checkCountLatch();
+    return this.cache.filter((e) => e.path.startsWith(path));
   }
 
   async findByPath(path: string): Promise<Media | FSMedia> {
-    return (await this.queueable.exec(
-      'findByPath',
-      'free_one_by_one',
-      async () => {
-        await this.checkCountLatch();
-        return this.cache.find((e) => e.path === path);
-      },
-    )) as Media | FSMedia;
+    await this.checkCountLatch();
+    return this.cache.find((e) => e.path === path);
   }
 
   async findByNameAndPath(
     name: string,
     path: string,
   ): Promise<Media | FSMedia> {
-    return (await this.queueable.exec(
-      'findByNameAndPath',
-      'free_one_by_one',
-      async () => {
-        await this.checkCountLatch();
-        return this.cache.find((e) => e.name === name && e.path === path);
-      },
-    )) as Media | FSMedia;
+    await this.checkCountLatch();
+    return this.cache.find((e) => e.name === name && e.path === path);
   }
 
   async findByNameAndParentId(

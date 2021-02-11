@@ -174,9 +174,8 @@ export class EntryRequestHandler {
         ),
       );
     }
-    return (
-      await CacheControl.entry.findAllByTemplateId(templateId)
-    ).map(
+    const entries = await CacheControl.entry.findAllByTemplateId(templateId);
+    return entries.map(
       (entry) => {
         return EntryFactory.toLite(entry);
       },

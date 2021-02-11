@@ -36,7 +36,12 @@ export class EntryFactory {
       updatedAt: entry.updatedAt,
       templateId: entry.templateId,
       userId: entry.userId,
-      meta: entry.meta,
+      meta: entry.meta.map(meta => {
+        return {
+          lng: meta.lng,
+          props: meta.props.slice(0, 2),
+        };
+      }),
     };
   }
 }
