@@ -133,6 +133,7 @@ export abstract class CacheHandler<T extends FSDBEntity,
     }
     await this.checkCountLatch();
     const id = `${entity._id}`;
+    entity.updatedAt = Date.now();
     for (const i in this.cache) {
       if (id === `${this.cache[i]._id}`) {
         // const updateResult = await this.repo.update(entity as T & K);
