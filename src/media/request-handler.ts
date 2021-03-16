@@ -512,7 +512,7 @@ export class MediaRequestHandler {
             },
             message: '',
             source: '',
-            type: 'add',
+            type: 'remove',
           });
         });
       }
