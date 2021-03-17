@@ -15,7 +15,8 @@
     "unlink": "node tools.js --unlink",
     "publish": "node tools.js --publish",
     "generate-doc": "typedoc",
-    "lint": "eslint . --ext .ts"
+    "lint": "eslint . --ext .ts",
+    "build:plugins": "tsc -p tsconfig.plugins.json"
   },
   "dependencies": {
     "@becomes/purple-cheetah": "^2.0.27",
@@ -47,6 +48,7 @@
     "eslint": "^7.17.0",
     "listr": "^0.14.3",
     "nodemon": "^2.0.7",
+    "prettier": "^2.2.1",
     "ts-node": "^9.1.1",
     "tsconfig-paths": "^3.9.0",
     "typedoc": "^0.17.8",

@@ -124,6 +124,10 @@ const bundle = async () => {
 };
 const link = async () => {
   await exec('cd dist && npm i && sudo npm link');
+  // const base = '/usr/local/lib/node_modules/@becomes/cms-backend';
+  // await spawn('npm', ['i'], { stdio: 'inherit', cwd: `${__dirname}/dist` });
+  // await spawn('rm', ['-rf', `${base}/*`], { stdio: 'inherit' });
+  // await spawn('cp', ['-R', `${__dirname}/dist/.`, `${base}`], { stdio: 'inherit' });
 };
 const unlink = async () => {
   await exec('cd dist && sudo npm unlink');
@@ -143,22 +147,22 @@ const build = async () => {
     path.join(__dirname, 'src', 'response-code', 'codes'),
     path.join(__dirname, 'dist', 'response-code', 'codes'),
   );
-  const managerFile = (
-    await util.promisify(fs.readFile)(
-      path.join(__dirname, 'dist', 'plugins', 'manager.js'),
-    )
-  )
-    .toString()
-    .replace('var imports = [];', '/*%IMPORTS_START%*/\n/*%IMPORTS_END%*/')
-    .replace(
-      'exports.controllers = [];\nexports.middleware = [];',
-      '/*%ASSETS_START%*/\nexports.controllers = [];\nexports.middleware = [];\n/*%ASSETS_END%*/',
-    )
-    .replace('exports.middleware = exports.controllers = void 0;\n', '');
-  await util.promisify(fs.writeFile)(
-    path.join(__dirname, 'dist', 'plugins', 'manager.js'),
-    managerFile,
-  );
+  // const managerFile = (
+  //   await util.promisify(fs.readFile)(
+  //     path.join(__dirname, 'dist', 'plugins', 'manager.js'),
+  //   )
+  // )
+  //   .toString()
+  //   .replace('var imports = [];', '/*%IMPORTS_START%*/\n/*%IMPORTS_END%*/')
+  //   .replace(
+  //     'exports.controllers = [];\nexports.middleware = [];',
+  //     '/*%ASSETS_START%*/\nexports.controllers = [];\nexports.middleware = [];\n/*%ASSETS_END%*/',
+  //   )
+  //   .replace('exports.middleware = exports.controllers = void 0;\n', '');
+  // await util.promisify(fs.writeFile)(
+  //   path.join(__dirname, 'dist', 'plugins', 'manager.js'),
+  //   managerFile,
+  // );
 };
 
 async function main() {

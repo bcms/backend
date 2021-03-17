@@ -28,7 +28,7 @@ import { MediaController, MediaParserMiddleware } from './media';
 import { Types } from 'mongoose';
 import { EntryController } from './entry';
 import { FunctionController } from './function';
-import { controllers, middleware } from './plugins';
+import { PluginManager } from './plugin';
 import { EntryChangeSocketHandler } from './socket';
 import { ApiKeySecurity } from './security';
 import { CypressController } from './cypress';
@@ -140,23 +140,34 @@ if (process.env.DB_USE_FS) {
     new EntryController(),
     new FunctionController(),
     new StatusController(),
-    ...controllers.map((e) => {
-      return new e.PluginController();
-    }),
   ],
   middleware: [
     new CORSMiddleware(),
     new BodyParserMiddleware(),
     new MediaParserMiddleware(),
     process.env.DEV === 'true' ? new SwaggerMiddleware() : undefined,
-    ...middleware.map((e) => {
-      return new e.PluginMiddleware();
-    }),
+    ...PluginManager.getMiddlewares(),
   ],
   requestLoggerMiddleware: new RequestLoggerMiddleware(),
 })
 export class App extends PurpleCheetah {
   protected start() {
+    const pluginControllers = PluginManager.getControllers();
+    pluginControllers.forEach((e) => {
+      if (e) {
+        e.initRouter();
+      }
+    });
+    if (pluginControllers.length > 0) {
+      this.controllers = [
+        ...this.controllers,
+        ...PluginManager.getControllers(),
+      ];
+    }
+    const pluginMiddleware = PluginManager.getMiddlewares();
+    if (pluginMiddleware.length > 0) {
+      this.middleware = [...this.middleware, ...pluginMiddleware];
+    }
     this.app.use(express.static(path.join(process.cwd(), 'public')));
     this.app.use(
       express.static(

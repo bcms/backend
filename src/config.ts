@@ -8,6 +8,40 @@ import { CacheControl, CacheWriteBuffer } from './cache';
 import { FunctionManager } from './function';
 import { EventManager } from './event';
 import { JobManager } from './job';
+import { PluginManager } from './plugin';
+import { ShimService } from './shim';
+
+export interface ConfigFile {
+  port: number;
+  security: {
+    jwt: {
+      issuer: string;
+      secret: string;
+      expireIn: number;
+    };
+  };
+  database: {
+    fs?: string;
+    mongodb?: {
+      selfHosted?: {
+        host: string;
+        port: number;
+        name: string;
+        user: string;
+        password: string;
+        prefix: string;
+      };
+      atlas?: {
+        name: string;
+        user: string;
+        password: string;
+        prefix: string;
+        cluster: string;
+      };
+    };
+  };
+  plugins: string[];
+}
 
 export class Config {
   public static async init() {
@@ -27,5 +61,9 @@ export class Config {
     await FunctionManager.init();
     await EventManager.init();
     await JobManager.init();
+    if (process.env.BCMS_PLUGINS) {
+      const plugins = process.env.BCMS_PLUGINS.split(',');
+      await PluginManager.load(plugins);
+    }
   }
 }

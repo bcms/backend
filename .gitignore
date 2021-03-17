@@ -7,6 +7,8 @@
 /functions
 /events
 /jobs
+/ts-plugins
+/plugins
 
 # Logs
 /log
