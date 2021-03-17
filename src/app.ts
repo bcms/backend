@@ -28,7 +28,7 @@ import { MediaController, MediaParserMiddleware } from './media';
 import { Types } from 'mongoose';
 import { EntryController } from './entry';
 import { FunctionController } from './function';
-import { PluginManager } from './plugin';
+import { PluginController, PluginManager } from './plugin';
 import { EntryChangeSocketHandler } from './socket';
 import { ApiKeySecurity } from './security';
 import { CypressController } from './cypress';
@@ -140,6 +140,7 @@ if (process.env.DB_USE_FS) {
     new EntryController(),
     new FunctionController(),
     new StatusController(),
+    new PluginController(),
   ],
   middleware: [
     new CORSMiddleware(),
