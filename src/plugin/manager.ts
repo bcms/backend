@@ -8,9 +8,11 @@ import {
 } from '@becomes/purple-cheetah';
 
 export class PluginManager {
+  private static readonly logger = new Logger('BCMSBackendPlugin');
+  private static list: string[] = [];
   private static controllers: { [name: string]: ControllerPrototype } = {};
   private static middlewares: { [name: string]: MiddlewarePrototype } = {};
-  private static readonly logger = new Logger('BCMSBackendPlugin');
+
   private static async exist(...p: string[]) {
     return await util.promisify(fs.exists)(path.join(process.cwd(), ...p));
   }
@@ -29,6 +31,10 @@ export class PluginManager {
       )
       .join('');
   }
+
+  static getList() {
+    return this.list;
+  }
   static getControllers(): ControllerPrototype[] {
     return Object.keys(this.controllers).map((e) => {
       return this.controllers[e];
@@ -40,6 +46,7 @@ export class PluginManager {
     });
   }
   static async load(loadPlugins: string[]) {
+    this.list = loadPlugins;
     for (let i = 0; i < loadPlugins.length; i++) {
       let pluginName = loadPlugins[i];
       let loadBasePath = [];
