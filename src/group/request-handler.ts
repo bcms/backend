@@ -486,7 +486,6 @@ export class GroupRequestHandler {
               );
             }
           }
-          console.log(updated);
           SocketUtil.emit(
             SocketEventName.GROUP,
             {

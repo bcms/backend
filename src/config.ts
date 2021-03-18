@@ -9,7 +9,6 @@ import { FunctionManager } from './function';
 import { EventManager } from './event';
 import { JobManager } from './job';
 import { PluginManager } from './plugin';
-import { ShimService } from './shim';
 
 export interface ConfigFile {
   port: number;

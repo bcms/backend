@@ -86,7 +86,6 @@ export class PluginManager {
                 ? ''
                 : '/'
             }${this.controllers[controllerName].baseUri}`;
-            console.log(this.controllers[controllerName]);
           }
         }
         if (await this.exist(...loadBasePath, 'middleware')) {
