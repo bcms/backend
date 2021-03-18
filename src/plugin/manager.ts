@@ -41,57 +41,66 @@ export class PluginManager {
   }
   static async load(loadPlugins: string[]) {
     for (let i = 0; i < loadPlugins.length; i++) {
-      const pluginName = loadPlugins[i];
+      let pluginName = loadPlugins[i];
       let loadBasePath = [];
-      if (await this.exist('plugins', pluginName, 'backend')) {
-        loadBasePath = ['plugins', pluginName, 'backend'];
-      } else if (await this.exist('node_modules', pluginName, 'backend')) {
-        loadBasePath = ['node_modules', pluginName, 'backend'];
+      if (process.env.BCMS_LOCAL) {
+        if (pluginName.startsWith('__local__')) {
+          loadBasePath = ['dist', 'backend'];
+          pluginName = pluginName.split(':')[1];
+        }
       } else {
-        this.error(
-          'load',
-          `Plugin with name "${pluginName}" is not installed.`,
-        );
-      }
-      if (await this.exist(...loadBasePath, 'controllers')) {
-        const files = (
-          await this.readdir(...loadBasePath, 'controllers')
-        ).filter((e) => e.endsWith('.js'));
-        for (let j = 0; j < files.length; j++) {
-          const fileName = files[j];
-          const imp = await import(
-            path.join(process.cwd(), ...loadBasePath, 'controllers', fileName)
-          );
-          const controllerName = fileName.substring(0, fileName.length - 3);
-          this.controllers[controllerName] = new imp[controllerName]();
-          this.controllers[
-            controllerName
-          ].name = `Plugin${this.fromKebabToCamel(
-            pluginName,
-          )}${controllerName}`;
-          this.controllers[
-            controllerName
-          ].baseUri = `/api/plugin/${pluginName}${
-            this.controllers[controllerName].baseUri.startsWith('/') ? '' : '/'
-          }${this.controllers[controllerName].baseUri}`;
-          console.log(this.controllers[controllerName]);
+        if (await this.exist('plugins', pluginName, 'backend')) {
+          loadBasePath = ['plugins', pluginName, 'backend'];
+        } else if (await this.exist('node_modules', pluginName, 'backend')) {
+          loadBasePath = ['node_modules', pluginName, 'backend'];
         }
       }
-      if (await this.exist(...loadBasePath, 'middleware')) {
-        const files = (
-          await this.readdir(...loadBasePath, 'middleware')
-        ).filter((e) => e.endsWith('.js'));
-        for (let j = 0; j < files.length; j++) {
-          const fileName = files[j];
-          const imp = await import(
-            path.join(process.cwd(), ...loadBasePath, 'middleware', fileName)
-          );
-          const middlewareName = fileName.substring(0, fileName.length - 3);
-          this.middlewares[middlewareName] = new imp[middlewareName]();
-          this.middlewares[
-            middlewareName
-          ].uri = `/api/plugin/${pluginName}/${this.middlewares[middlewareName].uri}`;
+      if (loadBasePath.length > 0) {
+        if (await this.exist(...loadBasePath, 'controllers')) {
+          const files = (
+            await this.readdir(...loadBasePath, 'controllers')
+          ).filter((e) => e.endsWith('.js'));
+          for (let j = 0; j < files.length; j++) {
+            const fileName = files[j];
+            const imp = await import(
+              path.join(process.cwd(), ...loadBasePath, 'controllers', fileName)
+            );
+            const controllerName = fileName.substring(0, fileName.length - 3);
+            this.controllers[controllerName] = new imp[controllerName]();
+            this.controllers[
+              controllerName
+            ].name = `Plugin${this.fromKebabToCamel(
+              pluginName,
+            )}${controllerName}`;
+            this.controllers[
+              controllerName
+            ].baseUri = `/api/plugin/${pluginName}${
+              this.controllers[controllerName].baseUri.startsWith('/')
+                ? ''
+                : '/'
+            }${this.controllers[controllerName].baseUri}`;
+            console.log(this.controllers[controllerName]);
+          }
         }
+        if (await this.exist(...loadBasePath, 'middleware')) {
+          const files = (
+            await this.readdir(...loadBasePath, 'middleware')
+          ).filter((e) => e.endsWith('.js'));
+          for (let j = 0; j < files.length; j++) {
+            const fileName = files[j];
+            const imp = await import(
+              path.join(process.cwd(), ...loadBasePath, 'middleware', fileName)
+            );
+            const middlewareName = fileName.substring(0, fileName.length - 3);
+            this.middlewares[middlewareName] = new imp[middlewareName]();
+            this.middlewares[
+              middlewareName
+            ].uri = `/api/plugin/${pluginName}/${this.middlewares[middlewareName].uri}`;
+          }
+        }
+      }
+      if (process.env.BCMS_LOCAL) {
+        return;
       }
     }
   }
