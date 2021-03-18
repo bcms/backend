@@ -1,21 +1,13 @@
-import { ConfigFile } from '../config';
+setInterval(() => {
+
+}, 1000);
 
 export class ShimService {
-  static async getConfig(): Promise<ConfigFile> {
-    // TODO: send a request to the BCMSShim
-    return {
-      port: 1280,
-      security: {
-        jwt: {
-          expireIn: 120000,
-          issuer: 'localhost',
-          secret: 'secret',
-        },
-      },
-      database: {
-        fs: 'bcms',
-      },
-      plugins: [],
-    };
+  private static connected = false;
+  static isConnected(): boolean {
+    return this.connected;
+  }
+  static async connect() {
+
   }
 }
