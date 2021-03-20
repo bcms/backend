@@ -10,12 +10,14 @@ import {
   PermissionName,
   Post,
   RoleName,
+  JWTSecurity as PurpleCheetahJWTSecurity,
 } from '@becomes/purple-cheetah';
 import { Request, Router } from 'express';
 import { JWTSecurity } from '../../security';
-import { InstanceUser } from '../types';
+import { ShimInstanceUser } from '../types';
 import { ShimService } from '../service';
 import { ResponseCode } from '../../response-code';
+import { UserFactory } from '../../user';
 
 @Controller('/api/shim/user')
 export class ShimInstanceUserController implements ControllerPrototype {
@@ -32,7 +34,7 @@ export class ShimInstanceUserController implements ControllerPrototype {
       PermissionName.READ,
     ),
   )
-  async getAll(): Promise<{ users: InstanceUser[] }> {
+  async getAll(): Promise<{ users: ShimInstanceUser[] }> {
     const error = HttpErrorFactory.instance('getAll', this.logger);
     return await ShimService.send('/instance/user/all', {}, error);
   }
@@ -44,7 +46,7 @@ export class ShimInstanceUserController implements ControllerPrototype {
     const error = HttpErrorFactory.instance('getAll', this.logger);
     const result: {
       ok: boolean;
-      user?: InstanceUser;
+      user?: ShimInstanceUser;
     } = await ShimService.send(
       '/instance/user/verify',
       { email: request.body.email, password: request.body.password },
@@ -53,13 +55,22 @@ export class ShimInstanceUserController implements ControllerPrototype {
     if (!result.ok) {
       throw error.occurred(HttpStatus.UNAUTHORIZED, ResponseCode.get('a003'));
     }
+    const user = UserFactory.admin({
+      username: result.user.username,
+      avatarUri: '',
+      email: '',
+      firstName: '',
+      lastName: '',
+    })
     return {
       accessToken: JWTEncoding.encode(
-        JWTSecurity.createToken(
+        PurpleCheetahJWTSecurity.createToken(
           `${result.user._id}`,
           result.user.roles,
           JWTConfigService.get('user-token-config'),
-          user.customPool,
+          {
+
+          },
         ),
       ),
       refreshToken: refreshToken.value,
