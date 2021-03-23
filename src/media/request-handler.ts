@@ -234,7 +234,7 @@ export class MediaRequestHandler {
           StringUtility.createSlug(fileExt)
         : '';
     media.path = parent ? parent.path : '/';
-    media.isInRoot = parent ? false : true;
+    media.isInRoot = !parent;
     media.hasChildren = false;
     media.parentId = parentId ? parentId : '';
     if (await CacheControl.media.findByNameAndPath(media.name, media.path)) {
@@ -314,7 +314,7 @@ export class MediaRequestHandler {
     media.mimetype = 'dir';
     media.name = data.name;
     media.path = parent ? parent.path + '/' + data.name : '/' + data.name;
-    media.isInRoot = parent ? false : true;
+    media.isInRoot = !parent;
     media.parentId = parent ? data.parentId : '';
     media.hasChildren = true;
     if (await CacheControl.media.findByNameAndPath(media.name, media.path)) {
@@ -504,6 +504,7 @@ export class MediaRequestHandler {
     if (media.type === MediaType.DIR) {
       // TODO: Find a way to resolve media delete on FS level. (temp dir?)
       children = this.getAllChildren(media, await CacheControl.media.findAll());
+      console.log(children);
       for (const i in children) {
         await CacheControl.media.deleteById(children[i], async () => {
           SocketUtil.emit(SocketEventName.MEDIA, {
