@@ -1,4 +1,4 @@
-import { Role, RoleName } from '@becomes/purple-cheetah';
+import type { Role, RoleName } from '@becomes/purple-cheetah';
 
 export interface ShimInstanceUserOrg {
   id: string;
@@ -11,6 +11,9 @@ export interface ShimInstanceUser {
   createdAt: number;
   updatedAt: number;
   username: string;
+  firstName: string;
+  lastName: string;
+  email: string;
   organizations: ShimInstanceUserOrg[];
   roles: Role[];
 }

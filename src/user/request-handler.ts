@@ -68,7 +68,7 @@ export class UserRequestHandler {
   static async getById(id: string): Promise<ProtectedUser> {
     const error = HttpErrorFactory.instance('getById', this.logger);
     const user = await CacheControl.user.findById(id);
-    if (!user || user === null) {
+    if (!user) {
       throw error.occurred(
         HttpStatus.NOT_FOUNT,
         ResponseCode.get('g002', {
