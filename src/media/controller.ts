@@ -263,7 +263,6 @@ export class MediaController implements ControllerPrototype {
   async addFile(
     ...data: ControllerMethodData<JWT<UserCustomPool>>
   ): Promise<{ media: Media | FSMedia }> {
-    this.logger.warn('addFile', data[0].headers.upload_file_error_message);
     return {
       media: await MediaRequestHandler.addFile(
         data[3],
