@@ -22,6 +22,7 @@ import { ResponseCode } from '../../response-code';
 import { RefreshTokenFactory, UserFactory } from '../../user';
 import { CacheControl } from '../../cache';
 import { SocketEventName, SocketUtil } from '../../util';
+import { Types } from 'mongoose';
 
 @Controller('/api/shim/user')
 export class ShimInstanceUserController implements ControllerPrototype {
@@ -79,7 +80,12 @@ export class ShimInstanceUserController implements ControllerPrototype {
           username: result.user.username,
         });
       }
-      user.password = await bcrypt.hash(crypto.randomBytes(64), 10);
+      if (typeof user._id === 'string') {
+        user._id = result.user._id;
+      } else {
+        user._id = new Types.ObjectId(result.user._id);
+      }
+      user.password = await bcrypt.hash(crypto.randomBytes(64).toString(), 10);
       user.refreshTokens = [refreshToken];
       const addUserResult = await new Promise<boolean>((resolve) => {
         CacheControl.user.add(
@@ -112,7 +118,7 @@ export class ShimInstanceUserController implements ControllerPrototype {
     return {
       accessToken: JWTEncoding.encode(
         PurpleCheetahJWTSecurity.createToken(
-          `${result.user._id}`,
+          `${user._id}`,
           result.user.roles,
           JWTConfigService.get('user-token-config'),
           {},

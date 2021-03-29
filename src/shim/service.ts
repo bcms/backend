@@ -1,26 +1,54 @@
+import * as fs from 'fs';
+import * as util from 'util';
+import * as path from 'path';
+import * as crypto from 'crypto';
 import { Http } from '../util/http';
 import { HttpError, HttpStatus, Logger } from '@becomes/purple-cheetah';
 
+let connected = false;
+let validTo = 0;
 setInterval(() => {
-  // TODO: check connection every second
+  if (connected && validTo < Date.now()) {
+    connected = false;
+    console.log('Lost connection to the SHIM.');
+  }
 }, 1000);
 
 export class ShimService {
   private static readonly logger = new Logger('ShimService');
-  private static connected = false;
-  private static http = new Http('localhost', '2070');
-  static isConnected(): boolean {
-    return this.connected;
+  private static http = process.env.PROD
+    ? new Http('172.17.0.1', '2070')
+    : new Http('localhost', '2070');
+  private static code = '';
+  static async init() {
+    const shimJson: {
+      code: string;
+    } = JSON.parse(
+      (
+        await util.promisify(fs.readFile)(path.join(process.cwd(), 'shim.json'))
+      ).toString(),
+    );
+    this.code = shimJson.code;
   }
-  static async connect() {
-    // TODO: try to connect to the SHIM
+  static isConnected(): boolean {
+    return connected;
+  }
+  static getCode(): string {
+    return '' + this.code;
+  }
+  static refreshAvailable() {
+    if (!connected) {
+      connected = true;
+      console.log('Connected to the SHIM.');
+    }
+    validTo = Date.now() + 5000;
   }
   static async send<T>(
     uri: string,
     payload: unknown,
     error?: HttpError,
   ): Promise<T> {
-    if (!this.connected) {
+    if (!connected) {
       if (error) {
         throw error.occurred(
           HttpStatus.FORBIDDEN,
@@ -30,17 +58,26 @@ export class ShimService {
       throw Error('Instance is not connected.');
     }
     try {
+      const nonce = crypto.randomBytes(8).toString('hex');
+      const timestamp = Date.now();
       const response = await this.http.send<T>({
         path: uri,
         method: 'POST',
         data: payload,
         headers: {
-          iid: process.env.BCMS_INSTANCE_ID,
+          'bcms-iid': process.env.BCMS_INSTANCE_ID,
+          'bcms-nc': nonce,
+          'bcms-ts': '' + timestamp,
+          'bcms-sig': crypto
+            .createHmac('sha256', ShimService.getCode())
+            .update(nonce + timestamp + JSON.stringify(payload))
+            .digest('hex'),
         },
       });
       return response.data;
     } catch (e) {
-      this.logger.error('send', e);
+      console.error(e);
+      // this.logger.error('send', e);
       if (error) {
         throw error.occurred(
           HttpStatus.INTERNAL_SERVER_ERROR,

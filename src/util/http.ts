@@ -41,13 +41,8 @@ export class Http {
     return new Promise<HttpResponse<T>>((resolve, reject) => {
       const requestConfig: http.RequestOptions = {
         host: config.host ? config.host.name : this.host,
-        port:
-          config.host && config.host.port
-            ? config.host.port
-            : this.port,
-        path: this.basePath
-          ? `${this.basePath}${config.path}`
-          : config.path,
+        port: config.host && config.host.port ? config.host.port : this.port,
+        path: this.basePath ? `${this.basePath}${config.path}` : config.path,
         method: config.method,
         headers: config.headers ? config.headers : {},
       };
@@ -103,13 +98,14 @@ export class Http {
             status: res.statusCode,
             headers: res.headers,
             data:
-              res.headers['content-type'].indexOf(
-                'application/json',
-              ) !== -1
+              res.headers['content-type'].indexOf('application/json') !== -1
                 ? JSON.parse(rawData)
                 : rawData,
           });
         });
+      });
+      request.on('error', (e) => {
+        reject(e);
       });
       if (typeof data !== 'undefined') {
         request.write(data);
