@@ -2,7 +2,7 @@ import * as fs from 'fs';
 import * as util from 'util';
 import * as path from 'path';
 import * as crypto from 'crypto';
-import { Http } from '../util/http';
+import { Http } from '../util';
 import { HttpError, HttpStatus, Logger } from '@becomes/purple-cheetah';
 
 let connected = false;
@@ -48,7 +48,7 @@ export class ShimService {
     payload: unknown,
     error?: HttpError,
   ): Promise<T> {
-    if (!connected) {
+    if (!connected && process.env.BCMS_LOCAL !== 'true') {
       if (error) {
         throw error.occurred(
           HttpStatus.FORBIDDEN,
