@@ -146,7 +146,11 @@ if (process.env.DB_USE_FS) {
   ],
   middleware: [
     new CORSMiddleware(),
-    new BodyParserMiddleware(),
+    new BodyParserMiddleware({
+      limit: process.env.BCMS_BODY_LIMIT
+        ? parseInt(process.env.BCMS_BODY_LIMIT)
+        : undefined,
+    }),
     new MediaParserMiddleware(),
     process.env.DEV === 'true' ? new SwaggerMiddleware() : undefined,
     ...middleware.map((e) => {
