@@ -33,7 +33,11 @@ import { EntryChangeSocketHandler } from './socket';
 import { ApiKeySecurity } from './security';
 import { CypressController } from './cypress';
 import { StatusController } from './status';
-import { ShimAuthMiddleware, ShimHealthController, ShimInstanceUserController } from './shim';
+import {
+  ShimAuthMiddleware,
+  ShimHealthController,
+  ShimInstanceUserController,
+} from './shim';
 
 let dbConfig: MongoDBConfig;
 if (process.env.DB_USE_FS) {
@@ -147,7 +151,11 @@ if (process.env.DB_USE_FS) {
   ],
   middleware: [
     new CORSMiddleware(),
-    new BodyParserMiddleware(),
+    new BodyParserMiddleware({
+      limit: process.env.BCMS_BODY_LIMIT
+        ? parseInt(process.env.BCMS_BODY_LIMIT)
+        : undefined,
+    }),
     new ShimAuthMiddleware(),
     new MediaParserMiddleware(),
     process.env.DEV === 'true' ? new SwaggerMiddleware() : undefined,
