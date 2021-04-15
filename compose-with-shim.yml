@@ -1,6 +1,6 @@
 version: '3.9'
 services:
-  bcms:
+  backend:
     build: ""
     ports:
       - '1280:1280'
