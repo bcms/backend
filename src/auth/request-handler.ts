@@ -13,7 +13,6 @@ import { General } from '../util';
 import { ResponseCode } from '../response-code';
 import { CacheControl } from '../cache';
 
-// TODO: Add IP blacklist
 export class AuthRequestHandler {
   @CreateLogger(AuthRequestHandler)
   private static logger: Logger;
@@ -21,9 +20,6 @@ export class AuthRequestHandler {
   static async login(
     authorization: string,
   ): Promise<{ accessToken: string; refreshToken: string }> {
-    if (process.env.DEV !== 'true') {
-      await General.delay(2000);
-    }
     const error = HttpErrorFactory.instance('login', this.logger);
     if (!authorization) {
       throw error.occurred(HttpStatus.FORBIDDEN, ResponseCode.get('a001'));

@@ -49,6 +49,30 @@ export class ShimInstanceUserController implements ControllerPrototype {
     request: Request,
   ): Promise<{ accessToken: string; refreshToken: string }> {
     const error = HttpErrorFactory.instance('verifyWithOTP', this.logger);
+    // if (process.env.BCMS_LOCAL === 'true') {
+    //   console.log('HERE');
+    //   const user = await CacheControl.user.findByEmail('dev@thebcms.com');
+    //   if (user) {
+    //     const refreshToken = RefreshTokenFactory.instance;
+    //     user.password = await bcrypt.hash(
+    //       crypto.randomBytes(64).toString(),
+    //       10,
+    //     );
+    //     user.refreshTokens = [refreshToken];
+    //     await CacheControl.user.update(user);
+    //     return {
+    //       accessToken: JWTEncoding.encode(
+    //         PurpleCheetahJWTSecurity.createToken(
+    //           `${user._id}`,
+    //           user.roles,
+    //           JWTConfigService.get('user-token-config'),
+    //           {},
+    //         ),
+    //       ),
+    //       refreshToken: refreshToken.value,
+    //     };
+    //   }
+    // }
     const result: {
       ok: boolean;
       user?: ShimInstanceUser;

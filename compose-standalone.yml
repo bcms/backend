@@ -1,0 +1,10 @@
+version: '3.9'
+services:
+  bcms:
+    build: ""
+    ports:
+      - '1280:1280'
+    volumes:
+      - type: bind
+        source: ./src
+        target: /app/src
