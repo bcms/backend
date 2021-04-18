@@ -91,17 +91,18 @@ if (process.env.DB_USE_FS) {
     };
   },
   verifyConnection: async (socket) => {
-    if (socket.request._query.signature) {
+    const query = (socket.request as any)._query;
+    if (query.signature) {
       try {
         const key = await ApiKeySecurity.verify(
           {
             path: '',
             requestMethod: 'POST',
             data: {
-              key: socket.request._query.key,
-              nonce: socket.request._query.nonce,
-              timestamp: socket.request._query.timestamp,
-              signature: socket.request._query.signature,
+              key: query.key,
+              nonce: query.nonce,
+              timestamp: query.timestamp,
+              signature: query.signature,
             },
             payload: {},
           },
@@ -115,7 +116,7 @@ if (process.env.DB_USE_FS) {
         return false;
       }
     } else {
-      const jwt = JWTSecurity.checkAndValidateAndGet(socket.request._query.at, {
+      const jwt = JWTSecurity.checkAndValidateAndGet(query.at, {
         roles: [RoleName.ADMIN, RoleName.USER],
         permission: PermissionName.READ,
         JWTConfig: JWTConfigService.get('user-token-config'),

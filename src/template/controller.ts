@@ -29,9 +29,9 @@ export class TemplateController implements ControllerPrototype {
       PermissionName.READ,
     ),
   )
-  async getAll(): Promise<{ templates: Array<Template | FSTemplate> }> {
+  async getAll(): Promise<{ items: Array<Template | FSTemplate> }> {
     return {
-      templates: await TemplateRequestHandler.getAll(),
+      items: await TemplateRequestHandler.getAll(),
     };
   }
 
@@ -44,9 +44,9 @@ export class TemplateController implements ControllerPrototype {
   )
   async getMany(
     request: Request,
-  ): Promise<{ templates: Array<Template | FSTemplate> }> {
+  ): Promise<{ items: Array<Template | FSTemplate> }> {
     return {
-      templates: await TemplateRequestHandler.getMany(request.params.ids),
+      items: await TemplateRequestHandler.getMany(request.params.ids),
     };
   }
 
@@ -70,11 +70,9 @@ export class TemplateController implements ControllerPrototype {
       PermissionName.READ,
     ),
   )
-  async getById(
-    request: Request,
-  ): Promise<{ template: Template | FSTemplate }> {
+  async getById(request: Request): Promise<{ item: Template | FSTemplate }> {
     return {
-      template: await TemplateRequestHandler.getById(request.params.id),
+      item: await TemplateRequestHandler.getById(request.params.id),
     };
   }
 
@@ -82,9 +80,9 @@ export class TemplateController implements ControllerPrototype {
     '',
     JWTSecurity.preRequestHandler([RoleName.ADMIN], PermissionName.WRITE),
   )
-  async add(request: Request): Promise<{ template: Template | FSTemplate }> {
+  async add(request: Request): Promise<{ item: Template | FSTemplate }> {
     return {
-      template: await TemplateRequestHandler.add(
+      item: await TemplateRequestHandler.add(
         request.body,
         request.headers.sid as string,
       ),
@@ -95,9 +93,9 @@ export class TemplateController implements ControllerPrototype {
     '',
     JWTSecurity.preRequestHandler([RoleName.ADMIN], PermissionName.WRITE),
   )
-  async update(request: Request): Promise<{ template: Template | FSTemplate }> {
+  async update(request: Request): Promise<{ item: Template | FSTemplate }> {
     return {
-      template: await TemplateRequestHandler.update(
+      item: await TemplateRequestHandler.update(
         request.body,
         request.headers.sid as string,
       ),

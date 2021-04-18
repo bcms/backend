@@ -52,9 +52,9 @@ export class UserController implements ControllerPrototype {
       PermissionName.READ,
     ),
   )
-  async getAll(): Promise<{ users: ProtectedUser[] }> {
+  async getAll(): Promise<{ items: ProtectedUser[] }> {
     return {
-      users: await UserRequestHandler.getAll(),
+      items: await UserRequestHandler.getAll(),
     };
   }
 
@@ -67,9 +67,9 @@ export class UserController implements ControllerPrototype {
   )
   async getByAccessToken(
     ...data: ControllerMethodData<JWT<UserCustomPool>>
-  ): Promise<{ user: ProtectedUser }> {
+  ): Promise<{ item: ProtectedUser }> {
     return {
-      user: await UserRequestHandler.getByAccessToken(data[3]),
+      item: await UserRequestHandler.getByAccessToken(data[3]),
     };
   }
 
@@ -80,9 +80,9 @@ export class UserController implements ControllerPrototype {
       PermissionName.READ,
     ),
   )
-  async getById(request: Request): Promise<{ user: ProtectedUser }> {
+  async getById(request: Request): Promise<{ item: ProtectedUser }> {
     return {
-      user: await UserRequestHandler.getById(request.params.id),
+      item: await UserRequestHandler.getById(request.params.id),
     };
   }
 
@@ -95,9 +95,9 @@ export class UserController implements ControllerPrototype {
   )
   async update(
     ...data: ControllerMethodData<JWT<UserCustomPool>>
-  ): Promise<{ user: ProtectedUser }> {
+  ): Promise<{ item: ProtectedUser }> {
     return {
-      user: await UserRequestHandler.update(
+      item: await UserRequestHandler.update(
         data[3],
         data[0].body,
         data[0].headers.sid as string,
@@ -109,9 +109,9 @@ export class UserController implements ControllerPrototype {
     '',
     JWTSecurity.preRequestHandler([RoleName.ADMIN], PermissionName.WRITE),
   )
-  async add(request: Request): Promise<{ user: ProtectedUser }> {
+  async add(request: Request): Promise<{ item: ProtectedUser }> {
     return {
-      user: await UserRequestHandler.add(
+      item: await UserRequestHandler.add(
         request.body,
         request.headers.sid as string,
       ),
@@ -122,9 +122,9 @@ export class UserController implements ControllerPrototype {
     '/:id/make-an-admin',
     JWTSecurity.preRequestHandler([RoleName.ADMIN], PermissionName.WRITE),
   )
-  async makeAnAdmin(request: Request): Promise<{ user: ProtectedUser }> {
+  async makeAnAdmin(request: Request): Promise<{ item: ProtectedUser }> {
     return {
-      user: await UserRequestHandler.makeAnAdmin(
+      item: await UserRequestHandler.makeAnAdmin(
         request.params.id,
         request.headers.sid as string,
       ),
