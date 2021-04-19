@@ -42,9 +42,9 @@ export class GroupController implements ControllerPrototype {
       PermissionName.READ,
     ),
   )
-  async getAllLite(): Promise<{ groups: GroupLite[] }> {
+  async getAllLite(): Promise<{ items: GroupLite[] }> {
     return {
-      groups: (await GroupRequestHandler.getAll()).map((e) => {
+      items: (await GroupRequestHandler.getAll()).map((e) => {
         return GroupFactory.toLite(e);
       }),
     };
@@ -57,9 +57,9 @@ export class GroupController implements ControllerPrototype {
       PermissionName.READ,
     ),
   )
-  async getAll(): Promise<{ groups: Array<Group | FSGroup> }> {
+  async getAll(): Promise<{ items: Array<Group | FSGroup> }> {
     return {
-      groups: await GroupRequestHandler.getAll(),
+      items: await GroupRequestHandler.getAll(),
     };
   }
 
@@ -70,9 +70,9 @@ export class GroupController implements ControllerPrototype {
       PermissionName.READ,
     ),
   )
-  async getMany(request: Request): Promise<{ groups: Array<Group | FSGroup> }> {
+  async getMany(request: Request): Promise<{ item: Array<Group | FSGroup> }> {
     return {
-      groups: await GroupRequestHandler.getMany(request.params.ids),
+      item: await GroupRequestHandler.getMany(request.params.ids),
     };
   }
 
@@ -96,9 +96,9 @@ export class GroupController implements ControllerPrototype {
       PermissionName.READ,
     ),
   )
-  async getById(request: Request): Promise<{ group: Group | FSGroup }> {
+  async getById(request: Request): Promise<{ item: Group | FSGroup }> {
     return {
-      group: await GroupRequestHandler.getById(request.params.id),
+      item: await GroupRequestHandler.getById(request.params.id),
     };
   }
 
@@ -106,9 +106,9 @@ export class GroupController implements ControllerPrototype {
     '',
     JWTSecurity.preRequestHandler([RoleName.ADMIN], PermissionName.WRITE),
   )
-  async add(request: Request): Promise<{ group: Group | FSGroup }> {
+  async add(request: Request): Promise<{ item: Group | FSGroup }> {
     return {
-      group: await GroupRequestHandler.add(
+      item: await GroupRequestHandler.add(
         request.body,
         request.headers.sid as string,
       ),
@@ -119,9 +119,9 @@ export class GroupController implements ControllerPrototype {
     '',
     JWTSecurity.preRequestHandler([RoleName.ADMIN], PermissionName.WRITE),
   )
-  async update(request: Request): Promise<{ group: Group | FSGroup }> {
+  async update(request: Request): Promise<{ item: Group | FSGroup }> {
     return {
-      group: await GroupRequestHandler.update(
+      item: await GroupRequestHandler.update(
         request.body,
         request.headers.sid as string,
       ),
