@@ -21,7 +21,7 @@ developing, you will need to install:
 - [NodeJS](https://nodejs.org/) and
 - [NPM](https://www.npmjs.com/)
 
-You use [YARN](https://yarnpkg.com/) but npm is recommended.
+You can use [YARN](https://yarnpkg.com/) but NPM is recommended.
 
 ### Get started
 
