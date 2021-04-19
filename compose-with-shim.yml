@@ -11,9 +11,9 @@ services:
       - type: bind
         source: ./bcms.db.json
         target: /app/bcms.db.json
-      - type: bind
-        source: /usr/local/lib/node_modules/@becomes/purple-cheetah
-        target: /app/src/node_modules/@becomes/purple-cheetah
+#      - type: bind
+#        source: /usr/local/lib/node_modules/@becomes/purple-cheetah
+#        target: /app/src/node_modules/@becomes/purple-cheetah
   shim:
     image: becomes/cms-shim-local
     ports:
