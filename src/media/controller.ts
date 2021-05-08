@@ -39,9 +39,9 @@ export class MediaController implements ControllerPrototype {
       PermissionName.READ,
     ),
   )
-  async getAll(): Promise<{ media: Array<Media | FSMedia> }> {
+  async getAll(): Promise<{ items: Array<Media | FSMedia> }> {
     return {
-      media: await MediaRequestHandler.getAll(),
+      items: await MediaRequestHandler.getAll(),
     };
   }
 
@@ -52,9 +52,9 @@ export class MediaController implements ControllerPrototype {
       PermissionName.READ,
     ),
   )
-  async getAllAggregated(): Promise<{ media: MediaAggregate[] }> {
+  async getAllAggregated(): Promise<{ items: MediaAggregate[] }> {
     return {
-      media: await MediaRequestHandler.getAllAggregated(),
+      items: await MediaRequestHandler.getAllAggregated(),
     };
   }
 
@@ -67,9 +67,9 @@ export class MediaController implements ControllerPrototype {
   )
   async getAllByParentId(
     request: Request,
-  ): Promise<{ media: Array<Media | FSMedia> }> {
+  ): Promise<{ items: Array<Media | FSMedia> }> {
     return {
-      media: await MediaRequestHandler.getAllByParentId(request.params.id),
+      items: await MediaRequestHandler.getAllByParentId(request.params.id),
     };
   }
 
@@ -80,9 +80,9 @@ export class MediaController implements ControllerPrototype {
       PermissionName.READ,
     ),
   )
-  async getMany(request: Request): Promise<{ media: Array<Media | FSMedia> }> {
+  async getMany(request: Request): Promise<{ items: Array<Media | FSMedia> }> {
     return {
-      media: await MediaRequestHandler.getMany(request.params.ids),
+      items: await MediaRequestHandler.getMany(request.params.ids),
     };
   }
 
@@ -106,9 +106,9 @@ export class MediaController implements ControllerPrototype {
       PermissionName.READ,
     ),
   )
-  async getById(request: Request): Promise<{ media: Media | FSMedia }> {
+  async getById(request: Request): Promise<{ item: Media | FSMedia }> {
     return {
-      media: await MediaRequestHandler.getById(request.params.id),
+      item: await MediaRequestHandler.getById(request.params.id),
     };
   }
 
@@ -119,11 +119,9 @@ export class MediaController implements ControllerPrototype {
       PermissionName.READ,
     ),
   )
-  async getByIdAggregated(
-    request: Request,
-  ): Promise<{ media: MediaAggregate }> {
+  async getByIdAggregated(request: Request): Promise<{ item: MediaAggregate }> {
     return {
-      media: await MediaRequestHandler.getByIdAggregated(request.params.id),
+      item: await MediaRequestHandler.getByIdAggregated(request.params.id),
     };
   }
 

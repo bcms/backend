@@ -40,9 +40,9 @@ export class WidgetController implements ControllerPrototype {
       PermissionName.READ,
     ),
   )
-  async getAll(): Promise<{ widgets: Array<Widget | FSWidget> }> {
+  async getAll(): Promise<{ items: Array<Widget | FSWidget> }> {
     return {
-      widgets: await WidgetRequestHandler.getAll(),
+      items: await WidgetRequestHandler.getAll(),
     };
   }
 
@@ -55,9 +55,9 @@ export class WidgetController implements ControllerPrototype {
   )
   async getMany(
     request: Request,
-  ): Promise<{ widgets: Array<Widget | FSWidget> }> {
+  ): Promise<{ items: Array<Widget | FSWidget> }> {
     return {
-      widgets: await WidgetRequestHandler.getMany(request.params.ids),
+      items: await WidgetRequestHandler.getMany(request.params.ids),
     };
   }
 
@@ -81,9 +81,9 @@ export class WidgetController implements ControllerPrototype {
       PermissionName.READ,
     ),
   )
-  async getById(request: Request): Promise<{ widget: Widget | FSWidget }> {
+  async getById(request: Request): Promise<{ item: Widget | FSWidget }> {
     return {
-      widget: await WidgetRequestHandler.getById(request.params.id),
+      item: await WidgetRequestHandler.getById(request.params.id),
     };
   }
 
@@ -91,9 +91,9 @@ export class WidgetController implements ControllerPrototype {
     '',
     JWTSecurity.preRequestHandler([RoleName.ADMIN], PermissionName.WRITE),
   )
-  async add(request: Request): Promise<{ widget: Widget | FSWidget }> {
+  async add(request: Request): Promise<{ item: Widget | FSWidget }> {
     return {
-      widget: await WidgetRequestHandler.add(
+      item: await WidgetRequestHandler.add(
         request.body,
         request.headers.sid as string,
       ),
@@ -104,9 +104,9 @@ export class WidgetController implements ControllerPrototype {
     '',
     JWTSecurity.preRequestHandler([RoleName.ADMIN], PermissionName.WRITE),
   )
-  async update(request: Request): Promise<{ widget: Widget | FSWidget }> {
+  async update(request: Request): Promise<{ item: Widget | FSWidget }> {
     return {
-      widget: await WidgetRequestHandler.update(
+      item: await WidgetRequestHandler.update(
         request.body,
         request.headers.sid as string,
       ),
