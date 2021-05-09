@@ -29,9 +29,9 @@ export class LanguageController implements ControllerPrototype {
       PermissionName.READ,
     ),
   )
-  async getAll(): Promise<{ languages: Array<Language | FSLanguage> }> {
+  async getAll(): Promise<{ items: Array<Language | FSLanguage> }> {
     return {
-      languages: await LanguageRequestHandler.getAll(),
+      items: await LanguageRequestHandler.getAll(),
     };
   }
 
@@ -55,11 +55,9 @@ export class LanguageController implements ControllerPrototype {
       PermissionName.READ,
     ),
   )
-  async getById(
-    request: Request,
-  ): Promise<{ language: Language | FSLanguage }> {
+  async getById(request: Request): Promise<{ item: Language | FSLanguage }> {
     return {
-      language: await LanguageRequestHandler.getById(request.params.id),
+      item: await LanguageRequestHandler.getById(request.params.id),
     };
   }
 
@@ -67,9 +65,9 @@ export class LanguageController implements ControllerPrototype {
     '',
     JWTSecurity.preRequestHandler([RoleName.ADMIN], PermissionName.WRITE),
   )
-  async add(request: Request): Promise<{ language: Language | FSLanguage }> {
+  async add(request: Request): Promise<{ item: Language | FSLanguage }> {
     return {
-      language: await LanguageRequestHandler.add(
+      item: await LanguageRequestHandler.add(
         request.body,
         request.headers.sid as string,
       ),
@@ -80,9 +78,9 @@ export class LanguageController implements ControllerPrototype {
     '',
     JWTSecurity.preRequestHandler([RoleName.ADMIN], PermissionName.WRITE),
   )
-  async update(request: Request): Promise<{ language: Language | FSLanguage }> {
+  async update(request: Request): Promise<{ item: Language | FSLanguage }> {
     return {
-      language: await LanguageRequestHandler.update(
+      item: await LanguageRequestHandler.update(
         request.body,
         request.headers.sid as string,
       ),
