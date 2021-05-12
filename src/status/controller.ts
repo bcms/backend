@@ -30,9 +30,9 @@ export class StatusController implements ControllerPrototype {
       PermissionName.READ,
     ),
   )
-  async getAll(): Promise<{ statuses: Array<Status | FSStatus> }> {
+  async getAll(): Promise<{ items: Array<Status | FSStatus> }> {
     return {
-      statuses: await StatusRequestHandler.getAll(),
+      items: await StatusRequestHandler.getAll(),
     };
   }
 
@@ -56,9 +56,9 @@ export class StatusController implements ControllerPrototype {
       PermissionName.READ,
     ),
   )
-  async getById(request: Request): Promise<{ status: Status | FSStatus }> {
+  async getById(request: Request): Promise<{ item: Status | FSStatus }> {
     return {
-      status: await StatusRequestHandler.getById(request.params.id),
+      item: await StatusRequestHandler.getById(request.params.id),
     };
   }
 
@@ -66,9 +66,9 @@ export class StatusController implements ControllerPrototype {
     '',
     JWTApiSecurity.preRequestHandler([RoleName.ADMIN], PermissionName.WRITE),
   )
-  async add(request: Request): Promise<{ status: Status | FSStatus }> {
+  async add(request: Request): Promise<{ item: Status | FSStatus }> {
     return {
-      status: await StatusRequestHandler.add(
+      item: await StatusRequestHandler.add(
         request.body,
         request.headers.sid as string,
       ),
@@ -79,9 +79,9 @@ export class StatusController implements ControllerPrototype {
     '',
     JWTApiSecurity.preRequestHandler([RoleName.ADMIN], PermissionName.WRITE),
   )
-  async update(request: Request): Promise<{ status: Status | FSStatus }> {
+  async update(request: Request): Promise<{ item: Status | FSStatus }> {
     return {
-      status: await StatusRequestHandler.update(
+      item: await StatusRequestHandler.update(
         request.body,
         request.headers.sid as string,
       ),

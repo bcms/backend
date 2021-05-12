@@ -191,7 +191,7 @@ export class MediaController implements ControllerPrototype {
     ),
   )
   async getBinaryBySize(request: Request) {
-    const error = HttpErrorFactory.instance('getBinary', this.logger);
+    const error = HttpErrorFactory.instance('getBinaryBySize', this.logger);
     const media = await MediaRequestHandler.getById(request.params.id);
     if (media.type === MediaType.DIR) {
       throw error.occurred(
@@ -215,7 +215,10 @@ export class MediaController implements ControllerPrototype {
 
   @Get('/:id/bin/:size/act')
   async getBinaryBySizeAndAccessToken(request: Request) {
-    const error = HttpErrorFactory.instance('getBinary', this.logger);
+    const error = HttpErrorFactory.instance(
+      'getBinaryBySizeAndAccessToken',
+      this.logger,
+    );
     if (!request.query.act) {
       throw error.occurred(HttpStatus.BAD_REQUEST, ResponseCode.get('mda011'));
     }
@@ -260,10 +263,10 @@ export class MediaController implements ControllerPrototype {
   )
   async addFile(
     ...data: ControllerMethodData<JWT<UserCustomPool>>
-  ): Promise<{ media: Media | FSMedia }> {
+  ): Promise<{ item: Media | FSMedia }> {
     this.logger.warn('addFile', data[0].headers.upload_file_error_message);
     return {
-      media: await MediaRequestHandler.addFile(
+      item: await MediaRequestHandler.addFile(
         data[3],
         data[0].headers.sid as string,
         data[0].query.parentId ? '' + data[0].query.parentId : undefined,
@@ -281,9 +284,9 @@ export class MediaController implements ControllerPrototype {
   )
   async addDir(
     ...data: ControllerMethodData<JWT<UserCustomPool>>
-  ): Promise<{ media: Media | FSMedia }> {
+  ): Promise<{ item: Media | FSMedia }> {
     return {
-      media: await MediaRequestHandler.addDir(
+      item: await MediaRequestHandler.addDir(
         data[3],
         data[0].body,
         data[0].headers.sid as string,
@@ -298,9 +301,9 @@ export class MediaController implements ControllerPrototype {
       PermissionName.WRITE,
     ),
   )
-  async update(request: Request): Promise<{ media: Media | FSMedia }> {
+  async update(request: Request): Promise<{ item: Media | FSMedia }> {
     return {
-      media: await MediaRequestHandler.update(
+      item: await MediaRequestHandler.update(
         request.body,
         request.headers.sid as string,
       ),

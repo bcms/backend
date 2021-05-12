@@ -39,9 +39,9 @@ export class EntryController implements ControllerPrototype {
       PermissionName.READ,
     ),
   )
-  async getAll(): Promise<{ entries: Array<Entry | FSEntry> }> {
+  async getAll(): Promise<{ items: Array<Entry | FSEntry> }> {
     return {
-      entries: await EntryRequestHandler.getAll(),
+      items: await EntryRequestHandler.getAll(),
     };
   }
 
@@ -52,9 +52,9 @@ export class EntryController implements ControllerPrototype {
       PermissionName.READ,
     ),
   )
-  async getAllLite(): Promise<{ entries: EntryLite[] }> {
+  async getAllLite(): Promise<{ items: EntryLite[] }> {
     return {
-      entries: await EntryRequestHandler.getAllLite(),
+      items: await EntryRequestHandler.getAllLite(),
     };
   }
 
@@ -65,9 +65,9 @@ export class EntryController implements ControllerPrototype {
       PermissionName.READ,
     ),
   )
-  async getManyLite(request: Request): Promise<{ entries: EntryLite[] }> {
+  async getManyLite(request: Request): Promise<{ items: EntryLite[] }> {
     return {
-      entries: await EntryRequestHandler.getManyLite(request.params.ids),
+      items: await EntryRequestHandler.getManyLite(request.params.ids),
     };
   }
 
@@ -80,9 +80,9 @@ export class EntryController implements ControllerPrototype {
   )
   async getAllByTemplateId(
     request: Request,
-  ): Promise<{ entries: Array<Entry | FSEntry> }> {
+  ): Promise<{ items: Array<Entry | FSEntry> }> {
     return {
-      entries: await EntryRequestHandler.getAllByTemplateId(
+      items: await EntryRequestHandler.getAllByTemplateId(
         request.params.templateId,
       ),
     };
@@ -97,9 +97,9 @@ export class EntryController implements ControllerPrototype {
   )
   async getAllByTemplateIdIndexed(
     request: Request,
-  ): Promise<{ entries: Array<Entity | FSDBEntity> }> {
+  ): Promise<{ items: Array<Entity | FSDBEntity> }> {
     return {
-      entries: await EntryRequestHandler.getAllByTemplateIdIndexed(
+      items: await EntryRequestHandler.getAllByTemplateIdIndexed(
         request.params.templateId,
       ),
     };
@@ -114,9 +114,9 @@ export class EntryController implements ControllerPrototype {
   )
   async getAllByTemplateIdParsed(
     request: Request,
-  ): Promise<{ entries: EntryParsed[] }> {
+  ): Promise<{ items: EntryParsed[] }> {
     return {
-      entries: await EntryRequestHandler.getAllByTemplateIdParsed(
+      items: await EntryRequestHandler.getAllByTemplateIdParsed(
         request.params.templateId,
       ),
     };
@@ -131,9 +131,9 @@ export class EntryController implements ControllerPrototype {
   )
   async getAllLiteByTemplateId(
     request: Request,
-  ): Promise<{ entries: EntryLite[] }> {
+  ): Promise<{ items: EntryLite[] }> {
     return {
-      entries: await EntryRequestHandler.getAllLiteByTemplateId(
+      items: await EntryRequestHandler.getAllLiteByTemplateId(
         request.params.templateId,
       ),
     };
@@ -161,9 +161,9 @@ export class EntryController implements ControllerPrototype {
       PermissionName.READ,
     ),
   )
-  async getById(request: Request): Promise<{ entry: Entry | FSEntry }> {
+  async getById(request: Request): Promise<{ item: Entry | FSEntry }> {
     return {
-      entry: await EntryRequestHandler.getById(request.params.id),
+      item: await EntryRequestHandler.getById(request.params.id),
     };
   }
 
@@ -174,9 +174,9 @@ export class EntryController implements ControllerPrototype {
       PermissionName.READ,
     ),
   )
-  async getByIdParsed(request: Request): Promise<{ entry: EntryParsed }> {
+  async getByIdParsed(request: Request): Promise<{ item: EntryParsed }> {
     return {
-      entry: await EntryRequestHandler.getByIdParsed(request.params.id),
+      item: await EntryRequestHandler.getByIdParsed(request.params.id),
     };
   }
 
@@ -187,9 +187,9 @@ export class EntryController implements ControllerPrototype {
       PermissionName.READ,
     ),
   )
-  async getByIdLite(request: Request): Promise<{ entry: EntryLite }> {
+  async getByIdLite(request: Request): Promise<{ item: EntryLite }> {
     return {
-      entry: await EntryRequestHandler.getByIdLite(request.params.id),
+      item: await EntryRequestHandler.getByIdLite(request.params.id),
     };
   }
 
@@ -202,9 +202,9 @@ export class EntryController implements ControllerPrototype {
   )
   async add(
     ...data: ControllerMethodData<JWTApiSecurityPreRequestHandlerOutput>
-  ): Promise<{ entry: Entry | FSEntry }> {
+  ): Promise<{ item: Entry | FSEntry }> {
     return {
-      entry: await EntryRequestHandler.add(
+      item: await EntryRequestHandler.add(
         data[0].body,
         data[0].headers.sid as string,
         data[3].type === 'jwt' ? (data[3].value as JWT<UserCustomPool>).payload.userId : '',
@@ -219,9 +219,9 @@ export class EntryController implements ControllerPrototype {
       PermissionName.READ,
     ),
   )
-  async update(request: Request): Promise<{ entry: Entry | FSEntry }> {
+  async update(request: Request): Promise<{ item: Entry | FSEntry }> {
     return {
-      entry: await EntryRequestHandler.update(
+      item: await EntryRequestHandler.update(
         request.body,
         request.headers.sid as string,
       ),
