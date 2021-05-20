@@ -1,42 +1,32 @@
-const Listr = require('listr');
 const childProcess = require('child_process');
 const fse = require('fs-extra');
 const fs = require('fs');
 const util = require('util');
 const path = require('path');
 
-const exec = async (cmd, output) => {
-  return new Promise((resolve, reject) => {
-    let err = '';
-    const proc = childProcess.exec(cmd);
-    if (output) {
-      proc.stdout.on('data', (data) => {
-        output('stdout', data);
-      });
-    }
-    proc.stderr.on('data', (data) => {
-      err += data;
-      if (output) {
-        output('stderr', data);
-      }
-    });
-    proc.on('close', (code) => {
-      if (code !== 0) {
-        reject({
-          code,
-          err,
-        });
-      } else {
-        resolve();
-      }
-    });
-  });
-};
+/**
+ * @typedef {{
+ *  title: string
+ *  task: (function(): Promise<void>)
+ * }} Task
+ */
+
+/**
+ * @param {string} cmd
+ * @param {string[]} args
+ * @param {import('child_process').SpawnOptions?} options
+ */
 async function spawn(cmd, args, options) {
   return new Promise((resolve, reject) => {
-    const proc = childProcess.spawn(cmd, args, options);
-    // proc.stdout.pipe(process.stdout);
-    // proc.stderr.pipe(process.stderr);
+    const proc = childProcess.spawn(
+      cmd,
+      args,
+      options
+        ? options
+        : {
+            stdio: 'inherit',
+          },
+    );
     proc.on('close', (code) => {
       if (code !== 0) {
         reject(code);
@@ -45,6 +35,26 @@ async function spawn(cmd, args, options) {
       }
     });
   });
+}
+/**
+ * @param {Task[]} tasks
+ */
+function createTasks(tasks) {
+  return {
+    run: async () => {
+      for (let i = 0; i < tasks.length; i = i + 1) {
+        const t = tasks[i];
+        console.log(`${i + 1}. ${t.title}`);
+        try {
+          await t.task();
+          console.log(`✓`);
+        } catch (error) {
+          console.log(`⨉`);
+          throw error;
+        }
+      }
+    },
+  };
 }
 
 const parseArgs = (rawArgs) => {
@@ -65,14 +75,17 @@ const parseArgs = (rawArgs) => {
   }
   return {
     bundle: args['--bundle'] === '' || args['--bundle'] === 'true' || false,
+    local: args['--local'] === '' || args['--local'] === 'true' || false,
     link: args['--link'] === '' || args['--link'] === 'true' || false,
     unlink: args['--unlink'] === '' || args['--unlink'] === 'true' || false,
     publish: args['--publish'] === '' || args['--publish'] === 'true' || false,
     build: args['--build'] === '' || args['--build'] === 'true' || false,
+    sudo: args['--sudo'] === '' || args['--sudo'] === 'true' || false,
+    pack: args['--pack'] === '' || args['--pack'] === 'true' || false,
   };
 };
-const bundle = async () => {
-  const tasks = new Listr([
+async function bundle() {
+  const tasks = createTasks([
     {
       title: 'Remove dist directory.',
       task: async () => {
@@ -85,12 +98,6 @@ const bundle = async () => {
         await build();
       },
     },
-    // {
-    //   title: 'Copy bin to dist.',
-    //   task: async () => {
-    //     await exec('cp -R bin dist');
-    //   },
-    // },
     {
       title: 'Copy package.json.',
       task: async () => {
@@ -121,62 +128,126 @@ const bundle = async () => {
     },
   ]);
   await tasks.run();
-};
-const link = async () => {
-  await exec('cd dist && npm i && sudo npm link');
-  // const base = '/usr/local/lib/node_modules/@becomes/cms-backend';
-  // await spawn('npm', ['i'], { stdio: 'inherit', cwd: `${__dirname}/dist` });
-  // await spawn('rm', ['-rf', `${base}/*`], { stdio: 'inherit' });
-  // await spawn('cp', ['-R', `${__dirname}/dist/.`, `${base}`], { stdio: 'inherit' });
-};
-const unlink = async () => {
-  await exec('cd dist && sudo npm unlink');
-};
-const publish = async () => {
-  if (await fse.exists(path.join(__dirname, 'dist', 'node_modules'))) {
+}
+async function bundleLocal() {
+  const tasks = createTasks([
+    {
+      title: 'Bundle the project',
+      task: async () => {
+        await bundle();
+      },
+    },
+    {
+      title: 'Copy dist',
+      task: async () => {
+        await fse.remove(path.join(process.cwd(), 'dockerfile-local', 'dist'));
+        await fse.copy(
+          path.join(process.cwd(), 'dist'),
+          path.join(process.cwd(), 'dockerfile-local', 'dist'),
+        );
+      },
+    },
+    {
+      title: 'Create Docker image',
+      task: async () => {
+        await spawn(
+          'docker',
+          ['build', '.', '-t', 'becomes/cms-backend-local'],
+          {
+            cwd: path.join(process.cwd(), 'dockerfile-local'),
+            stdio: 'inherit',
+          },
+        );
+      },
+    },
+  ]);
+  await tasks.run();
+}
+/**
+ * @param {boolean} sudo
+ * @returns {Promise<void>}
+ */
+async function link(sudo) {
+  await spawn('npm', ['i'], {
+    cwd: path.join(process.cwd(), 'dist'),
+    stdio: 'inherit',
+  });
+  if (sudo) {
+    await spawn('sudo', ['npm', 'link'], {
+      cwd: path.join(process.cwd(), 'dist'),
+      stdio: 'inherit',
+    });
+  } else {
+    await spawn('npm', ['link'], {
+      cwd: path.join(process.cwd(), 'dist'),
+      stdio: 'inherit',
+    });
+  }
+}
+/**
+ * @param {boolean} sudo
+ * @returns {Promise<void>}
+ */
+async function unlink(sudo) {
+  if (sudo) {
+    await spawn('sudo', ['npm', 'link'], {
+      cwd: path.join(process.cwd(), 'dist'),
+      stdio: 'inherit',
+    });
+  } else {
+    await spawn('npm', ['unlink'], {
+      cwd: path.join(process.cwd(), 'dist'),
+      stdio: 'inherit',
+    });
+  }
+}
+async function publish() {
+  if (
+    await util.promisify(fs.exists)(
+      path.join(__dirname, 'dist', 'node_modules'),
+    )
+  ) {
     throw new Error(
       `Please remove "${path.join(__dirname, 'dist', 'node_modules')}"`,
     );
   }
-  await exec('cd dist && npm publish --access=public');
-};
-const build = async () => {
-  // await exec('npm run build:ts');
-  await spawn('npm', ['run', 'build:ts'], { stdio: 'inherit' });
+  await spawn('npm', ['publish', '--access=private'], {
+    cwd: path.join(process.cwd(), 'dist'),
+    stdio: 'inherit',
+  });
+}
+async function build() {
+  await spawn('npm', ['run', 'build:ts']);
   await fse.copy(
     path.join(__dirname, 'src', 'response-code', 'codes'),
     path.join(__dirname, 'dist', 'response-code', 'codes'),
   );
-  // const managerFile = (
-  //   await util.promisify(fs.readFile)(
-  //     path.join(__dirname, 'dist', 'plugins', 'manager.js'),
-  //   )
-  // )
-  //   .toString()
-  //   .replace('var imports = [];', '/*%IMPORTS_START%*/\n/*%IMPORTS_END%*/')
-  //   .replace(
-  //     'exports.controllers = [];\nexports.middleware = [];',
-  //     '/*%ASSETS_START%*/\nexports.controllers = [];\nexports.middleware = [];\n/*%ASSETS_END%*/',
-  //   )
-  //   .replace('exports.middleware = exports.controllers = void 0;\n', '');
-  // await util.promisify(fs.writeFile)(
-  //   path.join(__dirname, 'dist', 'plugins', 'manager.js'),
-  //   managerFile,
-  // );
-};
+}
+async function pack() {
+  await spawn('npm', ['pack'], {
+    cwd: path.join(process.cwd(), 'dist'),
+    stdio: 'inherit',
+  });
+}
 
 async function main() {
   const options = parseArgs(process.argv);
   if (options.bundle === true) {
-    await bundle();
+    if (options.local) {
+      await bundleLocal();
+    } else {
+      await bundle();
+    }
   } else if (options.link === true) {
-    await link();
+    await link(options.sudo);
   } else if (options.unlink === true) {
-    await unlink();
+    await unlink(options.sudo);
   } else if (options.publish === true) {
     await publish();
   } else if (options.build === true) {
     await build();
+  } else if (options.pack === true) {
+    await pack();
   }
 }
 main().catch((error) => {

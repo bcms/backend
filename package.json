@@ -7,10 +7,12 @@
   "main": "index.js",
   "scripts": {
     "start": "node dist/bin/bcms-backend.js",
+    "start:local": "node bin/bcms-backend.js --dev",
     "dev": "env-cmd -f .env.dev nodemon src/bin/bcms-backend.ts --dev",
     "build:ts": "npm run lint && tsc -p .",
     "build": "node tools.js --build",
     "bundle": "node tools.js --bundle",
+    "bundle:local": "node tools.js --bundle --local",
     "link": "node tools.js --link",
     "unlink": "node tools.js --unlink",
     "publish": "node tools.js --publish",

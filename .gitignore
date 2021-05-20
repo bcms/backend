@@ -9,6 +9,7 @@
 /jobs
 /ts-plugins
 /plugins
+/dockerfile-local/dist
 
 # Logs
 /log
