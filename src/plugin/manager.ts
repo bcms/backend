@@ -46,7 +46,7 @@ export class PluginManager {
     });
   }
   static async load(loadPlugins: string[]) {
-    this.list = loadPlugins;
+    // this.list = loadPlugins;
     for (let i = 0; i < loadPlugins.length; i++) {
       let pluginName = loadPlugins[i];
       let loadBasePath = [];
@@ -62,6 +62,7 @@ export class PluginManager {
           loadBasePath = ['node_modules', pluginName, 'backend'];
         }
       }
+      this.list.push(pluginName);
       if (loadBasePath.length > 0) {
         if (await this.exist(...loadBasePath, 'controllers')) {
           const files = (

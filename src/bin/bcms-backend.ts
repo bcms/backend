@@ -36,14 +36,15 @@ if (arg.dev) {
 }
 
 Config.init()
-  .then(() => {
+  .then(async () => {
     app = new App();
-    app.listen();
+    await app.listen();
   })
   .catch((error) => {
-    // tslint:disable-next-line: no-console
     console.error(error);
     process.exit(1);
   });
 
-export const Application = app;
+export const useApp = () => {
+  return app;
+};
