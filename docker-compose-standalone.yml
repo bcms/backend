@@ -14,10 +14,3 @@ services:
       - type: bind
         source: ./uploads
         target: /app/uploads
-#      - type: bind
-#        source: /usr/local/lib/node_modules/@becomes/purple-cheetah
-#        target: /app/src/node_modules/@becomes/purple-cheetah
-  shim:
-    image: becomes/cms-shim-local
-    ports:
-      - '1282:1282'

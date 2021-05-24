@@ -1,6 +1,12 @@
 version: '3.9'
 services:
+  shim:
+    image: becomes/cms-shim-local
+    ports:
+      - '1282:1282'
   backend:
+    depends_on:
+      - shim
     build: ''
     ports:
       - '1280:1280'
@@ -9,8 +15,11 @@ services:
         source: ./src
         target: /app/src
       - type: bind
-          source: ./bcms.db.json
-          target: /app/bcms.db.json
+        source: ./bcms.db.json
+        target: /app/bcms.db.json
       - type: bind
         source: ./uploads
         target: /app/uploads
+#      - type: bind
+#        source: /usr/local/lib/node_modules/@becomes/purple-cheetah
+#        target: /app/src/node_modules/@becomes/purple-cheetah

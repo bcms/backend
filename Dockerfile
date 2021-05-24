@@ -6,4 +6,4 @@ COPY . /app
 
 RUN npm i
 
-ENTRYPOINT ["npm", "run", "start:local"]
+ENTRYPOINT ["npm", "run", "dev"]

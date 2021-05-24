@@ -1,4 +1,5 @@
 /dist
+/dockerfile-local
 /functions
 /logs
 /node_modules
