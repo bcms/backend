@@ -16,7 +16,7 @@ export class PluginController implements ControllerPrototype {
   logger: Logger;
 
   @Get('/list')
-  list(): { list: string[] } {
-    return { list: PluginManager.getList() };
+  list(): { items: string[] } {
+    return { items: PluginManager.getList() };
   }
 }
