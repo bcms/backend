@@ -20,10 +20,10 @@ export class PluginManager {
   private static async readdir(...p: string[]) {
     return await util.promisify(fs.readdir)(path.join(process.cwd(), ...p));
   }
-  private static error(location: string, message: string) {
-    this.logger.error(location, message);
-    throw Error(message);
-  }
+  // private static error(location: string, message: string) {
+  //   this.logger.error(location, message);
+  //   throw Error(message);
+  // }
   private static fromKebabToCamel(s: string): string {
     return s
       .split('-')
@@ -66,7 +66,7 @@ export class PluginManager {
           if (await this.exist(...loadBasePath, 'controllers')) {
             const files = (
               await this.readdir(...loadBasePath, 'controllers')
-            ).filter((e) => e.endsWith('.js'));
+            ).filter((e) => e.endsWith('.js') || e.endsWith('.ts'));
             for (let j = 0; j < files.length; j++) {
               const fileName = files[j];
               const imp = await import(
@@ -96,7 +96,7 @@ export class PluginManager {
           if (await this.exist(...loadBasePath, 'middleware')) {
             const files = (
               await this.readdir(...loadBasePath, 'middleware')
-            ).filter((e) => e.endsWith('.js'));
+            ).filter((e) => e.endsWith('.js') || e.endsWith('.ts'));
             for (let j = 0; j < files.length; j++) {
               const fileName = files[j];
               const imp = await import(
