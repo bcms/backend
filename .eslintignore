@@ -3,3 +3,4 @@ dist
 /uploads
 tools.js
 dev.js
+bcms.config.js
