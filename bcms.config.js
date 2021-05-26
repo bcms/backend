@@ -1,6 +1,3 @@
-const pluginName = 'hello-world';
-process.env.VUE_APP_PLUGIN_NAME = pluginName;
-
 module.exports = {
   port: 1280,
   security: {
@@ -13,5 +10,5 @@ module.exports = {
   database: {
     fs: 'bcms',
   },
-  plugins: [pluginName],
+  plugins: [],
 };
