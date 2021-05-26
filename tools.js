@@ -129,40 +129,6 @@ async function bundle() {
   ]);
   await tasks.run();
 }
-async function bundleLocal() {
-  const tasks = createTasks([
-    {
-      title: 'Bundle the project',
-      task: async () => {
-        await bundle();
-      },
-    },
-    {
-      title: 'Copy dist',
-      task: async () => {
-        await fse.remove(path.join(process.cwd(), 'dockerfile-local', 'dist'));
-        await fse.copy(
-          path.join(process.cwd(), 'dist'),
-          path.join(process.cwd(), 'dockerfile-local', 'dist'),
-        );
-      },
-    },
-    {
-      title: 'Create Docker image',
-      task: async () => {
-        await spawn(
-          'docker',
-          ['build', '.', '-t', 'becomes/cms-backend-local'],
-          {
-            cwd: path.join(process.cwd(), 'dockerfile-local'),
-            stdio: 'inherit',
-          },
-        );
-      },
-    },
-  ]);
-  await tasks.run();
-}
 /**
  * @param {boolean} sudo
  * @returns {Promise<void>}
@@ -233,11 +199,7 @@ async function pack() {
 async function main() {
   const options = parseArgs(process.argv);
   if (options.bundle === true) {
-    if (options.local) {
-      await bundleLocal();
-    } else {
-      await bundle();
-    }
+    await bundle();
   } else if (options.link === true) {
     await link(options.sudo);
   } else if (options.unlink === true) {
