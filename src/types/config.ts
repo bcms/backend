@@ -8,7 +8,8 @@ export interface BCMSConfig {
     expireIn: number;
   };
   database: {
-    fs?: string;
+    prefix: string;
+    fs?: boolean;
     mongodb?: {
       selfHosted?: {
         host: string;
@@ -16,13 +17,11 @@ export interface BCMSConfig {
         name: string;
         user: string;
         password: string;
-        prefix: string;
       };
       atlas?: {
         name: string;
         user: string;
         password: string;
-        prefix: string;
         cluster: string;
       };
     };
@@ -58,8 +57,12 @@ export const BCMSConfigSchema: ObjectSchema = {
     __type: 'object',
     __required: true,
     __child: {
-      fs: {
+      prefix: {
         __type: 'string',
+        __required: true,
+      },
+      fs: {
+        __type: 'boolean',
         __required: false,
       },
       mongodb: {

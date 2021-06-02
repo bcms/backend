@@ -28,7 +28,7 @@
   "dependencies": {
     "bcrypt": "^5.0.0",
     "cron": "^1.8.2",
-    "mongoose": "^5.12.10",
+    "mongoose": "^5.12.12",
     "multer": "^1.4.2",
     "sharp": "^0.26.3",
     "swagger-ui-express": "^4.1.6",
@@ -37,6 +37,7 @@
   "devDependencies": {
     "@types/bcrypt": "^5.0.0",
     "@types/cron": "^1.7.2",
+    "@types/mongoose": "^5.11.39",
     "@types/node": "^15.6.2",
     "@types/sharp": "^0.26.1",
     "@types/swagger-ui-express": "^4.1.2",
