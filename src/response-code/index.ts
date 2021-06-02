@@ -1,1 +1,1 @@
-export * from './response-code';
+export * from './main';

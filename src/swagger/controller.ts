@@ -1,41 +1,38 @@
 import {
-  ControllerPrototype,
-  Logger,
-  Controller,
-  Get,
+  createController,
+  createControllerMethod,
+  useFS,
 } from '@becomes/purple-cheetah';
-import { Router, Request, Response } from 'express';
-import * as YAML from 'yamljs';
 import * as path from 'path';
-import * as util from 'util';
-import * as fs from 'fs';
-import * as swaggerUi from 'swagger-ui-express';
+import { useBcmsConfig } from '../config';
+import { setup } from 'swagger-ui-express';
+import * as YAML from 'yamljs';
 
-@Controller('/api/swagger')
-export class SwaggerController implements ControllerPrototype {
-  name: string;
-  baseUri: string;
-  logger: Logger;
-  router: Router;
-  initRouter: () => void;
+let swaggerHandler: (request: any, response: any, callback: () => void) => void;
 
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  private swaggerHandler: any;
-
-  @Get()
-  async get(request: Request, response: Response) {
-    if (!this.swaggerHandler) {
-      const file = await (
-        await util.promisify(fs.readFile)(path.join(__dirname, 'doc.yaml'))
-      )
-        .toString()
-        .replace('@PORT', process.env.PORT);
-      this.swaggerHandler = swaggerUi.setup(YAML.parse(file), {
-        customCss: '.swagger-ui .topbar { display: none }',
-      });
-    }
-    this.swaggerHandler(request, response, () => {
-      return;
-    });
-  }
-}
+export const BCMSSwaggerController = createController({
+  name: 'Swagger Controller',
+  path: '/api/swagger',
+  methods: [
+    createControllerMethod({
+      path: '',
+      name: 'get',
+      type: 'get',
+      async handler({ request, response }) {
+        if (!swaggerHandler) {
+          const bcmsConfig = useBcmsConfig();
+          const fs = useFS();
+          const file = (await fs.read(path.join(__dirname, 'spec.yaml')))
+            .toString()
+            .replace('@PORT', '' + bcmsConfig.port);
+          swaggerHandler = setup(YAML.parse(file), {
+            customCss: '.swagger-ui .topbar { display: none }',
+          });
+        }
+        swaggerHandler(request, response, () => {
+          return;
+        });
+      },
+    }),
+  ],
+});
