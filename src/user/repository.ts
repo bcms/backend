@@ -5,20 +5,24 @@ import {
 } from '@becomes/purple-cheetah';
 import {
   UserFSDB,
-  UserFSDBRepository,
   UserFSDBSchema,
   UserMongoDB,
-  UserMongoDBRepository,
   UserMongoDBSchema,
+  UserRepository,
 } from '../types';
 
-export function useUserRepo(): UserFSDBRepository | UserMongoDBRepository {
+let repository: UserRepository;
+
+export function useUserRepo(): UserRepository {
+  if (repository) {
+    return repository;
+  }
   const bcmsConfig = useBcmsConfig();
   const name = 'User repository';
   const collection = `${bcmsConfig.database.prefix}_users`;
 
   if (bcmsConfig.database.fs) {
-    return createFSDBRepository<
+    repository = createFSDBRepository<
       UserFSDB,
       { findByEmail(email: string): Promise<UserFSDB | null> }
     >({
@@ -33,29 +37,31 @@ export function useUserRepo(): UserFSDBRepository | UserMongoDBRepository {
         };
       },
     });
+  } else {
+    repository = createMongoDBCachedRepository<
+      UserMongoDB,
+      { findByEmail(email: string): Promise<UserMongoDB | null> },
+      undefined
+    >({
+      name,
+      collection,
+      schema: UserMongoDBSchema,
+      methods({ mongoDBInterface, cacheHandler }) {
+        return {
+          async findByEmail(email) {
+            const cacheHit = cacheHandler.findOne((e) => e.email === email);
+            if (cacheHit) {
+              return cacheHit;
+            }
+            const result = await mongoDBInterface.findOne({ email });
+            if (result) {
+              cacheHandler.set(result._id.toHexString(), result);
+            }
+            return result;
+          },
+        };
+      },
+    });
   }
-  return createMongoDBCachedRepository<
-    UserMongoDB,
-    { findByEmail(email: string): Promise<UserMongoDB | null> },
-    undefined
-  >({
-    name,
-    collection,
-    schema: UserMongoDBSchema,
-    methods({ mongoDBInterface, cacheHandler }) {
-      return {
-        async findByEmail(email) {
-          const cacheHit = cacheHandler.findOne((e) => e.email === email);
-          if (cacheHit) {
-            return cacheHit;
-          }
-          const result = await mongoDBInterface.findOne({ email });
-          if (result) {
-            cacheHandler.set(result._id.toHexString(), result);
-          }
-          return result;
-        },
-      };
-    },
-  });
+  return repository;
 }

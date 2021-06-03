@@ -5,7 +5,7 @@ import {
   JWTRoleSchema,
   FSDBEntitySchema,
   FSDBEntity,
-  MongoDBEntitySchema,
+  MongoDBEntitySchema, JWT,
 } from '@becomes/purple-cheetah/types';
 import { Schema } from 'mongoose';
 import { UserCustomPool, UserCustomPoolSchema } from './custom-pool';
@@ -34,6 +34,9 @@ export type User = UserMongoDB | UserFSDB;
 
 export interface JWTProps {
   customPool: UserCustomPool;
+}
+export interface JWTProtectionType {
+  accessToken: JWT<JWTProps>;
 }
 
 export const UserMongoDBSchema = new Schema({
