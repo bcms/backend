@@ -15,6 +15,7 @@ import type {
 } from '@becomes/purple-cheetah/types';
 import { BCMSSwaggerController, BCMSSwaggerMiddleware } from './swagger';
 import { BCMSCypressController } from './cypress';
+import { UserController } from './user';
 
 let backend: BCMSBackend;
 
@@ -30,11 +31,11 @@ async function initialize() {
       limit: bcmsConfig.bodySizeLimit ? bcmsConfig.bodySizeLimit : undefined,
     }),
   ];
-  const controllers: Controller[] = [];
+  const controllers: Controller[] = [UserController];
   if (bcmsConfig.database.fs) {
     modules.push(
       createFSDB({
-        output: 'bcms',
+        output: bcmsConfig.database.prefix,
       }),
     );
   } else if (bcmsConfig.database.mongodb) {
@@ -52,13 +53,13 @@ async function initialize() {
               password: bcmsConfig.database.mongodb.selfHosted.password,
             },
           },
-          collectionsPrefix: bcmsConfig.database.mongodb.selfHosted.prefix,
+          collectionsPrefix: bcmsConfig.database.prefix,
         }),
       );
     } else if (bcmsConfig.database.mongodb.atlas) {
       modules.push(
         createMongoDB({
-          collectionsPrefix: bcmsConfig.database.mongodb.atlas.prefix,
+          collectionsPrefix: bcmsConfig.database.prefix,
           atlas: {
             db: {
               name: bcmsConfig.database.mongodb.atlas.name,

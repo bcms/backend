@@ -4,6 +4,8 @@ import type {
 } from '@becomes/purple-cheetah/types';
 import type { UserFSDB, UserMongoDB } from './models';
 
+export type UserRepository = UserFSDBRepository | UserMongoDBRepository;
+
 export type UserFSDBRepository = FSDBRepository<
   UserFSDB,
   { findByEmail(email: string): Promise<UserFSDB | null> }

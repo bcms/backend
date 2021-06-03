@@ -8,7 +8,7 @@
   "scripts": {
     "start": "node dist/bin/bcms-backend.js",
     "start:local": "node bin/bcms-backend.js --dev",
-    "dev": "env-cmd -f .env.dev nodemon src/bin/bcms-backend.ts --dev",
+    "dev": "nodemon src/main.ts",
     "build:ts": "npm run lint && tsc -p .",
     "build": "node tools.js --build",
     "bundle": "node tools.js --bundle",
@@ -28,6 +28,7 @@
   "dependencies": {
     "bcrypt": "^5.0.0",
     "cron": "^1.8.2",
+    "express": "^4.17.1",
     "mongoose": "^5.12.12",
     "multer": "^1.4.2",
     "sharp": "^0.26.3",
@@ -35,8 +36,10 @@
     "yamljs": "^0.3.0"
   },
   "devDependencies": {
+    "@becomes/purple-cheetah": "file:purple-cheetah.tgz",
     "@types/bcrypt": "^5.0.0",
     "@types/cron": "^1.7.2",
+    "@types/express": "^4.17.12",
     "@types/mongoose": "^5.11.39",
     "@types/node": "^15.6.2",
     "@types/sharp": "^0.26.1",

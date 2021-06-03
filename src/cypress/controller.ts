@@ -6,14 +6,15 @@ import {
 export const BCMSCypressController = createController({
   name: 'Cypress controller',
   path: '/api/cy',
-  methods: [
-    createControllerMethod({
-      path: '/reset',
-      name: 'reset',
-      type: 'post',
-      async handler() {
-        // TODO: create database
-      },
-    }),
-  ],
+  methods() {
+    return {
+      reset: createControllerMethod({
+        path: '/reset',
+        type: 'post',
+        async handler() {
+          // TODO: create database
+        },
+      }),
+    };
+  },
 });

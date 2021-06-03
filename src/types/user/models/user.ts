@@ -9,7 +9,6 @@ import {
 } from '@becomes/purple-cheetah/types';
 import { Schema } from 'mongoose';
 import { UserCustomPool, UserCustomPoolSchema } from './custom-pool';
-import type { UserPersonal } from './personal';
 
 export interface UserProps {
   username: string;
@@ -31,6 +30,7 @@ export interface ProtectedUser {
 
 export type UserMongoDB = MongoDBEntity & UserProps;
 export type UserFSDB = FSDBEntity & UserProps;
+export type User = UserMongoDB | UserFSDB;
 
 export interface JWTProps {
   customPool: UserCustomPool;

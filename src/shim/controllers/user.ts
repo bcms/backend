@@ -16,59 +16,55 @@ import type {
 } from '../../types';
 import { useResponseCode } from '../../response-code';
 
-let shimService: BCMSShimService;
-let resCode: ResponseCode;
-
-export const BCMSShimUserController = createController({
+export const BCMSShimUserController = createController<{
+  shimService: BCMSShimService;
+  resCode: ResponseCode;
+}>({
   name: 'Shim user controller',
   path: '/api/shim/user',
-  methods: [
-    createControllerMethod({
-      path: '/all',
-      name: 'get all',
-      type: 'get',
-      preRequestHandler: createJwtProtectionPreRequestHandler(
-        [JWTRoleName.ADMIN, JWTRoleName.USER],
-        JWTPermissionName.READ,
-      ),
-      async handler({ errorHandler }) {
-        if (!shimService) {
-          shimService = useBcmsShimService();
-        }
-        return await shimService.send({
-          uri: '/instance/user/all',
-          payload: {},
-          errorHandler,
-        });
-      },
-    }),
-    createControllerMethod({
-      path: '/verify/otp',
-      name: 'verifyOtp',
-      type: 'post',
-      async handler({ request, errorHandler }) {
-        if (!shimService) {
-          shimService = useBcmsShimService();
-        }
-        if (!resCode) {
-          resCode = useResponseCode();
-        }
-        const result: {
-          ok: boolean;
-          user?: BCMSShimInstanceUser;
-        } = await shimService.send({
-          uri: '/instance/user/verify/otp',
-          payload: { otp: request.body.otp },
-          errorHandler,
-        });
-        if (!result.ok) {
-          throw errorHandler.occurred(
-            HTTPStatus.UNAUTHORIZED,
-            resCode.get('a003'),
-          );
-        }
-
-      },
-    }),
-  ],
+  setup() {
+    return {
+      shimService: useBcmsShimService(),
+      resCode: useResponseCode(),
+    };
+  },
+  methods({ shimService, resCode }) {
+    return {
+      getAll: createControllerMethod({
+        path: '/all',
+        type: 'get',
+        preRequestHandler: createJwtProtectionPreRequestHandler(
+          [JWTRoleName.ADMIN, JWTRoleName.USER],
+          JWTPermissionName.READ,
+        ),
+        async handler({ errorHandler }) {
+          return await shimService.send({
+            uri: '/instance/user/all',
+            payload: {},
+            errorHandler,
+          });
+        },
+      }),
+      verifyOtp: createControllerMethod({
+        path: '/verify/otp',
+        type: 'post',
+        async handler({ request, errorHandler }) {
+          const result: {
+            ok: boolean;
+            user?: BCMSShimInstanceUser;
+          } = await shimService.send({
+            uri: '/instance/user/verify/otp',
+            payload: { otp: request.body.otp },
+            errorHandler,
+          });
+          if (!result.ok) {
+            throw errorHandler.occurred(
+              HTTPStatus.UNAUTHORIZED,
+              resCode.get('a003'),
+            );
+          }
+        },
+      }),
+    };
+  },
 });

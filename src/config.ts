@@ -11,7 +11,8 @@ const bcmsConfig: BCMSConfig = {
     scope: 'localhost',
   },
   database: {
-    fs: 'bcms',
+    prefix: 'bcms',
+    fs: true,
   },
 };
 
