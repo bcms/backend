@@ -31,6 +31,7 @@ lerna-debug.log*
 # IDEs and editors
 .env
 bcms.db.json
+bcms.fsdb.json
 /.idea
 .idea
 .project
