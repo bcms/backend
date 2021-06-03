@@ -5,17 +5,22 @@ import {
   createFSDB,
   createMongoDB,
   createPurpleCheetah,
+  initializeJwt,
 } from '@becomes/purple-cheetah';
 import { loadBcmsConfig, useBcmsConfig } from './config';
 import { loadResponseCode } from './response-code';
-import type {
+import {
   Controller,
   Middleware,
   Module,
+  JWTAlgorithm,
 } from '@becomes/purple-cheetah/types';
 import { BCMSSwaggerController, BCMSSwaggerMiddleware } from './swagger';
 import { BCMSCypressController } from './cypress';
 import { UserController } from './user';
+import { BCMSShimHealthController } from './shim/controllers';
+import { BCMSShimUserController } from './shim/controllers/user';
+import { createBcmsShimService } from './shim/service';
 
 let backend: BCMSBackend;
 
@@ -23,15 +28,29 @@ async function initialize() {
   await loadBcmsConfig();
   await loadResponseCode();
   const bcmsConfig = useBcmsConfig();
+  initializeJwt({
+    scopes: [
+      {
+        secret: bcmsConfig.jwt.secret,
+        issuer: bcmsConfig.jwt.scope,
+        alg: JWTAlgorithm.HMACSHA256,
+        expIn: bcmsConfig.jwt.expireIn,
+      },
+    ],
+  });
 
-  const modules: Module[] = [];
+  const modules: Module[] = [createBcmsShimService()];
   const middleware: Middleware[] = [
     createCorsMiddleware(),
     createBodyParserMiddleware({
       limit: bcmsConfig.bodySizeLimit ? bcmsConfig.bodySizeLimit : undefined,
     }),
   ];
-  const controllers: Controller[] = [UserController];
+  const controllers: Controller[] = [
+    UserController,
+    BCMSShimHealthController,
+    BCMSShimUserController,
+  ];
   if (bcmsConfig.database.fs) {
     modules.push(
       createFSDB({

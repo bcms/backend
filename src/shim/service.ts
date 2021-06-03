@@ -12,7 +12,7 @@ import { createHttpClient, useFS, useLogger } from '@becomes/purple-cheetah';
 let service: BCMSShimService;
 
 export function useBcmsShimService() {
-  return { ...service };
+  return service;
 }
 
 export function createBcmsShimService(): Module {
@@ -30,7 +30,7 @@ export function createBcmsShimService(): Module {
     name: 'Shim service',
     initialize(moduleConfig) {
       const fs = useFS();
-      fs.read(path.join(__dirname, 'shim.json'))
+      fs.read('shim.json')
         .then((file) => {
           try {
             const shimJson = JSON.parse(file.toString());
@@ -102,6 +102,7 @@ export function createBcmsShimService(): Module {
               logger.warn('', 'Lost connection to the SHIM.');
             }
           }, 1000);
+          moduleConfig.next();
         })
         .catch((err) => {
           moduleConfig.next(err);

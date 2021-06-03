@@ -16,8 +16,12 @@ servers:
   - url: 'https://cloud.thebcms.com/api/v1/portal/proxy/@ORG_ID/@INSTANCE_ID/api'
     description: 'Localhost'
 paths:
-  /test:
-    get:
+  /shim/user/verify/otp:
+    port:
+      tags:
+        - Auth
+      requestBody:
+
       responses:
         '200':
           description: OK

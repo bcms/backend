@@ -14,9 +14,8 @@ import {
   ObjectUtilityError,
   Socket,
 } from '@becomes/purple-cheetah/types';
-import { useUserRepo } from './repository';
+import { useUserRepository } from './repository';
 import {
-  JWTProps,
   ProtectedUser,
   ResponseCode,
   UpdateUserData,
@@ -24,32 +23,35 @@ import {
   UserMongoDB,
   UserRepository,
   UpdateUserDataSchema,
+  UserFactory, UserCustomPool,
 } from '../types';
-import { UserFactory } from './factory';
 import { useResponseCode } from '../response-code';
+import { useUserFactory } from './factory';
 
 export const UserController = createController<{
   repo: UserRepository;
   resCode: ResponseCode;
   objectUtil: ObjectUtility;
   socket: Socket;
+  userFactory: UserFactory;
 }>({
   name: 'User controller',
   path: '/api/user',
   setup() {
     return {
-      repo: useUserRepo(),
+      repo: useUserRepository(),
       resCode: useResponseCode(),
       objectUtil: useObjectUtility(),
       socket: useSocket(),
+      userFactory: useUserFactory(),
     };
   },
-  methods({ repo, resCode, objectUtil }) {
+  methods({ repo, resCode, objectUtil, userFactory }) {
     return {
       count: createControllerMethod<unknown, { count: number }>({
         path: '/count',
         type: 'get',
-        preRequestHandler: createJwtProtectionPreRequestHandler<JWTProps>(
+        preRequestHandler: createJwtProtectionPreRequestHandler<UserCustomPool>(
           [JWTRoleName.ADMIN, JWTRoleName.USER],
           JWTPermissionName.READ,
         ),
@@ -62,25 +64,25 @@ export const UserController = createController<{
       getAll: createControllerMethod<unknown, { items: ProtectedUser[] }>({
         path: '/all',
         type: 'get',
-        preRequestHandler: createJwtProtectionPreRequestHandler<JWTProps>(
+        preRequestHandler: createJwtProtectionPreRequestHandler<UserCustomPool>(
           [JWTRoleName.ADMIN, JWTRoleName.USER],
           JWTPermissionName.READ,
         ),
         async handler() {
           return {
             items: (await repo.findAll()).map((e) => {
-              return UserFactory.toProtected(e);
+              return userFactory.toProtected(e);
             }),
           };
         },
       }),
       get: createControllerMethod<
-        { accessToken: JWT<JWTProps> },
+        { accessToken: JWT<UserCustomPool> },
         { item: ProtectedUser }
       >({
         path: '',
         type: 'get',
-        preRequestHandler: createJwtProtectionPreRequestHandler<JWTProps>(
+        preRequestHandler: createJwtProtectionPreRequestHandler<UserCustomPool>(
           [JWTRoleName.ADMIN, JWTRoleName.USER],
           JWTPermissionName.READ,
         ),
@@ -93,14 +95,14 @@ export const UserController = createController<{
             );
           }
           return {
-            item: UserFactory.toProtected(user),
+            item: userFactory.toProtected(user),
           };
         },
       }),
       getById: createControllerMethod<unknown, { item: ProtectedUser }>({
         path: '/:id',
         type: 'get',
-        preRequestHandler: createJwtProtectionPreRequestHandler<JWTProps>(
+        preRequestHandler: createJwtProtectionPreRequestHandler<UserCustomPool>(
           [JWTRoleName.ADMIN, JWTRoleName.USER],
           JWTPermissionName.READ,
         ),
@@ -113,17 +115,17 @@ export const UserController = createController<{
             );
           }
           return {
-            item: UserFactory.toProtected(user),
+            item: userFactory.toProtected(user),
           };
         },
       }),
       update: createControllerMethod<
-        { accessToken: JWT<JWTProps> },
+        { accessToken: JWT<UserCustomPool> },
         { item: ProtectedUser }
       >({
         path: '',
         type: 'put',
-        preRequestHandler: createJwtProtectionPreRequestHandler<JWTProps>(
+        preRequestHandler: createJwtProtectionPreRequestHandler<UserCustomPool>(
           [JWTRoleName.ADMIN, JWTRoleName.USER],
           JWTPermissionName.READ,
         ),
@@ -208,7 +210,7 @@ export const UserController = createController<{
           }
           const updatedUser = await repo.update(user as UserFSDB & UserMongoDB);
           return {
-            item: UserFactory.toProtected(updatedUser),
+            item: userFactory.toProtected(updatedUser),
           };
         },
       }),

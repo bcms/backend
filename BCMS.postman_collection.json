@@ -1,0 +1,70 @@
+{
+	"info": {
+		"_postman_id": "7c31b11b-5cbb-4c24-bf36-42f11d2a2fe8",
+		"name": "BCMS",
+		"schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+	},
+	"item": [
+		{
+			"name": "Auth",
+			"item": [
+				{
+					"name": "Login",
+					"request": {
+						"method": "POST",
+						"header": [],
+						"body": {
+							"mode": "raw",
+							"raw": "{\n    \"otp\": \"otp_code_obtained_by_the_BCMS_Cloud\"\n}",
+							"options": {
+								"raw": {
+									"language": "json"
+								}
+							}
+						},
+						"url": {
+							"raw": "{{BASE}}/shim/user/verify/otp",
+							"host": [
+								"{{BASE}}"
+							],
+							"path": [
+								"shim",
+								"user",
+								"verify",
+								"otp"
+							]
+						},
+						"description": "In local development (when environment variable BCMS_LOCAL is set to `true`) this endpoint can be called with any string at `otp`, and it will return access token for development user (hardcoded user). In production valid `otp` code must be sent and this code is obtained from the BCMS Cloud. To obtain valid `otp` code you must perform [BCMS Cloud OAuth](https://docs.thebcms.com/oauth) process.\n\nIf successfull, this method returns access and refresh tokens for the user. Access token is used to access BCMS instance resources while refresh token is used to obtain new access token. Access token is short lived (20 minutes) while refresh token is long lived (30 days). After refresh token is expired, user will need to login again."
+					},
+					"response": []
+				}
+			]
+		}
+	],
+	"event": [
+		{
+			"listen": "prerequest",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		},
+		{
+			"listen": "test",
+			"script": {
+				"type": "text/javascript",
+				"exec": [
+					""
+				]
+			}
+		}
+	],
+	"variable": [
+		{
+			"key": "BASE",
+			"value": "http://localhost:1280/api"
+		}
+	]
+}

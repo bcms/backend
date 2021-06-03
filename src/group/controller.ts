@@ -49,11 +49,12 @@ export const BCMSGroupController = createController<{
     return {
       whereIsItUsed: createControllerMethod<
         JWTProtectionType,
-        {
-          templateIds: string[];
-          groupIds: string[];
-          widgetIds: string[];
-        }
+        unknown
+        // {
+        //   templateIds: string[];
+        //   groupIds: string[];
+        //   widgetIds: string[];
+        // }
       >({
         path: '/:id/where-is-it-used',
         type: 'get',

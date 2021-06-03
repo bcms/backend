@@ -8,7 +8,7 @@
   "scripts": {
     "start": "node dist/bin/bcms-backend.js",
     "start:local": "node bin/bcms-backend.js --dev",
-    "dev": "nodemon src/main.ts",
+    "dev": "env-cmd -f .env.dev nodemon src/main.ts",
     "build:ts": "npm run lint && tsc -p .",
     "build": "node tools.js --build",
     "bundle": "node tools.js --bundle",

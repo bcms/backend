@@ -13,7 +13,7 @@ import {
 
 let repository: UserRepository;
 
-export function useUserRepo(): UserRepository {
+export function useUserRepository(): UserRepository {
   if (repository) {
     return repository;
   }
