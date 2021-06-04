@@ -1,4 +1,4 @@
-import type { BCMSProp, BCMSPropParsed } from './models';
+import type { BCMSProp, BCMSPropParsed } from './models-bak';
 import type { BCMSPropChange } from './change';
 
 interface Pointer {

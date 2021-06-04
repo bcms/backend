@@ -1,4 +1,4 @@
-import type { BCMSProp } from '../../prop';
+import type { BCMSPropMeta } from '../../prop';
 import {
   FSDBEntity,
   MongoDBEntity,
@@ -11,7 +11,7 @@ export interface BCMSGroupProps {
   name: string;
   label: string;
   desc: string;
-  props: BCMSProp[];
+  props: BCMSPropMeta[];
 }
 
 export type BCMSGroupFSDB = FSDBEntity & BCMSGroupProps;

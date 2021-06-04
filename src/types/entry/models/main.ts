@@ -1,4 +1,4 @@
-import { BCMSProp, BCMSPropSchema } from '../../prop';
+import type { BCMSPropContent } from '../../prop';
 import {
   FSDBEntity,
   MongoDBEntity,
@@ -10,7 +10,7 @@ import { Schema } from 'mongoose';
 
 export interface BCMSEntryMeta {
   lng: string;
-  props: BCMSProp[];
+  props: BCMSPropContent[];
 }
 export const BCMSEntryMetaSchema: ObjectSchema = {
   lng: {
@@ -22,14 +22,14 @@ export const BCMSEntryMetaSchema: ObjectSchema = {
     __required: true,
     __child: {
       __type: 'object',
-      __content: BCMSPropSchema,
+      __content: {},
     },
   },
 };
 
 export interface BCMSEntryContent {
   lng: string;
-  props: BCMSProp[];
+  props: BCMSPropContent[];
 }
 export const BCMSEntryContentSchema: ObjectSchema = {
   lng: {
@@ -41,7 +41,7 @@ export const BCMSEntryContentSchema: ObjectSchema = {
     __required: true,
     __child: {
       __type: 'object',
-      __content: BCMSPropSchema,
+      __content: {},
     },
   },
 };

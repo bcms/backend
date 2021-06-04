@@ -1,5 +1,5 @@
 import type { ObjectSchema } from '@becomes/purple-cheetah/types';
-import type { BCMSPropType, BCMSPropValue } from './models';
+import type { BCMSPropType, BCMSPropValue } from './models-bak';
 
 export interface BCMSPropChange {
   add?: {
@@ -11,10 +11,8 @@ export interface BCMSPropChange {
   };
   remove?: string;
   update?: {
-    label: {
-      old: string;
-      new: string;
-    };
+    id: string;
+    label: string;
     move: number;
     required: boolean;
     enumItems?: string[];

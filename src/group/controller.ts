@@ -8,12 +8,14 @@ import {
 import {
   BCMSGroup,
   BCMSGroupAddData,
+  BCMSGroupAddDataSchema,
   BCMSGroupFactory,
   BCMSGroupLite,
   BCMSGroupRepository,
+  BCMSGroupUpdateData,
+  BCMSGroupUpdateDataSchema,
   JWTProtectionType,
   ResponseCode,
-  BCMSGroupAddDataSchema,
 } from '../types';
 import { useBcmsGroupRepository } from './repository';
 import {
@@ -69,9 +71,7 @@ export const BCMSGroupController = createController<{
 
       getAllLite: createControllerMethod<
         JWTProtectionType,
-        {
-          items: BCMSGroupLite[];
-        }
+        { items: BCMSGroupLite[] }
       >({
         path: '/all/lite',
         type: 'get',
@@ -86,30 +86,25 @@ export const BCMSGroupController = createController<{
         },
       }),
 
-      getAll: createControllerMethod<
-        JWTProtectionType,
+      getAll: createControllerMethod<JWTProtectionType, { items: BCMSGroup[] }>(
         {
-          items: BCMSGroup[];
-        }
-      >({
-        path: '/all',
-        type: 'get',
-        preRequestHandler: createJwtProtectionPreRequestHandler(
-          [JWTRoleName.ADMIN, JWTRoleName.USER],
-          JWTPermissionName.READ,
-        ),
-        async handler() {
-          return {
-            items: await repo.findAll(),
-          };
+          path: '/all',
+          type: 'get',
+          preRequestHandler: createJwtProtectionPreRequestHandler(
+            [JWTRoleName.ADMIN, JWTRoleName.USER],
+            JWTPermissionName.READ,
+          ),
+          async handler() {
+            return {
+              items: await repo.findAll(),
+            };
+          },
         },
-      }),
+      ),
 
       getMany: createControllerMethod<
         JWTProtectionType,
-        {
-          items: BCMSGroup[];
-        }
+        { items: BCMSGroup[] }
       >({
         path: '/many/:ids',
         type: 'get',
@@ -124,12 +119,7 @@ export const BCMSGroupController = createController<{
         },
       }),
 
-      count: createControllerMethod<
-        JWTProtectionType,
-        {
-          count: number;
-        }
-      >({
+      count: createControllerMethod<JWTProtectionType, { count: number }>({
         path: '/count',
         type: 'get',
         preRequestHandler: createJwtProtectionPreRequestHandler(
@@ -141,12 +131,7 @@ export const BCMSGroupController = createController<{
         },
       }),
 
-      getById: createControllerMethod<
-        JWTProtectionType,
-        {
-          item: BCMSGroup;
-        }
-      >({
+      getById: createControllerMethod<JWTProtectionType, { item: BCMSGroup }>({
         path: '/:id',
         type: 'get',
         preRequestHandler: createJwtProtectionPreRequestHandler(
@@ -167,17 +152,12 @@ export const BCMSGroupController = createController<{
         },
       }),
 
-      add: createControllerMethod<
-        JWTProtectionType,
-        {
-          item: BCMSGroup;
-        }
-      >({
+      add: createControllerMethod<JWTProtectionType, { item: BCMSGroup }>({
         path: '',
         type: 'post',
         preRequestHandler: createJwtProtectionPreRequestHandler(
           [JWTRoleName.ADMIN, JWTRoleName.USER],
-          JWTPermissionName.READ,
+          JWTPermissionName.WRITE,
         ),
         async handler({ request, errorHandler }) {
           const data: BCMSGroupAddData = request.body;
@@ -209,6 +189,57 @@ export const BCMSGroupController = createController<{
           return {
             item: addedGroup,
           };
+        },
+      }),
+
+      update: createControllerMethod<JWTProtectionType, { item: BCMSGroup }>({
+        path: '',
+        type: 'put',
+        preRequestHandler: createJwtProtectionPreRequestHandler(
+          [JWTRoleName.USER, JWTRoleName.ADMIN],
+          JWTPermissionName.WRITE,
+        ),
+        async handler({ request, errorHandler }) {
+          const data: BCMSGroupUpdateData = request.body;
+          {
+            const checkData = objectUtil.compareWithSchema(
+              data,
+              BCMSGroupUpdateDataSchema,
+              'body',
+            );
+            if (checkData instanceof ObjectUtilityError) {
+              throw errorHandler.occurred(
+                HTTPStatus.BAD_REQUEST,
+                resCode.get('g002', { msg: checkData.message }),
+              );
+            }
+          }
+          const group = await repo.findById(data._id);
+          if (!group) {
+            throw errorHandler.occurred(
+              HTTPStatus.NOT_FOUNT,
+              resCode.get('grp001', { id: data._id }),
+            );
+          }
+          let changeDetected = false;
+          if (typeof data.label !== 'undefined' && data.label !== group.label) {
+            const name = stringUtil.toSlugUnderScore(data.label);
+            if (group.name !== name) {
+              if (await repo.methods.findByName(name)) {
+                throw errorHandler.occurred(
+                  HTTPStatus.FORBIDDEN,
+                  resCode.get('grp002', { name: group.name }),
+                );
+              }
+            }
+            changeDetected = true;
+            group.label = data.label;
+            group.name = name;
+          }
+          if (typeof data.desc === 'string' && data.desc !== group.desc) {
+            changeDetected = true;
+            group.desc = data.desc;
+          }
         },
       }),
     };

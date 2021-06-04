@@ -1,13 +1,20 @@
-import type { ObjectSchema } from '@becomes/purple-cheetah/types';
-import type { BCMSPropEnum } from './enum';
-import type { BCMSPropEntryPointer } from './entry-pointer';
-import type { BCMSPropMedia } from './media';
-import type { BCMSPropWidget, BCMSPropWidgetParsed } from './widget';
+import type { BCMSPropContentValueEnum, BCMSPropMetaValueEnum } from './enum';
 import type {
-  BCMSPropGroupPointer,
-  PropGroupPointerParsed,
+  BCMSPropContentValueEntryPointer,
+  BCMSPropMetaValueEntryPointer,
+} from './entry-pointer';
+import type {
+  BCMSPropContentValueMedia,
+  BCMSPropMetaValueMedia,
+} from './media';
+import type {
+  BCMSPropContentValueGroupPointer,
+  BCMSPropMetaValueGroupPointer,
 } from './group-pointer';
-import type { BCMSEntryParsed } from '../../entry';
+import type {
+  BCMSPropContentValueWidget,
+  BCMSPropMetaValueWidget,
+} from './widget';
 
 // eslint-disable-next-line no-shadow
 export enum BCMSPropType {
@@ -38,63 +45,36 @@ export enum BCMSPropType {
   RICH_TEXT = 'RICH_TEXT',
 }
 
-export type BCMSPropValue =
+export type BCMSPropMetaValue =
   | string[]
-  | boolean[]
   | number[]
-  | BCMSPropEnum
-  | BCMSPropGroupPointer
-  | BCMSPropEntryPointer
-  | BCMSPropMedia[]
-  | BCMSPropWidget;
+  | boolean[]
+  | BCMSPropMetaValueEntryPointer
+  | BCMSPropMetaValueEnum
+  | BCMSPropMetaValueGroupPointer
+  | BCMSPropMetaValueMedia[]
+  | BCMSPropMetaValueWidget;
 
-export interface BCMSProp {
+export interface BCMSPropMeta {
+  id: string;
   type: BCMSPropType;
-  required: boolean;
   name: string;
   label: string;
   array: boolean;
-  value: BCMSPropValue;
+  value: BCMSPropMetaValue;
 }
 
-export type BCMSPropParsed =
-  | string
+export type BCMSPropContentValue =
   | string[]
-  | boolean
-  | boolean[]
-  | number
   | number[]
-  | BCMSPropEnum
-  | BCMSEntryParsed
-  | BCMSEntryParsed[]
-  | BCMSPropEntryPointer
-  | PropGroupPointerParsed
-  | PropGroupPointerParsed[]
-  | BCMSPropWidgetParsed
-  | {
-      type: BCMSPropType;
-      value: BCMSPropParsed;
-    };
+  | boolean[]
+  | BCMSPropContentValueEntryPointer
+  | BCMSPropContentValueEnum
+  | BCMSPropContentValueGroupPointer
+  | BCMSPropContentValueMedia[]
+  | BCMSPropContentValueWidget;
 
-export const BCMSPropSchema: ObjectSchema = {
-  type: {
-    __type: 'string',
-    __required: true,
-  },
-  required: {
-    __type: 'boolean',
-    __required: true,
-  },
-  name: {
-    __type: 'string',
-    __required: true,
-  },
-  label: {
-    __type: 'string',
-    __required: true,
-  },
-  array: {
-    __type: 'boolean',
-    __required: true,
-  },
-};
+export interface BCMSPropContent {
+  id: string;
+  value: BCMSPropContentValue;
+}
