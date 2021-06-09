@@ -26,6 +26,7 @@
     "@becomes/purple-cheetah": "^3.0.0"
   },
   "dependencies": {
+    "@becomes/purple-cheetah": "^3.0.0",
     "bcrypt": "^5.0.0",
     "cron": "^1.8.2",
     "express": "^4.17.1",
@@ -36,7 +37,6 @@
     "yamljs": "^0.3.0"
   },
   "devDependencies": {
-    "@becomes/purple-cheetah": "file:purple-cheetah.tgz",
     "@types/bcrypt": "^5.0.0",
     "@types/cron": "^1.7.2",
     "@types/express": "^4.17.12",
