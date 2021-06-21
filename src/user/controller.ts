@@ -1,18 +1,12 @@
 import {
   createController,
   createControllerMethod,
-  createJwtProtectionPreRequestHandler,
   useObjectUtility,
-  useSocket,
 } from '@becomes/purple-cheetah';
 import {
   HTTPStatus,
-  JWT,
-  JWTPermissionName,
-  JWTRoleName,
   ObjectUtility,
   ObjectUtilityError,
-  Socket,
 } from '@becomes/purple-cheetah/types';
 import { useUserRepository } from './repository';
 import {
@@ -23,10 +17,19 @@ import {
   UserMongoDB,
   UserRepository,
   UpdateUserDataSchema,
-  UserFactory, UserCustomPool,
+  UserFactory,
+  UserCustomPool,
 } from '../types';
 import { useResponseCode } from '../response-code';
 import { useUserFactory } from './factory';
+import type { Socket } from '@becomes/purple-cheetah-mod-socket/types';
+import { useSocket } from '@becomes/purple-cheetah-mod-socket';
+import { createJwtProtectionPreRequestHandler } from '@becomes/purple-cheetah-mod-jwt';
+import {
+  JWT,
+  JWTPermissionName,
+  JWTRoleName,
+} from '@becomes/purple-cheetah-mod-jwt/types';
 
 export const UserController = createController<{
   repo: UserRepository;

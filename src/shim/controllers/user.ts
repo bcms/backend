@@ -4,20 +4,9 @@ import { Types } from 'mongoose';
 import {
   createController,
   createControllerMethod,
-  createJwtProtectionPreRequestHandler,
   useRefreshTokenService,
-  useJwt,
-  useJwtEncoding,
 } from '@becomes/purple-cheetah';
-import {
-  HTTPStatus,
-  JWTEncoding,
-  JWTError,
-  JWTManager,
-  JWTPermissionName,
-  JWTRoleName,
-  RefreshTokenService,
-} from '@becomes/purple-cheetah/types';
+import { HTTPStatus, RefreshTokenService } from '@becomes/purple-cheetah/types';
 import { useBcmsShimService } from '../service';
 import type {
   BCMSConfig,
@@ -30,6 +19,18 @@ import type {
 import { useResponseCode } from '../../response-code';
 import { useUserFactory, useUserRepository } from '../../user';
 import { useBcmsConfig } from '../../config';
+import {
+  JWTEncoding,
+  JWTError,
+  JWTManager,
+  JWTPermissionName,
+  JWTRoleName,
+} from '@becomes/purple-cheetah-mod-jwt/types';
+import {
+  createJwtProtectionPreRequestHandler,
+  useJwt,
+  useJwtEncoding,
+} from '@becomes/purple-cheetah-mod-jwt';
 
 export const BCMSShimUserController = createController<{
   shimService: BCMSShimService;

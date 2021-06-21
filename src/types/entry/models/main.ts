@@ -1,12 +1,14 @@
 import type { BCMSPropContent } from '../../prop';
+import type { ObjectSchema } from '@becomes/purple-cheetah/types';
+import { Schema } from 'mongoose';
+import {
+  MongoDBEntity,
+  MongoDBEntitySchema,
+} from '@becomes/purple-cheetah-mod-mongodb/types';
 import {
   FSDBEntity,
-  MongoDBEntity,
-  ObjectSchema,
   FSDBEntitySchema,
-  MongoDBEntitySchema,
-} from '@becomes/purple-cheetah/types';
-import { Schema } from 'mongoose';
+} from '@becomes/purple-cheetah-mod-fsdb/types';
 
 export interface BCMSEntryMeta {
   lng: string;
@@ -55,9 +57,6 @@ export interface BCMSEntryProps {
 }
 
 export type BCMSEntryMongoDB = MongoDBEntity & BCMSEntryProps;
-export type BCMSEntryFSDB = FSDBEntity & BCMSEntryProps;
-export type BCMSEntity = BCMSEntryFSDB & BCMSEntryMongoDB;
-
 export const BCMSEntryMongoDBSchema = new Schema({
   ...MongoDBEntitySchema,
   templateId: String,
@@ -66,6 +65,8 @@ export const BCMSEntryMongoDBSchema = new Schema({
   meta: [Object],
   content: [Object],
 });
+
+export type BCMSEntryFSDB = FSDBEntity & BCMSEntryProps;
 export const BCMSEntryFSDBSchema: ObjectSchema = {
   ...FSDBEntitySchema,
   templateId: {
@@ -97,3 +98,5 @@ export const BCMSEntryFSDBSchema: ObjectSchema = {
     },
   },
 };
+
+export type BCMSEntry = BCMSEntryFSDB & BCMSEntryMongoDB;

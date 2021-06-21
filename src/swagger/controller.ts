@@ -8,8 +8,13 @@ import { useBcmsConfig } from '../config';
 import { setup } from 'swagger-ui-express';
 import * as YAML from 'yamljs';
 import type { BCMSConfig } from '../types';
+import type { Request, Response } from 'express';
 
-let swaggerHandler: (request: any, response: any, callback: () => void) => void;
+let swaggerHandler: (
+  request: Request,
+  response: Response,
+  callback: () => void,
+) => void;
 
 export const BCMSSwaggerController = createController<{
   bcmsConfig: BCMSConfig;

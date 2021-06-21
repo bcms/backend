@@ -1,7 +1,10 @@
 import { Types } from 'mongoose';
-import { JWTPermissionName, JWTRoleName } from '@becomes/purple-cheetah/types';
 import type { BCMSConfig, User, UserFactory } from '../types';
 import { useBcmsConfig } from '../config';
+import {
+  JWTPermissionName,
+  JWTRoleName,
+} from '@becomes/purple-cheetah-mod-jwt/types';
 
 let bcmsConfig: BCMSConfig;
 let userFactory: UserFactory;

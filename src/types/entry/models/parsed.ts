@@ -1,5 +1,4 @@
-import type { BCMSPropParsed, BCMSPropType } from '../../prop';
-import type { FSDBEntity } from '@becomes/purple-cheetah/types';
+import type { BCMSPropType } from '../../prop';
 
 export interface BCMSEntryParsedMeta {
   [lng: string]: {

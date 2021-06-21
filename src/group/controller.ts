@@ -1,10 +1,16 @@
 import {
   createController,
   createControllerMethod,
-  createJwtProtectionPreRequestHandler,
   useObjectUtility,
   useStringUtility,
 } from '@becomes/purple-cheetah';
+import {
+  HTTPStatus,
+  ObjectUtility,
+  ObjectUtilityError,
+  StringUtility,
+} from '@becomes/purple-cheetah/types';
+import { createJwtProtectionPreRequestHandler } from '@becomes/purple-cheetah-mod-jwt';
 import {
   BCMSGroup,
   BCMSGroupAddData,
@@ -18,24 +24,22 @@ import {
   ResponseCode,
 } from '../types';
 import { useBcmsGroupRepository } from './repository';
-import {
-  HTTPStatus,
-  JWTPermissionName,
-  JWTRoleName,
-  ObjectUtility,
-  ObjectUtilityError,
-  StringUtility,
-} from '@becomes/purple-cheetah/types';
 import { useBcmsGroupFactory } from './factory';
 import { useResponseCode } from '../response-code';
+import {
+  JWTPermissionName,
+  JWTRoleName,
+} from '@becomes/purple-cheetah-mod-jwt/types';
 
-export const BCMSGroupController = createController<{
+interface Setup {
   repo: BCMSGroupRepository;
   groupFactory: BCMSGroupFactory;
   resCode: ResponseCode;
   objectUtil: ObjectUtility;
   stringUtil: StringUtility;
-}>({
+}
+
+export const BCMSGroupController = createController<Setup>({
   name: 'Group controller',
   path: '/api/group',
   setup() {
@@ -176,7 +180,7 @@ export const BCMSGroupController = createController<{
           }
           const group = groupFactory.create();
           group.label = data.label;
-          group.name = stringUtil.toSlugUnderScore(data.label);
+          group.name = stringUtil.toSlugUnderscore(data.label);
           group.desc = data.desc;
           if (await repo.methods.findByName(group.name)) {
             throw errorHandler.occurred(
@@ -223,7 +227,7 @@ export const BCMSGroupController = createController<{
           }
           let changeDetected = false;
           if (typeof data.label !== 'undefined' && data.label !== group.label) {
-            const name = stringUtil.toSlugUnderScore(data.label);
+            const name = stringUtil.toSlugUnderscore(data.label);
             if (group.name !== name) {
               if (await repo.methods.findByName(name)) {
                 throw errorHandler.occurred(

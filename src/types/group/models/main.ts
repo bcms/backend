@@ -1,11 +1,11 @@
 import type { BCMSPropMeta } from '../../prop';
-import {
-  FSDBEntity,
-  MongoDBEntity,
-  ObjectSchema,
-  MongoDBEntitySchema,
-} from '@becomes/purple-cheetah/types';
+import type { ObjectSchema } from '@becomes/purple-cheetah/types';
 import { Schema } from 'mongoose';
+import type { FSDBEntity } from '@becomes/purple-cheetah-mod-fsdb/types';
+import {
+  MongoDBEntity,
+  MongoDBEntitySchema,
+} from '@becomes/purple-cheetah-mod-mongodb/types';
 
 export interface BCMSGroupProps {
   name: string;
@@ -14,18 +14,16 @@ export interface BCMSGroupProps {
   props: BCMSPropMeta[];
 }
 
-export type BCMSGroupFSDB = FSDBEntity & BCMSGroupProps;
 export type BCMSGroupMongoDB = MongoDBEntity & BCMSGroupProps;
-export type BCMSGroup = BCMSGroupMongoDB | BCMSGroupFSDB;
-
 export const BCMSGroupMongoDBSchema = new Schema({
   ...MongoDBEntitySchema,
-  name: String,
-  label: String,
-  desc: String,
+  name: { type: String, required: true },
+  label: { type: String, required: true },
+  desc: { type: String, required: true },
   props: [Object],
 });
 
+export type BCMSGroupFSDB = FSDBEntity & BCMSGroupProps;
 export const BCMSGroupFSDBSchema: ObjectSchema = {
   _id: {
     __type: 'string',
@@ -60,3 +58,5 @@ export const BCMSGroupFSDBSchema: ObjectSchema = {
     },
   },
 };
+
+export type BCMSGroup = BCMSGroupMongoDB | BCMSGroupFSDB;

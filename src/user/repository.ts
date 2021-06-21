@@ -1,8 +1,6 @@
+import { createFSDBRepository } from '@becomes/purple-cheetah-mod-fsdb';
+import { createMongoDBCachedRepository } from '@becomes/purple-cheetah-mod-mongodb';
 import { useBcmsConfig } from '../config';
-import {
-  createFSDBRepository,
-  createMongoDBCachedRepository,
-} from '@becomes/purple-cheetah';
 import {
   UserFSDB,
   UserFSDBSchema,

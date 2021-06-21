@@ -7,10 +7,8 @@ import {
   BCMSGroupRepositoryMethods,
 } from '../types';
 import { useBcmsConfig } from '../config';
-import {
-  createFSDBRepository,
-  createMongoDBCachedRepository,
-} from '@becomes/purple-cheetah';
+import { createFSDBRepository } from '@becomes/purple-cheetah-mod-fsdb';
+import { createMongoDBCachedRepository } from '@becomes/purple-cheetah-mod-mongodb';
 
 let repository: BCMSGroupRepository;
 
@@ -25,7 +23,7 @@ export function useBcmsGroupRepository(): BCMSGroupRepository {
   if (bcmsConfig.database.fs) {
     repository = createFSDBRepository<
       BCMSGroupFSDB,
-      BCMSGroupRepositoryMethods
+      BCMSGroupRepositoryMethods<BCMSGroupFSDB>
     >({
       name,
       collection,
@@ -41,7 +39,7 @@ export function useBcmsGroupRepository(): BCMSGroupRepository {
   } else {
     repository = createMongoDBCachedRepository<
       BCMSGroupMongoDB,
-      BCMSGroupRepositoryMethods,
+      BCMSGroupRepositoryMethods<BCMSGroupMongoDB>,
       unknown
     >({
       name,

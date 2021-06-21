@@ -1,26 +1,29 @@
-import type { BCMSBackend } from './types';
 import {
   createBodyParserMiddleware,
   createCorsMiddleware,
-  createFSDB,
-  createMongoDB,
   createPurpleCheetah,
-  initializeJwt,
 } from '@becomes/purple-cheetah';
-import { loadBcmsConfig, useBcmsConfig } from './config';
-import { loadResponseCode } from './response-code';
-import {
+import type {
   Controller,
   Middleware,
   Module,
-  JWTAlgorithm,
 } from '@becomes/purple-cheetah/types';
+import { JWTAlgorithm } from '@becomes/purple-cheetah-mod-jwt/types';
+import { createJwt } from '@becomes/purple-cheetah-mod-jwt';
+import { createFSDB } from '@becomes/purple-cheetah-mod-fsdb';
+import { createMongoDB } from '@becomes/purple-cheetah-mod-mongodb';
+
+import type { BCMSBackend } from './types';
+import { loadBcmsConfig, useBcmsConfig } from './config';
+import { loadResponseCode } from './response-code';
 import { BCMSSwaggerController, BCMSSwaggerMiddleware } from './swagger';
 import { BCMSCypressController } from './cypress';
 import { UserController } from './user';
-import { BCMSShimHealthController } from './shim/controllers';
-import { BCMSShimUserController } from './shim/controllers/user';
-import { createBcmsShimService } from './shim/service';
+import {
+  BCMSShimHealthController,
+  BCMSShimUserController,
+  createBcmsShimService,
+} from './shim';
 
 let backend: BCMSBackend;
 
@@ -28,18 +31,20 @@ async function initialize() {
   await loadBcmsConfig();
   await loadResponseCode();
   const bcmsConfig = useBcmsConfig();
-  initializeJwt({
-    scopes: [
-      {
-        secret: bcmsConfig.jwt.secret,
-        issuer: bcmsConfig.jwt.scope,
-        alg: JWTAlgorithm.HMACSHA256,
-        expIn: bcmsConfig.jwt.expireIn,
-      },
-    ],
-  });
 
-  const modules: Module[] = [createBcmsShimService()];
+  const modules: Module[] = [
+    createBcmsShimService(),
+    createJwt({
+      scopes: [
+        {
+          secret: bcmsConfig.jwt.secret,
+          issuer: bcmsConfig.jwt.scope,
+          alg: JWTAlgorithm.HMACSHA256,
+          expIn: bcmsConfig.jwt.expireIn,
+        },
+      ],
+    }),
+  ];
   const middleware: Middleware[] = [
     createCorsMiddleware(),
     createBodyParserMiddleware({
@@ -54,7 +59,9 @@ async function initialize() {
   if (bcmsConfig.database.fs) {
     modules.push(
       createFSDB({
-        output: bcmsConfig.database.prefix,
+        output: `db${bcmsConfig.database.prefix.startsWith('/') ? '' : '/'}${
+          bcmsConfig.database.prefix
+        }`,
       }),
     );
   } else if (bcmsConfig.database.mongodb) {
@@ -72,13 +79,11 @@ async function initialize() {
               password: bcmsConfig.database.mongodb.selfHosted.password,
             },
           },
-          collectionsPrefix: bcmsConfig.database.prefix,
         }),
       );
     } else if (bcmsConfig.database.mongodb.atlas) {
       modules.push(
         createMongoDB({
-          collectionsPrefix: bcmsConfig.database.prefix,
           atlas: {
             db: {
               name: bcmsConfig.database.mongodb.atlas.name,
