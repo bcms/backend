@@ -1,20 +1,12 @@
-import type { BCMSPropContentValueEnum, BCMSPropMetaValueEnum } from './enum';
-import type {
-  BCMSPropContentValueEntryPointer,
-  BCMSPropMetaValueEntryPointer,
-} from './entry-pointer';
+import type { BCMSPropMetaValueEnum } from './enum';
+import type { BCMSPropMetaValueEntryPointer } from './entry-pointer';
 import type {
   BCMSPropContentValueMedia,
   BCMSPropMetaValueMedia,
 } from './media';
-import type {
-  BCMSPropContentValueGroupPointer,
-  BCMSPropMetaValueGroupPointer,
-} from './group-pointer';
-import type {
-  BCMSPropContentValueWidget,
-  BCMSPropMetaValueWidget,
-} from './widget';
+import type { BCMSPropMetaValueGroupPointer } from './group-pointer';
+import type { BCMSPropContentValueWidget } from './widget';
+import type { BCMSEntryParsed } from '../../entry';
 
 // eslint-disable-next-line no-shadow
 export enum BCMSPropType {
@@ -45,16 +37,6 @@ export enum BCMSPropType {
   RICH_TEXT = 'RICH_TEXT',
 }
 
-export type BCMSPropMetaValue =
-  | string[]
-  | number[]
-  | boolean[]
-  | BCMSPropMetaValueEntryPointer
-  | BCMSPropMetaValueEnum
-  | BCMSPropMetaValueGroupPointer
-  | BCMSPropMetaValueMedia[]
-  | BCMSPropMetaValueWidget;
-
 export interface BCMSPropMeta {
   id: string;
   type: BCMSPropType;
@@ -64,17 +46,40 @@ export interface BCMSPropMeta {
   value: BCMSPropMetaValue;
 }
 
-export type BCMSPropContentValue =
+export type BCMSPropMetaValue =
   | string[]
   | number[]
   | boolean[]
-  | BCMSPropContentValueEntryPointer
-  | BCMSPropContentValueEnum
-  | BCMSPropContentValueGroupPointer
-  | BCMSPropContentValueMedia[]
-  | BCMSPropContentValueWidget;
+  | BCMSPropMetaValueEntryPointer
+  | BCMSPropMetaValueEnum
+  | BCMSPropMetaValueGroupPointer
+  | BCMSPropMetaValueMedia[];
 
 export interface BCMSPropContent {
   id: string;
+  type: BCMSPropType;
   value: BCMSPropContentValue;
 }
+
+export type BCMSPropContentValue =
+  | string
+  | BCMSPropContentValueMedia
+  | BCMSPropContentValueWidget;
+
+export type BCMSPropParsed =
+  | string
+  | string[]
+  | boolean
+  | boolean[]
+  | number
+  | number[]
+  | BCMSPropMetaValueEnum
+  | BCMSEntryParsed
+  | BCMSEntryParsed[]
+  | BCMSPropMetaValueEntryPointer
+  | BCMSPropMetaValueEntryPointer[]
+  | BCMSPropWidgetParsed
+  | {
+      type: BCMSPropType;
+      value: BCMSPropParsed;
+    };

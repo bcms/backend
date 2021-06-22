@@ -7,6 +7,7 @@ import {
   UserMongoDB,
   UserMongoDBSchema,
   UserRepository,
+  UserRepositoryMethods,
 } from '../types';
 
 let repository: UserRepository;
@@ -22,7 +23,7 @@ export function useUserRepository(): UserRepository {
   if (bcmsConfig.database.fs) {
     repository = createFSDBRepository<
       UserFSDB,
-      { findByEmail(email: string): Promise<UserFSDB | null> }
+      UserRepositoryMethods<UserFSDB>
     >({
       collection,
       name,
@@ -38,7 +39,7 @@ export function useUserRepository(): UserRepository {
   } else {
     repository = createMongoDBCachedRepository<
       UserMongoDB,
-      { findByEmail(email: string): Promise<UserMongoDB | null> },
+      UserRepositoryMethods<UserMongoDB>,
       undefined
     >({
       name,

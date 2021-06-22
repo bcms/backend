@@ -1,11 +1,11 @@
 import type { ObjectSchema } from '@becomes/purple-cheetah/types';
 
-export interface BCMSPropMetaValueEnum {
+export interface BCMSPropTemplateConfigEnum {
   items: string[];
   selected: string;
 }
 
-export const BCMSPropMetaValueEnumSchema: ObjectSchema = {
+export const BCMSPropTemplateConfigEnumSchema: ObjectSchema = {
   items: {
     __type: 'array',
     __required: true,
@@ -19,4 +19,4 @@ export const BCMSPropMetaValueEnumSchema: ObjectSchema = {
   },
 };
 
-export type BCMSPropContentValueEnum = string[];
+export type BCMSPropValueEnum = string;

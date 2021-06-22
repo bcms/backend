@@ -31,13 +31,15 @@ import {
   JWTRoleName,
 } from '@becomes/purple-cheetah-mod-jwt/types';
 
-export const UserController = createController<{
+interface Setup {
   repo: UserRepository;
   resCode: ResponseCode;
   objectUtil: ObjectUtility;
   socket: Socket;
   userFactory: UserFactory;
-}>({
+}
+
+export const UserController = createController<Setup>({
   name: 'User controller',
   path: '/api/user',
   setup() {

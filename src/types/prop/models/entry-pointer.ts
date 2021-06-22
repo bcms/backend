@@ -1,14 +1,21 @@
 import type { ObjectSchema } from '@becomes/purple-cheetah/types';
 
-export interface BCMSPropMetaValueEntryPointer {
+export interface BCMSPropTemplateConfigEntryPointer {
   templateId: string;
-  displayProp: string;
+  entryIds: string[];
+  displayProp: string
 }
-
-export const BCMSPropMetaValueEntryPointerSchema: ObjectSchema = {
+export const BCMSPropTemplateConfigEntryPointerSchema: ObjectSchema = {
   templateId: {
     __type: 'string',
     __required: true,
+  },
+  entryIds: {
+    __type: 'array',
+    __required: true,
+    __child: {
+      __type: 'string',
+    },
   },
   displayProp: {
     __type: 'string',
@@ -16,4 +23,4 @@ export const BCMSPropMetaValueEntryPointerSchema: ObjectSchema = {
   },
 };
 
-export type BCMSPropContentValueEntryPointer = string[];
+export type BCMSPropValueEntryPointer = string[]

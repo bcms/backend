@@ -1,3 +1,4 @@
+import type { FSDBEntity } from '@becomes/purple-cheetah-mod-fsdb/types';
 import type { BCMSPropType } from '../../prop';
 
 export interface BCMSEntryParsedMeta {

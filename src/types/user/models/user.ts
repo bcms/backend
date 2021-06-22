@@ -1,13 +1,17 @@
 import {
-  JWTRole,
-  MongoDBEntity,
-  ObjectSchema,
-  JWTRoleSchema,
-  FSDBEntitySchema,
   FSDBEntity,
-  MongoDBEntitySchema,
+  FSDBEntitySchema,
+} from '@becomes/purple-cheetah-mod-fsdb/types';
+import {
   JWT,
-} from '@becomes/purple-cheetah/types';
+  JWTRole,
+  JWTRoleSchema,
+} from '@becomes/purple-cheetah-mod-jwt/types';
+import {
+  MongoDBEntity,
+  MongoDBEntitySchema,
+} from '@becomes/purple-cheetah-mod-mongodb/types';
+import type { ObjectSchema } from '@becomes/purple-cheetah/types';
 import { Schema } from 'mongoose';
 import { UserCustomPool, UserCustomPoolSchema } from './custom-pool';
 
@@ -29,14 +33,11 @@ export interface ProtectedUser {
   customPool: UserCustomPool;
 }
 
-export type UserMongoDB = MongoDBEntity & UserProps;
-export type UserFSDB = FSDBEntity & UserProps;
-export type User = UserMongoDB | UserFSDB;
-
 export interface JWTProtectionType {
   accessToken: JWT<UserCustomPool>;
 }
 
+export type UserMongoDB = MongoDBEntity & UserProps;
 export const UserMongoDBSchema = new Schema({
   ...MongoDBEntitySchema,
   username: { type: String, required: true },
@@ -46,6 +47,7 @@ export const UserMongoDBSchema = new Schema({
   customPool: Object,
 });
 
+export type UserFSDB = FSDBEntity & UserProps;
 export const UserFSDBSchema: ObjectSchema = {
   ...FSDBEntitySchema,
   username: {
@@ -74,3 +76,5 @@ export const UserFSDBSchema: ObjectSchema = {
     __child: UserCustomPoolSchema,
   },
 };
+
+export type User = UserMongoDB | UserFSDB;
