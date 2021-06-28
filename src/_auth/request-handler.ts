@@ -9,7 +9,7 @@ import {
 } from '@becomes/purple-cheetah';
 import * as bcrypt from 'bcrypt';
 import { RefreshTokenFactory } from '../_user';
-import { General } from '../util';
+import { General } from '../_util';
 import { ResponseCode } from '../_response-code';
 import { CacheControl } from '../_cache';
 

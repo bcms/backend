@@ -21,7 +21,7 @@ import { ShimService } from '../service';
 import { ResponseCode } from '../../_response-code';
 import { RefreshTokenFactory, UserFactory } from '../../_user';
 import { CacheControl } from '../../_cache';
-import { SocketEventName, SocketUtil } from '../../util';
+import { SocketEventName, SocketUtil } from '../../_util';
 import { Types } from 'mongoose';
 
 @Controller('/api/shim/user')

@@ -1,2 +1,2 @@
 export * from './controller';
-export * from './manager';
+export * from './main';

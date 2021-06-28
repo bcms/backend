@@ -18,13 +18,13 @@ import {
 } from './interfaces';
 import { TemplateFactory } from './factories';
 import { PropHandler, PropChange } from '../_prop';
-import { General, SocketUtil, SocketEventName } from '../util';
+import { General, SocketUtil, SocketEventName } from '../_util';
 import { Entry, FSEntry } from '../entry';
 import {
   EventManager,
   BCMSEventConfigScope,
   BCMSEventConfigMethod,
-} from '../event';
+} from '../_event';
 import { ApiKey, FSApiKey } from '../_api';
 
 export class TemplateRequestHandler {

@@ -20,7 +20,7 @@ import { Media, FSMedia, MediaType } from './models';
 import { MediaRequestHandler } from './request-handler';
 import { MediaAggregate } from './interfaces';
 import { ResponseCode } from '../_response-code';
-import { MediaUtil } from '../util';
+import { MediaUtil } from '../_util';
 import { JWTApiSecurity, JWTSecurity } from '../_security';
 import { UserCustomPool } from '../_user';
 

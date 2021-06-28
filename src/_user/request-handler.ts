@@ -24,8 +24,8 @@ import {
 } from './interfaces';
 import { ResponseCode } from '../_response-code';
 import { CacheControl } from '../_cache';
-import { SocketUtil, SocketEventName } from '../util';
-import { LanguageFactory } from '../language';
+import { SocketUtil, SocketEventName } from '../_util';
+import { LanguageFactory } from '../_language';
 
 export class UserRequestHandler {
   @CreateLogger(UserRequestHandler)

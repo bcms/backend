@@ -21,8 +21,8 @@ import {
   EventManager,
   BCMSEventConfigScope,
   BCMSEventConfigMethod,
-} from '../event';
-import { SocketEventName, SocketUtil } from '../util';
+} from '../_event';
+import { SocketEventName, SocketUtil } from '../_util';
 import { ApiKeyManager } from './manager';
 import { UserCustomPool } from '../_user';
 

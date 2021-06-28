@@ -10,7 +10,7 @@ import { createHttpClient, useFS, useLogger } from '@becomes/purple-cheetah';
 
 let service: BCMSShimService;
 
-export function useBcmsShimService() {
+export function useBcmsShimService(): BCMSShimService {
   return service;
 }
 

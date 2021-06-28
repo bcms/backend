@@ -1,15 +1,37 @@
 import type { ObjectSchema } from '@becomes/purple-cheetah/types';
 
 export interface BCMSConfig {
+  /**
+   * Port on which application will be started.
+   */
   port: number;
+  /**
+   * JSON Web Token configuration.
+   */
   jwt: {
     scope: string;
     secret: string;
     expireIn: number;
   };
+  /**
+   * Database configuration.
+   */
   database: {
+    /**
+     * Prefix string for database collections. For example, if
+     * prefix is set to "projectName", all collections will start
+     * with this string. So user collection will be called
+     * "projectName_users", group collection "projectName_groups"
+     * and so one.
+     */
     prefix: string;
+    /**
+     * Use FSDB as the database. This is meant for development only.
+     */
     fs?: boolean;
+    /**
+     * MongoDB database configuration.
+     */
     mongodb?: {
       selfHosted?: {
         host: string;
@@ -26,8 +48,36 @@ export interface BCMSConfig {
       };
     };
   };
+  /**
+   * Set maximum size of a request body. Defaults to 1MB
+   */
   bodySizeLimit?: number;
+  /**
+   * Plugin paths.
+   * For example, if there is a Plugin called `test.js` in a
+   * `src/plugins` directory, jobs array will
+   * contain: ['src/plugins/test.js']
+   */
   plugins?: string[];
+  /**
+   * Function paths.
+   * For example, if there is a Function called `test.js` in a
+   * `src/functions` directory, jobs array will
+   * contain: ['src/functions/test.js']
+   */
+  functions?: string[];
+  /**
+   * Event paths.
+   * For example, if there is an Event called `test.js` in a
+   * `src/events` directory, jobs array will contain: ['src/events/test.js']
+   */
+  events?: string[];
+  /**
+   * Job paths.
+   * For example, if there is a Job called `test.js` in a
+   * `src/jobs` directory, jobs array will contain: ['src/jobs/test.js']
+   */
+  jobs?: string[];
 }
 
 export const BCMSConfigSchema: ObjectSchema = {
@@ -134,6 +184,27 @@ export const BCMSConfigSchema: ObjectSchema = {
     __required: false,
   },
   plugins: {
+    __type: 'array',
+    __required: false,
+    __child: {
+      __type: 'string',
+    },
+  },
+  functions: {
+    __type: 'array',
+    __required: false,
+    __child: {
+      __type: 'string',
+    },
+  },
+  events: {
+    __type: 'array',
+    __required: false,
+    __child: {
+      __type: 'string',
+    },
+  },
+  jobs: {
     __type: 'array',
     __required: false,
     __child: {

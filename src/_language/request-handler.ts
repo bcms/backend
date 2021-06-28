@@ -17,12 +17,12 @@ import {
   UpdateLanguageDataSchema,
 } from './interfaces';
 import { LanguageFactory } from './factories';
-import { SocketUtil, SocketEventName } from '../util';
+import { SocketUtil, SocketEventName } from '../_util';
 import {
   EventManager,
   BCMSEventConfigScope,
   BCMSEventConfigMethod,
-} from '../event';
+} from '../_event';
 
 export class LanguageRequestHandler {
   @CreateLogger(LanguageRequestHandler)

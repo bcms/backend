@@ -36,6 +36,10 @@ import { createEntryChangeSocketHandler } from './socket';
 import { BCMSUserController } from './user';
 import { createBcmsApiKeySecurity } from './security';
 import { BCMSApiKeyController } from './api';
+import { createBcmsFunctionModule } from './function';
+import { BCMSPluginController, createBcmsPluginModule } from './plugin';
+import { createBcmsEventModule } from './event';
+import { createBcmsJobModule } from './job';
 
 let backend: BCMSBackend;
 
@@ -120,6 +124,7 @@ async function initialize() {
     BCMSShimHealthController,
     BCMSShimUserController,
     BCMSApiKeyController,
+    BCMSPluginController,
   ];
   if (bcmsConfig.database.fs) {
     modules.push(
@@ -168,13 +173,18 @@ async function initialize() {
   } else {
     throw Error('No database configuration detected.');
   }
-  modules.push(createBcmsApiKeySecurity());
   if (process.env.BCMS_ENV !== 'PRODUCTION') {
     middleware.push(BCMSSwaggerMiddleware);
     middleware.push(createRequestLoggerMiddleware());
     controllers.push(BCMSSwaggerController);
     controllers.push(BCMSCypressController);
   }
+  modules.push(createBcmsFunctionModule());
+  modules.push(createBcmsEventModule());
+  modules.push(createBcmsJobModule());
+  modules.push(createBcmsApiKeySecurity());
+
+  modules.push(createBcmsPluginModule(bcmsConfig));
 
   backend = {
     app: createPurpleCheetah({

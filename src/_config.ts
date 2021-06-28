@@ -7,9 +7,9 @@ import {
 import { ResponseCode } from './_response-code';
 import { CacheControl, CacheWriteBuffer } from './_cache';
 import { FunctionManager } from './_function';
-import { EventManager } from './event';
-import { JobManager } from './job';
-import { PluginManager } from './plugin';
+import { EventManager } from './_event';
+import { JobManager } from './_job';
+import { PluginManager } from './_plugin';
 
 export interface ConfigFile {
   port: number;

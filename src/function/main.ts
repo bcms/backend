@@ -9,18 +9,19 @@ import { BCMSFunction, BCMSFunctionManager, BCMSFunctionSchema } from './types';
 
 let functionManager: BCMSFunctionManager;
 
-export function createBcmsFunctionManager(): Module {
+export function createBcmsFunctionModule(): Module {
   return {
-    name: 'Function manager',
+    name: 'Function',
     initialize(moduleConfig) {
       let fns: BCMSFunction<unknown>[] = [];
       const fs = useFS();
       const objectUtil = useObjectUtility();
       const stringUtil = useStringUtility();
       const fnsPath = path.join(process.cwd(), 'functions');
-      if (fs.exist(fnsPath)) {
-        fs.readdir(fnsPath)
-          .then(async (fnNames) => {
+      fs.exist(fnsPath)
+        .then(async (result) => {
+          if (result) {
+            const fnNames = await fs.readdir(fnsPath);
             for (let i = 0; i < fnNames.length; i++) {
               const fnName = fnNames[i];
               if (fnName.endsWith('.js') || fnName.endsWith('.ts')) {
@@ -60,11 +61,12 @@ export function createBcmsFunctionManager(): Module {
               },
             };
             moduleConfig.next();
-          })
-          .catch((error) => {
-            moduleConfig.next(error);
-          });
-      }
+          }
+          moduleConfig.next();
+        })
+        .catch((error) => {
+          moduleConfig.next(error);
+        });
     },
   };
 }

@@ -15,7 +15,7 @@ import {
 import { ObjectUtility, StringUtility } from '@becomes/purple-cheetah';
 import { CacheControl } from '../_cache';
 import { PropFactory } from './factory';
-import { General } from '../util';
+import { General } from '../_util';
 import {
   PropQuill,
   PropQuillOption,

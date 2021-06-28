@@ -1,5 +1,5 @@
 import type { SocketEventHandler } from '@becomes/purple-cheetah-mod-socket/types';
-import { SocketEventName, SocketUtil } from '../../util';
+import { SocketEventName, SocketUtil } from '../../_util';
 
 export function createEntryChangeSocketHandler(): SocketEventHandler<
   {

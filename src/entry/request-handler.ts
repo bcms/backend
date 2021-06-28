@@ -20,12 +20,12 @@ import {
 } from './interfaces';
 import { EntryFactory } from './factory';
 import { PropHandler, PropType } from '../_prop';
-import { SocketUtil, SocketEventName } from '../util';
+import { SocketUtil, SocketEventName } from '../_util';
 import {
   EventManager,
   BCMSEventConfigScope,
   BCMSEventConfigMethod,
-} from '../event';
+} from '../_event';
 import { EntryParser } from './parser';
 
 export class EntryRequestHandler {

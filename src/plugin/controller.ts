@@ -1,22 +1,31 @@
 import {
-  Controller,
-  ControllerPrototype,
-  Get,
-  Logger,
+  createController,
+  createControllerMethod,
 } from '@becomes/purple-cheetah';
-import { Router } from 'express';
-import { PluginManager } from './manager';
+import { useBcmsPluginManager } from './main';
+import type { BCMSPluginManager } from './types';
 
-@Controller('/api/plugin')
-export class PluginController implements ControllerPrototype {
-  name: string;
-  router: Router;
-  baseUri: string;
-  initRouter: () => void;
-  logger: Logger;
-
-  @Get('/list')
-  list(): { items: string[] } {
-    return { items: PluginManager.getList() };
-  }
+interface Setup {
+  pluginManager: BCMSPluginManager;
 }
+
+export const BCMSPluginController = createController<Setup>({
+  name: 'Plugin controller',
+  path: '/api/plugin',
+  setup() {
+    return {
+      pluginManager: useBcmsPluginManager(),
+    };
+  },
+  methods({ pluginManager }) {
+    return {
+      getList: createControllerMethod({
+        path: '/list',
+        type: 'get',
+        async handler() {
+          return { items: pluginManager.getList() };
+        },
+      }),
+    };
+  },
+});

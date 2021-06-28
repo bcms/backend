@@ -6,7 +6,7 @@ import {
   GroupRepo,
   FSGroupRepository,
   MongoGroupRepository,
-} from '../../group';
+} from '../../_group';
 import { PropType, PropGroupPointer } from '../../_prop';
 import { Logger } from '@becomes/purple-cheetah';
 

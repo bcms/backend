@@ -20,12 +20,12 @@ import {
   UpdateMediaDataSchema,
 } from './interfaces';
 import { MediaFactory } from './factories';
-import { MediaUtil, SocketUtil, SocketEventName } from '../util';
+import { MediaUtil, SocketUtil, SocketEventName } from '../_util';
 import {
   EventManager,
   BCMSEventConfigScope,
   BCMSEventConfigMethod,
-} from '../event';
+} from '../_event';
 import { UserCustomPool } from '../_user';
 
 export class MediaRequestHandler {

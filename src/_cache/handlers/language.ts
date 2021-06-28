@@ -6,7 +6,7 @@ import {
   LanguageRepo,
   FSLanguageRepository,
   MongoLanguageRepository,
-} from '../../language';
+} from '../../_language';
 import { Logger } from '@becomes/purple-cheetah';
 
 export class LanguageCacheHandler extends CacheHandler<FSLanguage,

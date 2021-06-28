@@ -7,7 +7,7 @@ import {
 } from '@becomes/purple-cheetah';
 import { CacheControl } from '../_cache';
 import { ResponseCode } from '../_response-code';
-import { General, SocketUtil, SocketEventName } from '../util';
+import { General, SocketUtil, SocketEventName } from '../_util';
 import { StatusFactory } from './factory';
 import { FSStatus, Status } from './models';
 import {

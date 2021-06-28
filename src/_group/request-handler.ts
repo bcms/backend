@@ -25,7 +25,7 @@ import {
   PropGroupPointer,
   PropWidget,
 } from '../_prop';
-import { General, SocketUtil, SocketEventName } from '../util';
+import { General, SocketUtil, SocketEventName } from '../_util';
 import { Widget, FSWidget } from '../widget';
 import { Template, FSTemplate } from '../template';
 import { Entry, FSEntry } from '../entry';
@@ -33,7 +33,7 @@ import {
   EventManager,
   BCMSEventConfigScope,
   BCMSEventConfigMethod,
-} from '../event';
+} from '../_event';
 
 export class GroupRequestHandler {
   @CreateLogger(GroupRequestHandler)

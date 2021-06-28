@@ -1,40 +1,19 @@
-import {
-  BCMSEventConfig,
-} from './interfaces';
-import { BCMSEvent } from './interfaces';
-import { ObjectUtility } from '@becomes/purple-cheetah';
+import { useObjectUtility } from '@becomes/purple-cheetah';
+import { ObjectUtilityError } from '@becomes/purple-cheetah/types';
+import type { BCMSEvent } from '../_event';
+import { BCMSEventSchema } from './types';
 
-export function BCMSEventBuilder(settings: {
-  config: BCMSEventConfig;
-  // eslint-disable-next-line @typescript-eslint/no-explicit-any
-  handler: (data: any) => Promise<void>;
-}): BCMSEvent {
-  try {
-    ObjectUtility.compareWithSchema(
-      settings.config,
-      {
-        scope: {
-          __type: 'string',
-          __required: true,
-        },
-        method: {
-          __type: 'string',
-          __required: true,
-        },
-      },
-      'config',
+export function createBcmsEvent(settings: BCMSEvent): () => BCMSEvent {
+  return () => {
+    const objectUtil = useObjectUtility();
+    const checkSettings = objectUtil.compareWithSchema(
+      settings,
+      BCMSEventSchema,
+      'settings',
     );
-  } catch (e) {
-    throw Error(`[ ${__dirname} ] --> ${e.message}`);
-  }
-  if (typeof settings.handler !== 'function') {
-    throw Error(
-      `[ ${__dirname} ] --> Expected "handler" to be` +
-        ` "function" but got "${typeof settings.handler}".`,
-    );
-  }
-  return {
-    config: settings.config,
-    handler: settings.handler,
+    if (checkSettings instanceof ObjectUtilityError) {
+      throw Error(__filename + ' -> ' + checkSettings.message);
+    }
+    return settings;
   };
 }

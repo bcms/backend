@@ -2,7 +2,7 @@ import * as fs from 'fs';
 import * as util from 'util';
 import * as path from 'path';
 import * as crypto from 'crypto';
-import { Http } from '../util';
+import { Http } from '../_util';
 import { HttpError, HttpStatus, Logger } from '@becomes/purple-cheetah';
 
 let connected = false;
