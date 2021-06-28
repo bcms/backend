@@ -17,7 +17,7 @@ servers:
     description: 'Localhost'
 paths:
   /shim/user/verify/otp:
-    port:
+    post:
       tags:
         - Auth
       requestBody:

@@ -16,7 +16,7 @@ const bcmsConfig: BCMSConfig = {
   },
 };
 
-export function useBcmsConfig() {
+export function useBcmsConfig(): BCMSConfig {
   return { ...bcmsConfig };
 }
 export async function loadBcmsConfig(): Promise<void> {

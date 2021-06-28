@@ -1,5 +1,5 @@
 import { Types } from 'mongoose';
-import type { BCMSConfig, User, UserFactory } from '../types';
+import type { BCMSConfig, BCMSUser, BCMSUserFactory } from '../types';
 import { useBcmsConfig } from '../config';
 import {
   JWTPermissionName,
@@ -7,14 +7,14 @@ import {
 } from '@becomes/purple-cheetah-mod-jwt/types';
 
 let bcmsConfig: BCMSConfig;
-let userFactory: UserFactory;
+let userFactory: BCMSUserFactory;
 
-export function useUserFactory() {
+export function useUserFactory(): BCMSUserFactory {
   if (!userFactory) {
     bcmsConfig = useBcmsConfig();
     userFactory = {
       create(config) {
-        const user: User = {
+        const user: BCMSUser = {
           _id: new Types.ObjectId(),
           createdAt: -1,
           updatedAt: -1,
@@ -54,14 +54,7 @@ export function useUserFactory() {
                 put: false,
                 delete: false,
               },
-              customPortal: {
-                get: false,
-                post: false,
-                put: false,
-                delete: false,
-              },
               templates: [],
-              webhooks: [],
               plugins: [],
             },
           },

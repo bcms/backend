@@ -16,8 +16,8 @@ import type {
   UserFactory,
   UserRepository,
 } from '../../types';
-import { useResponseCode } from '../../response-code';
-import { useUserFactory, useUserRepository } from '../../user';
+import { useResponseCode } from '../../_response-code';
+import { useUserFactory, useUserRepository } from '../../_user';
 import { useBcmsConfig } from '../../config';
 import {
   JWTEncoding,

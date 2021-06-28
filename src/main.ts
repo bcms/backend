@@ -2,28 +2,40 @@ import {
   createBodyParserMiddleware,
   createCorsMiddleware,
   createPurpleCheetah,
+  createRequestLoggerMiddleware,
 } from '@becomes/purple-cheetah';
 import type {
   Controller,
   Middleware,
   Module,
 } from '@becomes/purple-cheetah/types';
-import { JWTAlgorithm } from '@becomes/purple-cheetah-mod-jwt/types';
-import { createJwt } from '@becomes/purple-cheetah-mod-jwt';
+import {
+  JWTAlgorithm,
+  JWTError,
+  JWTPermissionName,
+  JWTRoleName,
+} from '@becomes/purple-cheetah-mod-jwt/types';
+import { createJwt, useJwt } from '@becomes/purple-cheetah-mod-jwt';
 import { createFSDB } from '@becomes/purple-cheetah-mod-fsdb';
 import { createMongoDB } from '@becomes/purple-cheetah-mod-mongodb';
+import { createSocket } from '@becomes/purple-cheetah-mod-socket';
 
 import type { BCMSBackend } from './types';
 import { loadBcmsConfig, useBcmsConfig } from './config';
 import { loadResponseCode } from './response-code';
 import { BCMSSwaggerController, BCMSSwaggerMiddleware } from './swagger';
 import { BCMSCypressController } from './cypress';
-import { UserController } from './user';
 import {
   BCMSShimHealthController,
   BCMSShimUserController,
   createBcmsShimService,
 } from './shim';
+import { Types } from 'mongoose';
+import { ApiKeySecurity } from './_security';
+import { createEntryChangeSocketHandler } from './socket';
+import { BCMSUserController } from './user';
+import { createBcmsApiKeySecurity } from './security';
+import { BCMSApiKeyController } from './api';
 
 let backend: BCMSBackend;
 
@@ -44,6 +56,58 @@ async function initialize() {
         },
       ],
     }),
+    createSocket({
+      path: '/api/socket/server/',
+      onConnection(socket) {
+        return {
+          id: new Types.ObjectId().toHexString(),
+          createdAt: Date.now(),
+          scope: 'global',
+          socket,
+        };
+      },
+      async verifyConnection(socket) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const query = (socket.request as any)._query;
+        if (query.signature) {
+          try {
+            const key = await ApiKeySecurity.verify(
+              {
+                path: '',
+                requestMethod: 'POST',
+                data: {
+                  key: query.key,
+                  nonce: query.nonce,
+                  timestamp: query.timestamp,
+                  signature: query.signature,
+                },
+                payload: {},
+              },
+              true,
+            );
+            if (!key) {
+              return false;
+            }
+          } catch (error) {
+            // eslint-disable-next-line no-console
+            console.error(error);
+            return false;
+          }
+        } else {
+          const jwt = useJwt();
+          const token = jwt.get({
+            jwtString: query.at,
+            roleNames: [JWTRoleName.ADMIN, JWTRoleName.USER],
+            permissionName: JWTPermissionName.READ,
+          });
+          if (token instanceof JWTError) {
+            return false;
+          }
+        }
+        return true;
+      },
+      eventHandlers: [createEntryChangeSocketHandler()],
+    }),
   ];
   const middleware: Middleware[] = [
     createCorsMiddleware(),
@@ -52,9 +116,10 @@ async function initialize() {
     }),
   ];
   const controllers: Controller[] = [
-    UserController,
+    BCMSUserController,
     BCMSShimHealthController,
     BCMSShimUserController,
+    BCMSApiKeyController,
   ];
   if (bcmsConfig.database.fs) {
     modules.push(
@@ -103,8 +168,10 @@ async function initialize() {
   } else {
     throw Error('No database configuration detected.');
   }
+  modules.push(createBcmsApiKeySecurity());
   if (process.env.BCMS_ENV !== 'PRODUCTION') {
     middleware.push(BCMSSwaggerMiddleware);
+    middleware.push(createRequestLoggerMiddleware());
     controllers.push(BCMSSwaggerController);
     controllers.push(BCMSCypressController);
   }
@@ -119,10 +186,11 @@ async function initialize() {
   };
 }
 initialize().catch((error) => {
+  // eslint-disable-next-line no-console
   console.error(error);
   process.exit(1);
 });
 
-export function useBCMSBackend() {
+export function useBCMSBackend(): BCMSBackend {
   return backend;
 }

@@ -1,7 +1,6 @@
 # compiled output
 /dist
 /node_modules
-/src/node_modules
 /doc
 /db
 /uploads
@@ -31,7 +30,6 @@ lerna-debug.log*
 # IDEs and editors
 .env
 bcms.db.json
-bcms.fsdb.json
 /.idea
 .idea
 .project

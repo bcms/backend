@@ -1,0 +1,98 @@
+openapi: 3.0.0
+info:
+  version: 2.0.0
+  title: Becomes CMS - REST API
+  description: This is Swagger documentation for REST API of BCMS. It is recommended to use
+    provided tools (like @becomes/cms-client) for communication with CMS but if you need
+    to implement some custom solution this documentation will help you. You can also
+    see our GraphQL API.
+  contact:
+    name: Becomes
+    url: https://becomes.co/cms
+    email: office@becomes.co
+
+servers:
+  - url: http://localhost:@PORT/api
+    description: Local server.
+
+paths:
+  /test:
+    get:
+      tags:
+        - Test
+      responses:
+        "200":
+          description: OK
+
+components:
+  schemas:
+    Permission:
+      type: object
+      properties:
+        name:
+          type: string
+          enum:
+            - READ
+            - WRITE
+            - DELETE
+            - EXECUTE
+    Role:
+      type: object
+      properties:
+        name: 
+          type: string
+          enum:
+            - ADMIN
+            - USER
+    UserPersonal:
+      type: object
+      properties:
+        firstName:
+          type: string
+        lastName:
+          type: string
+        avatarUri:
+          type: string
+    UserAddress:
+    CustomPool:
+
+    User:
+      type: object
+      properties:
+        _id:
+          type: string
+        createdAt:
+          type: number
+        updatedAt:
+          type: number
+        username:
+          type: string
+        email:
+          type: string
+        password:
+          type: string
+          format: bcrypt
+        roles:
+          type: array
+          items:
+            $ref: '#/components/schemas/Role'
+        refreshTokens:
+          type: array
+          items:
+            type: object
+            properties:
+              value:
+                type: string
+              expAt:
+                type: number
+        
+  securitySchemes:
+    BasicAuth:
+      type: http
+      scheme: basic
+    AccessToken:
+      type: http
+      scheme: bearer
+    RefreshToken:
+      type: http
+      scheme: bearer

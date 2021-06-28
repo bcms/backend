@@ -8,8 +8,8 @@ import type { ResponseCode, ResponseCodeList } from '../types';
 
 let responseCode: ResponseCode;
 
-export function useResponseCode() {
-  return { ...responseCode };
+export function useResponseCode(): ResponseCode {
+  return responseCode;
 }
 export async function loadResponseCode(): Promise<void> {
   const codes: ResponseCodeList = {};

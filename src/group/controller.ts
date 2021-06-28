@@ -1,251 +1,144 @@
 import {
-  createController,
-  createControllerMethod,
-  useObjectUtility,
-  useStringUtility,
+  ControllerPrototype,
+  Logger,
+  Controller,
+  Get,
+  Post,
+  Put,
+  Delete,
+  RoleName,
+  PermissionName,
 } from '@becomes/purple-cheetah';
-import {
-  HTTPStatus,
-  ObjectUtility,
-  ObjectUtilityError,
-  StringUtility,
-} from '@becomes/purple-cheetah/types';
-import { createJwtProtectionPreRequestHandler } from '@becomes/purple-cheetah-mod-jwt';
-import {
-  BCMSGroup,
-  BCMSGroupAddData,
-  BCMSGroupAddDataSchema,
-  BCMSGroupFactory,
-  BCMSGroupLite,
-  BCMSGroupRepository,
-  BCMSGroupUpdateData,
-  BCMSGroupUpdateDataSchema,
-  JWTProtectionType,
-  ResponseCode,
-} from '../types';
-import { useBcmsGroupRepository } from './repository';
-import { useBcmsGroupFactory } from './factory';
-import { useResponseCode } from '../response-code';
-import {
-  JWTPermissionName,
-  JWTRoleName,
-} from '@becomes/purple-cheetah-mod-jwt/types';
+import { Request, Router } from 'express';
+import { GroupLite } from './interfaces';
+import { Group, FSGroup } from './models';
+import { GroupRequestHandler } from './request-handler';
+import { GroupFactory } from './factories';
+import { JWTSecurity } from '../_security';
 
-interface Setup {
-  repo: BCMSGroupRepository;
-  groupFactory: BCMSGroupFactory;
-  resCode: ResponseCode;
-  objectUtil: ObjectUtility;
-  stringUtil: StringUtility;
-}
+@Controller('/api/group')
+export class GroupController implements ControllerPrototype {
+  name: string;
+  baseUri: string;
+  logger: Logger;
+  router: Router;
+  initRouter: () => void;
 
-export const BCMSGroupController = createController<Setup>({
-  name: 'Group controller',
-  path: '/api/group',
-  setup() {
+  @Get(
+    '/:id/where-is-it-used',
+    JWTSecurity.preRequestHandler(
+      [RoleName.ADMIN, RoleName.USER],
+      PermissionName.READ,
+    ),
+  )
+  async whereIsItUsed(request: Request) {
+    return await GroupRequestHandler.whereIsItUsed(request.params.id);
+  }
+
+  @Get(
+    '/all/lite',
+    JWTSecurity.preRequestHandler(
+      [RoleName.ADMIN, RoleName.USER],
+      PermissionName.READ,
+    ),
+  )
+  async getAllLite(): Promise<{ items: GroupLite[] }> {
     return {
-      repo: useBcmsGroupRepository(),
-      groupFactory: useBcmsGroupFactory(),
-      resCode: useResponseCode(),
-      objectUtil: useObjectUtility(),
-      stringUtil: useStringUtility(),
+      items: (await GroupRequestHandler.getAll()).map((e) => {
+        return GroupFactory.toLite(e);
+      }),
     };
-  },
-  methods({ repo, groupFactory, resCode, objectUtil, stringUtil }) {
+  }
+
+  @Get(
+    '/all',
+    JWTSecurity.preRequestHandler(
+      [RoleName.ADMIN, RoleName.USER],
+      PermissionName.READ,
+    ),
+  )
+  async getAll(): Promise<{ items: Array<Group | FSGroup> }> {
     return {
-      whereIsItUsed: createControllerMethod<
-        JWTProtectionType,
-        unknown
-        // {
-        //   templateIds: string[];
-        //   groupIds: string[];
-        //   widgetIds: string[];
-        // }
-      >({
-        path: '/:id/where-is-it-used',
-        type: 'get',
-        preRequestHandler: createJwtProtectionPreRequestHandler(
-          [JWTRoleName.ADMIN, JWTRoleName.USER],
-          JWTPermissionName.READ,
-        ),
-        async handler() {
-          // TODO
-        },
-      }),
+      items: await GroupRequestHandler.getAll(),
+    };
+  }
 
-      getAllLite: createControllerMethod<
-        JWTProtectionType,
-        { items: BCMSGroupLite[] }
-      >({
-        path: '/all/lite',
-        type: 'get',
-        preRequestHandler: createJwtProtectionPreRequestHandler(
-          [JWTRoleName.ADMIN, JWTRoleName.USER],
-          JWTPermissionName.READ,
-        ),
-        async handler() {
-          return {
-            items: (await repo.findAll()).map((e) => groupFactory.toLite(e)),
-          };
-        },
-      }),
+  @Get(
+    '/many/:ids',
+    JWTSecurity.preRequestHandler(
+      [RoleName.ADMIN, RoleName.USER],
+      PermissionName.READ,
+    ),
+  )
+  async getMany(request: Request): Promise<{ item: Array<Group | FSGroup> }> {
+    return {
+      item: await GroupRequestHandler.getMany(request.params.ids),
+    };
+  }
 
-      getAll: createControllerMethod<JWTProtectionType, { items: BCMSGroup[] }>(
-        {
-          path: '/all',
-          type: 'get',
-          preRequestHandler: createJwtProtectionPreRequestHandler(
-            [JWTRoleName.ADMIN, JWTRoleName.USER],
-            JWTPermissionName.READ,
-          ),
-          async handler() {
-            return {
-              items: await repo.findAll(),
-            };
-          },
-        },
+  @Get(
+    '/count',
+    JWTSecurity.preRequestHandler(
+      [RoleName.ADMIN, RoleName.USER],
+      PermissionName.READ,
+    ),
+  )
+  async count(): Promise<{ count: number }> {
+    return {
+      count: await GroupRequestHandler.count(),
+    };
+  }
+
+  @Get(
+    '/:id',
+    JWTSecurity.preRequestHandler(
+      [RoleName.ADMIN, RoleName.USER],
+      PermissionName.READ,
+    ),
+  )
+  async getById(request: Request): Promise<{ item: Group | FSGroup }> {
+    return {
+      item: await GroupRequestHandler.getById(request.params.id),
+    };
+  }
+
+  @Post(
+    '',
+    JWTSecurity.preRequestHandler([RoleName.ADMIN], PermissionName.WRITE),
+  )
+  async add(request: Request): Promise<{ item: Group | FSGroup }> {
+    return {
+      item: await GroupRequestHandler.add(
+        request.body,
+        request.headers.sid as string,
       ),
-
-      getMany: createControllerMethod<
-        JWTProtectionType,
-        { items: BCMSGroup[] }
-      >({
-        path: '/many/:ids',
-        type: 'get',
-        preRequestHandler: createJwtProtectionPreRequestHandler(
-          [JWTRoleName.ADMIN, JWTRoleName.USER],
-          JWTPermissionName.READ,
-        ),
-        async handler({ request }) {
-          return {
-            items: await repo.findAllById(request.params.ids.split('-')),
-          };
-        },
-      }),
-
-      count: createControllerMethod<JWTProtectionType, { count: number }>({
-        path: '/count',
-        type: 'get',
-        preRequestHandler: createJwtProtectionPreRequestHandler(
-          [JWTRoleName.ADMIN, JWTRoleName.USER],
-          JWTPermissionName.READ,
-        ),
-        async handler() {
-          return { count: await repo.count() };
-        },
-      }),
-
-      getById: createControllerMethod<JWTProtectionType, { item: BCMSGroup }>({
-        path: '/:id',
-        type: 'get',
-        preRequestHandler: createJwtProtectionPreRequestHandler(
-          [JWTRoleName.ADMIN, JWTRoleName.USER],
-          JWTPermissionName.READ,
-        ),
-        async handler({ errorHandler, request }) {
-          const group = await repo.findById(request.params.id);
-          if (!group) {
-            throw errorHandler.occurred(
-              HTTPStatus.NOT_FOUNT,
-              resCode.get('grp001', { id: request.params.id }),
-            );
-          }
-          return {
-            item: group,
-          };
-        },
-      }),
-
-      add: createControllerMethod<JWTProtectionType, { item: BCMSGroup }>({
-        path: '',
-        type: 'post',
-        preRequestHandler: createJwtProtectionPreRequestHandler(
-          [JWTRoleName.ADMIN, JWTRoleName.USER],
-          JWTPermissionName.WRITE,
-        ),
-        async handler({ request, errorHandler }) {
-          const data: BCMSGroupAddData = request.body;
-          {
-            const checkBody = objectUtil.compareWithSchema(
-              data,
-              BCMSGroupAddDataSchema,
-              'body',
-            );
-            if (checkBody instanceof ObjectUtilityError) {
-              throw errorHandler.occurred(
-                HTTPStatus.BAD_REQUEST,
-                resCode.get('g002', { msg: checkBody.message }),
-              );
-            }
-          }
-          const group = groupFactory.create();
-          group.label = data.label;
-          group.name = stringUtil.toSlugUnderscore(data.label);
-          group.desc = data.desc;
-          if (await repo.methods.findByName(group.name)) {
-            throw errorHandler.occurred(
-              HTTPStatus.FORBIDDEN,
-              resCode.get('grp002', { name: group.name }),
-            );
-          }
-          const addedGroup = await repo.add(group as never);
-          // TODO: Push socket event
-          return {
-            item: addedGroup,
-          };
-        },
-      }),
-
-      update: createControllerMethod<JWTProtectionType, { item: BCMSGroup }>({
-        path: '',
-        type: 'put',
-        preRequestHandler: createJwtProtectionPreRequestHandler(
-          [JWTRoleName.USER, JWTRoleName.ADMIN],
-          JWTPermissionName.WRITE,
-        ),
-        async handler({ request, errorHandler }) {
-          const data: BCMSGroupUpdateData = request.body;
-          {
-            const checkData = objectUtil.compareWithSchema(
-              data,
-              BCMSGroupUpdateDataSchema,
-              'body',
-            );
-            if (checkData instanceof ObjectUtilityError) {
-              throw errorHandler.occurred(
-                HTTPStatus.BAD_REQUEST,
-                resCode.get('g002', { msg: checkData.message }),
-              );
-            }
-          }
-          const group = await repo.findById(data._id);
-          if (!group) {
-            throw errorHandler.occurred(
-              HTTPStatus.NOT_FOUNT,
-              resCode.get('grp001', { id: data._id }),
-            );
-          }
-          let changeDetected = false;
-          if (typeof data.label !== 'undefined' && data.label !== group.label) {
-            const name = stringUtil.toSlugUnderscore(data.label);
-            if (group.name !== name) {
-              if (await repo.methods.findByName(name)) {
-                throw errorHandler.occurred(
-                  HTTPStatus.FORBIDDEN,
-                  resCode.get('grp002', { name: group.name }),
-                );
-              }
-            }
-            changeDetected = true;
-            group.label = data.label;
-            group.name = name;
-          }
-          if (typeof data.desc === 'string' && data.desc !== group.desc) {
-            changeDetected = true;
-            group.desc = data.desc;
-          }
-        },
-      }),
     };
-  },
-});
+  }
+
+  @Put(
+    '',
+    JWTSecurity.preRequestHandler([RoleName.ADMIN], PermissionName.WRITE),
+  )
+  async update(request: Request): Promise<{ item: Group | FSGroup }> {
+    return {
+      item: await GroupRequestHandler.update(
+        request.body,
+        request.headers.sid as string,
+      ),
+    };
+  }
+
+  @Delete(
+    '/:id',
+    JWTSecurity.preRequestHandler([RoleName.ADMIN], PermissionName.DELETE),
+  )
+  async deleteById(request: Request): Promise<{ message: string }> {
+    await GroupRequestHandler.deleteById(
+      request.params.id,
+      request.headers.sid as string,
+    );
+    return {
+      message: 'Success.',
+    };
+  }
+}

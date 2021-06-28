@@ -2,17 +2,17 @@ import { createFSDBRepository } from '@becomes/purple-cheetah-mod-fsdb';
 import { createMongoDBCachedRepository } from '@becomes/purple-cheetah-mod-mongodb';
 import { useBcmsConfig } from '../config';
 import {
-  UserFSDB,
-  UserFSDBSchema,
-  UserMongoDB,
-  UserMongoDBSchema,
-  UserRepository,
-  UserRepositoryMethods,
-} from '../types';
+  BCMSUserFSDB,
+  BCMSUserFSDBSchema,
+  BCMSUserMongoDB,
+  BCMSUserMongoDBSchema,
+  BCMSUserRepository,
+  BCMSUserRepositoryMethods,
+} from './types';
 
-let repository: UserRepository;
+let repository: BCMSUserRepository;
 
-export function useUserRepository(): UserRepository {
+export function useUserRepository(): BCMSUserRepository {
   if (repository) {
     return repository;
   }
@@ -22,12 +22,12 @@ export function useUserRepository(): UserRepository {
 
   if (bcmsConfig.database.fs) {
     repository = createFSDBRepository<
-      UserFSDB,
-      UserRepositoryMethods<UserFSDB>
+      BCMSUserFSDB,
+      BCMSUserRepositoryMethods<BCMSUserFSDB>
     >({
       collection,
       name,
-      schema: UserFSDBSchema,
+      schema: BCMSUserFSDBSchema,
       methods({ repo }) {
         return {
           async findByEmail(email) {
@@ -38,13 +38,13 @@ export function useUserRepository(): UserRepository {
     });
   } else {
     repository = createMongoDBCachedRepository<
-      UserMongoDB,
-      UserRepositoryMethods<UserMongoDB>,
+      BCMSUserMongoDB,
+      BCMSUserRepositoryMethods<BCMSUserMongoDB>,
       undefined
     >({
       name,
       collection,
-      schema: UserMongoDBSchema,
+      schema: BCMSUserMongoDBSchema,
       methods({ mongoDBInterface, cacheHandler }) {
         return {
           async findByEmail(email) {

@@ -10,15 +10,15 @@ import {
 } from '@becomes/purple-cheetah/types';
 import { useUserRepository } from './repository';
 import {
-  ProtectedUser,
+  BCMSProtectedUser,
   ResponseCode,
-  UpdateUserData,
-  UserFSDB,
-  UserMongoDB,
-  UserRepository,
-  UpdateUserDataSchema,
-  UserFactory,
-  UserCustomPool,
+  BCMSUserFSDB,
+  BCMSUserMongoDB,
+  BCMSUserRepository,
+  BCMSUserFactory,
+  BCMSUserCustomPool,
+  BCMSUserUpdateDataSchema,
+  BCMSUserUpdateData,
 } from '../types';
 import { useResponseCode } from '../response-code';
 import { useUserFactory } from './factory';
@@ -32,14 +32,14 @@ import {
 } from '@becomes/purple-cheetah-mod-jwt/types';
 
 interface Setup {
-  repo: UserRepository;
+  repo: BCMSUserRepository;
   resCode: ResponseCode;
   objectUtil: ObjectUtility;
   socket: Socket;
-  userFactory: UserFactory;
+  userFactory: BCMSUserFactory;
 }
 
-export const UserController = createController<Setup>({
+export const BCMSUserController = createController<Setup>({
   name: 'User controller',
   path: '/api/user',
   setup() {
@@ -56,23 +56,25 @@ export const UserController = createController<Setup>({
       count: createControllerMethod<unknown, { count: number }>({
         path: '/count',
         type: 'get',
-        preRequestHandler: createJwtProtectionPreRequestHandler<UserCustomPool>(
-          [JWTRoleName.ADMIN, JWTRoleName.USER],
-          JWTPermissionName.READ,
-        ),
+        preRequestHandler:
+          createJwtProtectionPreRequestHandler<BCMSUserCustomPool>(
+            [JWTRoleName.ADMIN, JWTRoleName.USER],
+            JWTPermissionName.READ,
+          ),
         async handler() {
           return {
             count: await repo.count(),
           };
         },
       }),
-      getAll: createControllerMethod<unknown, { items: ProtectedUser[] }>({
+      getAll: createControllerMethod<unknown, { items: BCMSProtectedUser[] }>({
         path: '/all',
         type: 'get',
-        preRequestHandler: createJwtProtectionPreRequestHandler<UserCustomPool>(
-          [JWTRoleName.ADMIN, JWTRoleName.USER],
-          JWTPermissionName.READ,
-        ),
+        preRequestHandler:
+          createJwtProtectionPreRequestHandler<BCMSUserCustomPool>(
+            [JWTRoleName.ADMIN, JWTRoleName.USER],
+            JWTPermissionName.READ,
+          ),
         async handler() {
           return {
             items: (await repo.findAll()).map((e) => {
@@ -82,15 +84,16 @@ export const UserController = createController<Setup>({
         },
       }),
       get: createControllerMethod<
-        { accessToken: JWT<UserCustomPool> },
-        { item: ProtectedUser }
+        { accessToken: JWT<BCMSUserCustomPool> },
+        { item: BCMSProtectedUser }
       >({
         path: '',
         type: 'get',
-        preRequestHandler: createJwtProtectionPreRequestHandler<UserCustomPool>(
-          [JWTRoleName.ADMIN, JWTRoleName.USER],
-          JWTPermissionName.READ,
-        ),
+        preRequestHandler:
+          createJwtProtectionPreRequestHandler<BCMSUserCustomPool>(
+            [JWTRoleName.ADMIN, JWTRoleName.USER],
+            JWTPermissionName.READ,
+          ),
         async handler({ accessToken, errorHandler }) {
           const user = await repo.findById(accessToken.payload.userId);
           if (!user) {
@@ -104,13 +107,14 @@ export const UserController = createController<Setup>({
           };
         },
       }),
-      getById: createControllerMethod<unknown, { item: ProtectedUser }>({
+      getById: createControllerMethod<unknown, { item: BCMSProtectedUser }>({
         path: '/:id',
         type: 'get',
-        preRequestHandler: createJwtProtectionPreRequestHandler<UserCustomPool>(
-          [JWTRoleName.ADMIN, JWTRoleName.USER],
-          JWTPermissionName.READ,
-        ),
+        preRequestHandler:
+          createJwtProtectionPreRequestHandler<BCMSUserCustomPool>(
+            [JWTRoleName.ADMIN, JWTRoleName.USER],
+            JWTPermissionName.READ,
+          ),
         async handler({ request, errorHandler }) {
           const user = await repo.findById(request.params.id);
           if (!user) {
@@ -125,21 +129,22 @@ export const UserController = createController<Setup>({
         },
       }),
       update: createControllerMethod<
-        { accessToken: JWT<UserCustomPool> },
-        { item: ProtectedUser }
+        { accessToken: JWT<BCMSUserCustomPool> },
+        { item: BCMSProtectedUser }
       >({
         path: '',
         type: 'put',
-        preRequestHandler: createJwtProtectionPreRequestHandler<UserCustomPool>(
-          [JWTRoleName.ADMIN, JWTRoleName.USER],
-          JWTPermissionName.READ,
-        ),
+        preRequestHandler:
+          createJwtProtectionPreRequestHandler<BCMSUserCustomPool>(
+            [JWTRoleName.ADMIN, JWTRoleName.USER],
+            JWTPermissionName.READ,
+          ),
         async handler({ request, errorHandler, accessToken }) {
-          const data: UpdateUserData = request.body;
+          const data: BCMSUserUpdateData = request.body;
           {
             const checkBody = objectUtil.compareWithSchema(
               request.body,
-              UpdateUserDataSchema,
+              BCMSUserUpdateDataSchema,
               'body',
             );
             if (checkBody instanceof ObjectUtilityError) {
@@ -182,11 +187,6 @@ export const UserController = createController<Setup>({
                   resCode.get('u008'),
                 );
               }
-              if (typeof data.customPool.policy.customPortal !== 'undefined') {
-                change = true;
-                user.customPool.policy.customPortal =
-                  data.customPool.policy.customPortal;
-              }
               if (typeof data.customPool.policy.templates !== 'undefined') {
                 change = true;
                 user.customPool.policy.templates =
@@ -195,11 +195,6 @@ export const UserController = createController<Setup>({
               if (typeof data.customPool.policy.media !== 'undefined') {
                 change = true;
                 user.customPool.policy.media = data.customPool.policy.media;
-              }
-              if (typeof data.customPool.policy.webhooks !== 'undefined') {
-                change = true;
-                user.customPool.policy.webhooks =
-                  data.customPool.policy.webhooks;
               }
               if (typeof data.customPool.policy.plugins !== 'undefined') {
                 change = true;
@@ -213,7 +208,9 @@ export const UserController = createController<Setup>({
               resCode.get('g003'),
             );
           }
-          const updatedUser = await repo.update(user as UserFSDB & UserMongoDB);
+          const updatedUser = await repo.update(
+            user as BCMSUserFSDB & BCMSUserMongoDB,
+          );
           return {
             item: userFactory.toProtected(updatedUser),
           };
