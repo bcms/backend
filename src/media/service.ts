@@ -164,7 +164,7 @@ export function createBcmsMediaService(): Module {
         },
         storage: {
           async getPath({ media, size }) {
-            if (media === BCMSMediaType.DIR) {
+            if (media.type === BCMSMediaType.DIR) {
               return path.join(process.cwd(), 'uploads', media.path);
             }
             if (size === 'small' && media.type === BCMSMediaType.IMG) {

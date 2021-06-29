@@ -11,9 +11,9 @@ export const BCMSMediaMiddleware = createMiddleware({
     }).single('media');
     return async (request: Request, _: Response, next: NextFunction) => {
       if (request.method === 'post' || request.method === 'POST') {
-        processFileFunction(request, undefined as never, (e) => {
+        processFileFunction(request, undefined as never, (e: unknown) => {
           if (e) {
-            request.headers.upload_file_error_message = e.message;
+            request.headers.upload_file_error_message = (e as any).message;
           }
           next();
         });

@@ -50,7 +50,7 @@ export const BCMSUserCustomPoolMongoDBSchema = new Schema({
     required: true,
   },
   policy: {
-    type: BCMSUserPolicyMongoDBSchema,
+    type: Object,
     required: true,
   },
 });

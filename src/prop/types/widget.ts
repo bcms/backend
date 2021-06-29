@@ -1,4 +1,5 @@
 import type { ObjectSchema } from '@becomes/purple-cheetah/types';
+import { BCMSProp, BCMSPropParsed, BCMSPropSchema } from './main';
 
 export interface BCMSPropWidget {
   _id: string;

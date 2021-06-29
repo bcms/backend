@@ -1,8 +1,8 @@
 import * as path from 'path';
 import { useFS, useLogger, useObjectUtility } from '@becomes/purple-cheetah';
 import { Module, ObjectUtilityError } from '@becomes/purple-cheetah/types';
-import type { BCMSEvent } from '../_event';
 import {
+  BCMSEvent,
   BCMSEventConfigMethod,
   BCMSEventConfigScope,
   BCMSEventManager,
@@ -76,7 +76,7 @@ export function createBcmsEventModule(): Module {
                       event.config.method === BCMSEventConfigMethod.ALL
                     ) {
                       try {
-                        await event.handler(scope, method, data);
+                        await event.handler({ scope, method, payload: data });
                       } catch (error) {
                         logger.error('emit', {
                           event,

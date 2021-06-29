@@ -12,12 +12,12 @@ import type {
   BCMSConfig,
   BCMSShimInstanceUser,
   BCMSShimService,
+  BCMSUserFactory,
+  BCMSUserRepository,
   ResponseCode,
-  UserFactory,
-  UserRepository,
 } from '../../types';
-import { useResponseCode } from '../../_response-code';
-import { useUserFactory, useUserRepository } from '../../_user';
+import { useResponseCode } from '../../response-code';
+import { useUserFactory, useUserRepository } from '../../user';
 import { useBcmsConfig } from '../../config';
 import {
   JWTEncoding,
@@ -35,8 +35,8 @@ import {
 export const BCMSShimUserController = createController<{
   shimService: BCMSShimService;
   resCode: ResponseCode;
-  userRepo: UserRepository;
-  userFactory: UserFactory;
+  userRepo: BCMSUserRepository;
+  userFactory: BCMSUserFactory;
   bcmsConfig: BCMSConfig;
   refreshTokenService: RefreshTokenService;
   jwtManager: JWTManager;

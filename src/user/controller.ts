@@ -19,6 +19,7 @@ import {
   BCMSUserCustomPool,
   BCMSUserUpdateDataSchema,
   BCMSUserUpdateData,
+  BCMSUser,
 } from '../types';
 import { useResponseCode } from '../response-code';
 import { useUserFactory } from './factory';
@@ -77,7 +78,7 @@ export const BCMSUserController = createController<Setup>({
           ),
         async handler() {
           return {
-            items: (await repo.findAll()).map((e) => {
+            items: (await repo.findAll()).map((e: BCMSUser) => {
               return userFactory.toProtected(e);
             }),
           };

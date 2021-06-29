@@ -26,10 +26,10 @@ export const BCMSUserPolicyCRUDFSDBSchema: ObjectSchema = {
   },
 };
 export const BCMSUserPolicyCRUDMongoDBSchema = new Schema({
-  get: {
-    type: Boolean,
-    required: true,
-  },
+  // get: {
+  //   type: Boolean,
+  //   required: true,
+  // },
   post: {
     type: Boolean,
     required: true,
@@ -90,17 +90,7 @@ export const BCMSUserPolicyMongoDBSchema = new Schema({
     required: true,
   },
   templates: {
-    type: [
-      {
-        ...BCMSUserPolicyCRUDMongoDBSchema,
-        _id: { type: String, required: true },
-      },
-    ],
+    type: [Object],
   },
-  plugins: [
-    {
-      ...BCMSUserPolicyCRUDMongoDBSchema,
-      _id: { type: String, required: true },
-    },
-  ],
+  plugins: [Object],
 });

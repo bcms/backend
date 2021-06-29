@@ -315,15 +315,16 @@ export function createBcmsPropHandler(): Module {
                   } catch (e) {
                     return Error(`[ ${level}[${i}] ] --> ${e.message}`);
                   }
-                  for (const j in value.entryIds) {
-                    const entry = await entryRepo.findById(value.entryIds[j]);
-                    if (!entry) {
-                      return Error(
-                        `[ ${level}[${i}].value.entryIds[${j}] ] -->` +
-                          ` entry with ID "${value.entryIds[j]}" does not exist.`,
-                      );
-                    }
-                  }
+                  // TODO
+                  // for (const j in value.entryIds) {
+                  //   const entry = await entryRepo.findById(value.entryIds[j]);
+                  //   if (!entry) {
+                  //     return Error(
+                  //       `[ ${level}[${i}].value.entryIds[${j}] ] -->` +
+                  //         ` entry with ID "${value.entryIds[j]}" does not exist.`,
+                  //     );
+                  //   }
+                  // }
                   const template = await tempRepo.findById(value.templateId);
                   if (!template) {
                     return Error(
@@ -703,17 +704,17 @@ export function createBcmsPropHandler(): Module {
                             ` Property is required but ID was no0t provided.`,
                         );
                       }
-                      for (const j in value.entryIds) {
-                        const entry = await entryRepo.findById(
-                          value.entryIds[j],
-                        );
-                        if (!entry) {
-                          return Error(
-                            `[ ${level}.${prop.name}.value.entryIds[${j}] ] -->` +
-                              ` entry with ID "${value.entryIds[j]}" does not exist.`,
-                          );
-                        }
-                      }
+                      // for (const j in value.entryIds) {
+                      //   const entry = await entryRepo.findById(
+                      //     value.entryIds[j],
+                      //   );
+                      //   if (!entry) {
+                      //     return Error(
+                      //       `[ ${level}.${prop.name}.value.entryIds[${j}] ] -->` +
+                      //         ` entry with ID "${value.entryIds[j]}" does not exist.`,
+                      //     );
+                      //   }
+                      // }
                     }
 
                     const template = await tempRepo.findById(value.templateId);
@@ -834,7 +835,7 @@ export function createBcmsPropHandler(): Module {
                             `Error at "changes[${i}].remove, ${result.message}"`,
                           );
                         }
-                        (props[j].value as PropGroupPointer).items[k].props =
+                        (props[j].value as BCMSPropGroupPointer).items[k].props =
                           result;
                       }
                     }
@@ -897,7 +898,7 @@ export function createBcmsPropHandler(): Module {
                 if (props[j].label === change.update.label.old) {
                   if (change.update.label.old !== change.update.label.new) {
                     if (
-                      props.find((e) => e.label === change.update?.label.new)
+                      props.find((e) => change.update && e.label === change.update.label.new)
                     ) {
                       return Error(
                         `Prop with name "${stringUtil.toSlugUnderscore(

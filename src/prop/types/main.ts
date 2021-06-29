@@ -66,8 +66,8 @@ export type BCMSPropParsed =
   | number
   | number[]
   | BCMSPropEnum
-  | BCMSEntryParsed
-  | BCMSEntryParsed[]
+  // | BCMSEntryParsed
+  // | BCMSEntryParsed[]
   | BCMSPropEntryPointer
   | BCMSPropGroupPointerParsed
   | BCMSPropGroupPointerParsed[]

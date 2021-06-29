@@ -51,7 +51,7 @@ export function createBcmsPluginModule(bcmsConfig: BCMSConfig): Module {
     controllers: Controller[];
     middleware: Middleware[];
   }> {
-    if (!bcmsConfig.plugins || bcmsConfig.plugins[data.index]) {
+    if (!bcmsConfig.plugins || !bcmsConfig.plugins[data.index]) {
       return {
         controllers: data.controllers,
         middleware: data.middleware,

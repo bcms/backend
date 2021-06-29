@@ -1,14 +1,15 @@
 import type { ObjectSchema } from '@becomes/purple-cheetah/types';
+import { BCMSProp, BCMSPropParsed, BCMSPropSchema } from './main';
 
 export interface BCMSPropGroupPointer {
   _id: string;
   items: Array<{
-    props: Prop[];
+    props: BCMSProp[];
   }>;
 }
 
 export interface BCMSPropGroupPointerParsed {
-  [key: string]: PropParsed | PropParsed[];
+  [key: string]: BCMSPropParsed | BCMSPropParsed[];
 }
 
 export const BCMSPropGroupPointerSchema: ObjectSchema = {
@@ -27,7 +28,7 @@ export const BCMSPropGroupPointerSchema: ObjectSchema = {
           __required: true,
           __child: {
             __type: 'object',
-            __content: PropSchema,
+            __content: BCMSPropSchema,
           },
         },
       },

@@ -11,14 +11,10 @@ import type {
 } from '@becomes/purple-cheetah/types';
 import {
   JWTAlgorithm,
-  JWTError,
-  JWTPermissionName,
-  JWTRoleName,
 } from '@becomes/purple-cheetah-mod-jwt/types';
-import { createJwt, useJwt } from '@becomes/purple-cheetah-mod-jwt';
+import { createJwt } from '@becomes/purple-cheetah-mod-jwt';
 import { createFSDB } from '@becomes/purple-cheetah-mod-fsdb';
 import { createMongoDB } from '@becomes/purple-cheetah-mod-mongodb';
-import { createSocket } from '@becomes/purple-cheetah-mod-socket';
 
 import type { BCMSBackend } from './types';
 import { loadBcmsConfig, useBcmsConfig } from './config';
@@ -30,9 +26,7 @@ import {
   BCMSShimUserController,
   createBcmsShimService,
 } from './shim';
-import { Types } from 'mongoose';
-import { ApiKeySecurity } from './_security';
-import { createEntryChangeSocketHandler } from './socket';
+// import { createEntryChangeSocketHandler } from './socket';
 import { BCMSUserController } from './user';
 import { createBcmsApiKeySecurity } from './security';
 import { BCMSApiKeyController } from './api';
@@ -57,6 +51,7 @@ async function initialize() {
   await loadResponseCode();
   const bcmsConfig = useBcmsConfig();
 
+  // let apiKeySecurity: BCMSApiKeySecurity;
   const modules: Module[] = [
     createBcmsShimService(),
     createJwt({
@@ -69,58 +64,61 @@ async function initialize() {
         },
       ],
     }),
-    createSocket({
-      path: '/api/socket/server/',
-      onConnection(socket) {
-        return {
-          id: new Types.ObjectId().toHexString(),
-          createdAt: Date.now(),
-          scope: 'global',
-          socket,
-        };
-      },
-      async verifyConnection(socket) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const query = (socket.request as any)._query;
-        if (query.signature) {
-          try {
-            const key = await ApiKeySecurity.verify(
-              {
-                path: '',
-                requestMethod: 'POST',
-                data: {
-                  key: query.key,
-                  nonce: query.nonce,
-                  timestamp: query.timestamp,
-                  signature: query.signature,
-                },
-                payload: {},
-              },
-              true,
-            );
-            if (!key) {
-              return false;
-            }
-          } catch (error) {
-            // eslint-disable-next-line no-console
-            console.error(error);
-            return false;
-          }
-        } else {
-          const jwt = useJwt();
-          const token = jwt.get({
-            jwtString: query.at,
-            roleNames: [JWTRoleName.ADMIN, JWTRoleName.USER],
-            permissionName: JWTPermissionName.READ,
-          });
-          if (token instanceof JWTError) {
-            return false;
-          }
-        }
-        return true;
-      },
-      eventHandlers: [createEntryChangeSocketHandler()],
-    }),
+    // createSocket({
+    //   path: '/api/socket/server/',
+    //   onConnection(socket) {
+    //     return {
+    //       id: new Types.ObjectId().toHexString(),
+    //       createdAt: Date.now(),
+    //       scope: 'global',
+    //       socket,
+    //     };
+    //   },
+    //   async verifyConnection(socket) {
+    //     // eslint-disable-next-line @typescript-eslint/no-explicit-any
+    //     const query = (socket.request as any)._query;
+    //     if (query.signature) {
+    //       try {
+    //         if (!apiKeySecurity) {
+    //           apiKeySecurity = useBcmsApiKeySecurity();
+    //         }
+    //         const key = await apiKeySecurity.verify(
+    //           {
+    //             path: '',
+    //             requestMethod: 'POST',
+    //             data: {
+    //               k: query.key,
+    //               n: query.nonce,
+    //               t: query.timestamp,
+    //               s: query.signature,
+    //             },
+    //             payload: {},
+    //           },
+    //           true,
+    //         );
+    //         if (!key) {
+    //           return false;
+    //         }
+    //       } catch (error) {
+    //         // eslint-disable-next-line no-console
+    //         console.error(error);
+    //         return false;
+    //       }
+    //     } else {
+    //       const jwt = useJwt();
+    //       const token = jwt.get({
+    //         jwtString: query.at,
+    //         roleNames: [JWTRoleName.ADMIN, JWTRoleName.USER],
+    //         permissionName: JWTPermissionName.READ,
+    //       });
+    //       if (token instanceof JWTError) {
+    //         return false;
+    //       }
+    //     }
+    //     return true;
+    //   },
+    //   // eventHandlers: [createEntryChangeSocketHandler()],
+    // }),
     createBcmsMediaService(),
   ];
   const middleware: Middleware[] = [

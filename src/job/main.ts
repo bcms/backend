@@ -11,7 +11,7 @@ export function createBcmsJobModule(): Module {
       const jobsPath = path.join(process.cwd(), 'jobs');
       const objectUtil = useObjectUtility();
       const fs = useFS();
-      const logger = useLogger('Job');
+      const logger = useLogger({ name: 'Job' });
 
       fs.exist(jobsPath)
         .then(async (result) => {

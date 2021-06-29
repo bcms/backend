@@ -46,12 +46,7 @@ export const BCMSApiKeyAccessFSDBSchema: ObjectSchema = {
 };
 export const BCMSApiKeyAccessMongoDBSchema = new Schema({
   templates: {
-    type: [
-      {
-        ...BCMSUserPolicyCRUDMongoDBSchema,
-        _id: { type: String, required: true },
-      },
-    ],
+    type: [Object],
   },
   functions: {
     type: [{ name: { type: String, required: true } }],
