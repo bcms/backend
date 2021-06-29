@@ -21,7 +21,7 @@ import { UserController } from './_user';
 import { AuthController } from './_auth';
 import { GroupController } from './_group';
 import { TemplateController } from './_template';
-import { WidgetController } from './widget';
+import { WidgetController } from './_widget';
 import { LanguageController } from './_language';
 import { ApiKeyController, ApiKeyManager } from './_api';
 import { MediaController, MediaParserMiddleware } from './_media';

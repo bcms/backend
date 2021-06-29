@@ -8,7 +8,7 @@ export * from './prop';
 export * from './_template';
 export * from './user';
 export * from './_util';
-export * from './widget';
+export * from './_widget';
 export * from './entry';
 export * from './event';
 export * from './job';

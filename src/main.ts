@@ -47,6 +47,8 @@ import {
   createBcmsMediaService,
 } from './media';
 import { BCMSStatusController } from './status';
+import { BCMSTemplateController } from './template';
+import { BCMSWidgetController } from './widget';
 
 let backend: BCMSBackend;
 
@@ -138,6 +140,8 @@ async function initialize() {
     BCMSMediaController,
     BCMSStatusController,
     BCMSFunctionController,
+    BCMSTemplateController,
+    BCMSWidgetController,
   ];
   if (bcmsConfig.database.fs) {
     modules.push(

@@ -281,6 +281,44 @@ export const BCMSTemplateController = createController<Setup>({
               resCode.get('g003'),
             );
           }
+          const hasInfiniteLoop = await propHandler.testInfiniteLoop(
+            template.props,
+          );
+          if (hasInfiniteLoop instanceof Error) {
+            throw errorHandler.occurred(
+              HTTPStatus.BAD_REQUEST,
+              resCode.get('g008', {
+                msg: hasInfiniteLoop.message,
+              }),
+            );
+          }
+          const checkProps = await propHandler.propsChecker(
+            template.props,
+            template.props,
+            'template.props',
+            true,
+          );
+          if (checkProps instanceof Error) {
+            throw errorHandler.occurred(
+              HTTPStatus.BAD_REQUEST,
+              resCode.get('g007', {
+                msg: checkProps.message,
+              }),
+            );
+          }
+          const updatedTemplate = await tempRepo.update(template as never);
+          if (!updatedTemplate) {
+            throw errorHandler.occurred(
+              HTTPStatus.INTERNAL_SERVER_ERROR,
+              resCode.get('tmp005'),
+            );
+          }
+
+          // TODO: trigger socket event and event manager
+
+          return {
+            item: updatedTemplate,
+          };
         },
       }),
 

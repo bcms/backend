@@ -13,6 +13,7 @@ export * from '../language/types';
 export * from '../media/types';
 export * from '../status/types';
 export * from '../template/types';
+export * from '../widget/types';
 
 export * from './config';
 export * from './main';

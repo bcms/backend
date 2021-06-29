@@ -1,5 +1,5 @@
 import type { BCMSPropChange } from './changes';
-import type { BCMSProp, BCMSPropParsed } from './main';
+import type { BCMSProp } from './main';
 
 export interface BCMSPropHandlerPointer {
   group: Array<{
@@ -27,21 +27,15 @@ export interface BCMSPropHandler {
     level?: string,
     groupPropChanges?: boolean,
   ): Promise<BCMSProp[] | Error>;
-  updatePropsTargetGroup(
-    targetGroupId: string,
-    props: BCMSProp[],
-    changes: BCMSPropChange[],
-    level?: string,
-  ): Promise<{ changesFound: boolean; props: BCMSProp[] } | Error>;
-  parseProps(
-    props: BCMSProp[],
-    lng: string,
-    level?: string,
-    entryPointerDepth?: number,
-  ): Promise<{
-    quill: boolean;
-    key: string;
-    name: string;
-    value: BCMSPropParsed;
-  }>;
+  // parseProps(
+  //   props: BCMSProp[],
+  //   lng: string,
+  //   level?: string,
+  //   entryPointerDepth?: number,
+  // ): Promise<{
+  //   quill: boolean;
+  //   key: string;
+  //   name: string;
+  //   value: BCMSPropParsed;
+  // }>;
 }
