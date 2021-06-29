@@ -1,19 +1,29 @@
 import { Types } from 'mongoose';
-import { FSStatus, Status } from './models';
+import { useBcmsConfig } from '../config';
+import type { BCMSStatus, BCMSStatusFactory } from './types';
 
-export class StatusFactory {
-  static get instance(): Status | FSStatus {
-    if (process.env.DB_USE_FS === 'true') {
-      return new FSStatus(
-        Types.ObjectId().toHexString(),
-        Date.now(),
-        Date.now(),
-        '',
-        '',
-        '',
-      );
-    } else {
-      return new Status(Types.ObjectId(), Date.now(), Date.now(), '', '', '');
-    }
+let statusFactory: BCMSStatusFactory;
+
+export function useBcmsStatusFactory(): BCMSStatusFactory {
+  if (!statusFactory) {
+    const bcmsConfig = useBcmsConfig();
+
+    statusFactory = {
+      create(data) {
+        const status: BCMSStatus = {
+          _id: new Types.ObjectId(),
+          createdAt: Date.now(),
+          updatedAt: Date.now(),
+          color: data.color ? data.color : '',
+          label: data.label ? data.label : '',
+          name: data.name ? data.name : '',
+        };
+        if (bcmsConfig.database.fs) {
+          status._id = status._id.toHexString() as never;
+        }
+        return status;
+      },
+    };
   }
+  return statusFactory;
 }

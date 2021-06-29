@@ -10,6 +10,9 @@ export * from '../plugin/types';
 export * from '../event/types';
 export * from '../job/types';
 export * from '../language/types';
+export * from '../media/types';
+export * from '../status/types';
+export * from '../template/types';
 
 export * from './config';
 export * from './main';

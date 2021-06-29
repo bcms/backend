@@ -1,7 +1,7 @@
 import * as sharp from 'sharp';
 import * as path from 'path';
 import { FSUtil } from '@becomes/purple-cheetah';
-import { FSMedia, Media, MediaType } from '../media';
+import { FSMedia, Media, MediaType } from '../_media';
 import { CacheControl } from '../_cache';
 import { MimeTypes } from './_mimetype';
 import * as fse from 'fs-extra';

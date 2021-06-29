@@ -1,7 +1,7 @@
 import { PropHandler, PropParsed, PropType } from '../_prop';
 import { EntryParsed } from './interfaces';
 import { Entry, FSEntry } from './models';
-import { FSStatus, Status } from '../status';
+import { FSStatus, Status } from '../_status';
 import { CacheControl } from '../_cache';
 
 export class EntryParser {

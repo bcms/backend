@@ -20,11 +20,11 @@ import { SwaggerController, SwaggerMiddleware } from './_swagger';
 import { UserController } from './_user';
 import { AuthController } from './_auth';
 import { GroupController } from './_group';
-import { TemplateController } from './template';
+import { TemplateController } from './_template';
 import { WidgetController } from './widget';
 import { LanguageController } from './_language';
 import { ApiKeyController, ApiKeyManager } from './_api';
-import { MediaController, MediaParserMiddleware } from './media';
+import { MediaController, MediaParserMiddleware } from './_media';
 import { Types } from 'mongoose';
 import { EntryController } from './entry';
 import { FunctionController } from './_function';
@@ -32,7 +32,7 @@ import { PluginController, PluginManager } from './_plugin';
 import { EntryChangeSocketHandler } from './socket';
 import { ApiKeySecurity } from './_security';
 import { CypressController } from './_cypress';
-import { StatusController } from './status';
+import { StatusController } from './_status';
 import {
   ShimAuthMiddleware,
   ShimHealthController,

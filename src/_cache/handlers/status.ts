@@ -6,7 +6,7 @@ import {
   Status,
   StatusRepo,
   StatusRepository,
-} from '../../status';
+} from '../../_status';
 import { CacheHandler } from '../handler';
 
 export class StatusCacheHandler extends CacheHandler<

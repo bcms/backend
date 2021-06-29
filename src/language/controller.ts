@@ -18,6 +18,8 @@ import {
   BCMSLanguageAddDataSchema,
   BCMSLanguageFactory,
   BCMSLanguageRepository,
+  BCMSLanguageUpdateData,
+  BCMSLanguageUpdateDataSchema,
 } from './types';
 
 interface Setup {
@@ -130,15 +132,27 @@ export const BCMSLanguageController = createController<Setup>({
         },
       }),
 
-      update: createControllerMethod({
-        type: 'put',
-        preRequestHandler:
-          createJwtProtectionPreRequestHandler<BCMSUserCustomPool>(
-            [JWTRoleName.ADMIN, JWTRoleName.USER],
-            JWTPermissionName.WRITE,
-          ),
-        async handler() {},
-      }),
+      // TODO: Update language
+      // update: createControllerMethod({
+      //   type: 'put',
+      //   preRequestHandler: createJwtAndBodyCheckRouteProtection<
+      //     BCMSUserCustomPool,
+      //     BCMSLanguageUpdateData
+      //   >({
+      //     roleNames: [JWTRoleName.ADMIN, JWTRoleName.USER],
+      //     permissionName: JWTPermissionName.WRITE,
+      //     bodySchema: BCMSLanguageUpdateDataSchema,
+      //   }),
+      //   async handler({ errorHandler, body }) {
+      //     const lang = await langRepo.findById(body._id);
+      //     if (!lang) {
+      //       throw errorHandler.occurred(
+      //         HTTPStatus.NOT_FOUNT,
+      //         resCode.get('lng001', { id: body._id }),
+      //       );
+      //     }
+      //   },
+      // }),
 
       deleteById: createControllerMethod({
         path: '/:id',
@@ -148,7 +162,28 @@ export const BCMSLanguageController = createController<Setup>({
             [JWTRoleName.ADMIN, JWTRoleName.USER],
             JWTPermissionName.DELETE,
           ),
-        async handler() {},
+        async handler({ request, errorHandler }) {
+          const lang = await langRepo.findById(request.params.id);
+          if (!lang) {
+            throw errorHandler.occurred(
+              HTTPStatus.NOT_FOUNT,
+              resCode.get('lng001', { id: request.params.id }),
+            );
+          }
+          const deleteResult = await langRepo.deleteById(request.params.id);
+          if (!deleteResult) {
+            throw errorHandler.occurred(
+              HTTPStatus.INTERNAL_SERVER_ERROR,
+              resCode.get('lng006'),
+            );
+          }
+
+          // TODO: trigger socket event and event manager
+
+          return {
+            message: 'Success.',
+          };
+        },
       }),
     };
   },

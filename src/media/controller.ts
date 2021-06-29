@@ -1,329 +1,542 @@
+import * as crypto from 'crypto';
 import {
-  ControllerPrototype,
-  Logger,
-  Controller,
-  Get,
-  HttpErrorFactory,
-  HttpStatus,
-  Post,
-  Delete,
-  Put,
-  RoleName,
-  PermissionName,
-  ControllerMethodData,
-  JWT,
-  JWTSecurity as JWTSecurityPC,
-  JWTConfigService,
+  createController,
+  createControllerMethod,
+  useStringUtility,
 } from '@becomes/purple-cheetah';
-import { Router, Request } from 'express';
-import { Media, FSMedia, MediaType } from './models';
-import { MediaRequestHandler } from './request-handler';
-import { MediaAggregate } from './interfaces';
-import { ResponseCode } from '../_response-code';
-import { MediaUtil } from '../_util';
-import { JWTApiSecurity, JWTSecurity } from '../_security';
-import { UserCustomPool } from '../_user';
+import {
+  createJwtProtectionPreRequestHandler,
+  useJwt,
+} from '@becomes/purple-cheetah-mod-jwt';
+import {
+  JWTError,
+  JWTManager,
+  JWTPermissionName,
+  JWTRoleName,
+} from '@becomes/purple-cheetah-mod-jwt/types';
+import { HTTPStatus, StringUtility } from '@becomes/purple-cheetah/types';
+import { useResponseCode } from '../response-code';
+import type { BCMSUserCustomPool, ResponseCode } from '../types';
+import { useBcmsMediaFactory } from './factory';
+import { useBcmsMediaRepository } from './repository';
+import { useBcmsMediaService } from './service';
+import {
+  BCMSMedia,
+  BCMSMediaAddDirData,
+  BCMSMediaAddDirDataSchema,
+  BCMSMediaFactory,
+  BCMSMediaRepository,
+  BCMSMediaService,
+  BCMSMediaType,
+} from './types';
+import { createJwtAndBodyCheckRouteProtection } from '../util';
 
-@Controller('/api/media')
-export class MediaController implements ControllerPrototype {
-  baseUri: string;
-  initRouter: () => void;
-  logger: Logger;
-  name: string;
-  router: Router;
-
-  @Get(
-    '/all',
-    JWTApiSecurity.preRequestHandler(
-      [RoleName.ADMIN, RoleName.USER],
-      PermissionName.READ,
-    ),
-  )
-  async getAll(): Promise<{ items: Array<Media | FSMedia> }> {
-    return {
-      items: await MediaRequestHandler.getAll(),
-    };
-  }
-
-  @Get(
-    '/all/aggregate',
-    JWTApiSecurity.preRequestHandler(
-      [RoleName.ADMIN, RoleName.USER],
-      PermissionName.READ,
-    ),
-  )
-  async getAllAggregated(): Promise<{ items: MediaAggregate[] }> {
-    return {
-      items: await MediaRequestHandler.getAllAggregated(),
-    };
-  }
-
-  @Get(
-    '/all/parent/:id',
-    JWTApiSecurity.preRequestHandler(
-      [RoleName.ADMIN, RoleName.USER],
-      PermissionName.READ,
-    ),
-  )
-  async getAllByParentId(
-    request: Request,
-  ): Promise<{ items: Array<Media | FSMedia> }> {
-    return {
-      items: await MediaRequestHandler.getAllByParentId(request.params.id),
-    };
-  }
-
-  @Get(
-    '/many/:ids',
-    JWTApiSecurity.preRequestHandler(
-      [RoleName.ADMIN, RoleName.USER],
-      PermissionName.READ,
-    ),
-  )
-  async getMany(request: Request): Promise<{ items: Array<Media | FSMedia> }> {
-    return {
-      items: await MediaRequestHandler.getMany(request.params.ids),
-    };
-  }
-
-  @Get(
-    '/count',
-    JWTApiSecurity.preRequestHandler(
-      [RoleName.ADMIN, RoleName.USER],
-      PermissionName.READ,
-    ),
-  )
-  async count(): Promise<{ count: number }> {
-    return {
-      count: await MediaRequestHandler.count(),
-    };
-  }
-
-  @Get(
-    '/:id',
-    JWTApiSecurity.preRequestHandler(
-      [RoleName.ADMIN, RoleName.USER],
-      PermissionName.READ,
-    ),
-  )
-  async getById(request: Request): Promise<{ item: Media | FSMedia }> {
-    return {
-      item: await MediaRequestHandler.getById(request.params.id),
-    };
-  }
-
-  @Get(
-    '/:id/aggregate',
-    JWTApiSecurity.preRequestHandler(
-      [RoleName.ADMIN, RoleName.USER],
-      PermissionName.READ,
-    ),
-  )
-  async getByIdAggregated(request: Request): Promise<{ item: MediaAggregate }> {
-    return {
-      item: await MediaRequestHandler.getByIdAggregated(request.params.id),
-    };
-  }
-
-  @Get(
-    '/:id/bin',
-    JWTApiSecurity.preRequestHandler(
-      [RoleName.ADMIN, RoleName.USER],
-      PermissionName.READ,
-    ),
-  )
-  async getBinary(request: Request) {
-    const error = HttpErrorFactory.instance('getBinary', this.logger);
-    const media = await MediaRequestHandler.getById(request.params.id);
-    if (media.type === MediaType.DIR) {
-      throw error.occurred(
-        HttpStatus.FORBIDDEN,
-        ResponseCode.get('mda007', { id: request.params.id }),
-      );
-    }
-    if ((await MediaUtil.fs.exist(media)) === false) {
-      throw error.occurred(
-        HttpStatus.INTERNAL_SERVER_ERROR,
-        ResponseCode.get('mda008', { id: request.params.id }),
-      );
-    }
-    return { __file: await MediaUtil.fs.getPath(media) };
-  }
-
-  @Get('/:id/bin/act')
-  async getBinaryByAccessToken(request: Request) {
-    const error = HttpErrorFactory.instance('getBinary', this.logger);
-    if (!request.query.act) {
-      throw error.occurred(HttpStatus.BAD_REQUEST, ResponseCode.get('mda011'));
-    }
-    const jwt = JWTSecurityPC.checkAndValidateAndGet(
-      request.query.act as string,
-      {
-        roles: [RoleName.ADMIN, RoleName.USER],
-        permission: PermissionName.READ,
-        JWTConfig: JWTConfigService.get('user-token-config'),
-      },
-    );
-    if (jwt instanceof Error) {
-      throw error.occurred(HttpStatus.UNAUTHORIZED, ResponseCode.get('mda012'));
-    }
-    const media = await MediaRequestHandler.getById(request.params.id);
-    if (media.type === MediaType.DIR) {
-      throw error.occurred(
-        HttpStatus.FORBIDDEN,
-        ResponseCode.get('mda007', { id: request.params.id }),
-      );
-    }
-    if ((await MediaUtil.fs.exist(media)) === false) {
-      throw error.occurred(
-        HttpStatus.INTERNAL_SERVER_ERROR,
-        ResponseCode.get('mda008', { id: request.params.id }),
-      );
-    }
-    return { __file: await MediaUtil.fs.getPath(media) };
-  }
-
-  @Get(
-    '/:id/bin/:size',
-    JWTApiSecurity.preRequestHandler(
-      [RoleName.ADMIN, RoleName.USER],
-      PermissionName.READ,
-    ),
-  )
-  async getBinaryBySize(request: Request) {
-    const error = HttpErrorFactory.instance('getBinaryBySize', this.logger);
-    const media = await MediaRequestHandler.getById(request.params.id);
-    if (media.type === MediaType.DIR) {
-      throw error.occurred(
-        HttpStatus.FORBIDDEN,
-        ResponseCode.get('mda007', { id: request.params.id }),
-      );
-    }
-    if ((await MediaUtil.fs.exist(media)) === false) {
-      throw error.occurred(
-        HttpStatus.INTERNAL_SERVER_ERROR,
-        ResponseCode.get('mda008', { id: request.params.id }),
-      );
-    }
-    return {
-      __file: await MediaUtil.fs.getPath(
-        media,
-        request.params.size ? 'small' : undefined,
-      ),
-    };
-  }
-
-  @Get('/:id/bin/:size/act')
-  async getBinaryBySizeAndAccessToken(request: Request) {
-    const error = HttpErrorFactory.instance(
-      'getBinaryBySizeAndAccessToken',
-      this.logger,
-    );
-    if (!request.query.act) {
-      throw error.occurred(HttpStatus.BAD_REQUEST, ResponseCode.get('mda011'));
-    }
-    const jwt = JWTSecurityPC.checkAndValidateAndGet(
-      request.query.act as string,
-      {
-        roles: [RoleName.ADMIN, RoleName.USER],
-        permission: PermissionName.READ,
-        JWTConfig: JWTConfigService.get('user-token-config'),
-      },
-    );
-    if (jwt instanceof Error) {
-      throw error.occurred(HttpStatus.UNAUTHORIZED, ResponseCode.get('mda012'));
-    }
-    const media = await MediaRequestHandler.getById(request.params.id);
-    if (media.type === MediaType.DIR) {
-      throw error.occurred(
-        HttpStatus.FORBIDDEN,
-        ResponseCode.get('mda007', { id: request.params.id }),
-      );
-    }
-    if ((await MediaUtil.fs.exist(media)) === false) {
-      throw error.occurred(
-        HttpStatus.INTERNAL_SERVER_ERROR,
-        ResponseCode.get('mda008', { id: request.params.id }),
-      );
-    }
-    return {
-      __file: await MediaUtil.fs.getPath(
-        media,
-        request.params.size ? 'small' : undefined,
-      ),
-    };
-  }
-
-  @Post(
-    '/file',
-    JWTSecurity.preRequestHandler(
-      [RoleName.ADMIN, RoleName.USER],
-      PermissionName.WRITE,
-    ),
-  )
-  async addFile(
-    ...data: ControllerMethodData<JWT<UserCustomPool>>
-  ): Promise<{ item: Media | FSMedia }> {
-    this.logger.warn('addFile', data[0].headers.upload_file_error_message);
-    return {
-      item: await MediaRequestHandler.addFile(
-        data[3],
-        data[0].headers.sid as string,
-        data[0].query.parentId ? '' + data[0].query.parentId : undefined,
-        data[0].file,
-      ),
-    };
-  }
-
-  @Post(
-    '/dir',
-    JWTSecurity.preRequestHandler(
-      [RoleName.ADMIN, RoleName.USER],
-      PermissionName.WRITE,
-    ),
-  )
-  async addDir(
-    ...data: ControllerMethodData<JWT<UserCustomPool>>
-  ): Promise<{ item: Media | FSMedia }> {
-    return {
-      item: await MediaRequestHandler.addDir(
-        data[3],
-        data[0].body,
-        data[0].headers.sid as string,
-      ),
-    };
-  }
-
-  @Put(
-    '/:id',
-    JWTSecurity.preRequestHandler(
-      [RoleName.ADMIN, RoleName.USER],
-      PermissionName.WRITE,
-    ),
-  )
-  async update(request: Request): Promise<{ item: Media | FSMedia }> {
-    return {
-      item: await MediaRequestHandler.update(
-        request.body,
-        request.headers.sid as string,
-      ),
-    };
-  }
-
-  @Delete(
-    '/:id',
-    JWTSecurity.preRequestHandler(
-      [RoleName.ADMIN, RoleName.USER],
-      PermissionName.DELETE,
-    ),
-  )
-  async deleteById(request: Request): Promise<{ message: string }> {
-    await MediaRequestHandler.deleteById(
-      request.params.id,
-      request.headers.sid as string,
-    );
-    return {
-      message: 'Success.',
-    };
-  }
+interface Setup {
+  mediaRepo: BCMSMediaRepository;
+  mediaFactory: BCMSMediaFactory;
+  resCode: ResponseCode;
+  mediaService: BCMSMediaService;
+  jwt: JWTManager;
+  stringUtil: StringUtility;
 }
+
+export const BCMSMediaController = createController<Setup>({
+  name: 'Media controller',
+  path: '/api/media',
+  setup() {
+    return {
+      mediaRepo: useBcmsMediaRepository(),
+      mediaFactory: useBcmsMediaFactory(),
+      resCode: useResponseCode(),
+      mediaService: useBcmsMediaService(),
+      jwt: useJwt(),
+      stringUtil: useStringUtility(),
+    };
+  },
+  methods({ mediaRepo, mediaFactory, mediaService, resCode, jwt, stringUtil }) {
+    return {
+      getAll: createControllerMethod({
+        path: '/all',
+        type: 'get',
+        preRequestHandler:
+          createJwtProtectionPreRequestHandler<BCMSUserCustomPool>(
+            [JWTRoleName.ADMIN, JWTRoleName.DEV],
+            JWTPermissionName.READ,
+          ),
+        async handler() {
+          return {
+            items: await mediaRepo.findAll(),
+          };
+        },
+      }),
+
+      getAllAggregated: createControllerMethod({
+        path: '/all/aggregate',
+        type: 'get',
+        preRequestHandler:
+          createJwtProtectionPreRequestHandler<BCMSUserCustomPool>(
+            [JWTRoleName.ADMIN, JWTRoleName.DEV],
+            JWTPermissionName.READ,
+          ),
+        async handler() {
+          return {
+            items: await mediaFactory.aggregateFromRoot(),
+          };
+        },
+      }),
+
+      getAllByParentId: createControllerMethod({
+        path: '/all/parent/:id',
+        type: 'get',
+        preRequestHandler:
+          createJwtProtectionPreRequestHandler<BCMSUserCustomPool>(
+            [JWTRoleName.ADMIN, JWTRoleName.DEV],
+            JWTPermissionName.READ,
+          ),
+        async handler({ request, errorHandler }) {
+          const media = await mediaRepo.findById(request.params.id);
+          if (!media) {
+            throw errorHandler.occurred(
+              HTTPStatus.NOT_FOUNT,
+              resCode.get('mda001', { id: request.params.id }),
+            );
+          }
+          return {
+            items: await mediaService.getChildren(media),
+          };
+        },
+      }),
+
+      getMany: createControllerMethod({
+        path: '/many/:ids',
+        type: 'get',
+        preRequestHandler:
+          createJwtProtectionPreRequestHandler<BCMSUserCustomPool>(
+            [JWTRoleName.ADMIN, JWTRoleName.DEV],
+            JWTPermissionName.READ,
+          ),
+        async handler({ request }) {
+          const ids = request.params.ids.split('-');
+          return {
+            items: await mediaRepo.findAllById(ids),
+          };
+        },
+      }),
+
+      count: createControllerMethod({
+        path: '/count',
+        type: 'get',
+        preRequestHandler:
+          createJwtProtectionPreRequestHandler<BCMSUserCustomPool>(
+            [JWTRoleName.ADMIN, JWTRoleName.DEV],
+            JWTPermissionName.READ,
+          ),
+        async handler() {
+          return {
+            count: await mediaRepo.count(),
+          };
+        },
+      }),
+
+      getById: createControllerMethod({
+        path: '/:id',
+        type: 'get',
+        preRequestHandler:
+          createJwtProtectionPreRequestHandler<BCMSUserCustomPool>(
+            [JWTRoleName.ADMIN, JWTRoleName.DEV],
+            JWTPermissionName.READ,
+          ),
+        async handler({ request, errorHandler }) {
+          const media = await mediaRepo.findById(request.params.id);
+          if (!media) {
+            throw errorHandler.occurred(
+              HTTPStatus.NOT_FOUNT,
+              resCode.get('mda001', { id: request.params.id }),
+            );
+          }
+          return {
+            item: media,
+          };
+        },
+      }),
+
+      getByIdAggregated: createControllerMethod({
+        path: '/:id/aggregate',
+        type: 'get',
+        preRequestHandler:
+          createJwtProtectionPreRequestHandler<BCMSUserCustomPool>(
+            [JWTRoleName.ADMIN, JWTRoleName.DEV],
+            JWTPermissionName.READ,
+          ),
+        async handler({ request, errorHandler }) {
+          const media = await mediaRepo.findById(request.params.id);
+          if (!media) {
+            throw errorHandler.occurred(
+              HTTPStatus.NOT_FOUNT,
+              resCode.get('mda001', { id: request.params.id }),
+            );
+          }
+          if (media.type !== BCMSMediaType.DIR) {
+            return {
+              item: {
+                _id: `${media._id}`,
+                createdAt: media.createdAt,
+                updatedAt: media.updatedAt,
+                isInRoot: media.isInRoot,
+                mimetype: media.mimetype,
+                name: media.name,
+                path: media.path,
+                size: media.size,
+                state: false,
+                type: media.type,
+                userId: media.userId,
+              },
+            };
+          }
+          return {
+            item: await mediaService.aggregateFromParent(media),
+          };
+        },
+      }),
+
+      getBinary: createControllerMethod({
+        path: '/:id/bin',
+        type: 'get',
+        preRequestHandler:
+          createJwtProtectionPreRequestHandler<BCMSUserCustomPool>(
+            [JWTRoleName.ADMIN, JWTRoleName.DEV],
+            JWTPermissionName.READ,
+          ),
+        async handler({ request, errorHandler }) {
+          const media = await mediaRepo.findById(request.params.id);
+          if (!media) {
+            throw errorHandler.occurred(
+              HTTPStatus.NOT_FOUNT,
+              resCode.get('mda001', { id: request.params.id }),
+            );
+          }
+          if (media.type === BCMSMediaType.DIR) {
+            throw errorHandler.occurred(
+              HTTPStatus.FORBIDDEN,
+              resCode.get('mda007', { id: request.params.id }),
+            );
+          }
+          if (!(await mediaService.storage.exist(media))) {
+            throw errorHandler.occurred(
+              HTTPStatus.INTERNAL_SERVER_ERROR,
+              resCode.get('mda008', { id: request.params.id }),
+            );
+          }
+          return {
+            __file: await mediaService.storage.getPath({ media }),
+          };
+        },
+      }),
+
+      getBinaryByAccessToken: createControllerMethod<
+        unknown,
+        { __file: string }
+      >({
+        path: '/:id/bin/act',
+        type: 'get',
+        async handler({ request, errorHandler }) {
+          const accessToken = jwt.get({
+            jwtString: request.query.act + '',
+            roleNames: [JWTRoleName.ADMIN, JWTRoleName.USER],
+            permissionName: JWTPermissionName.READ,
+          });
+          if (accessToken instanceof JWTError) {
+            throw errorHandler.occurred(
+              HTTPStatus.UNAUTHORIZED,
+              resCode.get('mda012'),
+            );
+          }
+          const media = await mediaRepo.findById(request.params.id);
+          if (!media) {
+            throw errorHandler.occurred(
+              HTTPStatus.NOT_FOUNT,
+              resCode.get('mda001', { id: request.params.id }),
+            );
+          }
+          if (media.type === BCMSMediaType.DIR) {
+            throw errorHandler.occurred(
+              HTTPStatus.FORBIDDEN,
+              resCode.get('mda007', { id: request.params.id }),
+            );
+          }
+          if (!(await mediaService.storage.exist(media))) {
+            throw errorHandler.occurred(
+              HTTPStatus.INTERNAL_SERVER_ERROR,
+              resCode.get('mda008', { id: request.params.id }),
+            );
+          }
+          return {
+            __file: await mediaService.storage.getPath({ media }),
+          };
+        },
+      }),
+
+      getBinaryForSize: createControllerMethod({
+        path: '/:id/bin/:size',
+        type: 'get',
+        preRequestHandler:
+          createJwtProtectionPreRequestHandler<BCMSUserCustomPool>(
+            [JWTRoleName.ADMIN, JWTRoleName.DEV],
+            JWTPermissionName.READ,
+          ),
+        async handler({ request, errorHandler }) {
+          const media = await mediaRepo.findById(request.params.id);
+          if (!media) {
+            throw errorHandler.occurred(
+              HTTPStatus.NOT_FOUNT,
+              resCode.get('mda001', { id: request.params.id }),
+            );
+          }
+          if (media.type === BCMSMediaType.DIR) {
+            throw errorHandler.occurred(
+              HTTPStatus.FORBIDDEN,
+              resCode.get('mda007', { id: request.params.id }),
+            );
+          }
+          if (!(await mediaService.storage.exist(media))) {
+            throw errorHandler.occurred(
+              HTTPStatus.INTERNAL_SERVER_ERROR,
+              resCode.get('mda008', { id: request.params.id }),
+            );
+          }
+          return {
+            __file: await mediaService.storage.getPath({
+              media,
+              size: request.params.size === 'small' ? 'small' : undefined,
+            }),
+          };
+        },
+      }),
+
+      getBinaryForSizeByAccessToken: createControllerMethod<
+        unknown,
+        { __file: string }
+      >({
+        path: '/:id/bin/:size/act',
+        type: 'get',
+        async handler({ request, errorHandler }) {
+          const accessToken = jwt.get({
+            jwtString: request.query.act + '',
+            roleNames: [JWTRoleName.ADMIN, JWTRoleName.USER],
+            permissionName: JWTPermissionName.READ,
+          });
+          if (accessToken instanceof JWTError) {
+            throw errorHandler.occurred(
+              HTTPStatus.UNAUTHORIZED,
+              resCode.get('mda012'),
+            );
+          }
+          const media = await mediaRepo.findById(request.params.id);
+          if (!media) {
+            throw errorHandler.occurred(
+              HTTPStatus.NOT_FOUNT,
+              resCode.get('mda001', { id: request.params.id }),
+            );
+          }
+          if (media.type === BCMSMediaType.DIR) {
+            throw errorHandler.occurred(
+              HTTPStatus.FORBIDDEN,
+              resCode.get('mda007', { id: request.params.id }),
+            );
+          }
+          if (!(await mediaService.storage.exist(media))) {
+            throw errorHandler.occurred(
+              HTTPStatus.INTERNAL_SERVER_ERROR,
+              resCode.get('mda008', { id: request.params.id }),
+            );
+          }
+          return {
+            __file: await mediaService.storage.getPath({
+              media,
+              size: request.params.size === 'small' ? 'small' : undefined,
+            }),
+          };
+        },
+      }),
+
+      createFile: createControllerMethod({
+        path: '/file',
+        type: 'post',
+        preRequestHandler:
+          createJwtProtectionPreRequestHandler<BCMSUserCustomPool>(
+            [JWTRoleName.ADMIN, JWTRoleName.DEV],
+            JWTPermissionName.WRITE,
+          ),
+        async handler({ request, errorHandler, accessToken }) {
+          const parentId = request.query.parentId as string;
+          const file = request.file;
+          if (!file) {
+            throw errorHandler.occurred(
+              HTTPStatus.BAD_REQUEST,
+              resCode.get('mda009'),
+            );
+          }
+          let parent: BCMSMedia | null = null;
+          if (parentId) {
+            parent = await mediaRepo.findById(parentId);
+            if (!parent) {
+              throw errorHandler.occurred(
+                HTTPStatus.NOT_FOUNT,
+                resCode.get('mda001', { id: parentId }),
+              );
+            }
+          }
+          const fileNameParts = file.originalname.split('.');
+          const fileName =
+            fileNameParts.length > 1
+              ? fileNameParts[fileNameParts.length - 2]
+              : fileNameParts[0];
+          const fileExt =
+            fileNameParts.length > 1
+              ? fileNameParts[fileNameParts.length - 1]
+              : '';
+          const media = mediaFactory.create({
+            userId: accessToken.payload.userId,
+            type: mediaService.mimetypeToMediaType(file.mimetype),
+            mimetype: file.mimetype,
+            size: file.size,
+            name:
+              stringUtil.toSlug(fileName) + fileExt
+                ? stringUtil.toSlug(fileName) + '.' + stringUtil.toSlug(fileExt)
+                : '',
+            path: parent ? parent.path : '/',
+            isInRoot: !parent,
+            hasChildren: false,
+            parentId: parentId ? parentId : '',
+          });
+          if (
+            await mediaRepo.methods.findByNameAndPath(media.name, media.path)
+          ) {
+            media.name =
+              crypto.randomBytes(6).toString('hex') + '-' + media.name;
+          }
+          await mediaService.storage.save(media, file.buffer);
+          const addedMedia = await mediaRepo.add(media as never);
+          if (!addedMedia) {
+            await mediaService.storage.removeFile(media);
+            throw errorHandler.occurred(
+              HTTPStatus.INTERNAL_SERVER_ERROR,
+              resCode.get('mda003'),
+            );
+          }
+
+          // TODO: trigger socket event and event manager
+
+          return {
+            item: addedMedia,
+          };
+        },
+      }),
+
+      createDir: createControllerMethod({
+        path: '/dir',
+        type: 'post',
+        preRequestHandler: createJwtAndBodyCheckRouteProtection<
+          BCMSUserCustomPool,
+          BCMSMediaAddDirData
+        >({
+          roleNames: [JWTRoleName.ADMIN, JWTRoleName.USER],
+          permissionName: JWTPermissionName.WRITE,
+          bodySchema: BCMSMediaAddDirDataSchema,
+        }),
+        async handler({ body, errorHandler, accessToken }) {
+          let parent: BCMSMedia | null = null;
+          if (body.parentId) {
+            parent = await mediaRepo.findById(body.parentId);
+            if (!parent) {
+              throw errorHandler.occurred(
+                HTTPStatus.NOT_FOUNT,
+                resCode.get('mda001', { id: body.parentId }),
+              );
+            }
+          }
+          body.name = stringUtil.toSlug(body.name);
+          const media = mediaFactory.create({
+            userId: accessToken.payload.userId,
+            type: BCMSMediaType.DIR,
+            mimetype: 'dir',
+            name: body.name,
+            path: parent ? `${parent.path}/${body.name}` : `/${body.name}`,
+            isInRoot: !parent,
+            parentId: parent ? `${parent._id}` : '',
+            hasChildren: true,
+          });
+          if (
+            await mediaRepo.methods.findByNameAndPath(media.name, media.path)
+          ) {
+            media.name =
+              crypto.randomBytes(6).toString('hex') + '-' + media.name;
+            media.path = parent
+              ? parent.path + '/' + media.name
+              : '/' + media.name;
+          }
+          const addedMedia = await mediaRepo.add(media as never);
+          if (!addedMedia) {
+            throw errorHandler.occurred(
+              HTTPStatus.INTERNAL_SERVER_ERROR,
+              resCode.get('mda003'),
+            );
+          }
+          await mediaService.storage.mkdir(addedMedia);
+
+          // TODO: trigger socket event and event manager
+
+          return {
+            item: addedMedia,
+          };
+        },
+      }),
+
+      deleteById: createControllerMethod({
+        path: '/:id',
+        type: 'delete',
+        preRequestHandler:
+          createJwtProtectionPreRequestHandler<BCMSUserCustomPool>(
+            [JWTRoleName.ADMIN, JWTRoleName.DEV],
+            JWTPermissionName.DELETE,
+          ),
+        async handler({ request, errorHandler }) {
+          const media = await mediaRepo.findById(request.params.id);
+          if (!media) {
+            throw errorHandler.occurred(
+              HTTPStatus.NOT_FOUNT,
+              resCode.get('mda001', { id: request.params.id }),
+            );
+          }
+          let deletedChildrenIds: string[] = [];
+          if (media.type === BCMSMediaType.DIR) {
+            deletedChildrenIds = (await mediaService.getChildren(media)).map(
+              (e) => `${e._id}`,
+            );
+            for (let i = 0; i < deletedChildrenIds.length; i++) {
+              const childId = deletedChildrenIds[i];
+              await mediaRepo.deleteById(childId);
+            }
+            await mediaRepo.deleteById(`${media._id}`);
+            await mediaService.storage.removeDir(media);
+          } else {
+            const deleteResult = await mediaRepo.deleteById(`${media._id}`);
+            if (!deleteResult) {
+              throw errorHandler.occurred(
+                HTTPStatus.INTERNAL_SERVER_ERROR,
+                resCode.get('mda006'),
+              );
+            }
+            await mediaService.storage.removeDir(media);
+          }
+
+          // TODO: trigger socket event and event manager
+
+          return {
+            message: 'Success.',
+          };
+        },
+      }),
+    };
+  },
+});

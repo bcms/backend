@@ -6,7 +6,7 @@ import {
   MediaRepo,
   FSMediaRepository,
   MongoMediaRepository,
-} from '../../media';
+} from '../../_media';
 import { Logger } from '@becomes/purple-cheetah';
 
 export class MediaCacheHandler extends CacheHandler<FSMedia,

@@ -6,7 +6,7 @@ import {
   TemplateRepo,
   FSTemplateRepository,
   MongoTemplateRepository,
-} from '../../template';
+} from '../../_template';
 import { Logger } from '@becomes/purple-cheetah';
 
 export class TemplateCacheHandler extends CacheHandler<FSTemplate,

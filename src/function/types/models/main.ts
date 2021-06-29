@@ -1,9 +1,11 @@
+import type { JWT } from '@becomes/purple-cheetah-mod-jwt/types';
 import type {
   HTTPError,
   Logger,
   ObjectSchema,
 } from '@becomes/purple-cheetah/types';
 import type { Request } from 'express';
+import type { BCMSApiKey, BCMSUserCustomPool } from '../../../types';
 
 export interface BCMSFunctionConfig {
   /**
@@ -35,6 +37,7 @@ export interface BCMSFunction<Result> {
     request: Request;
     errorHandler: HTTPError;
     logger: Logger;
+    auth: BCMSApiKey | JWT<BCMSUserCustomPool>;
   }): Promise<Result>;
 }
 export const BCMSFunctionSchema: ObjectSchema = {

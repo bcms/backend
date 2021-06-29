@@ -27,7 +27,7 @@ import {
 } from '../_prop';
 import { General, SocketUtil, SocketEventName } from '../_util';
 import { Widget, FSWidget } from '../widget';
-import { Template, FSTemplate } from '../template';
+import { Template, FSTemplate } from '../_template';
 import { Entry, FSEntry } from '../entry';
 import {
   EventManager,

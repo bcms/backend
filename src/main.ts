@@ -36,10 +36,17 @@ import { createEntryChangeSocketHandler } from './socket';
 import { BCMSUserController } from './user';
 import { createBcmsApiKeySecurity } from './security';
 import { BCMSApiKeyController } from './api';
-import { createBcmsFunctionModule } from './function';
+import { BCMSFunctionController, createBcmsFunctionModule } from './function';
 import { BCMSPluginController, createBcmsPluginModule } from './plugin';
 import { createBcmsEventModule } from './event';
 import { createBcmsJobModule } from './job';
+import { BCMSLanguageController } from './language';
+import {
+  BCMSMediaController,
+  BCMSMediaMiddleware,
+  createBcmsMediaService,
+} from './media';
+import { BCMSStatusController } from './status';
 
 let backend: BCMSBackend;
 
@@ -112,12 +119,14 @@ async function initialize() {
       },
       eventHandlers: [createEntryChangeSocketHandler()],
     }),
+    createBcmsMediaService(),
   ];
   const middleware: Middleware[] = [
     createCorsMiddleware(),
     createBodyParserMiddleware({
       limit: bcmsConfig.bodySizeLimit ? bcmsConfig.bodySizeLimit : undefined,
     }),
+    BCMSMediaMiddleware,
   ];
   const controllers: Controller[] = [
     BCMSUserController,
@@ -125,6 +134,10 @@ async function initialize() {
     BCMSShimUserController,
     BCMSApiKeyController,
     BCMSPluginController,
+    BCMSLanguageController,
+    BCMSMediaController,
+    BCMSStatusController,
+    BCMSFunctionController,
   ];
   if (bcmsConfig.database.fs) {
     modules.push(
