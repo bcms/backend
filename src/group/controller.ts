@@ -9,11 +9,11 @@ import {
   JWTRoleName,
 } from '@becomes/purple-cheetah-mod-jwt/types';
 import { HTTPStatus, StringUtility } from '@becomes/purple-cheetah/types';
-import { useBcmsPropHandler } from '../prop/handler';
+import { useBcmsPropHandler } from '../prop';
 import { useResponseCode } from '../response-code';
 import {
   BCMSProp,
-  BCMSPropGroupPointer,
+  BCMSPropGroupPointerData,
   BCMSPropHandler,
   BCMSPropType,
   BCMSUserCustomPool,
@@ -55,11 +55,11 @@ export const BCMSGroupController = createController<Setup>({
         for (const i in props) {
           const prop = props[i];
           if (prop.type === BCMSPropType.GROUP_POINTER) {
-            const value = prop.value as BCMSPropGroupPointer;
-            if (value._id === targetGroupId) {
+            const data = prop.defaultData as BCMSPropGroupPointerData;
+            if (data._id === targetGroupId) {
               return true;
             } else {
-              const g = await groupRepo.findById(value._id);
+              const g = await groupRepo.findById(data._id);
               if (g) {
                 return this.search(targetGroupId, g.props);
               }

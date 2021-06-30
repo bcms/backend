@@ -48,8 +48,8 @@ import { BCMSTemplateController } from './template';
 import { BCMSWidgetController } from './widget';
 import { createSocket } from '@becomes/purple-cheetah-mod-socket';
 import { Types } from 'mongoose';
-import { BCMSGroupController } from './group/controller';
-import { createBcmsPropHandler } from './prop/handler';
+import { BCMSGroupController } from './group';
+import { createBcmsPropHandler } from './prop';
 
 let backend: BCMSBackend;
 

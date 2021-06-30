@@ -1,11 +1,11 @@
-import type { ObjectSchema } from '@becomes/purple-cheetah/types';
+import type { ObjectSchema } from "@becomes/purple-cheetah/types";
 
-export interface BCMSPropEnum {
+export interface BCMSPropEnumData {
   items: string[];
   selected?: string;
 }
 
-export const BCMSPropEnumSchema: ObjectSchema = {
+export const BCMSPropEnumDataSchema: ObjectSchema = {
   items: {
     __type: 'array',
     __required: true,

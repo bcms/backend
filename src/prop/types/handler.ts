@@ -1,5 +1,9 @@
-import type { BCMSPropChange } from './changes';
-import type { BCMSProp } from './main';
+import type {
+  BCMSProp,
+  BCMSPropChange,
+  BCMSPropParsed,
+  BCMSPropValue,
+} from './models';
 
 export interface BCMSPropHandlerPointer {
   group: Array<{
@@ -27,6 +31,19 @@ export interface BCMSPropHandler {
     level?: string,
     groupPropChanges?: boolean,
   ): Promise<BCMSProp[] | Error>;
+  parse(data: {
+    props: BCMSProp[];
+    level?: string;
+    depth?: number;
+    maxDepth: number;
+  }): Promise<BCMSPropParsed>;
+  parseValues(data: {
+    meta: BCMSProp[];
+    values: BCMSPropValue[];
+    level?: string;
+    depth?: number;
+    maxDepth: number;
+  }): Promise<BCMSPropParsed>;
   // parseProps(
   //   props: BCMSProp[],
   //   lng: string,

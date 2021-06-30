@@ -1,3 +1,4 @@
+import { v4 as uuidv4 } from 'uuid';
 import { BCMSPropFactory, BCMSPropType } from './types';
 
 let propFactory: BCMSPropFactory;
@@ -38,74 +39,81 @@ export function useBcmsPropFactory(): BCMSPropFactory {
       },
       string(array) {
         return {
+          id: uuidv4(),
           name: '',
           label: '',
           array: array ? array : false,
           required: true,
           type: BCMSPropType.STRING,
-          value: [],
+          defaultData: [],
         };
       },
       number(array) {
         return {
+          id: uuidv4(),
           name: '',
           label: '',
           array: array ? array : false,
           required: true,
           type: BCMSPropType.NUMBER,
-          value: [],
+          defaultData: [],
         };
       },
       bool(array) {
         return {
+          id: uuidv4(),
           name: '',
           label: '',
           array: array ? array : false,
           required: true,
           type: BCMSPropType.BOOLEAN,
-          value: [],
+          defaultData: [],
         };
       },
       date(array) {
         return {
+          id: uuidv4(),
           name: '',
           label: '',
           array: array ? array : false,
           required: true,
           type: BCMSPropType.DATE,
-          value: [],
+          defaultData: [],
         };
       },
       enum(array) {
         return {
+          id: uuidv4(),
           name: '',
           label: '',
           array: array ? array : false,
           required: true,
           type: BCMSPropType.ENUMERATION,
-          value: {
+          defaultData: {
             items: [],
           },
         };
       },
       media(array) {
         return {
+          id: uuidv4(),
           name: '',
           label: '',
           array: array ? array : false,
           required: true,
           type: BCMSPropType.MEDIA,
-          value: [],
+          defaultData: [],
         };
       },
       groupPointer(array) {
         return {
+          id: uuidv4(),
           name: '',
           label: '',
           array: array ? array : false,
           required: true,
           type: BCMSPropType.GROUP_POINTER,
-          value: {
+          defaultData: {
             _id: '',
             items: [],
           },
@@ -113,12 +121,13 @@ export function useBcmsPropFactory(): BCMSPropFactory {
       },
       entryPointer(array) {
         return {
+          id: uuidv4(),
           name: '',
           label: '',
           array: array ? array : false,
           required: true,
           type: BCMSPropType.ENTRY_POINTER,
-          value: {
+          defaultData: {
             templateId: '',
             entryIds: [],
             displayProp: 'title',

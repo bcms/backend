@@ -1,12 +1,12 @@
-import type { ObjectSchema } from '@becomes/purple-cheetah/types';
+import type { ObjectSchema } from "@becomes/purple-cheetah/types";
 
-export interface BCMSPropEntryPointer {
+export interface BCMSPropEntryPointerData {
   templateId: string;
   entryIds: string[];
   displayProp: string;
 }
 
-export const BCMSPropEntryPointerSchema: ObjectSchema = {
+export const BCMSPropEntryPointerDataSchema: ObjectSchema = {
   templateId: {
     __type: 'string',
     __required: true,

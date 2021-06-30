@@ -9,7 +9,7 @@ import {
   JWTRoleName,
 } from '@becomes/purple-cheetah-mod-jwt/types';
 import { HTTPStatus, StringUtility } from '@becomes/purple-cheetah/types';
-import { useBcmsPropHandler } from '../prop/handler';
+import { useBcmsPropHandler } from '../prop';
 import { useResponseCode } from '../response-code';
 import type {
   BCMSPropHandler,

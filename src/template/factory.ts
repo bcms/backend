@@ -1,3 +1,4 @@
+import { v4 as uuidv4 } from 'uuid';
 import { Types } from 'mongoose';
 import { useBcmsConfig } from '../config';
 import { BCMSPropType } from '../types';
@@ -23,20 +24,22 @@ export function useBcmsTemplateFactory(): BCMSTemplateFactory {
             ? data.props
             : [
                 {
+                  id: uuidv4(),
                   label: 'Title',
                   name: 'title',
                   array: false,
                   required: true,
                   type: BCMSPropType.STRING,
-                  value: [''],
+                  defaultData: [''],
                 },
                 {
+                  id: uuidv4(),
                   label: 'Slug',
                   name: 'slug',
                   array: false,
                   required: true,
                   type: BCMSPropType.STRING,
-                  value: [''],
+                  defaultData: [''],
                 },
               ],
         };

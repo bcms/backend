@@ -10,7 +10,7 @@ import {
 } from '@becomes/purple-cheetah-mod-jwt/types';
 import { HTTPStatus, StringUtility } from '@becomes/purple-cheetah/types';
 import { useBcmsApiKeyRepository } from '../api';
-import { useBcmsPropHandler } from '../prop/handler';
+import { useBcmsPropHandler } from '../prop';
 import { useResponseCode } from '../response-code';
 import type {
   BCMSApiKey,
@@ -239,13 +239,13 @@ export const BCMSTemplateController = createController<Setup>({
                 }
               } else if (change.update) {
                 if (
-                  change.update.label.old === 'Title' ||
-                  change.update.label.old === 'Slug'
+                  change.update.label === 'Title' ||
+                  change.update.label === 'Slug'
                 ) {
                   throw errorHandler.occurred(
                     HTTPStatus.FORBIDDEN,
                     resCode.get('tmp009', {
-                      name: change.update.label.old,
+                      name: change.update.label,
                     }),
                   );
                 }

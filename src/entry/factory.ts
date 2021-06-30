@@ -1,47 +1,45 @@
-import { Entry, FSEntry } from './models';
 import { Types } from 'mongoose';
-import { EntryLite } from './interfaces';
+import { useBcmsConfig } from '../config';
+import type { BCMSEntry, BCMSEntryFactory } from './types';
 
-export class EntryFactory {
-  static get instance(): Entry | FSEntry {
-    if (process.env.DB_USE_FS === 'true') {
-      return new FSEntry(
-        new Types.ObjectId().toHexString(),
-        Date.now(),
-        Date.now(),
-        '',
-        '',
-        [],
-        [],
-        '',
-      );
-    } else {
-      return new Entry(
-        new Types.ObjectId(),
-        Date.now(),
-        Date.now(),
-        '',
-        '',
-        [],
-        [],
-        '',
-      );
-    }
-  }
+let entryFactory: BCMSEntryFactory;
 
-  static toLite(entry: Entry | FSEntry): EntryLite {
-    return {
-      _id: typeof entry._id === 'string' ? entry._id : entry._id.toHexString(),
-      createdAt: entry.createdAt,
-      updatedAt: entry.updatedAt,
-      templateId: entry.templateId,
-      userId: entry.userId,
-      meta: entry.meta.map(meta => {
-        return {
-          lng: meta.lng,
-          props: meta.props.slice(0, 2),
+export function useBcmsEntryFactory(): BCMSEntryFactory {
+  if (!entryFactory) {
+    const bcmsConfig = useBcmsConfig();
+    entryFactory = {
+      create(data) {
+        const entry: BCMSEntry = {
+          _id: new Types.ObjectId(),
+          createdAt: Date.now(),
+          updatedAt: Date.now(),
+          templateId: data.templateId ? data.templateId : '',
+          userId: data.userId ? data.userId : '',
+          status: data.status ? data.status : '',
+          meta: data.meta ? data.meta : [],
         };
-      }),
+        if (bcmsConfig.database.fs) {
+          entry._id = entry._id.toHexString() as never;
+        }
+        return entry;
+      },
+      toLite(entry) {
+        return {
+          _id: `${entry._id}`,
+          createdAt: entry.createdAt,
+          updatedAt: entry.updatedAt,
+          templateId: entry.templateId,
+          userId: entry.userId,
+          meta: entry.meta.map((meta) => {
+            return {
+              lng: meta.lng,
+              props: meta.props.slice(0, 2),
+            };
+          }),
+        };
+      },
     };
   }
+
+  return entryFactory;
 }

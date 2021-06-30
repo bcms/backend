@@ -1,4 +1,4 @@
-import type { BCMSProp, BCMSPropType } from "./main";
+import type { BCMSProp, BCMSPropType } from "./models";
 
 export interface BCMSPropFactory {
   create(type: BCMSPropType, array?: boolean): BCMSProp;

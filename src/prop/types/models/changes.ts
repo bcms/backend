@@ -1,5 +1,5 @@
 import type { ObjectSchema } from '@becomes/purple-cheetah/types';
-import type { BCMSPropType, BCMSPropValue } from './main';
+import type { BCMSPropData, BCMSPropType } from './main';
 
 export interface BCMSPropChange {
   add?: {
@@ -7,14 +7,14 @@ export interface BCMSPropChange {
     type: BCMSPropType;
     required: boolean;
     array: boolean;
-    value?: BCMSPropValue;
+    defaultData?: BCMSPropData;
   };
+  /** ID of the property which will be removed. */
   remove?: string;
   update?: {
-    label: {
-      old: string;
-      new: string;
-    };
+    /** ID of the property which should be updated. */
+    id: string;
+    label: string;
     move: number;
     required: boolean;
     enumItems?: string[];
@@ -52,19 +52,13 @@ export const BCMSPropChangeSchema: ObjectSchema = {
     __type: 'object',
     __required: false,
     __child: {
-      label: {
-        __type: 'object',
+      id: {
+        __type: 'string',
         __required: true,
-        __child: {
-          old: {
-            __type: 'string',
-            __required: true,
-          },
-          new: {
-            __type: 'string',
-            __required: true,
-          },
-        },
+      },
+      label: {
+        __type: 'string',
+        __required: true,
       },
       move: {
         __type: 'number',
