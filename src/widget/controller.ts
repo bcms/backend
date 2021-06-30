@@ -147,7 +147,7 @@ export const BCMSWidgetController = createController<Setup>({
           permissionName: JWTPermissionName.WRITE,
           bodySchema: BCMSWidgetCreateDataSchema,
         }),
-        async handler({ body, errorHandler, accessToken }) {
+        async handler({ body, errorHandler }) {
           const widget = widFactory.create({
             desc: body.desc,
             label: body.label,

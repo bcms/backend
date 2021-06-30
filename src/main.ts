@@ -11,8 +11,11 @@ import type {
 } from '@becomes/purple-cheetah/types';
 import {
   JWTAlgorithm,
+  JWTError,
+  JWTPermissionName,
+  JWTRoleName,
 } from '@becomes/purple-cheetah-mod-jwt/types';
-import { createJwt } from '@becomes/purple-cheetah-mod-jwt';
+import { createJwt, useJwt } from '@becomes/purple-cheetah-mod-jwt';
 import { createFSDB } from '@becomes/purple-cheetah-mod-fsdb';
 import { createMongoDB } from '@becomes/purple-cheetah-mod-mongodb';
 
@@ -28,7 +31,7 @@ import {
 } from './shim';
 // import { createEntryChangeSocketHandler } from './socket';
 import { BCMSUserController } from './user';
-import { createBcmsApiKeySecurity } from './security';
+import { createBcmsApiKeySecurity, useBcmsApiKeySecurity } from './security';
 import { BCMSApiKeyController } from './api';
 import { BCMSFunctionController, createBcmsFunctionModule } from './function';
 import { BCMSPluginController, createBcmsPluginModule } from './plugin';
@@ -43,6 +46,10 @@ import {
 import { BCMSStatusController } from './status';
 import { BCMSTemplateController } from './template';
 import { BCMSWidgetController } from './widget';
+import { createSocket } from '@becomes/purple-cheetah-mod-socket';
+import { Types } from 'mongoose';
+import { BCMSGroupController } from './group/controller';
+import { createBcmsPropHandler } from './prop/handler';
 
 let backend: BCMSBackend;
 
@@ -51,7 +58,6 @@ async function initialize() {
   await loadResponseCode();
   const bcmsConfig = useBcmsConfig();
 
-  // let apiKeySecurity: BCMSApiKeySecurity;
   const modules: Module[] = [
     createBcmsShimService(),
     createJwt({
@@ -64,61 +70,59 @@ async function initialize() {
         },
       ],
     }),
-    // createSocket({
-    //   path: '/api/socket/server/',
-    //   onConnection(socket) {
-    //     return {
-    //       id: new Types.ObjectId().toHexString(),
-    //       createdAt: Date.now(),
-    //       scope: 'global',
-    //       socket,
-    //     };
-    //   },
-    //   async verifyConnection(socket) {
-    //     // eslint-disable-next-line @typescript-eslint/no-explicit-any
-    //     const query = (socket.request as any)._query;
-    //     if (query.signature) {
-    //       try {
-    //         if (!apiKeySecurity) {
-    //           apiKeySecurity = useBcmsApiKeySecurity();
-    //         }
-    //         const key = await apiKeySecurity.verify(
-    //           {
-    //             path: '',
-    //             requestMethod: 'POST',
-    //             data: {
-    //               k: query.key,
-    //               n: query.nonce,
-    //               t: query.timestamp,
-    //               s: query.signature,
-    //             },
-    //             payload: {},
-    //           },
-    //           true,
-    //         );
-    //         if (!key) {
-    //           return false;
-    //         }
-    //       } catch (error) {
-    //         // eslint-disable-next-line no-console
-    //         console.error(error);
-    //         return false;
-    //       }
-    //     } else {
-    //       const jwt = useJwt();
-    //       const token = jwt.get({
-    //         jwtString: query.at,
-    //         roleNames: [JWTRoleName.ADMIN, JWTRoleName.USER],
-    //         permissionName: JWTPermissionName.READ,
-    //       });
-    //       if (token instanceof JWTError) {
-    //         return false;
-    //       }
-    //     }
-    //     return true;
-    //   },
-    //   // eventHandlers: [createEntryChangeSocketHandler()],
-    // }),
+    createSocket({
+      path: '/api/socket/server',
+      onConnection(socket) {
+        return {
+          id: new Types.ObjectId().toHexString(),
+          createdAt: Date.now(),
+          scope: 'global',
+          socket,
+        };
+      },
+      async verifyConnection(socket) {
+        // eslint-disable-next-line @typescript-eslint/no-explicit-any
+        const query = (socket.request as any)._query;
+        if (query.signature) {
+          try {
+            const apiKeySecurity = useBcmsApiKeySecurity();
+            const key = await apiKeySecurity.verify(
+              {
+                path: '',
+                requestMethod: 'POST',
+                data: {
+                  k: query.key,
+                  n: query.nonce,
+                  t: query.timestamp,
+                  s: query.signature,
+                },
+                payload: {},
+              },
+              true,
+            );
+            if (!key) {
+              return false;
+            }
+          } catch (error) {
+            // eslint-disable-next-line no-console
+            console.error(error);
+            return false;
+          }
+        } else {
+          const jwt = useJwt();
+          const token = jwt.get({
+            jwtString: query.at,
+            roleNames: [JWTRoleName.ADMIN, JWTRoleName.USER],
+            permissionName: JWTPermissionName.READ,
+          });
+          if (token instanceof JWTError) {
+            return false;
+          }
+        }
+        return true;
+      },
+      // eventHandlers: [createEntryChangeSocketHandler()],
+    }),
     createBcmsMediaService(),
   ];
   const middleware: Middleware[] = [
@@ -135,6 +139,7 @@ async function initialize() {
     BCMSApiKeyController,
     BCMSPluginController,
     BCMSLanguageController,
+    BCMSGroupController,
     BCMSMediaController,
     BCMSStatusController,
     BCMSFunctionController,
@@ -198,6 +203,7 @@ async function initialize() {
   modules.push(createBcmsEventModule());
   modules.push(createBcmsJobModule());
   modules.push(createBcmsApiKeySecurity());
+  modules.push(createBcmsPropHandler());
 
   modules.push(createBcmsPluginModule(bcmsConfig));
 

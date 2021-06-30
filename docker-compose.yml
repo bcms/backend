@@ -18,8 +18,8 @@ services:
         source: ./src
         target: /app/src
       - type: bind
-        source: ./bcms.db.json
-        target: /app/bcms.db.json
+        source: ./db
+        target: /app/db
       - type: bind
         source: ./uploads
         target: /app/uploads
