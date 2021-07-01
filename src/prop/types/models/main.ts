@@ -90,8 +90,6 @@ export type BCMSPropDataParsed =
   | number
   | number[]
   | BCMSPropEnumData
-  // | BCMSEntryParsed
-  // | BCMSEntryParsed[]
   | BCMSPropEntryPointerData
   | BCMSPropGroupPointerDataParsed
   | BCMSPropGroupPointerDataParsed[]

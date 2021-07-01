@@ -32,12 +32,6 @@ export interface BCMSPropHandler {
     groupPropChanges?: boolean,
   ): Promise<BCMSProp[] | Error>;
   parse(data: {
-    props: BCMSProp[];
-    level?: string;
-    depth?: number;
-    maxDepth: number;
-  }): Promise<BCMSPropParsed>;
-  parseValues(data: {
     meta: BCMSProp[];
     values: BCMSPropValue[];
     level?: string;

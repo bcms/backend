@@ -1,4 +1,4 @@
-import type { BCMSEntry } from './models';
+import type { BCMSEntry, BCMSEntryParsed } from './models';
 
 export interface BCMSEntryParser {
   parse(data: {
@@ -7,5 +7,5 @@ export interface BCMSEntryParser {
     level?: string;
     depth?: number;
     maxDepth: number;
-  }): Promise<BCMSEntryParser>;
+  }): Promise<BCMSEntryParsed | null>;
 }

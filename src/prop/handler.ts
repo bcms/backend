@@ -1,17 +1,18 @@
-// import { useObjectUtility, useStringUtility } from '@becomes/purple-cheetah';
 import type { Module } from '@becomes/purple-cheetah/types';
+import { useBcmsEntryRepository } from '../entry';
 import { useBcmsGroupRepository } from '../group';
-// import { useBcmsTemplateRepository } from '../template';
-// import { useBcmsWidgetRepository } from '../widget';
-// import { useBcmsPropFactory } from './factory';
+import { useBcmsLanguageRepository } from '../language';
+import { useBcmsTemplateRepository } from '../template';
 import {
+  BCMSPropDataParsed,
+  BCMSPropEntryPointerData,
+  BCMSPropEntryPointerDataParsed,
   BCMSPropGroupPointerData,
   BCMSPropHandler,
   BCMSPropHandlerPointer,
-  BCMSPropMediaData,
   BCMSPropParsed,
   BCMSPropType,
-  BCMSPropValue,
+  BCMSPropValueGroupPointerData,
 } from './types';
 
 let propHandler: BCMSPropHandler;
@@ -25,11 +26,9 @@ export function createBcmsPropHandler(): Module {
     name: 'Prop handler',
     initialize(moduleConfig) {
       const groupRepo = useBcmsGroupRepository();
-      // const widRepo = useBcmsWidgetRepository();
-      // const tempRepo = useBcmsTemplateRepository();
-      // const objectUtil = useObjectUtility();
-      // const stringUtil = useStringUtility();
-      // const propFactory = useBcmsPropFactory();
+      const entryRepo = useBcmsEntryRepository();
+      const tempRepo = useBcmsTemplateRepository();
+      const lngRepo = useBcmsLanguageRepository();
 
       propHandler = {
         async testInfiniteLoop(props, _pointer, level) {
@@ -90,14 +89,7 @@ export function createBcmsPropHandler(): Module {
         async applyPropChanges(props, _changes, _level, _groupPropsChanges) {
           return props;
         },
-        async parse(props) {
-          const parsed: BCMSPropParsed = {};
-          for (let i = 0; i < props.length; i++) {
-            const prop = props[i];
-          }
-          return parsed;
-        },
-        async parseValues({ maxDepth, depth, meta, values, level }) {
+        async parse({ maxDepth, depth, meta, values, level }) {
           if (!level) {
             level = 'props';
           }
@@ -105,21 +97,140 @@ export function createBcmsPropHandler(): Module {
             depth = 0;
           }
           const parsed: BCMSPropParsed = {};
-          for (let i = 0; i < values.length; i++) {
-            const value = values[i];
-            const prop = meta.find((e) => e.id === value.id);
-            if (prop) {
+          for (let i = 0; i < meta.length; i++) {
+            const prop = meta[i];
+            const value = values.find((e) => e.id === prop.id);
+            if (value) {
               if (
                 prop.type === BCMSPropType.STRING ||
                 prop.type === BCMSPropType.NUMBER ||
                 prop.type === BCMSPropType.BOOLEAN ||
                 prop.type === BCMSPropType.DATE ||
+                prop.type === BCMSPropType.ENUMERATION ||
                 prop.type === BCMSPropType.MEDIA
               ) {
                 if (prop.array) {
                   parsed[prop.name] = value.data as string[];
                 } else {
                   parsed[prop.name] = (value.data as string[])[0];
+                }
+              } else if (prop.type === BCMSPropType.GROUP_POINTER) {
+                const data = prop.defaultData as BCMSPropGroupPointerData;
+                const valueData = value.data as BCMSPropValueGroupPointerData;
+                const group = await groupRepo.findById(data._id);
+                if (group) {
+                  if (prop.array) {
+                    parsed[prop.name] = [];
+                    for (let j = 0; j < valueData.items.length; j++) {
+                      const valueDataItem = valueData.items[j];
+                      (parsed[prop.name] as BCMSPropDataParsed[]).push(
+                        await propHandler.parse({
+                          maxDepth,
+                          meta: group.props,
+                          values: valueDataItem.props,
+                          depth,
+                          level: `${level}.${prop.name}.${j}`,
+                        }),
+                      );
+                    }
+                  } else {
+                    parsed[prop.name] = await propHandler.parse({
+                      maxDepth,
+                      meta: group.props,
+                      values: valueData.items[0].props,
+                      depth,
+                      level: `${level}.${prop.name}`,
+                    });
+                  }
+                }
+              } else if (prop.type === BCMSPropType.ENTRY_POINTER) {
+                const data = prop.defaultData as BCMSPropEntryPointerData;
+                const valueData = value.data as string[];
+                if (prop.array) {
+                  if (depth === maxDepth) {
+                    parsed[prop.name] = valueData;
+                  } else {
+                    (parsed[prop.name] as BCMSPropEntryPointerDataParsed[]) =
+                      [];
+                    for (let j = 0; j < valueData.length; j++) {
+                      const entryId = valueData[j];
+                      const entry = await entryRepo.findById(entryId);
+                      if (entry) {
+                        const template = await tempRepo.findById(
+                          data.templateId,
+                        );
+                        if (template) {
+                          const parsedIndex = (
+                            parsed[
+                              prop.name
+                            ] as BCMSPropEntryPointerDataParsed[]
+                          ).push({});
+                          for (let k = 0; k < entry.meta.length; k++) {
+                            const entryMeta = entry.meta[k];
+                            const lng = await lngRepo.methods.findByCode(
+                              entryMeta.lng,
+                            );
+                            if (lng) {
+                              (
+                                parsed[
+                                  prop.name
+                                ] as BCMSPropEntryPointerDataParsed[]
+                              )[parsedIndex][lng.code] =
+                                await propHandler.parse({
+                                  maxDepth,
+                                  meta: template.props,
+                                  values: entryMeta.props,
+                                  depth: depth + 1,
+                                  level: `${level}.${prop.name}`,
+                                });
+                              (
+                                parsed[
+                                  prop.name
+                                ] as BCMSPropEntryPointerDataParsed[]
+                              )[parsedIndex][lng.code]._id = entryId;
+                            }
+                          }
+                        }
+                      }
+                    }
+                  }
+                } else {
+                  if (depth === maxDepth) {
+                    parsed[prop.name] = valueData[0];
+                  } else {
+                    const entry = await entryRepo.findById(valueData[0]);
+                    if (entry) {
+                      const template = await tempRepo.findById(data.templateId);
+                      if (template) {
+                        (parsed[prop.name] as BCMSPropEntryPointerDataParsed) =
+                          {};
+                        for (let j = 0; j < entry.meta.length; j++) {
+                          const entryMeta = entry.meta[j];
+                          const lng = await lngRepo.methods.findByCode(
+                            entryMeta.lng,
+                          );
+                          if (lng) {
+                            (
+                              parsed[
+                                prop.name
+                              ] as BCMSPropEntryPointerDataParsed
+                            )[lng.code] = await propHandler.parse({
+                              maxDepth,
+                              meta: template.props,
+                              values: entryMeta.props,
+                              depth: depth + 1,
+                              level: `${level}.${prop.name}`,
+                            });
+                            (
+                              parsed[
+                                prop.name
+                              ] as BCMSPropEntryPointerDataParsed
+                            )[lng.code]._id = valueData[0];
+                          }
+                        }
+                      }
+                    }
+                  }
                 }
               }
             }
