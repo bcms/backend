@@ -37,6 +37,8 @@ import {
   BCMSEntryMeta,
   BCMSEntryParser,
   BCMSEntryRepository,
+  BCMSEntryUpdateData,
+  BCMSEntryUpdateDataSchema,
 } from './types';
 
 interface Setup {
@@ -237,7 +239,7 @@ export const BCMSEntryController = createController<Setup>({
         type: 'post',
         preRequestHandler: createJwtApiProtectionPreRequestHandler({
           roleNames: [JWTRoleName.ADMIN, JWTRoleName.USER],
-          permissionName: JWTPermissionName.READ,
+          permissionName: JWTPermissionName.WRITE,
         }),
         async handler({ request, errorHandler, token, key }) {
           const checkBody = objectUtil.compareWithSchema(
@@ -254,6 +256,89 @@ export const BCMSEntryController = createController<Setup>({
             );
           }
           const body = request.body as BCMSEntryCreateData;
+          const template = await tempRepo.findById(body.templateId);
+          if (!template) {
+            throw errorHandler.occurred(
+              HTTPStatus.NOT_FOUNT,
+              resCode.get('tmp001', {
+                id: body.templateId,
+              }),
+            );
+          }
+          const meta: BCMSEntryMeta[] = [];
+          const langs = await langRepo.findAll();
+          const status = body.status
+            ? await statusRepo.findById(body.status)
+            : null;
+          for (let i = 0; i < langs.length; i++) {
+            const lang = langs[i];
+            const langMeta = body.meta.find((e) => e.lng === lang.code);
+            if (!langMeta) {
+              throw errorHandler.occurred(
+                HTTPStatus.BAD_REQUEST,
+                resCode.get('etr002', {
+                  lng: lang.name,
+                  prop: 'meta',
+                }),
+              );
+            }
+            const metaCheckResult = await propHandler.checkPropValues({
+              props: template.props,
+              values: langMeta.props,
+              level: `body.meta[${i}].props`,
+            });
+            if (metaCheckResult instanceof Error) {
+              throw errorHandler.occurred(
+                HTTPStatus.BAD_REQUEST,
+                resCode.get('etr003', {
+                  error: metaCheckResult.message,
+                  prop: 'meta',
+                }),
+              );
+            }
+            meta.push(langMeta);
+          }
+          const entry = entryFactory.create({
+            templateId: `${template._id}`,
+            userId: token ? token.payload.userId : `key_${key?._id}`,
+            status: status ? `${status._id}` : undefined,
+            meta: meta,
+          });
+          const addedEntry = await entryRepo.add(entry as never);
+          if (!addedEntry) {
+            throw errorHandler.occurred(
+              HTTPStatus.INTERNAL_SERVER_ERROR,
+              resCode.get('etr004'),
+            );
+          }
+          return {
+            item: addedEntry,
+          };
+        },
+      }),
+
+      update: createControllerMethod({
+        path: '/:tid',
+        type: 'put',
+        preRequestHandler: createJwtApiProtectionPreRequestHandler({
+          roleNames: [JWTRoleName.ADMIN, JWTRoleName.USER],
+          permissionName: JWTPermissionName.WRITE,
+        }),
+        async handler({ request, errorHandler, token, key }) {
+          const checkBody = objectUtil.compareWithSchema(
+            request.body,
+            BCMSEntryUpdateDataSchema,
+            'body',
+          );
+          if (checkBody instanceof ObjectUtilityError) {
+            throw errorHandler.occurred(
+              HTTPStatus.BAD_REQUEST,
+              resCode.get('g002', {
+                msg: checkBody.message,
+              }),
+            );
+          }
+          const body = request.body as BCMSEntryUpdateData;
           const template = await tempRepo.findById(body.templateId);
           if (!template) {
             throw errorHandler.occurred(
