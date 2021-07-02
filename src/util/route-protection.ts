@@ -12,20 +12,22 @@ import {
   ObjectSchema,
   ObjectUtilityError,
 } from '@becomes/purple-cheetah/types';
+import { useBcmsApiKeySecurity } from '../security';
+import type { BCMSApiKey, BCMSUserCustomPool } from '../types';
 
-export function createJwtAndBodyCheckRouteProtection<JWTProps, Body>(config: {
+export function createJwtAndBodyCheckRouteProtection<Body>(config: {
   roleNames: JWTRoleName[];
   permissionName: JWTPermissionName;
   bodySchema: ObjectSchema;
 }): ControllerMethodPreRequestHandler<{
-  accessToken: JWT<JWTProps>;
+  accessToken: JWT<BCMSUserCustomPool>;
   body: Body;
 }> {
   const jwt = useJwt();
   const objectUtil = useObjectUtility();
 
   return async ({ request, errorHandler }) => {
-    const accessToken = jwt.get<JWTProps>({
+    const accessToken = jwt.get<BCMSUserCustomPool>({
       jwtString: request.headers.authorization as string,
       roleNames: config.roleNames,
       permissionName: config.permissionName,
@@ -46,5 +48,43 @@ export function createJwtAndBodyCheckRouteProtection<JWTProps, Body>(config: {
       accessToken,
       body: request.body,
     };
+  };
+}
+
+export function createJwtApiProtectionPreRequestHandler(config: {
+  roleNames: JWTRoleName[];
+  permissionName: JWTPermissionName;
+}): ControllerMethodPreRequestHandler<{
+  token?: JWT<BCMSUserCustomPool>;
+  key?: BCMSApiKey;
+}> {
+  const jwt = useJwt();
+  const apiSecurity = useBcmsApiKeySecurity();
+
+  return async ({ request, errorHandler }) => {
+    if (request.query.signature) {
+      try {
+        const key = await apiSecurity.verify(
+          apiSecurity.httpRequestToApiKeyRequest(request),
+        );
+        return {
+          key,
+        };
+      } catch (error) {
+        throw errorHandler.occurred(HTTPStatus.UNAUTHORIZED, error.message);
+      }
+    } else {
+      const token = jwt.get<BCMSUserCustomPool>({
+        jwtString: request.headers.authorization as string,
+        roleNames: config.roleNames,
+        permissionName: config.permissionName,
+      });
+      if (token instanceof JWTError) {
+        throw errorHandler.occurred(HTTPStatus.UNAUTHORIZED, token.message);
+      }
+      return {
+        token,
+      };
+    }
   };
 }

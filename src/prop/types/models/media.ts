@@ -5,6 +5,11 @@ export interface BCMSPropMediaData {
   altText: string;
 }
 
+export interface BCMSPropMediaDataParsed {
+  src: string;
+  altText: string;
+}
+
 export const BCMSPropMediaDataSchema: ObjectSchema = {
   id: {
     __type: 'string',

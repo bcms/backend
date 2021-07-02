@@ -1,15 +1,21 @@
-import type { Module } from '@becomes/purple-cheetah/types';
+import { useObjectUtility } from '@becomes/purple-cheetah';
+import { Module, ObjectUtilityError } from '@becomes/purple-cheetah/types';
 import { useBcmsEntryRepository } from '../entry';
 import { useBcmsGroupRepository } from '../group';
 import { useBcmsLanguageRepository } from '../language';
+import { useBcmsMediaRepository, useBcmsMediaService } from '../media';
 import { useBcmsTemplateRepository } from '../template';
 import {
   BCMSPropDataParsed,
   BCMSPropEntryPointerData,
   BCMSPropEntryPointerDataParsed,
+  BCMSPropEnumData,
   BCMSPropGroupPointerData,
   BCMSPropHandler,
   BCMSPropHandlerPointer,
+  BCMSPropMediaData,
+  BCMSPropMediaDataParsed,
+  BCMSPropMediaDataSchema,
   BCMSPropParsed,
   BCMSPropType,
   BCMSPropValueGroupPointerData,
@@ -29,8 +35,252 @@ export function createBcmsPropHandler(): Module {
       const entryRepo = useBcmsEntryRepository();
       const tempRepo = useBcmsTemplateRepository();
       const lngRepo = useBcmsLanguageRepository();
+      const objectUtil = useObjectUtility();
+      const mediaService = useBcmsMediaService();
+      const mediaRepo = useBcmsMediaRepository();
 
       propHandler = {
+        async checkPropValues({ props, values, level }) {
+          if (props.length !== values.length) {
+            return Error(
+              `[${level}] -> props and values are not the same length.`,
+            );
+          }
+          for (let i = 0; i < props.length; i++) {
+            const prop = props[i];
+            const value = values.find((e) => e.id === prop.id);
+            if (!value) {
+              return Error(`[${level}.${prop.name}] -> No value found.`);
+            }
+            switch (prop.type) {
+              case BCMSPropType.STRING:
+                {
+                  const checkData = objectUtil.compareWithSchema(
+                    {
+                      data: value.data,
+                    },
+                    {
+                      data: {
+                        __type: 'array',
+                        __required: true,
+                        __child: {
+                          __type: 'string',
+                        },
+                      },
+                    },
+                    `${level}.${prop.name}`,
+                  );
+                  if (checkData instanceof ObjectUtilityError) {
+                    return Error(
+                      `[${level}.${prop.name}] -> ` + checkData.message,
+                    );
+                  }
+                }
+                break;
+              case BCMSPropType.NUMBER:
+                {
+                  const checkData = objectUtil.compareWithSchema(
+                    {
+                      data: value.data,
+                    },
+                    {
+                      data: {
+                        __type: 'array',
+                        __required: true,
+                        __child: {
+                          __type: 'number',
+                        },
+                      },
+                    },
+                    `${level}.${prop.name}`,
+                  );
+                  if (checkData instanceof ObjectUtilityError) {
+                    return Error(
+                      `[${level}.${prop.name}] -> ` + checkData.message,
+                    );
+                  }
+                }
+                break;
+              case BCMSPropType.BOOLEAN:
+                {
+                  const checkData = objectUtil.compareWithSchema(
+                    {
+                      data: value.data,
+                    },
+                    {
+                      data: {
+                        __type: 'array',
+                        __required: true,
+                        __child: {
+                          __type: 'boolean',
+                        },
+                      },
+                    },
+                    `${level}.${prop.name}`,
+                  );
+                  if (checkData instanceof ObjectUtilityError) {
+                    return Error(
+                      `[${level}.${prop.name}] -> ` + checkData.message,
+                    );
+                  }
+                }
+                break;
+              case BCMSPropType.DATE:
+                {
+                  const checkData = objectUtil.compareWithSchema(
+                    {
+                      data: value.data,
+                    },
+                    {
+                      data: {
+                        __type: 'array',
+                        __required: true,
+                        __child: {
+                          __type: 'number',
+                        },
+                      },
+                    },
+                    `${level}.${prop.name}`,
+                  );
+                  if (checkData instanceof ObjectUtilityError) {
+                    return Error(
+                      `[${level}.${prop.name}] -> ` + checkData.message,
+                    );
+                  }
+                }
+                break;
+              case BCMSPropType.ENUMERATION:
+                {
+                  const checkData = objectUtil.compareWithSchema(
+                    {
+                      data: value.data,
+                    },
+                    {
+                      data: {
+                        __type: 'array',
+                        __required: true,
+                        __child: {
+                          __type: 'string',
+                        },
+                      },
+                    },
+                    `${level}.${prop.name}`,
+                  );
+                  if (checkData instanceof ObjectUtilityError) {
+                    return Error(
+                      `[${level}.${prop.name}] -> ` + checkData.message,
+                    );
+                  }
+                }
+                break;
+              case BCMSPropType.MEDIA:
+                {
+                  const checkData = objectUtil.compareWithSchema(
+                    {
+                      data: value.data,
+                    },
+                    {
+                      data: {
+                        __type: 'array',
+                        __required: true,
+                        __child: {
+                          __type: 'object',
+                          __content: BCMSPropMediaDataSchema,
+                        },
+                      },
+                    },
+                    `${level}.${prop.name}`,
+                  );
+                  if (checkData instanceof ObjectUtilityError) {
+                    return Error(
+                      `[${level}.${prop.name}] -> ` + checkData.message,
+                    );
+                  }
+                }
+                break;
+              case BCMSPropType.GROUP_POINTER:
+                {
+                  const propData = prop.defaultData as BCMSPropGroupPointerData;
+                  const valueData = value.data as BCMSPropValueGroupPointerData;
+                  if (propData._id !== valueData._id) {
+                    return Error(
+                      `[${level}.${prop.name}._id] -> ` +
+                        'Prop and value group pointer IDs do not match.',
+                    );
+                  }
+                  const group = await groupRepo.findById(propData._id);
+                  if (!group) {
+                    return Error(
+                      `[${level}.${prop.name}._id] -> ` +
+                        `Group with ID ${propData._id} does not exist.`,
+                    );
+                  }
+                  for (let j = 0; j < valueData.items.length; j++) {
+                    const item = valueData.items[j];
+                    const groupCheckPropValuesResult =
+                      await propHandler.checkPropValues({
+                        level: `${level}.${prop.name}.items.${j}`,
+                        props: group.props,
+                        values: item.props,
+                      });
+                    if (groupCheckPropValuesResult instanceof Error) {
+                      return groupCheckPropValuesResult;
+                    }
+                  }
+                }
+                break;
+              case BCMSPropType.ENTRY_POINTER:
+                {
+                  const checkData = objectUtil.compareWithSchema(
+                    {
+                      data: value.data,
+                    },
+                    {
+                      data: {
+                        __type: 'array',
+                        __required: true,
+                        __child: {
+                          __type: 'string',
+                        },
+                      },
+                    },
+                    `${level}.${prop.name}`,
+                  );
+                  if (checkData instanceof ObjectUtilityError) {
+                    return Error(
+                      `[${level}.${prop.name}] -> ` + checkData.message,
+                    );
+                  }
+                  const propData = prop.defaultData as BCMSPropEntryPointerData;
+                  const valueData = value.data as string[];
+                  for (let j = 0; j < valueData.length; j++) {
+                    const entryId = valueData[j];
+                    const entry = await entryRepo.findById(entryId);
+                    if (!entry) {
+                      return Error(
+                        `[${level}.${prop.name}.${j}] -> ` +
+                          `Entry with ID ${entryId} does not exist.`,
+                      );
+                    }
+                    if (entry.templateId !== propData.templateId) {
+                      return Error(
+                        `[${level}.${prop.name}.${j}] -> ` +
+                          `Entry with ID ${entryId} does not belong` +
+                          ` to template "${propData.templateId}" but to` +
+                          ` template "${entry.templateId}".`,
+                      );
+                    }
+                  }
+                }
+                break;
+              default: {
+                return Error(
+                  `[${level}.${prop.name}] -> Unknown prop type "${prop.type}"`,
+                );
+              }
+            }
+          }
+        },
         async testInfiniteLoop(props, _pointer, level) {
           if (!level) {
             level = 'props';
@@ -105,15 +355,46 @@ export function createBcmsPropHandler(): Module {
                 prop.type === BCMSPropType.STRING ||
                 prop.type === BCMSPropType.NUMBER ||
                 prop.type === BCMSPropType.BOOLEAN ||
-                prop.type === BCMSPropType.DATE ||
-                prop.type === BCMSPropType.ENUMERATION ||
-                prop.type === BCMSPropType.MEDIA
+                prop.type === BCMSPropType.DATE
               ) {
                 if (prop.array) {
                   parsed[prop.name] = value.data as string[];
                 } else {
                   parsed[prop.name] = (value.data as string[])[0];
                 }
+              } else if (prop.type === BCMSPropType.MEDIA) {
+                const valueData = value.data as BCMSPropMediaData[];
+                if (prop.array) {
+                  for (let j = 0; j < valueData.length; j++) {
+                    const singleValueData = valueData[j];
+                    if (typeof singleValueData === 'object') {
+                      const media = await mediaRepo.findById(
+                        singleValueData.id,
+                      );
+                      if (media) {
+                        (parsed[prop.name] as BCMSPropMediaDataParsed) = {
+                          src: await mediaService.getPath(media),
+                          altText: singleValueData.altText,
+                        };
+                      }
+                    }
+                  }
+                } else {
+                  if (typeof valueData[0] === 'object') {
+                    const media = await mediaRepo.findById(valueData[0].id);
+                    if (media) {
+                      (parsed[prop.name] as BCMSPropMediaDataParsed) = {
+                        src: await mediaService.getPath(media),
+                        altText: valueData[0].altText,
+                      };
+                    }
+                  }
+                }
+              } else if (prop.type === BCMSPropType.ENUMERATION) {
+                (parsed[prop.name] as BCMSPropEnumData) = {
+                  items: (prop.defaultData as BCMSPropEnumData).items,
+                  selected: (value.data as string[])[0],
+                };
               } else if (prop.type === BCMSPropType.GROUP_POINTER) {
                 const data = prop.defaultData as BCMSPropGroupPointerData;
                 const valueData = value.data as BCMSPropValueGroupPointerData;

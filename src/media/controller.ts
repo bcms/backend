@@ -436,14 +436,12 @@ export const BCMSMediaController = createController<Setup>({
       createDir: createControllerMethod({
         path: '/dir',
         type: 'post',
-        preRequestHandler: createJwtAndBodyCheckRouteProtection<
-          BCMSUserCustomPool,
-          BCMSMediaAddDirData
-        >({
-          roleNames: [JWTRoleName.ADMIN, JWTRoleName.USER],
-          permissionName: JWTPermissionName.WRITE,
-          bodySchema: BCMSMediaAddDirDataSchema,
-        }),
+        preRequestHandler:
+          createJwtAndBodyCheckRouteProtection<BCMSMediaAddDirData>({
+            roleNames: [JWTRoleName.ADMIN, JWTRoleName.USER],
+            permissionName: JWTPermissionName.WRITE,
+            bodySchema: BCMSMediaAddDirDataSchema,
+          }),
         async handler({ body, errorHandler, accessToken }) {
           let parent: BCMSMedia | null = null;
           if (body.parentId) {

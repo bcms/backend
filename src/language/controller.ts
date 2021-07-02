@@ -94,14 +94,12 @@ export const BCMSLanguageController = createController<Setup>({
 
       create: createControllerMethod({
         type: 'post',
-        preRequestHandler: createJwtAndBodyCheckRouteProtection<
-          BCMSUserCustomPool,
-          BCMSLanguageAddData
-        >({
-          roleNames: [JWTRoleName.ADMIN, JWTRoleName.USER],
-          permissionName: JWTPermissionName.WRITE,
-          bodySchema: BCMSLanguageAddDataSchema,
-        }),
+        preRequestHandler:
+          createJwtAndBodyCheckRouteProtection<BCMSLanguageAddData>({
+            roleNames: [JWTRoleName.ADMIN, JWTRoleName.USER],
+            permissionName: JWTPermissionName.WRITE,
+            bodySchema: BCMSLanguageAddDataSchema,
+          }),
         async handler({ body, accessToken, errorHandler }) {
           const language = langFactory.create({
             name: body.name,

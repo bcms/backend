@@ -7,7 +7,7 @@ import type {
   BCMSPropGroupPointerDataParsed,
   BCMSPropValueGroupPointerData,
 } from './group-pointer';
-import type { BCMSPropMediaData } from './media';
+import type { BCMSPropMediaData, BCMSPropMediaDataParsed } from './media';
 import type {
   BCMSPropValueWidgetData,
   BCMSPropWidgetData,
@@ -94,8 +94,8 @@ export type BCMSPropDataParsed =
   | BCMSPropGroupPointerDataParsed
   | BCMSPropGroupPointerDataParsed[]
   | BCMSPropWidgetDataParsed
-  | BCMSPropMediaData
-  | BCMSPropMediaData[]
+  | BCMSPropMediaDataParsed
+  | BCMSPropMediaDataParsed[]
   | {
       type: BCMSPropType;
       value: BCMSPropDataParsed;
@@ -115,8 +115,6 @@ export type BCMSPropValueData =
   | boolean[]
   | number[]
   | BCMSPropDateData
-  | BCMSPropEntryPointerData
-  | BCMSPropEnumData
   | BCMSPropValueGroupPointerData
   | BCMSPropMediaData[]
   | BCMSPropValueWidgetData;

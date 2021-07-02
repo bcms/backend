@@ -133,14 +133,12 @@ export const BCMSTemplateController = createController<Setup>({
 
       create: createControllerMethod({
         type: 'post',
-        preRequestHandler: createJwtAndBodyCheckRouteProtection<
-          BCMSUserCustomPool,
-          BCMSTemplateCreateData
-        >({
-          roleNames: [JWTRoleName.ADMIN, JWTRoleName.USER],
-          permissionName: JWTPermissionName.WRITE,
-          bodySchema: BCMSTemplateCreateDataSchema,
-        }),
+        preRequestHandler:
+          createJwtAndBodyCheckRouteProtection<BCMSTemplateCreateData>({
+            roleNames: [JWTRoleName.ADMIN, JWTRoleName.USER],
+            permissionName: JWTPermissionName.WRITE,
+            bodySchema: BCMSTemplateCreateDataSchema,
+          }),
         async handler({ body, errorHandler, accessToken }) {
           const template = tempFactory.create({
             label: body.label,
@@ -175,14 +173,12 @@ export const BCMSTemplateController = createController<Setup>({
 
       update: createControllerMethod({
         type: 'put',
-        preRequestHandler: createJwtAndBodyCheckRouteProtection<
-          BCMSUserCustomPool,
-          BCMSTemplateUpdateData
-        >({
-          roleNames: [JWTRoleName.ADMIN, JWTRoleName.USER],
-          permissionName: JWTPermissionName.WRITE,
-          bodySchema: BCMSTemplateUpdateDataSchema,
-        }),
+        preRequestHandler:
+          createJwtAndBodyCheckRouteProtection<BCMSTemplateUpdateData>({
+            roleNames: [JWTRoleName.ADMIN, JWTRoleName.USER],
+            permissionName: JWTPermissionName.WRITE,
+            bodySchema: BCMSTemplateUpdateDataSchema,
+          }),
         async handler({ body, errorHandler }) {
           const id = body._id;
           const template = await tempRepo.findById(id);

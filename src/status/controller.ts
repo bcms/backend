@@ -100,14 +100,12 @@ export const BCMSStatusController = createController<Setup>({
 
       create: createControllerMethod({
         type: 'post',
-        preRequestHandler: createJwtAndBodyCheckRouteProtection<
-          BCMSUserCustomPool,
-          BCMSStatusCreateData
-        >({
-          roleNames: [JWTRoleName.ADMIN],
-          permissionName: JWTPermissionName.READ,
-          bodySchema: BCMSStatusCreateDataSchema,
-        }),
+        preRequestHandler:
+          createJwtAndBodyCheckRouteProtection<BCMSStatusCreateData>({
+            roleNames: [JWTRoleName.ADMIN],
+            permissionName: JWTPermissionName.READ,
+            bodySchema: BCMSStatusCreateDataSchema,
+          }),
         async handler({ body, errorHandler }) {
           const status = statusFactory.create({
             label: body.label,
@@ -141,14 +139,12 @@ export const BCMSStatusController = createController<Setup>({
 
       update: createControllerMethod({
         type: 'put',
-        preRequestHandler: createJwtAndBodyCheckRouteProtection<
-          BCMSUserCustomPool,
-          BCMSStatusUpdateData
-        >({
-          roleNames: [JWTRoleName.ADMIN],
-          permissionName: JWTPermissionName.READ,
-          bodySchema: BCMSStatusUpdateDataSchema,
-        }),
+        preRequestHandler:
+          createJwtAndBodyCheckRouteProtection<BCMSStatusUpdateData>({
+            roleNames: [JWTRoleName.ADMIN],
+            permissionName: JWTPermissionName.READ,
+            bodySchema: BCMSStatusUpdateDataSchema,
+          }),
         async handler({ body, errorHandler }) {
           const id = body._id;
           const status = await statusRepo.findById(id);

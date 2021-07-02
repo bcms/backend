@@ -204,14 +204,12 @@ export const BCMSGroupController = createController<Setup>({
 
       create: createControllerMethod({
         type: 'post',
-        preRequestHandler: createJwtAndBodyCheckRouteProtection<
-          BCMSUserCustomPool,
-          BCMSGroupAddData
-        >({
-          roleNames: [JWTRoleName.ADMIN],
-          permissionName: JWTPermissionName.WRITE,
-          bodySchema: BCMSGroupAddDataSchema,
-        }),
+        preRequestHandler:
+          createJwtAndBodyCheckRouteProtection<BCMSGroupAddData>({
+            roleNames: [JWTRoleName.ADMIN],
+            permissionName: JWTPermissionName.WRITE,
+            bodySchema: BCMSGroupAddDataSchema,
+          }),
         async handler({ errorHandler, body }) {
           const group = groupFactory.create({
             desc: body.desc,
@@ -242,14 +240,12 @@ export const BCMSGroupController = createController<Setup>({
 
       update: createControllerMethod({
         type: 'put',
-        preRequestHandler: createJwtAndBodyCheckRouteProtection<
-          BCMSUserCustomPool,
-          BCMSGroupUpdateData
-        >({
-          roleNames: [JWTRoleName.ADMIN, JWTRoleName.USER],
-          permissionName: JWTPermissionName.WRITE,
-          bodySchema: BCMSGroupUpdateDataSchema,
-        }),
+        preRequestHandler:
+          createJwtAndBodyCheckRouteProtection<BCMSGroupUpdateData>({
+            roleNames: [JWTRoleName.ADMIN, JWTRoleName.USER],
+            permissionName: JWTPermissionName.WRITE,
+            bodySchema: BCMSGroupUpdateDataSchema,
+          }),
         async handler({ request, errorHandler, body }) {
           const group = await groupRepo.findById(request.params.id);
           if (!group) {

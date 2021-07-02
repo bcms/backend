@@ -139,14 +139,12 @@ export const BCMSWidgetController = createController<Setup>({
 
       create: createControllerMethod({
         type: 'post',
-        preRequestHandler: createJwtAndBodyCheckRouteProtection<
-          BCMSUserCustomPool,
-          BCMSWidgetCreateData
-        >({
-          roleNames: [JWTRoleName.ADMIN],
-          permissionName: JWTPermissionName.WRITE,
-          bodySchema: BCMSWidgetCreateDataSchema,
-        }),
+        preRequestHandler:
+          createJwtAndBodyCheckRouteProtection<BCMSWidgetCreateData>({
+            roleNames: [JWTRoleName.ADMIN],
+            permissionName: JWTPermissionName.WRITE,
+            bodySchema: BCMSWidgetCreateDataSchema,
+          }),
         async handler({ body, errorHandler }) {
           const widget = widFactory.create({
             desc: body.desc,
@@ -180,14 +178,12 @@ export const BCMSWidgetController = createController<Setup>({
 
       update: createControllerMethod({
         type: 'put',
-        preRequestHandler: createJwtAndBodyCheckRouteProtection<
-          BCMSUserCustomPool,
-          BCMSWidgetUpdateData
-        >({
-          roleNames: [JWTRoleName.ADMIN],
-          permissionName: JWTPermissionName.WRITE,
-          bodySchema: BCMSWidgetUpdateDataSchema,
-        }),
+        preRequestHandler:
+          createJwtAndBodyCheckRouteProtection<BCMSWidgetUpdateData>({
+            roleNames: [JWTRoleName.ADMIN],
+            permissionName: JWTPermissionName.WRITE,
+            bodySchema: BCMSWidgetUpdateDataSchema,
+          }),
         async handler({ body, errorHandler }) {
           const id = body._id;
           const widget = await widRepo.findById(id);

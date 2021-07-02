@@ -8,7 +8,7 @@ export interface BCMSEntryUpdateData {
   meta: BCMSEntryMeta[];
 }
 
-export const UpdateEntryDataSchema: ObjectSchema = {
+export const BCMSEntryUpdateDataSchema: ObjectSchema = {
   _id: {
     __type: 'string',
     __required: true,

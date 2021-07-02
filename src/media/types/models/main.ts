@@ -30,7 +30,6 @@ export interface BCMSMediaProps {
   mimetype: string;
   size: number;
   name: string;
-  path: string;
   isInRoot: boolean;
   hasChildren: boolean;
   parentId: string;
@@ -52,10 +51,6 @@ export const BCMSMediaFSDBSchema: ObjectSchema = {
     __required: true,
   },
   name: {
-    __type: 'string',
-    __required: true,
-  },
-  path: {
     __type: 'string',
     __required: true,
   },
@@ -93,10 +88,6 @@ export const BCMSMediaMongoDBSchema = new Schema({
     required: true,
   },
   name: {
-    type: String,
-    required: true,
-  },
-  path: {
     type: String,
     required: true,
   },

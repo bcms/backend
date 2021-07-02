@@ -13,6 +13,11 @@ export interface BCMSPropHandlerPointer {
 }
 
 export interface BCMSPropHandler {
+  checkPropValues(data: {
+    props: BCMSProp[];
+    values: BCMSPropValue[];
+    level: string;
+  }): Promise<Error | void>;
   testInfiniteLoop(
     props: BCMSProp[],
     pointer?: BCMSPropHandlerPointer,

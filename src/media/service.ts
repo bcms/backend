@@ -38,7 +38,10 @@ export function createBcmsMediaService(): Module {
       const fs = useFS();
 
       mediaService = {
-        async aggregateFromParent(parent) {
+        async aggregateFromParent({ parent, basePath }) {
+          if (!basePath) {
+            basePath = await mediaService.getPath(parent);
+          }
           const parentAggregate: BCMSMediaAggregate = {
             _id:
               typeof parent._id === 'string'
@@ -49,7 +52,7 @@ export function createBcmsMediaService(): Module {
             isInRoot: parent.isInRoot,
             mimetype: parent.mimetype,
             name: parent.name,
-            path: parent.path,
+            path: basePath,
             size: parent.size,
             state: false,
             type: parent.type,
@@ -57,24 +60,18 @@ export function createBcmsMediaService(): Module {
           };
 
           if (parent.hasChildren) {
-            const allMedia = await mediaRepo.findAll();
+            const childMedia = await mediaRepo.methods.findAllByParentId(
+              `${parent._id}`,
+            );
             parentAggregate.children = [];
-            const childrenIndexes: number[] = [];
-            for (let i = 0; i < allMedia.length; i++) {
-              if (
-                allMedia[i].parentId ===
-                (typeof parent._id === 'string'
-                  ? parent._id
-                  : parent._id.toHexString())
-              ) {
-                childrenIndexes.push(i);
-              }
-            }
-            for (let i = 0; i < childrenIndexes.length; i++) {
-              const child = allMedia[childrenIndexes[i]];
+            for (let i = 0; i < childMedia.length; i++) {
+              const child = childMedia[i];
               if (child.hasChildren) {
                 parentAggregate.children.push(
-                  await mediaService.aggregateFromParent(child),
+                  await mediaService.aggregateFromParent({
+                    parent: child,
+                    basePath: `${basePath}/${child.name}`,
+                  }),
                 );
               } else {
                 parentAggregate.children.push({
@@ -87,7 +84,7 @@ export function createBcmsMediaService(): Module {
                   isInRoot: child.isInRoot,
                   mimetype: child.mimetype,
                   name: child.name,
-                  path: child.path,
+                  path: `${basePath}/${child.name}`,
                   size: child.size,
                   state: false,
                   type: child.type,
@@ -101,13 +98,11 @@ export function createBcmsMediaService(): Module {
         },
         async aggregateFromRoot() {
           const aggregated: BCMSMediaAggregate[] = [];
-          const allMedia = await mediaRepo.findAll();
-          for (let i = 0; i < allMedia.length; i++) {
-            if (allMedia[i].isInRoot) {
-              aggregated.push(
-                await mediaService.aggregateFromParent(allMedia[i]),
-              );
-            }
+          const rootMedia = await mediaRepo.methods.findAllByIsInRoot(true);
+          for (let i = 0; i < rootMedia.length; i++) {
+            aggregated.push(
+              await mediaService.aggregateFromParent({ parent: rootMedia[i] }),
+            );
           }
           return aggregated;
         },
@@ -162,10 +157,29 @@ export function createBcmsMediaService(): Module {
           }
           return [...children, ...childrenOfChildren];
         },
+        async getPath(media) {
+          if (
+            media.type !== BCMSMediaType.DIR ||
+            media.isInRoot ||
+            !media.parentId
+          ) {
+            return `/${media.name}`;
+          } else {
+            const parent = await mediaRepo.findById(media.parentId);
+            if (!parent) {
+              return `/${media.name}`;
+            }
+            return `${mediaService.getPath(parent)}/${media.name}`;
+          }
+        },
         storage: {
           async getPath({ media, size }) {
             if (media.type === BCMSMediaType.DIR) {
-              return path.join(process.cwd(), 'uploads', media.path);
+              return path.join(
+                process.cwd(),
+                'uploads',
+                await mediaService.getPath(media),
+              );
             }
             if (size === 'small' && media.type === BCMSMediaType.IMG) {
               const nameParts = {
@@ -178,10 +192,14 @@ export function createBcmsMediaService(): Module {
                 nameParts.ext === 'png'
               ) {
                 if (size === 'small') {
+                  const mediaPath = await mediaService.getPath(media);
                   const location = path.join(
                     process.cwd(),
                     'uploads',
-                    media.path,
+                    mediaPath
+                      .split('/')
+                      .slice(0, mediaPath.length - 1)
+                      .join('/'),
                     `300-${media.name}`,
                   );
                   if (await fs.exist(location, true)) {
@@ -190,17 +208,20 @@ export function createBcmsMediaService(): Module {
                 }
               }
             }
-            return path.join(process.cwd(), 'uploads', media.path, media.name);
+            return path.join(
+              process.cwd(),
+              'uploads',
+              await mediaService.getPath(media),
+            );
           },
           async exist(media) {
-            if (media.type === BCMSMediaType.DIR) {
-              return await fs.exist(
-                path.join(process.cwd(), 'uploads', media.path),
-              );
-            }
             return await fs.exist(
-              path.join(process.cwd(), 'uploads', media.path, media.name),
-              true,
+              path.join(
+                process.cwd(),
+                'uploads',
+                await mediaService.getPath(media),
+              ),
+              media.type !== BCMSMediaType.DIR,
             );
           },
           async get({ media, size }) {
@@ -215,10 +236,14 @@ export function createBcmsMediaService(): Module {
                 nameParts.ext === 'png'
               ) {
                 if (size === 'small') {
+                  const mediaPath = await mediaService.getPath(media);
                   const location = path.join(
                     process.cwd(),
                     'uploads',
-                    media.path,
+                    mediaPath
+                      .split('/')
+                      .slice(0, mediaPath.length - 1)
+                      .join('/'),
                     `300-${media.name}`,
                   );
                   if (await fs.exist(location, true)) {
@@ -228,23 +253,41 @@ export function createBcmsMediaService(): Module {
               }
             }
             return await fs.read(
-              path.join(process.cwd(), 'uploads', media.path, media.name),
+              path.join(
+                process.cwd(),
+                'uploads',
+                await mediaService.getPath(media),
+              ),
             );
           },
           async mkdir(media) {
             if (media.type === BCMSMediaType.DIR) {
               await fs.save(
                 '',
-                path.join(process.cwd(), 'uploads', media.path, 'tmp.txt'),
+                path.join(
+                  process.cwd(),
+                  'uploads',
+                  await mediaService.getPath(media),
+                  'tmp.txt',
+                ),
               );
               await fs.deleteFile(
-                path.join(process.cwd(), 'uploads', media.path, 'tmp.txt'),
+                path.join(
+                  process.cwd(),
+                  'uploads',
+                  await mediaService.getPath(media),
+                  'tmp.txt',
+                ),
               );
             }
           },
           async save(media, binary) {
             await fs.save(
-              path.join(process.cwd(), 'uploads', media.path, media.name),
+              path.join(
+                process.cwd(),
+                'uploads',
+                await mediaService.getPath(media),
+              ),
               binary,
             );
             if (media.type === BCMSMediaType.IMG) {
@@ -252,6 +295,11 @@ export function createBcmsMediaService(): Module {
                 name: media.name.split('.')[0],
                 ext: media.name.split('.')[1].toLowerCase(),
               };
+              const mediaPath = await mediaService.getPath(media);
+              const pathOnly = mediaPath
+                .split('/')
+                .slice(0, mediaPath.length - 1)
+                .join('/');
               if (nameParts.ext === 'png') {
                 const output = await sharp(binary)
                   .resize({
@@ -266,7 +314,7 @@ export function createBcmsMediaService(): Module {
                   path.join(
                     process.cwd(),
                     'uploads',
-                    media.path,
+                    pathOnly,
                     `300-${media.name}`,
                   ),
                   output,
@@ -285,7 +333,7 @@ export function createBcmsMediaService(): Module {
                   path.join(
                     process.cwd(),
                     'uploads',
-                    media.path,
+                    pathOnly,
                     `300-${media.name}`,
                   ),
                   output,
@@ -294,9 +342,8 @@ export function createBcmsMediaService(): Module {
             }
           },
           async removeFile(media) {
-            await fs.deleteFile(
-              path.join(process.cwd(), 'uploads', media.path, media.name),
-            );
+            const mediaPath = await mediaService.getPath(media);
+            await fs.deleteFile(path.join(process.cwd(), 'uploads', mediaPath));
             if (media.type === BCMSMediaType.IMG) {
               const nameParts = {
                 name: media.name.split('.')[0],
@@ -311,7 +358,10 @@ export function createBcmsMediaService(): Module {
                   path.join(
                     process.cwd(),
                     'uploads',
-                    media.path,
+                    mediaPath
+                      .split('/')
+                      .slice(0, mediaPath.length - 1)
+                      .join('/'),
                     `300-${media.name}`,
                   ),
                 );
@@ -319,7 +369,13 @@ export function createBcmsMediaService(): Module {
             }
           },
           async removeDir(media) {
-            await fs.deleteDir(path.join(process.cwd(), 'uploads', media.path));
+            await fs.deleteDir(
+              path.join(
+                process.cwd(),
+                'uploads',
+                await mediaService.getPath(media),
+              ),
+            );
           },
           async move(from, to) {
             await fseMove(

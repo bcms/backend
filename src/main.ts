@@ -50,6 +50,7 @@ import { createSocket } from '@becomes/purple-cheetah-mod-socket';
 import { Types } from 'mongoose';
 import { BCMSGroupController } from './group';
 import { createBcmsPropHandler } from './prop';
+import { createBcmsEntryParser } from './entry/parser';
 
 let backend: BCMSBackend;
 
@@ -204,6 +205,7 @@ async function initialize() {
   modules.push(createBcmsJobModule());
   modules.push(createBcmsApiKeySecurity());
   modules.push(createBcmsPropHandler());
+  modules.push(createBcmsEntryParser());
 
   modules.push(createBcmsPluginModule(bcmsConfig));
 

@@ -1,10 +1,11 @@
 import type { BCMSMedia, BCMSMediaAggregate, BCMSMediaType } from './models';
 
 export interface BCMSMediaService {
-  aggregateFromParent(parent: BCMSMedia): Promise<BCMSMediaAggregate>;
+  aggregateFromParent(data: {parent: BCMSMedia, basePath?: string}): Promise<BCMSMediaAggregate>;
   aggregateFromRoot(): Promise<BCMSMediaAggregate[]>;
   getChildren(parent: BCMSMedia): Promise<BCMSMedia[]>;
   mimetypeToMediaType(mimetype: string): BCMSMediaType;
+  getPath(media: BCMSMedia): Promise<string>;
   storage: {
     getPath(data: { media: BCMSMedia; size?: 'small' }): Promise<string>;
     exist(media: BCMSMedia): Promise<boolean>;
