@@ -19,7 +19,6 @@ export function useBcmsMediaFactory(): BCMSMediaFactory {
           mimetype: data.mimetype ? data.mimetype : '',
           name: data.name ? data.name : '',
           parentId: data.parentId ? data.parentId : '',
-          path: data.path ? data.path : '',
           size: data.size ? data.size : 0,
           type: data.type ? data.type : BCMSMediaType.DIR,
           userId: data.userId ? data.userId : '',

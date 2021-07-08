@@ -3,7 +3,6 @@ import { Schema } from 'mongoose';
 import {
   BCMSUserPolicyCRUD,
   BCMSUserPolicyCRUDFSDBSchema,
-  BCMSUserPolicyCRUDMongoDBSchema,
 } from '../../../types';
 
 /**

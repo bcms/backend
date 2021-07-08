@@ -22,7 +22,7 @@ export function createBcmsEntryParser(): Module {
       const propHandler = useBcmsPropHandler();
 
       parser = {
-        async parse({ entry, maxDepth, depth, level, justLng }) {
+        async parse({ entry, maxDepth, depth, level }) {
           if (!level) {
             level = 'entry';
           }
@@ -51,7 +51,14 @@ export function createBcmsEntryParser(): Module {
             const lang = langs[i];
             const meta = entry.meta.find((e) => e.lng === lang.code);
             if (meta) {
-              // TODO
+              entryParsed.meta[lang.code] = await propHandler.parse({
+                meta: temp.props,
+                values: meta.props,
+                maxDepth,
+                depth: 0,
+                level: `${entry._id}`,
+                onlyLng: lang.code,
+              });
             } else {
               entryParsed.meta[lang.code] = await propHandler.parse({
                 meta: temp.props,
@@ -59,20 +66,8 @@ export function createBcmsEntryParser(): Module {
                 maxDepth,
                 depth: 0,
                 level: `${entry._id}`,
+                onlyLng: lang.code,
               });
-            }
-          }
-          if (justLng) {
-            const metaForLanguage = entry.meta.find((e) => e.lng === justLng);
-            if (!metaForLanguage) {
-              const template = await tempRepo.findById(entry.templateId);
-              if (!template) {
-                throw Error(`[ ${level}.meta ] ---> Template does not exist.`);
-              }
-
-              throw Error(
-                `[ ${level}.meta ] ---> Data does not exist for language "${justLng}".`,
-              );
             }
           }
           return entryParsed;

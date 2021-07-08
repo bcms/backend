@@ -35,6 +35,7 @@ import {
   BCMSEntryCreateDataSchema,
   BCMSEntryFactory,
   BCMSEntryMeta,
+  BCMSEntryParsed,
   BCMSEntryParser,
   BCMSEntryRepository,
   BCMSEntryUpdateData,
@@ -116,14 +117,28 @@ export const BCMSEntryController = createController<Setup>({
       getAllByTemplateIdParsed: createControllerMethod({
         path: '/all/:tid/parse',
         type: 'get',
-        preRequestHandler: createJwtApiProtectionPreRequestHandler({
-          roleNames: [JWTRoleName.ADMIN, JWTRoleName.USER],
-          permissionName: JWTPermissionName.READ,
-        }),
-        async handler() {
-          // TODO: add logic
+        // preRequestHandler: createJwtApiProtectionPreRequestHandler({
+        //   roleNames: [JWTRoleName.ADMIN, JWTRoleName.USER],
+        //   permissionName: JWTPermissionName.READ,
+        // }),
+        async handler({ request }) {
+          const entries = await entryRepo.methods.findAllByTemplateId(
+            request.params.tid,
+          );
+          const entriesParsed: BCMSEntryParsed[] = [];
+          for (let i = 0; i < entries.length; i++) {
+            const entry = entries[i];
+            const entryParsed = await entryParser.parse({
+              entry,
+              maxDepth: 1,
+              depth: 0,
+            });
+            if (entryParsed) {
+              entriesParsed.push(entryParsed);
+            }
+          }
           return {
-            items: [],
+            items: entriesParsed,
           };
         },
       }),

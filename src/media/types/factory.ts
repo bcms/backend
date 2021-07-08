@@ -7,7 +7,6 @@ export interface BCMSMediaFactory {
     mimetype?: string;
     size?: number;
     name?: string;
-    path?: string;
     isInRoot?: boolean;
     hasChildren?: boolean;
     parentId?: string;

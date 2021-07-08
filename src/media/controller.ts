@@ -185,7 +185,6 @@ export const BCMSMediaController = createController<Setup>({
                 isInRoot: media.isInRoot,
                 mimetype: media.mimetype,
                 name: media.name,
-                path: media.path,
                 size: media.size,
                 state: false,
                 type: media.type,
@@ -194,7 +193,7 @@ export const BCMSMediaController = createController<Setup>({
             };
           }
           return {
-            item: await mediaService.aggregateFromParent(media),
+            item: await mediaService.aggregateFromParent({ parent: media }),
           };
         },
       }),
@@ -404,13 +403,15 @@ export const BCMSMediaController = createController<Setup>({
               stringUtil.toSlug(fileName) + fileExt
                 ? stringUtil.toSlug(fileName) + '.' + stringUtil.toSlug(fileExt)
                 : '',
-            path: parent ? parent.path : '/',
             isInRoot: !parent,
             hasChildren: false,
             parentId: parentId ? parentId : '',
           });
           if (
-            await mediaRepo.methods.findByNameAndPath(media.name, media.path)
+            await mediaRepo.methods.findByNameAndParentId(
+              media.name,
+              parent ? `${parent._id}` : undefined,
+            )
           ) {
             media.name =
               crypto.randomBytes(6).toString('hex') + '-' + media.name;
@@ -459,19 +460,18 @@ export const BCMSMediaController = createController<Setup>({
             type: BCMSMediaType.DIR,
             mimetype: 'dir',
             name: body.name,
-            path: parent ? `${parent.path}/${body.name}` : `/${body.name}`,
             isInRoot: !parent,
             parentId: parent ? `${parent._id}` : '',
             hasChildren: true,
           });
           if (
-            await mediaRepo.methods.findByNameAndPath(media.name, media.path)
+            await mediaRepo.methods.findByNameAndParentId(
+              media.name,
+              parent ? `${parent._id}` : undefined,
+            )
           ) {
             media.name =
               crypto.randomBytes(6).toString('hex') + '-' + media.name;
-            media.path = parent
-              ? parent.path + '/' + media.name
-              : '/' + media.name;
           }
           const addedMedia = await mediaRepo.add(media as never);
           if (!addedMedia) {

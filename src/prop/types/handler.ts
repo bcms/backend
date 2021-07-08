@@ -42,6 +42,7 @@ export interface BCMSPropHandler {
     level?: string;
     depth?: number;
     maxDepth: number;
+    onlyLng?: string;
   }): Promise<BCMSPropParsed>;
   // parseProps(
   //   props: BCMSProp[],
