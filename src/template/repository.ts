@@ -31,6 +31,12 @@ export function useBcmsTemplateRepository(): BCMSTemplateRepository {
             async findByName(name) {
               return await repo.findBy((e) => e.name === name);
             },
+            async findByCid(cid) {
+              return await repo.findBy((e) => e.cid === cid);
+            },
+            async findAllByCid(cids) {
+              return await repo.findAllBy((e) => cids.includes(e.cid));
+            },
           };
         },
       });
@@ -55,6 +61,38 @@ export function useBcmsTemplateRepository(): BCMSTemplateRepository {
                 cacheHandler.set(temp._id.toHexString(), temp);
               }
               return temp;
+            },
+            async findByCid(cid) {
+              const cacheHit = cacheHandler.findOne((e) => e.cid === cid);
+              if (cacheHit) {
+                return cacheHit;
+              }
+              const item = await mongoDBInterface.findOne({ cid });
+              if (item) {
+                cacheHandler.set(item._id.toHexString(), item);
+              }
+              return item;
+            },
+            async findAllByCid(cids) {
+              const cacheHits = cacheHandler.find((e) => cids.includes(e.cid));
+              if (cacheHits.length === cids.length) {
+                return cacheHits;
+              }
+              const missingCids: string[] = [];
+              for (let i = 0; i < cids.length; i++) {
+                const cid = cids[i];
+                if (!cacheHits.find((e) => e.cid === cid)) {
+                  missingCids.push(cid);
+                }
+              }
+              const items = await mongoDBInterface.find({
+                cid: { $in: missingCids },
+              });
+              for (let i = 0; i < items.length; i++) {
+                const item = items[i];
+                cacheHandler.set(item._id.toHexString(), item);
+              }
+              return [...cacheHits, ...items];
             },
           };
         },

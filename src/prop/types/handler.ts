@@ -34,7 +34,6 @@ export interface BCMSPropHandler {
     props: BCMSProp[],
     changes: BCMSPropChange[],
     level?: string,
-    groupPropChanges?: boolean,
   ): Promise<BCMSProp[] | Error>;
   parse(data: {
     meta: BCMSProp[];

@@ -29,8 +29,11 @@ export function useBcmsPropFactory(): BCMSPropFactory {
           case BCMSPropType.GROUP_POINTER: {
             return propFactory.groupPointer(array);
           }
-          default: {
+          case BCMSPropType.ENTRY_POINTER: {
             return propFactory.entryPointer(array);
+          }
+          default: {
+            return null;
           }
           // default: {
           //   return propFactory.richText(array);

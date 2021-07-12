@@ -1,7 +1,7 @@
 import type { BCMSProp, BCMSPropType } from "./models";
 
 export interface BCMSPropFactory {
-  create(type: BCMSPropType, array?: boolean): BCMSProp;
+  create(type: BCMSPropType, array?: boolean): BCMSProp | null;
   string(array?: boolean): BCMSProp;
   number(array?: boolean): BCMSProp;
   bool(array?: boolean): BCMSProp;

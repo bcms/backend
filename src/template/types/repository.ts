@@ -4,6 +4,8 @@ import type { BCMSTemplateFSDB, BCMSTemplateMongoDB } from './models';
 
 export interface BCMSTemplateRepositoryMethods<E> {
   findByName(name: string): Promise<E | null>;
+  findByCid(cid: string): Promise<E | null>;
+  findAllByCid(cids: string[]): Promise<E[]>;
 }
 
 export type BCMSTemplateRepository =

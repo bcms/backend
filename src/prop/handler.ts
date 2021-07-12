@@ -1,11 +1,14 @@
-import { useObjectUtility } from '@becomes/purple-cheetah';
+import { useObjectUtility, useStringUtility } from '@becomes/purple-cheetah';
 import { Module, ObjectUtilityError } from '@becomes/purple-cheetah/types';
 import { useBcmsEntryRepository } from '../entry';
 import { useBcmsGroupRepository } from '../group';
 import { useBcmsLanguageRepository } from '../language';
 import { useBcmsMediaRepository, useBcmsMediaService } from '../media';
 import { useBcmsTemplateRepository } from '../template';
+import { useBcmsPropFactory } from './factory';
 import {
+  BCMSProp,
+  BCMSPropChangeUpdate,
   BCMSPropDataParsed,
   BCMSPropEntryPointerData,
   BCMSPropEntryPointerDataParsed,
@@ -38,6 +41,8 @@ export function createBcmsPropHandler(): Module {
       const objectUtil = useObjectUtility();
       const mediaService = useBcmsMediaService();
       const mediaRepo = useBcmsMediaRepository();
+      const propFactory = useBcmsPropFactory();
+      const stringUtil = useStringUtility();
 
       propHandler = {
         async checkPropValues({ props, values, level }) {
@@ -336,7 +341,141 @@ export function createBcmsPropHandler(): Module {
         async propsChecker(_propsToCheck, _props, _level, _inTemplate) {
           return;
         },
-        async applyPropChanges(props, _changes, _level, _groupPropsChanges) {
+        async applyPropChanges(_props, changes, level) {
+          if (!level) {
+            level = 'props';
+          }
+          const props: BCMSProp[] = JSON.parse(JSON.stringify(_props));
+          if (!(changes instanceof Array)) {
+            return Error('Parameter "changes" must be an array.');
+          }
+          for (let i = 0; i < changes.length; i++) {
+            const change = changes[i];
+            if (typeof change.remove === 'string') {
+              const propToRemoveIndex = props.findIndex(
+                (e) => e.id === change.remove,
+              );
+              if (props[0].name === 'title') {
+                if (propToRemoveIndex > 1) {
+                  props.splice(propToRemoveIndex, 1);
+                }
+              } else {
+                props.splice(propToRemoveIndex, 1);
+              }
+            } else if (typeof change.add === 'object') {
+              const prop = propFactory.create(
+                change.add.type,
+                change.add.array,
+              );
+              if (!prop) {
+                return Error(
+                  `Invalid property type "${change.add.type}"` +
+                    ` was provided as "changes[${i}].add.type".`,
+                );
+              }
+              prop.label = change.add.label;
+              prop.name = stringUtil.toSlugUnderscore(prop.label);
+              prop.required = change.add.required;
+              if (props.find((e) => e.name === prop.name)) {
+                return Error(
+                  `[${level}] -> Prop with name "${prop.name}" already exists.`,
+                );
+              }
+              if (prop.type === BCMSPropType.GROUP_POINTER) {
+                const changeData = change.add
+                  .defaultData as BCMSPropGroupPointerData;
+                if (!changeData || !changeData._id) {
+                  return Error(
+                    `[${level}.change.${i}.add.defaultData] -> Missing prop "_id".`,
+                  );
+                }
+                const group = await groupRepo.findById(changeData._id);
+                if (!group) {
+                  return Error(
+                    `[${level}.change.${i}.add.defaultData._id] ->` +
+                      ` Group with ID "${changeData._id}" does not exist.`,
+                  );
+                }
+                (prop.defaultData as BCMSPropGroupPointerData) = {
+                  _id: changeData._id,
+                };
+              } else if (prop.type === BCMSPropType.ENTRY_POINTER) {
+                const changeData = change.add
+                  .defaultData as BCMSPropEntryPointerData;
+                if (!changeData || changeData.templateId) {
+                  return Error(
+                    `[${level}.change.${i}.add.defaultData] ->` +
+                      ` Missing prop "templateId".`,
+                  );
+                }
+                const template = await tempRepo.findById(changeData.templateId);
+                if (!template) {
+                  return Error(
+                    `[${level}.change.${i}.add.defaultData.templateId] ->` +
+                      ` Template with ID "${changeData.templateId}" does not exist.`,
+                  );
+                }
+                (prop.defaultData as BCMSPropEntryPointerData) = {
+                  displayProp: 'title',
+                  entryIds: [],
+                  templateId: changeData.templateId,
+                };
+              }
+              props.push(prop);
+            } else if (typeof change.update === 'object') {
+              const update = change.update as BCMSPropChangeUpdate;
+              const propToUpdateIndex = props.findIndex(
+                (e) => e.id === update.id,
+              );
+              if (propToUpdateIndex > 1) {
+                const propBuffer = props[propToUpdateIndex];
+                if (propBuffer.label !== update.label) {
+                  const newName = stringUtil.toSlugUnderscore(update.label);
+                  if (props.find((e) => e.name === newName)) {
+                    return Error(
+                      `[${level}] -> Prop with name "${newName}" already exists.`,
+                    );
+                  }
+                  propBuffer.label = update.label;
+                  propBuffer.name = newName;
+                }
+                propBuffer.required = update.required;
+                if (update.enumItems) {
+                  (propBuffer.defaultData as BCMSPropEnumData).items =
+                    update.enumItems;
+                }
+                if (update.move) {
+                  if (update.move > 0 && propToUpdateIndex < props.length - 1) {
+                    const temp = JSON.parse(
+                      JSON.stringify(props[propToUpdateIndex + 1]),
+                    );
+                    props[propToUpdateIndex + 1] = propBuffer;
+                    props[propToUpdateIndex] = temp;
+                  } else if (update.move < 0 && propToUpdateIndex > 0) {
+                    if (propToUpdateIndex < 3) {
+                      if (props[0].name !== 'title') {
+                        const temp = JSON.parse(
+                          JSON.stringify(props[propToUpdateIndex - 1]),
+                        );
+                        props[propToUpdateIndex - 1] = propBuffer;
+                        props[propToUpdateIndex] = temp;
+                      }
+                    } else {
+                      const temp = JSON.parse(
+                        JSON.stringify(props[propToUpdateIndex - 1]),
+                      );
+                      props[propToUpdateIndex - 1] = propBuffer;
+                      props[propToUpdateIndex] = temp;
+                    }
+                  }
+                } else {
+                  props[propToUpdateIndex] = propBuffer;
+                }
+              }
+            } else {
+              return Error(`(${level}) --> changes[${i}] in of unknown type.`);
+            }
+          }
           return props;
         },
         async parse({ maxDepth, depth, meta, values, level, onlyLng }) {

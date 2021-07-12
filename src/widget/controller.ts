@@ -83,7 +83,7 @@ export const BCMSWidgetController = createController<Setup>({
       }),
 
       getMany: createControllerMethod({
-        path: '/many/:ids',
+        path: '/many',
         type: 'get',
         preRequestHandler:
           createJwtProtectionPreRequestHandler<BCMSUserCustomPool>(
@@ -91,7 +91,7 @@ export const BCMSWidgetController = createController<Setup>({
             JWTPermissionName.READ,
           ),
         async handler({ request }) {
-          const ids = request.params.ids.split('-');
+          const ids = (request.headers['x-bcms-ids'] as string).split('-');
           return {
             items: await widRepo.findAllById(ids),
           };
@@ -242,7 +242,6 @@ export const BCMSWidgetController = createController<Setup>({
               widget.props,
               body.propChanges,
               'widget.props',
-              true,
             );
             if (changes instanceof Error) {
               throw errorHandler.occurred(

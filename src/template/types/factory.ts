@@ -3,6 +3,7 @@ import type { BCMSTemplate } from './models';
 
 export interface BCMSTemplateFactory {
   create(data: {
+    cid?: string;
     name?: string;
     label?: string;
     desc?: string;

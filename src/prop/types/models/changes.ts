@@ -1,24 +1,28 @@
 import type { ObjectSchema } from '@becomes/purple-cheetah/types';
 import type { BCMSPropData, BCMSPropType } from './main';
 
+export interface BCMSPropChangeAdd {
+  label: string;
+  type: BCMSPropType;
+  required: boolean;
+  array: boolean;
+  defaultData?: BCMSPropData;
+}
+
+export interface BCMSPropChangeUpdate {
+  /** ID of the property which should be updated. */
+  id: string;
+  label: string;
+  move: number;
+  required: boolean;
+  enumItems?: string[];
+}
+
 export interface BCMSPropChange {
-  add?: {
-    label: string;
-    type: BCMSPropType;
-    required: boolean;
-    array: boolean;
-    defaultData?: BCMSPropData;
-  };
+  add?: BCMSPropChangeAdd;
   /** ID of the property which will be removed. */
   remove?: string;
-  update?: {
-    /** ID of the property which should be updated. */
-    id: string;
-    label: string;
-    move: number;
-    required: boolean;
-    enumItems?: string[];
-  };
+  update?: BCMSPropChangeUpdate;
 }
 
 export const BCMSPropChangeSchema: ObjectSchema = {

@@ -11,6 +11,7 @@ import { Schema } from 'mongoose';
 import type { BCMSProp } from '../../../types';
 
 export interface BCMSTemplateProps {
+  cid: string;
   name: string;
   label: string;
   desc: string;
@@ -22,6 +23,10 @@ export interface BCMSTemplateProps {
 export type BCMSTemplateFSDB = FSDBEntity & BCMSTemplateProps;
 export const BCMSTemplateFSDBSchema: ObjectSchema = {
   ...FSDBEntitySchema,
+  cid: {
+    __type: 'string',
+    __required: true,
+  },
   name: {
     __type: 'string',
     __required: true,
@@ -47,6 +52,10 @@ export const BCMSTemplateFSDBSchema: ObjectSchema = {
 export type BCMSTemplateMongoDB = MongoDBEntity & BCMSTemplateProps;
 export const BCMSTemplateMongoDBSchema = new Schema({
   ...MongoDBEntitySchema,
+  cid: {
+    type: String,
+    required: true,
+  },
   name: {
     type: String,
     required: true,

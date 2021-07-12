@@ -15,6 +15,7 @@ export function useBcmsTemplateFactory(): BCMSTemplateFactory {
           _id: new Types.ObjectId(),
           createdAt: Date.now(),
           updatedAt: Date.now(),
+          cid: data.cid ? data.cid : '',
           desc: data.desc ? data.desc : '',
           label: data.label ? data.label : '',
           name: data.name ? data.name : '',

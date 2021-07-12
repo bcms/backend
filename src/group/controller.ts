@@ -153,7 +153,7 @@ export const BCMSGroupController = createController<Setup>({
       }),
 
       getMany: createControllerMethod({
-        path: '/many/:ids',
+        path: '/many',
         type: 'get',
         preRequestHandler:
           createJwtProtectionPreRequestHandler<BCMSUserCustomPool>(
@@ -161,7 +161,7 @@ export const BCMSGroupController = createController<Setup>({
             JWTPermissionName.READ,
           ),
         async handler({ request }) {
-          const ids = request.params.ids.split('-');
+          const ids = (request.headers['x-bcms-ids'] as string).split('-');
           return {
             items: await groupRepo.findAllById(ids),
           };
@@ -282,7 +282,6 @@ export const BCMSGroupController = createController<Setup>({
               group.props,
               body.propChanges,
               `(group: ${group.name}).props`,
-              true,
             );
             if (updatedProps instanceof Error) {
               throw errorHandler.occurred(

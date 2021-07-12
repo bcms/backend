@@ -10,6 +10,14 @@ import {
 } from '@becomes/purple-cheetah-mod-jwt/types';
 import { HTTPStatus, StringUtility } from '@becomes/purple-cheetah/types';
 import { useBcmsApiKeyRepository } from '../api';
+import {
+  useBcmsIdCounterFactory,
+  useBcmsIdCounterRepository,
+} from '../id-counter';
+import type {
+  BCMSIdCounterFactory,
+  BCMSIdCounterRepository,
+} from '../id-counter/types';
 import { useBcmsPropHandler } from '../prop';
 import { useResponseCode } from '../response-code';
 import type {
@@ -38,6 +46,8 @@ interface Setup {
   apiKeyRepo: BCMSApiKeyRepository;
   stringUtil: StringUtility;
   propHandler: BCMSPropHandler;
+  idcRepo: BCMSIdCounterRepository;
+  idcFactory: BCMSIdCounterFactory;
 }
 
 export const BCMSTemplateController = createController<Setup>({
@@ -51,6 +61,8 @@ export const BCMSTemplateController = createController<Setup>({
       apiKeyRepo: useBcmsApiKeyRepository(),
       stringUtil: useStringUtility(),
       propHandler: useBcmsPropHandler(),
+      idcRepo: useBcmsIdCounterRepository(),
+      idcFactory: useBcmsIdCounterFactory(),
     };
   },
   methods({
@@ -60,6 +72,8 @@ export const BCMSTemplateController = createController<Setup>({
     apiKeyRepo,
     stringUtil,
     propHandler,
+    idcRepo,
+    idcFactory,
   }) {
     return {
       getAll: createControllerMethod({
@@ -78,7 +92,7 @@ export const BCMSTemplateController = createController<Setup>({
       }),
 
       getMany: createControllerMethod({
-        path: '/many/:ids',
+        path: '/many',
         type: 'get',
         preRequestHandler:
           createJwtProtectionPreRequestHandler<BCMSUserCustomPool>(
@@ -86,9 +100,9 @@ export const BCMSTemplateController = createController<Setup>({
             JWTPermissionName.READ,
           ),
         async handler({ request }) {
-          const ids = request.params.ids.split('-');
+          const ids = (request.headers['x-bcms-ids'] as string).split('-');
           return {
-            items: await tempRepo.findAllById(ids),
+            items: await tempRepo.methods.findAllByCid(ids),
           };
         },
       }),
@@ -118,7 +132,7 @@ export const BCMSTemplateController = createController<Setup>({
           ),
         async handler({ request, errorHandler }) {
           const id = request.params.id;
-          const template = await tempRepo.findById(id);
+          const template = await tempRepo.methods.findByCid(id);
           if (!template) {
             throw errorHandler.occurred(
               HTTPStatus.NOT_FOUNT,
@@ -140,7 +154,24 @@ export const BCMSTemplateController = createController<Setup>({
             bodySchema: BCMSTemplateCreateDataSchema,
           }),
         async handler({ body, errorHandler, accessToken }) {
+          let idc = await idcRepo.methods.findAndIncByForId('templates');
+          if (!idc) {
+            const templateIdc = idcFactory.create({
+              count: 2,
+              forId: 'templates',
+              name: 'Templates',
+            });
+            const addIdcResult = await idcRepo.add(templateIdc as never);
+            if (!addIdcResult) {
+              throw errorHandler.occurred(
+                HTTPStatus.INTERNAL_SERVER_ERROR,
+                'Failed to add IDC to the database.',
+              );
+            }
+            idc = 1;
+          }
           const template = tempFactory.create({
+            cid: idc.toString(16),
             label: body.label,
             name: stringUtil.toSlugUnderscore(body.label),
             desc: body.desc,

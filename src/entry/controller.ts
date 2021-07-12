@@ -83,7 +83,7 @@ export const BCMSEntryController = createController<Setup>({
   }) {
     return {
       getManyLiteById: createControllerMethod({
-        path: '/many/lite/:eids',
+        path: '/many/lite',
         type: 'get',
         preRequestHandler:
           createJwtProtectionPreRequestHandler<BCMSUserCustomPool>(
@@ -91,7 +91,7 @@ export const BCMSEntryController = createController<Setup>({
             JWTPermissionName.READ,
           ),
         async handler({ request }) {
-          const ids = request.params.eids.split('-');
+          const ids = (request.headers['x-bcms-ids'] as string).split('-');
           return {
             items: await entryRepo.findAllById(ids),
           };
@@ -412,6 +412,32 @@ export const BCMSEntryController = createController<Setup>({
           return {
             item: addedEntry,
           };
+        },
+      }),
+
+      deleteById: createControllerMethod({
+        path: '/:tid/:eid',
+        type: 'delete',
+        preRequestHandler: createJwtApiProtectionPreRequestHandler({
+          roleNames: [JWTRoleName.ADMIN, JWTRoleName.USER],
+          permissionName: JWTPermissionName.DELETE,
+        }),
+        async handler({ request, errorHandler }) {
+          const eid = request.params.eid;
+          const entry = await entryRepo.findById(eid);
+          if (!entry) {
+            throw errorHandler.occurred(
+              HTTPStatus.NOT_FOUNT,
+              resCode.get('etr001', { eid }),
+            );
+          }
+          const deleteResult = await entryRepo.deleteById(eid);
+          if (!deleteResult) {
+            throw errorHandler.occurred(
+              HTTPStatus.INTERNAL_SERVER_ERROR,
+              resCode.get('etr006'),
+            );
+          }
         },
       }),
     };

@@ -108,7 +108,7 @@ export const BCMSMediaController = createController<Setup>({
       }),
 
       getMany: createControllerMethod({
-        path: '/many/:ids',
+        path: '/many',
         type: 'get',
         preRequestHandler:
           createJwtProtectionPreRequestHandler<BCMSUserCustomPool>(
@@ -116,7 +116,7 @@ export const BCMSMediaController = createController<Setup>({
             JWTPermissionName.READ,
           ),
         async handler({ request }) {
-          const ids = request.params.ids.split('-');
+          const ids = (request.headers['x-bcms-ids'] as string).split('-');
           return {
             items: await mediaRepo.findAllById(ids),
           };
