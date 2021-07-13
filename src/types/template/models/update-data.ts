@@ -1,5 +1,5 @@
 import type { ObjectSchema } from '@becomes/purple-cheetah/types';
-import { BCMSPropChange, BCMSPropChangeSchema } from '../../../prop/types';
+import { BCMSPropChange, BCMSPropChangeSchema } from '../../prop';
 
 export interface BCMSTemplateUpdateData {
   _id: string;

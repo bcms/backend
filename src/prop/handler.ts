@@ -402,7 +402,7 @@ export function createBcmsPropHandler(): Module {
               } else if (prop.type === BCMSPropType.ENTRY_POINTER) {
                 const changeData = change.add
                   .defaultData as BCMSPropEntryPointerData;
-                if (!changeData || changeData.templateId) {
+                if (!changeData || !changeData.templateId) {
                   return Error(
                     `[${level}.change.${i}.add.defaultData] ->` +
                       ` Missing prop "templateId".`,

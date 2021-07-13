@@ -192,13 +192,12 @@ export function createBcmsMediaService(): Module {
                 nameParts.ext === 'png'
               ) {
                 if (size === 'small') {
-                  const mediaPath = await mediaService.getPath(media);
+                  const mediaPathParts = (await mediaService.getPath(media)).split('/');
                   const location = path.join(
                     process.cwd(),
                     'uploads',
-                    mediaPath
-                      .split('/')
-                      .slice(0, mediaPath.length - 1)
+                    mediaPathParts
+                      .slice(0, mediaPathParts.length - 1)
                       .join('/'),
                     `300-${media.name}`,
                   );
@@ -295,10 +294,9 @@ export function createBcmsMediaService(): Module {
                 name: media.name.split('.')[0],
                 ext: media.name.split('.')[1].toLowerCase(),
               };
-              const mediaPath = await mediaService.getPath(media);
-              const pathOnly = mediaPath
-                .split('/')
-                .slice(0, mediaPath.length - 1)
+              const mediaPathParts = (await mediaService.getPath(media)).split('/');
+              const pathOnly = mediaPathParts
+                .slice(0, mediaPathParts.length - 1)
                 .join('/');
               if (nameParts.ext === 'png') {
                 const output = await sharp(binary)
