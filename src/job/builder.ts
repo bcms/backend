@@ -1,6 +1,6 @@
 import { useObjectUtility } from '@becomes/purple-cheetah';
 import { ObjectUtilityError } from '@becomes/purple-cheetah/types';
-import { BCMSJob, BCMSJobSchema } from './types';
+import { BCMSJob, BCMSJobSchema } from '../types';
 
 export function createBcmsJob(settings: BCMSJob): () => BCMSJob {
   return () => {

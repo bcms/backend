@@ -16,20 +16,20 @@ import {
   JWTRoleName,
 } from '@becomes/purple-cheetah-mod-jwt/types';
 import { HTTPException, HTTPStatus } from '@becomes/purple-cheetah/types';
-import { useResponseCode } from '../response-code';
+import { useBcmsResponseCode } from '../response-code';
 import { useBcmsApiKeySecurity } from '../security';
 import type {
   BCMSApiKey,
   BCMSApiKeySecurity,
   BCMSUserCustomPool,
-  ResponseCode,
+  BCMSResponseCode,
+  BCMSFunctionManager,
 } from '../types';
 import { useBcmsFunctionManger } from './main';
-import type { BCMSFunctionManager } from './types';
 
 interface Setup {
   fnManager: BCMSFunctionManager;
-  resCode: ResponseCode;
+  resCode: BCMSResponseCode;
   jwt: JWTManager;
   apiSecurity: BCMSApiKeySecurity;
 }
@@ -40,7 +40,7 @@ export const BCMSFunctionController = createController<Setup>({
   setup() {
     return {
       fnManager: useBcmsFunctionManger(),
-      resCode: useResponseCode(),
+      resCode: useBcmsResponseCode(),
       jwt: useJwt(),
       apiSecurity: useBcmsApiKeySecurity(),
     };

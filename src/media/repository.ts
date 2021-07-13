@@ -8,7 +8,7 @@ import {
   BCMSMediaMongoDBSchema,
   BCMSMediaRepository,
   BCMSMediaRepositoryMethods,
-} from './types';
+} from '../types';
 
 let mediaRepo: BCMSMediaRepository;
 

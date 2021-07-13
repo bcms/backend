@@ -8,8 +8,6 @@ import {
   JWTRoleName,
 } from '@becomes/purple-cheetah-mod-jwt/types';
 import { HTTPStatus } from '@becomes/purple-cheetah/types';
-import { useResponseCode } from '../response-code';
-import type { BCMSUserCustomPool, ResponseCode } from '../types';
 import { createJwtAndBodyCheckRouteProtection } from '../util';
 import { useBcmsLanguageFactory } from './factory';
 import { useBcmsLanguageRepository } from './repository';
@@ -18,13 +16,14 @@ import {
   BCMSLanguageAddDataSchema,
   BCMSLanguageFactory,
   BCMSLanguageRepository,
-  BCMSLanguageUpdateData,
-  BCMSLanguageUpdateDataSchema,
-} from './types';
+  BCMSResponseCode,
+  BCMSUserCustomPool,
+} from '../types';
+import { useBcmsResponseCode } from '../response-code';
 
 interface Setup {
   langRepo: BCMSLanguageRepository;
-  resCode: ResponseCode;
+  resCode: BCMSResponseCode;
   langFactory: BCMSLanguageFactory;
 }
 
@@ -34,7 +33,7 @@ export const BCMSLanguageController = createController<Setup>({
   setup() {
     return {
       langRepo: useBcmsLanguageRepository(),
-      resCode: useResponseCode(),
+      resCode: useBcmsResponseCode(),
       langFactory: useBcmsLanguageFactory(),
     };
   },

@@ -1,6 +1,6 @@
 import { Types } from 'mongoose';
 import { useBcmsConfig } from '../config';
-import type { BCMSEntry, BCMSEntryFactory } from './types';
+import type { BCMSEntry, BCMSEntryFactory } from '../types';
 
 let entryFactory: BCMSEntryFactory;
 
@@ -13,6 +13,7 @@ export function useBcmsEntryFactory(): BCMSEntryFactory {
           _id: new Types.ObjectId(),
           createdAt: Date.now(),
           updatedAt: Date.now(),
+          cid: data.cid ? data.cid : '',
           templateId: data.templateId ? data.templateId : '',
           userId: data.userId ? data.userId : '',
           status: data.status ? data.status : '',
@@ -28,6 +29,7 @@ export function useBcmsEntryFactory(): BCMSEntryFactory {
           _id: `${entry._id}`,
           createdAt: entry.createdAt,
           updatedAt: entry.updatedAt,
+          cid: entry.cid,
           templateId: entry.templateId,
           userId: entry.userId,
           meta: entry.meta.map((meta) => {

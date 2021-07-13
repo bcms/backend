@@ -1,8 +1,7 @@
 import { v4 as uuidv4 } from 'uuid';
 import { Types } from 'mongoose';
 import { useBcmsConfig } from '../config';
-import { BCMSPropType } from '../types';
-import type { BCMSTemplate, BCMSTemplateFactory } from './types';
+import { BCMSPropType, BCMSTemplate, BCMSTemplateFactory } from '../types';
 
 let tempFactory: BCMSTemplateFactory;
 

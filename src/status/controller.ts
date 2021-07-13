@@ -9,24 +9,25 @@ import {
   JWTRoleName,
 } from '@becomes/purple-cheetah-mod-jwt/types';
 import { HTTPStatus, StringUtility } from '@becomes/purple-cheetah/types';
-import { useResponseCode } from '../response-code';
-import type { BCMSUserCustomPool, ResponseCode } from '../types';
 import { createJwtAndBodyCheckRouteProtection } from '../util';
 import { useBcmsStatusFactory } from './factory';
 import { useBcmsStatusRepository } from './repository';
 import {
+  BCMSResponseCode,
   BCMSStatusCreateData,
   BCMSStatusCreateDataSchema,
   BCMSStatusFactory,
   BCMSStatusRepository,
   BCMSStatusUpdateData,
   BCMSStatusUpdateDataSchema,
-} from './types';
+  BCMSUserCustomPool,
+} from '../types';
+import { useBcmsResponseCode } from '../response-code';
 
 interface Setup {
   statusRepo: BCMSStatusRepository;
   statusFactory: BCMSStatusFactory;
-  resCode: ResponseCode;
+  resCode: BCMSResponseCode;
   stringUtil: StringUtility;
 }
 
@@ -37,7 +38,7 @@ export const BCMSStatusController = createController<Setup>({
     return {
       statusRepo: useBcmsStatusRepository(),
       statusFactory: useBcmsStatusFactory(),
-      resCode: useResponseCode(),
+      resCode: useBcmsResponseCode(),
       stringUtil: useStringUtility(),
     };
   },

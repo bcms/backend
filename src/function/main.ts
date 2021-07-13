@@ -5,7 +5,11 @@ import {
   useObjectUtility,
   useStringUtility,
 } from '@becomes/purple-cheetah';
-import { BCMSFunction, BCMSFunctionManager, BCMSFunctionSchema } from './types';
+import {
+  BCMSFunction,
+  BCMSFunctionManager,
+  BCMSFunctionSchema,
+} from '../types';
 
 let functionManager: BCMSFunctionManager;
 

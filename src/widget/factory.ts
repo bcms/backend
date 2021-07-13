@@ -1,6 +1,6 @@
 import { Types } from 'mongoose';
 import { useBcmsConfig } from '../config';
-import type { BCMSWidget, BCMSWidgetFactory } from './types';
+import type { BCMSWidget, BCMSWidgetFactory } from '../types';
 
 let widgetFactory: BCMSWidgetFactory;
 
@@ -13,6 +13,7 @@ export function useBcmsWidgetFactory(): BCMSWidgetFactory {
           _id: new Types.ObjectId(),
           createdAt: Date.now(),
           updatedAt: Date.now(),
+          cid: data.cid ? data.cid : '',
           desc: data.desc ? data.desc : '',
           label: data.label ? data.label : '',
           name: data.name ? data.name : '',

@@ -8,7 +8,7 @@ import {
   BCMSMediaAggregate,
   BCMSMediaService,
   BCMSMediaType,
-} from './types';
+} from '../types';
 import { useFS } from '@becomes/purple-cheetah';
 
 export const BCMSMimeTypes: {

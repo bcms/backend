@@ -8,7 +8,7 @@ import {
   BCMSTemplateMongoDBSchema,
   BCMSTemplateRepository,
   BCMSTemplateRepositoryMethods,
-} from './types';
+} from '../types';
 
 let tempRepo: BCMSTemplateRepository;
 

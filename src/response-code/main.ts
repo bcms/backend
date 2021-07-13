@@ -4,15 +4,15 @@ import * as path from 'path';
 import * as YAML from 'yamljs';
 import { useObjectUtility } from '@becomes/purple-cheetah';
 import { ObjectUtilityError } from '@becomes/purple-cheetah/types';
-import type { ResponseCode, ResponseCodeList } from '../types';
+import type { BCMSResponseCode, BCMSResponseCodeList } from '../types';
 
-let responseCode: ResponseCode;
+let responseCode: BCMSResponseCode;
 
-export function useResponseCode(): ResponseCode {
+export function useBcmsResponseCode(): BCMSResponseCode {
   return responseCode;
 }
 export async function loadResponseCode(): Promise<void> {
-  const codes: ResponseCodeList = {};
+  const codes: BCMSResponseCodeList = {};
   const registry: Array<{
     name: string;
     msg: string;
@@ -38,7 +38,7 @@ export async function loadResponseCode(): Promise<void> {
   }
 
   const objectUtil = useObjectUtility();
-  const buffer: Array<{ name: string; data: ResponseCodeList }> = [];
+  const buffer: Array<{ name: string; data: BCMSResponseCodeList }> = [];
   const files = await fileTree(path.join(__dirname, 'codes'));
   for (let i = 0; i < files.length; i++) {
     const file = files[i];

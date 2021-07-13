@@ -8,7 +8,7 @@ import {
   BCMSWidgetMongoDBSchema,
   BCMSWidgetRepository,
   BCMSWidgetRepositoryMethods,
-} from './types';
+} from '../types';
 
 let widgetRepo: BCMSWidgetRepository;
 

@@ -3,8 +3,7 @@ import { useBcmsLanguageRepository } from '../language';
 import { useBcmsPropHandler } from '../prop';
 import { useBcmsStatusRepository } from '../status';
 import { useBcmsTemplateRepository } from '../template';
-import type { BCMSStatus } from '../types';
-import type { BCMSEntryParsed, BCMSEntryParser } from './types';
+import type { BCMSEntryParsed, BCMSEntryParser, BCMSStatus } from '../types';
 
 let parser: BCMSEntryParser;
 

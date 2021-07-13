@@ -1,6 +1,6 @@
 import { Types } from 'mongoose';
 import { useBcmsConfig } from '../config';
-import type { BCMSLanguage, BCMSLanguageFactory } from './types';
+import type { BCMSLanguage, BCMSLanguageFactory } from '../types';
 
 let langFactory: BCMSLanguageFactory;
 

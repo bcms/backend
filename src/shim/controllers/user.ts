@@ -8,15 +8,6 @@ import {
 } from '@becomes/purple-cheetah';
 import { HTTPStatus, RefreshTokenService } from '@becomes/purple-cheetah/types';
 import { useBcmsShimService } from '../service';
-import type {
-  BCMSConfig,
-  BCMSShimInstanceUser,
-  BCMSShimService,
-  BCMSUserFactory,
-  BCMSUserRepository,
-  ResponseCode,
-} from '../../types';
-import { useResponseCode } from '../../response-code';
 import { useUserFactory, useUserRepository } from '../../user';
 import { useBcmsConfig } from '../../config';
 import {
@@ -31,10 +22,19 @@ import {
   useJwt,
   useJwtEncoding,
 } from '@becomes/purple-cheetah-mod-jwt';
+import type {
+  BCMSConfig,
+  BCMSResponseCode,
+  BCMSShimInstanceUser,
+  BCMSShimService,
+  BCMSUserFactory,
+  BCMSUserRepository,
+} from '../../types';
+import { useBcmsResponseCode } from '../../response-code';
 
 export const BCMSShimUserController = createController<{
   shimService: BCMSShimService;
-  resCode: ResponseCode;
+  resCode: BCMSResponseCode;
   userRepo: BCMSUserRepository;
   userFactory: BCMSUserFactory;
   bcmsConfig: BCMSConfig;
@@ -47,7 +47,7 @@ export const BCMSShimUserController = createController<{
   setup() {
     return {
       shimService: useBcmsShimService(),
-      resCode: useResponseCode(),
+      resCode: useBcmsResponseCode(),
       userRepo: useUserRepository(),
       userFactory: useUserFactory(),
       bcmsConfig: useBcmsConfig(),

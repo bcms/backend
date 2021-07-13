@@ -7,7 +7,7 @@ import {
   BCMSApiKeyMongoDB,
   BCMSApiKeyMongoDBSchema,
   BCMSApiKeyRepository,
-} from './types';
+} from '../types';
 
 let apiKeyRepo: BCMSApiKeyRepository;
 

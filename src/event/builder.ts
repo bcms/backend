@@ -1,6 +1,6 @@
 import { useObjectUtility } from '@becomes/purple-cheetah';
 import { ObjectUtilityError } from '@becomes/purple-cheetah/types';
-import { BCMSEvent, BCMSEventSchema } from './types';
+import { BCMSEvent, BCMSEventSchema } from '../types';
 
 export function createBcmsEvent(settings: BCMSEvent): () => BCMSEvent {
   return () => {

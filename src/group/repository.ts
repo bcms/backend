@@ -8,7 +8,7 @@ import {
   BCMSGroupMongoDBSchema,
   BCMSGroupRepository,
   BCMSGroupRepositoryMethods,
-} from './types';
+} from '../types';
 
 let groupRepo: BCMSGroupRepository;
 

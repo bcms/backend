@@ -15,8 +15,6 @@ import {
   JWTRoleName,
 } from '@becomes/purple-cheetah-mod-jwt/types';
 import { HTTPStatus, StringUtility } from '@becomes/purple-cheetah/types';
-import { useResponseCode } from '../response-code';
-import type { BCMSUserCustomPool, ResponseCode } from '../types';
 import { useBcmsMediaFactory } from './factory';
 import { useBcmsMediaRepository } from './repository';
 import { useBcmsMediaService } from './service';
@@ -28,13 +26,16 @@ import {
   BCMSMediaRepository,
   BCMSMediaService,
   BCMSMediaType,
-} from './types';
+  BCMSResponseCode,
+  BCMSUserCustomPool,
+} from '../types';
 import { createJwtAndBodyCheckRouteProtection } from '../util';
+import { useBcmsResponseCode } from '../response-code';
 
 interface Setup {
   mediaRepo: BCMSMediaRepository;
   mediaFactory: BCMSMediaFactory;
-  resCode: ResponseCode;
+  resCode: BCMSResponseCode;
   mediaService: BCMSMediaService;
   jwt: JWTManager;
   stringUtil: StringUtility;
@@ -47,7 +48,7 @@ export const BCMSMediaController = createController<Setup>({
     return {
       mediaRepo: useBcmsMediaRepository(),
       mediaFactory: useBcmsMediaFactory(),
-      resCode: useResponseCode(),
+      resCode: useBcmsResponseCode(),
       mediaService: useBcmsMediaService(),
       jwt: useJwt(),
       stringUtil: useStringUtility(),

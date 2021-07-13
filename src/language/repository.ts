@@ -8,7 +8,7 @@ import {
   BCMSLanguageMongoDBSchema,
   BCMSLanguageRepository,
   BCMSLanguageRepositoryMethods,
-} from './types';
+} from '../types';
 
 let langRepo: BCMSLanguageRepository;
 

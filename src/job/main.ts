@@ -1,8 +1,8 @@
 import * as path from 'path';
 import { Module, ObjectUtilityError } from '@becomes/purple-cheetah/types';
 import { useFS, useLogger, useObjectUtility } from '@becomes/purple-cheetah';
-import { BCMSJob, BCMSJobSchema } from './types';
 import { CronJob } from 'cron';
+import { BCMSJob, BCMSJobSchema } from '../types';
 
 export function createBcmsJobModule(): Module {
   return {

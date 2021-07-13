@@ -1,6 +1,6 @@
 import { Types } from 'mongoose';
 import { useBcmsConfig } from '../config';
-import { BCMSMedia, BCMSMediaFactory, BCMSMediaType } from './types';
+import { BCMSMedia, BCMSMediaFactory, BCMSMediaType } from '../types';
 
 let mediaFactory: BCMSMediaFactory;
 

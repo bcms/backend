@@ -22,7 +22,7 @@ import {
   BCMSPropParsed,
   BCMSPropType,
   BCMSPropValueGroupPointerData,
-} from './types';
+} from '../types';
 
 let propHandler: BCMSPropHandler;
 

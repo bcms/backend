@@ -1,6 +1,6 @@
 import { Types } from 'mongoose';
 import { useBcmsConfig } from '../config';
-import type { BCMSStatus, BCMSStatusFactory } from './types';
+import type { BCMSStatus, BCMSStatusFactory } from '../types';
 
 let statusFactory: BCMSStatusFactory;
 

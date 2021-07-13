@@ -9,31 +9,37 @@ import {
   JWTRoleName,
 } from '@becomes/purple-cheetah-mod-jwt/types';
 import { HTTPStatus, StringUtility } from '@becomes/purple-cheetah/types';
+import {
+  useBcmsIdCounterFactory,
+  useBcmsIdCounterRepository,
+} from '../id-counter';
 import { useBcmsPropHandler } from '../prop';
-import { useResponseCode } from '../response-code';
-import type {
-  BCMSPropHandler,
-  BCMSUserCustomPool,
-  ResponseCode,
-} from '../types';
 import { createJwtAndBodyCheckRouteProtection } from '../util';
 import { useBcmsWidgetFactory } from './factory';
 import { useBcmsWidgetRepository } from './repository';
 import {
+  BCMSIdCounterFactory,
+  BCMSIdCounterRepository,
+  BCMSPropHandler,
+  BCMSResponseCode,
+  BCMSUserCustomPool,
   BCMSWidgetCreateData,
   BCMSWidgetCreateDataSchema,
   BCMSWidgetFactory,
   BCMSWidgetRepository,
   BCMSWidgetUpdateData,
   BCMSWidgetUpdateDataSchema,
-} from './types';
+} from '../types';
+import { useBcmsResponseCode } from '../response-code';
 
 interface Setup {
   widRepo: BCMSWidgetRepository;
   widFactory: BCMSWidgetFactory;
-  resCode: ResponseCode;
+  resCode: BCMSResponseCode;
   stringUtil: StringUtility;
   propHandler: BCMSPropHandler;
+  idcRepo: BCMSIdCounterRepository;
+  idcFactory: BCMSIdCounterFactory;
 }
 
 export const BCMSWidgetController = createController<Setup>({
@@ -43,12 +49,22 @@ export const BCMSWidgetController = createController<Setup>({
     return {
       widRepo: useBcmsWidgetRepository(),
       widFactory: useBcmsWidgetFactory(),
-      resCode: useResponseCode(),
+      resCode: useBcmsResponseCode(),
       stringUtil: useStringUtility(),
       propHandler: useBcmsPropHandler(),
+      idcRepo: useBcmsIdCounterRepository(),
+      idcFactory: useBcmsIdCounterFactory(),
     };
   },
-  methods({ widRepo, widFactory, resCode, stringUtil, propHandler }) {
+  methods({
+    widRepo,
+    widFactory,
+    resCode,
+    stringUtil,
+    propHandler,
+    idcRepo,
+    idcFactory,
+  }) {
     return {
       whereIsItUsed: createControllerMethod({
         path: '/:id/where-is-it-used',
@@ -146,7 +162,24 @@ export const BCMSWidgetController = createController<Setup>({
             bodySchema: BCMSWidgetCreateDataSchema,
           }),
         async handler({ body, errorHandler }) {
+          let idc = await idcRepo.methods.findAndIncByForId('widgets');
+          if (!idc) {
+            const widgetIdc = idcFactory.create({
+              count: 2,
+              forId: 'widgets',
+              name: 'Widgets',
+            });
+            const addIdcResult = await idcRepo.add(widgetIdc as never);
+            if (!addIdcResult) {
+              throw errorHandler.occurred(
+                HTTPStatus.INTERNAL_SERVER_ERROR,
+                'Failed to add IDC to the database.',
+              );
+            }
+            idc = 1;
+          }
           const widget = widFactory.create({
+            cid: idc.toString(16),
             desc: body.desc,
             label: body.label,
             name: stringUtil.toSlugUnderscore(body.label),

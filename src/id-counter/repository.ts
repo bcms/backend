@@ -8,7 +8,7 @@ import {
   BCMSIdCounterMongoDBSchema,
   BCMSIdCounterRepository,
   BCMSIdCounterRepositoryMethods,
-} from './types';
+} from '../types';
 
 let idcRepo: BCMSIdCounterRepository;
 

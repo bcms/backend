@@ -1,6 +1,6 @@
 import { Types } from 'mongoose';
 import { useBcmsConfig } from '../config';
-import type { BCMSIdCounter, BCMSIdCounterFactory } from './types';
+import type { BCMSIdCounter, BCMSIdCounterFactory } from '../types';
 
 let factory: BCMSIdCounterFactory;
 

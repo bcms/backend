@@ -11,7 +11,6 @@ import {
 import { useUserRepository } from './repository';
 import {
   BCMSProtectedUser,
-  ResponseCode,
   BCMSUserFSDB,
   BCMSUserMongoDB,
   BCMSUserRepository,
@@ -20,8 +19,8 @@ import {
   BCMSUserUpdateDataSchema,
   BCMSUserUpdateData,
   BCMSUser,
+  BCMSResponseCode,
 } from '../types';
-import { useResponseCode } from '../response-code';
 import { useUserFactory } from './factory';
 import type { Socket } from '@becomes/purple-cheetah-mod-socket/types';
 import { useSocket } from '@becomes/purple-cheetah-mod-socket';
@@ -31,10 +30,11 @@ import {
   JWTPermissionName,
   JWTRoleName,
 } from '@becomes/purple-cheetah-mod-jwt/types';
+import { useBcmsResponseCode } from '../response-code';
 
 interface Setup {
   repo: BCMSUserRepository;
-  resCode: ResponseCode;
+  resCode: BCMSResponseCode;
   objectUtil: ObjectUtility;
   socket: Socket;
   userFactory: BCMSUserFactory;
@@ -46,7 +46,7 @@ export const BCMSUserController = createController<Setup>({
   setup() {
     return {
       repo: useUserRepository(),
-      resCode: useResponseCode(),
+      resCode: useBcmsResponseCode(),
       objectUtil: useObjectUtility(),
       socket: useSocket(),
       userFactory: useUserFactory(),

@@ -14,35 +14,31 @@ import {
   useBcmsIdCounterFactory,
   useBcmsIdCounterRepository,
 } from '../id-counter';
-import type {
-  BCMSIdCounterFactory,
-  BCMSIdCounterRepository,
-} from '../id-counter/types';
 import { useBcmsPropHandler } from '../prop';
-import { useResponseCode } from '../response-code';
-import type {
-  BCMSApiKey,
-  BCMSApiKeyRepository,
-  BCMSPropHandler,
-  BCMSUserCustomPool,
-  ResponseCode,
-} from '../types';
 import { createJwtAndBodyCheckRouteProtection } from '../util';
 import { useBcmsTemplateFactory } from './factory';
 import { useBcmsTemplateRepository } from './repository';
 import {
+  BCMSApiKey,
+  BCMSApiKeyRepository,
+  BCMSPropHandler,
+  BCMSUserCustomPool,
   BCMSTemplateCreateData,
   BCMSTemplateCreateDataSchema,
   BCMSTemplateFactory,
   BCMSTemplateRepository,
   BCMSTemplateUpdateData,
   BCMSTemplateUpdateDataSchema,
-} from './types';
+  BCMSResponseCode,
+  BCMSIdCounterRepository,
+  BCMSIdCounterFactory,
+} from '../types';
+import { useBcmsResponseCode } from '../response-code';
 
 interface Setup {
   tempRepo: BCMSTemplateRepository;
   tempFactory: BCMSTemplateFactory;
-  resCode: ResponseCode;
+  resCode: BCMSResponseCode;
   apiKeyRepo: BCMSApiKeyRepository;
   stringUtil: StringUtility;
   propHandler: BCMSPropHandler;
@@ -57,7 +53,7 @@ export const BCMSTemplateController = createController<Setup>({
     return {
       tempRepo: useBcmsTemplateRepository(),
       tempFactory: useBcmsTemplateFactory(),
-      resCode: useResponseCode(),
+      resCode: useBcmsResponseCode(),
       apiKeyRepo: useBcmsApiKeyRepository(),
       stringUtil: useStringUtility(),
       propHandler: useBcmsPropHandler(),

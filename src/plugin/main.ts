@@ -13,13 +13,14 @@ import {
   StringUtility,
 } from '@becomes/purple-cheetah/types';
 import { useBcmsShimService } from '../shim';
-import type { BCMSConfig, BCMSShimService } from '../types';
 import {
+  BCMSConfig,
+  BCMSShimService,
   BCMSPlugin,
   BCMSPluginConfig,
   BCMSPluginConfigSchema,
   BCMSPluginManager,
-} from './types';
+} from '../types';
 
 export function createBcmsPlugin(config: BCMSPluginConfig): BCMSPlugin {
   const objectUtil = useObjectUtility();

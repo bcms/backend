@@ -3,7 +3,7 @@ import {
   createControllerMethod,
 } from '@becomes/purple-cheetah';
 import { useBcmsPluginManager } from './main';
-import type { BCMSPluginManager } from './types';
+import type { BCMSPluginManager } from '../types';
 
 interface Setup {
   pluginManager: BCMSPluginManager;

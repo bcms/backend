@@ -8,7 +8,7 @@ import {
   BCMSUserMongoDBSchema,
   BCMSUserRepository,
   BCMSUserRepositoryMethods,
-} from './types';
+} from '../types';
 
 let repository: BCMSUserRepository;
 

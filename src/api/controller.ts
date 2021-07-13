@@ -4,32 +4,33 @@ import {
   useObjectUtility,
 } from '@becomes/purple-cheetah';
 import { useBcmsApiKeyRepository } from './repository';
-import {
-  BCMSApiKeyRepository,
-  BCMSApiKeyAddDataSchema,
-  BCMSApiKeyFactory,
-  BCMSApiKeyAddData,
-  BCMSApiKeyUpdateData,
-  BCMSApiKeyUpdateDataSchema,
-} from './types';
 import { createBcmsApiKeySecurityPreRequestHandler } from '../security';
 import { createJwtProtectionPreRequestHandler } from '@becomes/purple-cheetah-mod-jwt';
 import {
   JWTPermissionName,
   JWTRoleName,
 } from '@becomes/purple-cheetah-mod-jwt/types';
-import type { BCMSUserCustomPool, ResponseCode } from '../types';
-import { useResponseCode } from '../response-code';
+import { useBcmsResponseCode } from '../response-code';
 import {
   HTTPStatus,
   ObjectUtility,
   ObjectUtilityError,
 } from '@becomes/purple-cheetah/types';
 import { useBcmsApiKeyFactory } from './factory';
+import {
+  BCMSApiKeyAddData,
+  BCMSApiKeyAddDataSchema,
+  BCMSApiKeyFactory,
+  BCMSApiKeyRepository,
+  BCMSApiKeyUpdateData,
+  BCMSApiKeyUpdateDataSchema,
+  BCMSResponseCode,
+  BCMSUserCustomPool,
+} from '../types';
 
 interface Setup {
   repo: BCMSApiKeyRepository;
-  resCode: ResponseCode;
+  resCode: BCMSResponseCode;
   objectUtil: ObjectUtility;
   apiKeyFactory: BCMSApiKeyFactory;
 }
@@ -40,7 +41,7 @@ export const BCMSApiKeyController = createController<Setup>({
   setup() {
     return {
       repo: useBcmsApiKeyRepository(),
-      resCode: useResponseCode(),
+      resCode: useBcmsResponseCode(),
       objectUtil: useObjectUtility(),
       apiKeyFactory: useBcmsApiKeyFactory(),
     };

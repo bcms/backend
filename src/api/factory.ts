@@ -2,7 +2,7 @@ import * as crypto from 'crypto';
 import { Types } from 'mongoose';
 import { useBcmsConfig } from '../config';
 import { useBcmsFunctionManger } from '../function';
-import type { BCMSApiKey, BCMSApiKeyFactory } from './types';
+import type { BCMSApiKey, BCMSApiKeyFactory } from '../types';
 
 let apiKeyFactory: BCMSApiKeyFactory;
 

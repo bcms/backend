@@ -1,6 +1,6 @@
 import { useObjectUtility } from '@becomes/purple-cheetah';
 import { ObjectUtilityError } from '@becomes/purple-cheetah/types';
-import { BCMSFunction, BCMSFunctionSchema } from './types';
+import { BCMSFunction, BCMSFunctionSchema } from '../types';
 
 export function createBcmsFunction<Payload>(
   config: BCMSFunction<Payload>,

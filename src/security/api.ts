@@ -5,8 +5,11 @@ import {
   Module,
 } from '@becomes/purple-cheetah/types';
 import { useBcmsApiKeyRepository } from '../api';
-import type { BCMSApiKey } from '../types';
-import type { BCMSApiKeySecurity, BCMSApiKeySignature } from './types';
+import type {
+  BCMSApiKey,
+  BCMSApiKeySecurity,
+  BCMSApiKeySignature,
+} from '../types';
 
 let apiKeySecurity: BCMSApiKeySecurity;
 

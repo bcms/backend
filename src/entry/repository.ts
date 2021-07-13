@@ -8,7 +8,7 @@ import {
   BCMSEntryMongoDBSchema,
   BCMSEntryRepository,
   BCMSEntryRepositoryMethods,
-} from './types';
+} from '../types';
 
 let entryRepo: BCMSEntryRepository;
 

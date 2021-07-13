@@ -13,23 +13,15 @@ import {
   ObjectUtility,
   ObjectUtilityError,
 } from '@becomes/purple-cheetah/types';
+import {
+  useBcmsIdCounterFactory,
+  useBcmsIdCounterRepository,
+} from '../id-counter';
 import { useBcmsLanguageRepository } from '../language';
 import { useBcmsPropHandler } from '../prop';
-import { useResponseCode } from '../response-code';
+import { useBcmsResponseCode } from '../response-code';
 import { useBcmsStatusRepository } from '../status';
 import { useBcmsTemplateRepository } from '../template';
-import type {
-  BCMSLanguageRepository,
-  BCMSPropHandler,
-  BCMSStatusRepository,
-  BCMSTemplateRepository,
-  BCMSUserCustomPool,
-  ResponseCode,
-} from '../types';
-import { createJwtApiProtectionPreRequestHandler } from '../util';
-import { useBcmsEntryFactory } from './factory';
-import { useBcmsEntryParser } from './parser';
-import { useBcmsEntryRepository } from './repository';
 import {
   BCMSEntryCreateData,
   BCMSEntryCreateDataSchema,
@@ -40,18 +32,32 @@ import {
   BCMSEntryRepository,
   BCMSEntryUpdateData,
   BCMSEntryUpdateDataSchema,
-} from './types';
+  BCMSIdCounterFactory,
+  BCMSIdCounterRepository,
+  BCMSLanguageRepository,
+  BCMSPropHandler,
+  BCMSResponseCode,
+  BCMSStatusRepository,
+  BCMSTemplateRepository,
+  BCMSUserCustomPool,
+} from '../types';
+import { createJwtApiProtectionPreRequestHandler } from '../util';
+import { useBcmsEntryFactory } from './factory';
+import { useBcmsEntryParser } from './parser';
+import { useBcmsEntryRepository } from './repository';
 
 interface Setup {
   entryRepo: BCMSEntryRepository;
   entryFactory: BCMSEntryFactory;
-  resCode: ResponseCode;
+  resCode: BCMSResponseCode;
   tempRepo: BCMSTemplateRepository;
   entryParser: BCMSEntryParser;
   objectUtil: ObjectUtility;
   langRepo: BCMSLanguageRepository;
   propHandler: BCMSPropHandler;
   statusRepo: BCMSStatusRepository;
+  idcRepo: BCMSIdCounterRepository;
+  idcFactory: BCMSIdCounterFactory;
 }
 
 export const BCMSEntryController = createController<Setup>({
@@ -61,13 +67,15 @@ export const BCMSEntryController = createController<Setup>({
     return {
       entryRepo: useBcmsEntryRepository(),
       entryFactory: useBcmsEntryFactory(),
-      resCode: useResponseCode(),
+      resCode: useBcmsResponseCode(),
       tempRepo: useBcmsTemplateRepository(),
       entryParser: useBcmsEntryParser(),
       objectUtil: useObjectUtility(),
       langRepo: useBcmsLanguageRepository(),
       propHandler: useBcmsPropHandler(),
       statusRepo: useBcmsStatusRepository(),
+      idcRepo: useBcmsIdCounterRepository(),
+      idcFactory: useBcmsIdCounterFactory(),
     };
   },
   methods({
@@ -80,6 +88,8 @@ export const BCMSEntryController = createController<Setup>({
     langRepo,
     propHandler,
     statusRepo,
+    idcRepo,
+    idcFactory,
   }) {
     return {
       getManyLiteById: createControllerMethod({
@@ -280,6 +290,7 @@ export const BCMSEntryController = createController<Setup>({
               }),
             );
           }
+
           const meta: BCMSEntryMeta[] = [];
           const langs = await langRepo.findAll();
           const status = body.status
@@ -313,7 +324,24 @@ export const BCMSEntryController = createController<Setup>({
             }
             meta.push(langMeta);
           }
+          let idc = await idcRepo.methods.findAndIncByForId('entries');
+          if (!idc) {
+            const entryIdc = idcFactory.create({
+              count: 2,
+              forId: 'entries',
+              name: 'Entries',
+            });
+            const addIdcResult = await idcRepo.add(entryIdc as never);
+            if (!addIdcResult) {
+              throw errorHandler.occurred(
+                HTTPStatus.INTERNAL_SERVER_ERROR,
+                'Failed to add IDC to the database.',
+              );
+            }
+            idc = 1;
+          }
           const entry = entryFactory.create({
+            cid: idc.toString(16),
             templateId: `${template._id}`,
             userId: token ? token.payload.userId : `key_${key?._id}`,
             status: status ? `${status._id}` : undefined,

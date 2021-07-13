@@ -9,34 +9,40 @@ import {
   JWTRoleName,
 } from '@becomes/purple-cheetah-mod-jwt/types';
 import { HTTPStatus, StringUtility } from '@becomes/purple-cheetah/types';
+import {
+  useBcmsIdCounterFactory,
+  useBcmsIdCounterRepository,
+} from '../id-counter';
 import { useBcmsPropHandler } from '../prop';
-import { useResponseCode } from '../response-code';
+import { useBcmsResponseCode } from '../response-code';
 import {
   BCMSProp,
   BCMSPropGroupPointerData,
   BCMSPropHandler,
   BCMSPropType,
   BCMSUserCustomPool,
-  ResponseCode,
-} from '../types';
-import { createJwtAndBodyCheckRouteProtection } from '../util';
-import { useBcmsGroupFactory } from './factory';
-import { useBcmsGroupRepository } from './repository';
-import {
   BCMSGroupAddData,
   BCMSGroupAddDataSchema,
   BCMSGroupFactory,
   BCMSGroupRepository,
   BCMSGroupUpdateData,
   BCMSGroupUpdateDataSchema,
-} from './types';
+  BCMSResponseCode,
+  BCMSIdCounterRepository,
+  BCMSIdCounterFactory,
+} from '../types';
+import { createJwtAndBodyCheckRouteProtection } from '../util';
+import { useBcmsGroupFactory } from './factory';
+import { useBcmsGroupRepository } from './repository';
 
 interface Setup {
   groupRepo: BCMSGroupRepository;
   groupFactory: BCMSGroupFactory;
-  resCode: ResponseCode;
+  resCode: BCMSResponseCode;
   stringUtil: StringUtility;
   propHandler: BCMSPropHandler;
+  idcRepo: BCMSIdCounterRepository;
+  idcFactory: BCMSIdCounterFactory;
   search(targetGroupId: string, props: BCMSProp[]): Promise<boolean>;
 }
 
@@ -48,9 +54,11 @@ export const BCMSGroupController = createController<Setup>({
     return {
       groupRepo,
       groupFactory: useBcmsGroupFactory(),
-      resCode: useResponseCode(),
+      resCode: useBcmsResponseCode(),
       stringUtil: useStringUtility(),
       propHandler: useBcmsPropHandler(),
+      idcRepo: useBcmsIdCounterRepository(),
+      idcFactory: useBcmsIdCounterFactory(),
       async search(targetGroupId, props) {
         for (const i in props) {
           const prop = props[i];
@@ -74,6 +82,8 @@ export const BCMSGroupController = createController<Setup>({
     groupFactory,
     groupRepo,
     resCode,
+    idcRepo,
+    idcFactory,
     search,
     stringUtil,
     propHandler,
@@ -211,7 +221,24 @@ export const BCMSGroupController = createController<Setup>({
             bodySchema: BCMSGroupAddDataSchema,
           }),
         async handler({ errorHandler, body }) {
+          let idc = await idcRepo.methods.findAndIncByForId('groups');
+          if (!idc) {
+            const groupIdc = idcFactory.create({
+              count: 2,
+              forId: 'groups',
+              name: 'Groups',
+            });
+            const addIdcResult = await idcRepo.add(groupIdc as never);
+            if (!addIdcResult) {
+              throw errorHandler.occurred(
+                HTTPStatus.INTERNAL_SERVER_ERROR,
+                'Failed to add IDC to the database.',
+              );
+            }
+            idc = 1;
+          }
           const group = groupFactory.create({
+            cid: idc.toString(16),
             desc: body.desc,
             label: body.label,
             name: stringUtil.toSlugUnderscore(body.label),
@@ -246,12 +273,12 @@ export const BCMSGroupController = createController<Setup>({
             permissionName: JWTPermissionName.WRITE,
             bodySchema: BCMSGroupUpdateDataSchema,
           }),
-        async handler({ request, errorHandler, body }) {
-          const group = await groupRepo.findById(request.params.id);
+        async handler({ errorHandler, body }) {
+          const group = await groupRepo.findById(body._id);
           if (!group) {
             throw errorHandler.occurred(
               HTTPStatus.NOT_FOUNT,
-              resCode.get('grp001', { id: request.params.id }),
+              resCode.get('grp001', { id: body._id }),
             );
           }
           let changeDetected = false;

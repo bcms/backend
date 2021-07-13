@@ -7,7 +7,7 @@ import {
   BCMSEventConfigScope,
   BCMSEventManager,
   BCMSEventSchema,
-} from './types';
+} from '../types';
 
 let eventManager: BCMSEventManager;
 

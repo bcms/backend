@@ -1,6 +1,6 @@
 import { Types } from 'mongoose';
 import { useBcmsConfig } from '../config';
-import type { BCMSGroup, BCMSGroupFactory } from './types';
+import type { BCMSGroup, BCMSGroupFactory } from '../types';
 
 let groupFactory: BCMSGroupFactory;
 
@@ -13,9 +13,10 @@ export function useBcmsGroupFactory(): BCMSGroupFactory {
           _id: new Types.ObjectId(),
           createdAt: Date.now(),
           updatedAt: Date.now(),
-          desc: config.desc ? config.desc : '',
-          label: config.label ? config.label : '',
-          name: config.name ? config.name : '',
+          cid: config.cid,
+          desc: config.desc,
+          label: config.label,
+          name: config.name,
           props: [],
         };
         if (bcmsConfig.database.fs) {
@@ -28,6 +29,7 @@ export function useBcmsGroupFactory(): BCMSGroupFactory {
           _id: `${group._id}`,
           createdAt: group.createdAt,
           updatedAt: group.updatedAt,
+          cid: group.cid,
           desc: group.desc,
           name: group.name,
           label: group.label,
