@@ -8,6 +8,9 @@ import {
   BCMSGroupMongoDBSchema,
   BCMSGroupRepository,
   BCMSGroupRepositoryMethods,
+  BCMSPropEntryPointerData,
+  BCMSPropGroupPointerData,
+  BCMSPropType,
 } from '../types';
 
 let groupRepo: BCMSGroupRepository;
@@ -29,6 +32,28 @@ export function useBcmsGroupRepository(): BCMSGroupRepository {
           return {
             async findByName(nm) {
               return await repo.findBy((e) => e.name === nm);
+            },
+            async findAllByPropGroupPointer(groupId) {
+              return await repo.findAllBy(
+                (e) =>
+                  !!e.props.find(
+                    (p) =>
+                      p.type === BCMSPropType.GROUP_POINTER &&
+                      (p.defaultData as BCMSPropGroupPointerData)._id ===
+                        groupId,
+                  ),
+              );
+            },
+            async findAllByPropEntryPointer(templateId) {
+              return await repo.findAllBy(
+                (e) =>
+                  !!e.props.find(
+                    (p) =>
+                      p.type === BCMSPropType.ENTRY_POINTER &&
+                      (p.defaultData as BCMSPropEntryPointerData).templateId ===
+                        templateId,
+                  ),
+              );
             },
           };
         },
@@ -54,6 +79,18 @@ export function useBcmsGroupRepository(): BCMSGroupRepository {
                 cacheHandler.set(group._id.toHexString(), group);
               }
               return group;
+            },
+            async findAllByPropGroupPointer(groupId) {
+              return await mongoDBInterface.find({
+                'props.type': BCMSPropType.GROUP_POINTER,
+                'props.defaultData._id': groupId,
+              });
+            },
+            async findAllByPropEntryPointer(templateId) {
+              return await mongoDBInterface.find({
+                'props.type': BCMSPropType.ENTRY_POINTER,
+                'props.defaultData.templateId': templateId,
+              });
             },
           };
         },

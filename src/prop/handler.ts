@@ -23,6 +23,7 @@ import {
   BCMSPropType,
   BCMSPropValueGroupPointerData,
 } from '../types';
+import { useBcmsWidgetRepository } from '../widget';
 
 let propHandler: BCMSPropHandler;
 
@@ -43,6 +44,7 @@ export function createBcmsPropHandler(): Module {
       const mediaRepo = useBcmsMediaRepository();
       const propFactory = useBcmsPropFactory();
       const stringUtil = useStringUtility();
+      const widgetRepo = useBcmsWidgetRepository();
 
       propHandler = {
         async checkPropValues({ props, values, level }) {
@@ -688,6 +690,127 @@ export function createBcmsPropHandler(): Module {
             }
           }
           return parsed;
+        },
+        async removeGroupPointer({ groupId }) {
+          function filterGroupPointer(data: { props: BCMSProp[] }) {
+            return data.props.filter(
+              (prop) =>
+                !(
+                  prop.type === BCMSPropType.GROUP_POINTER &&
+                  (prop.defaultData as BCMSPropGroupPointerData)._id === groupId
+                ),
+            );
+          }
+          const errors: Error[] = [];
+          const groups = await groupRepo.methods.findAllByPropGroupPointer(
+            groupId,
+          );
+          for (let i = 0; i < groups.length; i++) {
+            const group = groups[i];
+            group.props = filterGroupPointer({
+              props: group.props,
+            });
+            const updatedGroup = await groupRepo.update(group as never);
+            if (!updatedGroup) {
+              errors.push(Error(`Failed to update group "${group._id}"`));
+            } else {
+              // TODO: trigger socket event
+            }
+          }
+          const widgets = await widgetRepo.methods.findAllByPropGroupPointer(
+            groupId,
+          );
+          for (let i = 0; i < widgets.length; i++) {
+            const widget = widgets[i];
+            widget.props = filterGroupPointer({
+              props: widget.props,
+            });
+            const updatedWidget = await widgetRepo.update(widget as never);
+            if (!updatedWidget) {
+              errors.push(Error(`Failed to update widget "${widget._id}"`));
+            } else {
+              // TODO: trigger socket event
+            }
+          }
+          const templates = await tempRepo.methods.findAllByPropGroupPointer(
+            groupId,
+          );
+          for (let i = 0; i < templates.length; i++) {
+            const template = templates[i];
+            template.props = filterGroupPointer({
+              props: template.props,
+            });
+            const updatedTemplate = await tempRepo.update(template as never);
+            if (!updatedTemplate) {
+              errors.push(Error(`Failed to update template "${template._id}"`));
+            } else {
+              // TODO: trigger socket event
+            }
+          }
+          if (errors.length > 0) {
+            return errors;
+          }
+        },
+        async removeEntryPointer({ templateId }) {
+          function filterGroupPointer(data: { props: BCMSProp[] }) {
+            return data.props.filter(
+              (prop) =>
+                !(
+                  prop.type === BCMSPropType.ENTRY_POINTER &&
+                  (prop.defaultData as BCMSPropEntryPointerData).templateId ===
+                    templateId
+                ),
+            );
+          }
+          const errors: Error[] = [];
+          const groups = await groupRepo.methods.findAllByPropEntryPointer(
+            templateId,
+          );
+          for (let i = 0; i < groups.length; i++) {
+            const group = groups[i];
+            group.props = filterGroupPointer({
+              props: group.props,
+            });
+            const updatedGroup = await groupRepo.update(group as never);
+            if (!updatedGroup) {
+              errors.push(Error(`Failed to update group "${group._id}"`));
+            } else {
+              // TODO: trigger socket event
+            }
+          }
+          const widgets = await widgetRepo.methods.findAllByPropEntryPointer(
+            templateId,
+          );
+          for (let i = 0; i < widgets.length; i++) {
+            const widget = widgets[i];
+            widget.props = filterGroupPointer({
+              props: widget.props,
+            });
+            const updatedWidget = await widgetRepo.update(widget as never);
+            if (!updatedWidget) {
+              errors.push(Error(`Failed to update widget "${widget._id}"`));
+            } else {
+              // TODO: trigger socket event
+            }
+          }
+          const templates = await tempRepo.methods.findAllByPropEntryPointer(
+            templateId,
+          );
+          for (let i = 0; i < templates.length; i++) {
+            const template = templates[i];
+            template.props = filterGroupPointer({
+              props: template.props,
+            });
+            const updatedTemplate = await tempRepo.update(template as never);
+            if (!updatedTemplate) {
+              errors.push(Error(`Failed to update template "${template._id}"`));
+            } else {
+              // TODO: trigger socket event
+            }
+          }
+          if (errors.length > 0) {
+            return errors;
+          }
         },
       };
 

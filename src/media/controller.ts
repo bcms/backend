@@ -350,12 +350,6 @@ export const BCMSMediaController = createController<Setup>({
               resCode.get('mda008', { id: request.params.id }),
             );
           }
-          console.log(
-            await mediaService.storage.getPath({
-              media,
-              size: request.params.size === 'small' ? 'small' : undefined,
-            }),
-          );
           return {
             __file: await mediaService.storage.getPath({
               media,

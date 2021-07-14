@@ -32,10 +32,13 @@ import {
   BCMSResponseCode,
   BCMSIdCounterRepository,
   BCMSIdCounterFactory,
+  BCMSEntryRepository,
 } from '../types';
 import { useBcmsResponseCode } from '../response-code';
+import { useBcmsEntryRepository } from '../entry';
 
 interface Setup {
+  entryRepo: BCMSEntryRepository;
   tempRepo: BCMSTemplateRepository;
   tempFactory: BCMSTemplateFactory;
   resCode: BCMSResponseCode;
@@ -51,6 +54,7 @@ export const BCMSTemplateController = createController<Setup>({
   path: '/api/template',
   setup() {
     return {
+      entryRepo: useBcmsEntryRepository(),
       tempRepo: useBcmsTemplateRepository(),
       tempFactory: useBcmsTemplateFactory(),
       resCode: useBcmsResponseCode(),
@@ -62,6 +66,7 @@ export const BCMSTemplateController = createController<Setup>({
     };
   },
   methods({
+    entryRepo,
     tempRepo,
     tempFactory,
     resCode,
@@ -353,7 +358,7 @@ export const BCMSTemplateController = createController<Setup>({
             [JWTRoleName.ADMIN, JWTRoleName.USER],
             JWTPermissionName.DELETE,
           ),
-        async handler({ request, errorHandler }) {
+        async handler({ request, errorHandler, logger, name }) {
           const id = request.params.id;
           const template = await tempRepo.findById(id);
           if (!template) {
@@ -369,7 +374,13 @@ export const BCMSTemplateController = createController<Setup>({
               resCode.get('tmp006'),
             );
           }
-          // TODO: delete all entries from this template.
+          await entryRepo.methods.deleteAllByTemplateId(id);
+          const errors = await propHandler.removeEntryPointer({
+            templateId: id,
+          });
+          if (errors) {
+            logger.error(name, errors);
+          }
 
           const keys = await apiKeyRepo.findAll();
           const updateKeys: BCMSApiKey[] = [];

@@ -2,6 +2,9 @@ import { createFSDBRepository } from '@becomes/purple-cheetah-mod-fsdb';
 import { createMongoDBCachedRepository } from '@becomes/purple-cheetah-mod-mongodb';
 import { useBcmsConfig } from '../config';
 import {
+  BCMSPropEntryPointerData,
+  BCMSPropGroupPointerData,
+  BCMSPropType,
   BCMSWidgetFSDB,
   BCMSWidgetFSDBSchema,
   BCMSWidgetMongoDB,
@@ -30,6 +33,28 @@ export function useBcmsWidgetRepository(): BCMSWidgetRepository {
             async findByName(name) {
               return await repo.findBy((e) => e.name === name);
             },
+            async findAllByPropGroupPointer(groupId) {
+              return await repo.findAllBy(
+                (e) =>
+                  !!e.props.find(
+                    (p) =>
+                      p.type === BCMSPropType.GROUP_POINTER &&
+                      (p.defaultData as BCMSPropGroupPointerData)._id ===
+                        groupId,
+                  ),
+              );
+            },
+            async findAllByPropEntryPointer(templateId) {
+              return await repo.findAllBy(
+                (e) =>
+                  !!e.props.find(
+                    (p) =>
+                      p.type === BCMSPropType.ENTRY_POINTER &&
+                      (p.defaultData as BCMSPropEntryPointerData).templateId ===
+                        templateId,
+                  ),
+              );
+            },
           };
         },
       });
@@ -54,6 +79,18 @@ export function useBcmsWidgetRepository(): BCMSWidgetRepository {
                 cacheHandler.set(widget._id.toHexString(), widget);
               }
               return widget;
+            },
+            async findAllByPropGroupPointer(groupId) {
+              return await mongoDBInterface.find({
+                'props.type': BCMSPropType.GROUP_POINTER,
+                'props.defaultData._id': groupId,
+              });
+            },
+            async findAllByPropEntryPointer(templateId) {
+              return await mongoDBInterface.find({
+                'props.type': BCMSPropType.ENTRY_POINTER,
+                'props.defaultData.templateId': templateId,
+              });
             },
           };
         },

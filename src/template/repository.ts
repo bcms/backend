@@ -2,6 +2,9 @@ import { createFSDBRepository } from '@becomes/purple-cheetah-mod-fsdb';
 import { createMongoDBCachedRepository } from '@becomes/purple-cheetah-mod-mongodb';
 import { useBcmsConfig } from '../config';
 import {
+  BCMSPropEntryPointerData,
+  BCMSPropGroupPointerData,
+  BCMSPropType,
   BCMSTemplateFSDB,
   BCMSTemplateFSDBSchema,
   BCMSTemplateMongoDB,
@@ -36,6 +39,28 @@ export function useBcmsTemplateRepository(): BCMSTemplateRepository {
             },
             async findAllByCid(cids) {
               return await repo.findAllBy((e) => cids.includes(e.cid));
+            },
+            async findAllByPropGroupPointer(groupId) {
+              return await repo.findAllBy(
+                (e) =>
+                  !!e.props.find(
+                    (p) =>
+                      p.type === BCMSPropType.GROUP_POINTER &&
+                      (p.defaultData as BCMSPropGroupPointerData)._id ===
+                        groupId,
+                  ),
+              );
+            },
+            async findAllByPropEntryPointer(templateId) {
+              return await repo.findAllBy(
+                (e) =>
+                  !!e.props.find(
+                    (p) =>
+                      p.type === BCMSPropType.ENTRY_POINTER &&
+                      (p.defaultData as BCMSPropEntryPointerData).templateId ===
+                        templateId,
+                  ),
+              );
             },
           };
         },
@@ -93,6 +118,18 @@ export function useBcmsTemplateRepository(): BCMSTemplateRepository {
                 cacheHandler.set(item._id.toHexString(), item);
               }
               return [...cacheHits, ...items];
+            },
+            async findAllByPropGroupPointer(groupId) {
+              return await mongoDBInterface.find({
+                'props.type': BCMSPropType.GROUP_POINTER,
+                'props.defaultData._id': groupId,
+              });
+            },
+            async findAllByPropEntryPointer(templateId) {
+              return await mongoDBInterface.find({
+                'props.type': BCMSPropType.ENTRY_POINTER,
+                'props.defaultData.templateId': templateId,
+              });
             },
           };
         },

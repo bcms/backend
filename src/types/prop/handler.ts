@@ -43,6 +43,20 @@ export interface BCMSPropHandler {
     maxDepth: number;
     onlyLng?: string;
   }): Promise<BCMSPropParsed>;
+  /**
+   * Have in mind that this method has side effects.
+   * All props pointing to specified group will be removed from
+   * other groups, templates and widgets and updated in the
+   * database.
+   */
+  removeGroupPointer(data: { groupId: string }): Promise<void | Error[]>;
+  /**
+   * Have in mind that this method has side effects.
+   * All props pointing to specified template will be removed from
+   * other templates, groups and widgets and updated in the
+   * database.
+   */
+   removeEntryPointer(data: { templateId: string }): Promise<void | Error[]>;
   // parseProps(
   //   props: BCMSProp[],
   //   lng: string,

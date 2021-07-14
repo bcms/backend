@@ -386,7 +386,7 @@ export const BCMSGroupController = createController<Setup>({
             [JWTRoleName.ADMIN],
             JWTPermissionName.DELETE,
           ),
-        async handler({ request, errorHandler }) {
+        async handler({ request, errorHandler, logger, name }) {
           const group = await groupRepo.findById(request.params.id);
           if (!group) {
             throw errorHandler.occurred(
@@ -401,7 +401,12 @@ export const BCMSGroupController = createController<Setup>({
               resCode.get('grp006'),
             );
           }
-
+          const errors = await propHandler.removeGroupPointer({
+            groupId: `${group._id}`,
+          });
+          if (errors) {
+            logger.error(name, errors);
+          }
           // TODO: trigger socket event and event manager
 
           return {
