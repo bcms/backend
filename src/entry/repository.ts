@@ -28,6 +28,11 @@ export function useBcmsEntryRepository(): BCMSEntryRepository {
         schema: BCMSEntryFSDBSchema,
         methods({ repo }) {
           return {
+            async findByTemplateIdAndCid(templateId, entryCid) {
+              return await repo.findBy(
+                (e) => e.cid === entryCid && e.templateId === templateId,
+              );
+            },
             async findAllByStatus(status) {
               return await repo.findAllBy((e) => e.status === status);
             },
@@ -75,6 +80,22 @@ export function useBcmsEntryRepository(): BCMSEntryRepository {
             template: {},
           };
           return {
+            async findByTemplateIdAndCid(templateId, entryCid) {
+              const cacheHit = cacheHandler.findOne(
+                (e) => e.cid === entryCid && e.templateId === templateId,
+              );
+              if (cacheHit) {
+                return cacheHit;
+              }
+              const item = await mongoDBInterface.findOne({
+                cid: entryCid,
+                templateId,
+              });
+              if (item) {
+                cacheHandler.set(item._id.toHexString(), item);
+              }
+              return item;
+            },
             async findAllByStatus(status) {
               if (latches.status[status]) {
                 return cacheHandler.find((e) => e.status === status);

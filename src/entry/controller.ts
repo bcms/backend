@@ -127,10 +127,10 @@ export const BCMSEntryController = createController<Setup>({
       getAllByTemplateIdParsed: createControllerMethod({
         path: '/all/:tid/parse',
         type: 'get',
-        // preRequestHandler: createJwtApiProtectionPreRequestHandler({
-        //   roleNames: [JWTRoleName.ADMIN, JWTRoleName.USER],
-        //   permissionName: JWTPermissionName.READ,
-        // }),
+        preRequestHandler: createJwtApiProtectionPreRequestHandler({
+          roleNames: [JWTRoleName.ADMIN, JWTRoleName.USER],
+          permissionName: JWTPermissionName.READ,
+        }),
         async handler({ request }) {
           const entries = await entryRepo.methods.findAllByTemplateId(
             request.params.tid,
@@ -160,10 +160,12 @@ export const BCMSEntryController = createController<Setup>({
           roleNames: [JWTRoleName.ADMIN, JWTRoleName.USER],
           permissionName: JWTPermissionName.READ,
         }),
-        async handler() {
-          // TODO: add logic
+        async handler({ request }) {
+          const entries = await entryRepo.methods.findAllByTemplateId(
+            request.params.tid,
+          );
           return {
-            items: [],
+            items: entries.map((e) => entryFactory.toLite(e)),
           };
         },
       }),
@@ -190,12 +192,21 @@ export const BCMSEntryController = createController<Setup>({
           permissionName: JWTPermissionName.READ,
         }),
         async handler({ request, errorHandler }) {
-          const eid = request.params.eid;
-          const entry = await entryRepo.findById(eid);
+          const template = await tempRepo.methods.findByCid(request.params.tid);
+          if (!template) {
+            throw errorHandler.occurred(
+              HTTPStatus.NOT_FOUNT,
+              resCode.get('tmp001', { id: request.params.tid }),
+            );
+          }
+          const entry = await entryRepo.methods.findByTemplateIdAndCid(
+            `${template._id}`,
+            request.params.eid,
+          );
           if (!entry) {
             throw errorHandler.occurred(
               HTTPStatus.NOT_FOUNT,
-              resCode.get('etr001', { eid }),
+              resCode.get('etr001', { id: request.params.eid }),
             );
           }
           return {

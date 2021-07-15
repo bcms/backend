@@ -15,11 +15,9 @@ import {
 } from '../id-counter';
 import { useBcmsPropHandler } from '../prop';
 import { useBcmsResponseCode } from '../response-code';
+import { useBcmsTemplateRepository } from '../template';
 import {
-  BCMSProp,
-  BCMSPropGroupPointerData,
   BCMSPropHandler,
-  BCMSPropType,
   BCMSUserCustomPool,
   BCMSGroupAddData,
   BCMSGroupAddDataSchema,
@@ -30,20 +28,24 @@ import {
   BCMSResponseCode,
   BCMSIdCounterRepository,
   BCMSIdCounterFactory,
+  BCMSTemplateRepository,
+  BCMSWidgetRepository,
 } from '../types';
 import { createJwtAndBodyCheckRouteProtection } from '../util';
+import { useBcmsWidgetRepository } from '../widget';
 import { useBcmsGroupFactory } from './factory';
 import { useBcmsGroupRepository } from './repository';
 
 interface Setup {
   groupRepo: BCMSGroupRepository;
+  tempRepo: BCMSTemplateRepository;
+  widRepo: BCMSWidgetRepository;
   groupFactory: BCMSGroupFactory;
   resCode: BCMSResponseCode;
   stringUtil: StringUtility;
   propHandler: BCMSPropHandler;
   idcRepo: BCMSIdCounterRepository;
   idcFactory: BCMSIdCounterFactory;
-  search(targetGroupId: string, props: BCMSProp[]): Promise<boolean>;
 }
 
 export const BCMSGroupController = createController<Setup>({
@@ -53,38 +55,24 @@ export const BCMSGroupController = createController<Setup>({
     const groupRepo = useBcmsGroupRepository();
     return {
       groupRepo,
+      tempRepo: useBcmsTemplateRepository(),
+      widRepo: useBcmsWidgetRepository(),
       groupFactory: useBcmsGroupFactory(),
       resCode: useBcmsResponseCode(),
       stringUtil: useStringUtility(),
       propHandler: useBcmsPropHandler(),
       idcRepo: useBcmsIdCounterRepository(),
       idcFactory: useBcmsIdCounterFactory(),
-      async search(targetGroupId, props) {
-        for (const i in props) {
-          const prop = props[i];
-          if (prop.type === BCMSPropType.GROUP_POINTER) {
-            const data = prop.defaultData as BCMSPropGroupPointerData;
-            if (data._id === targetGroupId) {
-              return true;
-            } else {
-              const g = await groupRepo.findById(data._id);
-              if (g) {
-                return this.search(targetGroupId, g.props);
-              }
-            }
-          }
-        }
-        return false;
-      },
     };
   },
   methods({
     groupFactory,
+    tempRepo,
+    widRepo,
     groupRepo,
     resCode,
     idcRepo,
     idcFactory,
-    search,
     stringUtil,
     propHandler,
   }) {
@@ -99,15 +87,6 @@ export const BCMSGroupController = createController<Setup>({
           ),
         async handler({ request, errorHandler }) {
           const id = request.params.id;
-          const output: {
-            templateIds: string[];
-            groupIds: string[];
-            widgetIds: string[];
-          } = {
-            groupIds: [],
-            templateIds: [],
-            widgetIds: [],
-          };
           const group = await groupRepo.findById(id);
           if (!group) {
             throw errorHandler.occurred(
@@ -116,17 +95,17 @@ export const BCMSGroupController = createController<Setup>({
             );
           }
 
-          const groups = await groupRepo.findAll();
-          for (const i in groups) {
-            const g = groups[i];
-            if (await search(`${group._id}`, g.props)) {
-              output.groupIds.push(`${g._id}`);
-            }
-          }
-          // TODO: search Templates
-          // TODO: search Widgets
+          const groups = await groupRepo.methods.findAllByPropGroupPointer(id);
+          const templates = await tempRepo.methods.findAllByPropGroupPointer(
+            id,
+          );
+          const widgets = await widRepo.methods.findAllByPropGroupPointer(id);
 
-          return output;
+          return {
+            groupIds: groups.map((e) => e.cid),
+            templateIds: templates.map((e) => e.cid),
+            widgetIds: widgets.map((e) => e.cid),
+          };
         },
       }),
 
@@ -209,6 +188,7 @@ export const BCMSGroupController = createController<Setup>({
               resCode.get('grp001', { id: request.params.id }),
             );
           }
+          return { item: group };
         },
       }),
 

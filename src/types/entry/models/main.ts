@@ -33,7 +33,7 @@ export const BCMSEntryMetaFSDBSchema: ObjectSchema = {
     __child: {
       __type: 'object',
       __content: {
-        _id: {
+        id: {
           __type: 'string',
           __required: true,
         },

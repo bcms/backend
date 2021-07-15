@@ -3,6 +3,10 @@ import type { MongoDBCachedRepository } from '@becomes/purple-cheetah-mod-mongod
 import type { BCMSEntryFSDB, BCMSEntryMongoDB } from './models';
 
 export interface BCMSEntryRepositoryMethods<E> {
+  findByTemplateIdAndCid(
+    templateId: string,
+    entryCid: string,
+  ): Promise<E | null>;
   findAllByStatus(status: string): Promise<E[]>;
   findAllByTemplateId(templateId: string): Promise<E[]>;
   clearAllStatuses(currentStatus: string): Promise<void>;

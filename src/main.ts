@@ -29,7 +29,6 @@ import {
   BCMSShimUserController,
   createBcmsShimService,
 } from './shim';
-// import { createEntryChangeSocketHandler } from './socket';
 import { BCMSUserController } from './user';
 import { createBcmsApiKeySecurity, useBcmsApiKeySecurity } from './security';
 import { BCMSApiKeyController } from './api';
@@ -37,7 +36,7 @@ import { BCMSFunctionController, createBcmsFunctionModule } from './function';
 import { BCMSPluginController, createBcmsPluginModule } from './plugin';
 import { createBcmsEventModule } from './event';
 import { createBcmsJobModule } from './job';
-import { BCMSLanguageController } from './language';
+import { BCMSLanguageController, initLanguage } from './language';
 import {
   BCMSMediaController,
   BCMSMediaMiddleware,
@@ -50,7 +49,7 @@ import { createSocket } from '@becomes/purple-cheetah-mod-socket';
 import { Types } from 'mongoose';
 import { BCMSGroupController } from './group';
 import { createBcmsPropHandler } from './prop';
-import { createBcmsEntryParser } from './entry/parser';
+import { createBcmsEntryParser, BCMSEntryController } from './entry';
 
 let backend: BCMSBackend;
 
@@ -82,8 +81,13 @@ async function initialize() {
         };
       },
       async verifyConnection(socket) {
-        // eslint-disable-next-line @typescript-eslint/no-explicit-any
-        const query = (socket.request as any)._query;
+        const query = socket.handshake.query as {
+          at: string;
+          signature: string;
+          key: string;
+          nonce: string;
+          timestamp: string;
+        };
         if (query.signature) {
           try {
             const apiKeySecurity = useBcmsApiKeySecurity();
@@ -146,6 +150,7 @@ async function initialize() {
     BCMSFunctionController,
     BCMSTemplateController,
     BCMSWidgetController,
+    BCMSEntryController,
   ];
   if (bcmsConfig.database.fs) {
     modules.push(
@@ -206,6 +211,7 @@ async function initialize() {
   modules.push(createBcmsApiKeySecurity());
   modules.push(createBcmsPropHandler());
   modules.push(createBcmsEntryParser());
+  modules.push(initLanguage());
 
   modules.push(createBcmsPluginModule(bcmsConfig));
 

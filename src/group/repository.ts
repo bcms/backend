@@ -55,6 +55,9 @@ export function useBcmsGroupRepository(): BCMSGroupRepository {
                   ),
               );
             },
+            async findByCid(cid) {
+              return await repo.findBy((e) => e.cid === cid);
+            },
           };
         },
       });
@@ -92,6 +95,13 @@ export function useBcmsGroupRepository(): BCMSGroupRepository {
                 'props.defaultData.templateId': templateId,
               });
             },
+            async findByCid(cid) {
+              const cacheHit = await cacheHandler.findOne(e => e.cid === cid);
+              if (cacheHit) {
+                return cacheHit;
+              }
+              
+            }
           };
         },
       });

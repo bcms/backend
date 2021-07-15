@@ -133,7 +133,10 @@ export const BCMSTemplateController = createController<Setup>({
           ),
         async handler({ request, errorHandler }) {
           const id = request.params.id;
-          const template = await tempRepo.methods.findByCid(id);
+          const template =
+            id.length === 24
+              ? await tempRepo.findById(id)
+              : await tempRepo.methods.findByCid(id);
           if (!template) {
             throw errorHandler.occurred(
               HTTPStatus.NOT_FOUNT,
