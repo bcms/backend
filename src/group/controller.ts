@@ -87,7 +87,12 @@ export const BCMSGroupController = createController<Setup>({
           ),
         async handler({ request, errorHandler }) {
           const id = request.params.id;
-          const group = await groupRepo.findById(id);
+          let group: BCMSGroup;
+          if (id.length === 24) {
+            group = await groupRepo.findById(id);
+          } else {
+            group = await groupRepo.methods.
+          }
           if (!group) {
             throw errorHandler.occurred(
               HTTPStatus.NOT_FOUNT,
