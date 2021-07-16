@@ -4,6 +4,7 @@ import type { BCMSWidgetFSDB, BCMSWidgetMongoDB } from './models';
 
 export interface BCMSWidgetRepositoryMethods<E> {
   findByName(name: string): Promise<E | null>;
+  findByCid(cid: string): Promise<E | null>;
   findAllByPropGroupPointer(groupId: string): Promise<E[]>;
   findAllByPropEntryPointer(templateId: string): Promise<E[]>;
 }

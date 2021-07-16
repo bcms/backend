@@ -30,6 +30,7 @@ import {
   BCMSIdCounterFactory,
   BCMSTemplateRepository,
   BCMSWidgetRepository,
+  BCMSGroup,
 } from '../types';
 import { createJwtAndBodyCheckRouteProtection } from '../util';
 import { useBcmsWidgetRepository } from '../widget';
@@ -87,11 +88,11 @@ export const BCMSGroupController = createController<Setup>({
           ),
         async handler({ request, errorHandler }) {
           const id = request.params.id;
-          let group: BCMSGroup;
+          let group: BCMSGroup | null;
           if (id.length === 24) {
             group = await groupRepo.findById(id);
           } else {
-            group = await groupRepo.methods.
+            group = await groupRepo.methods.findByCid(id);
           }
           if (!group) {
             throw errorHandler.occurred(
@@ -100,16 +101,26 @@ export const BCMSGroupController = createController<Setup>({
             );
           }
 
-          const groups = await groupRepo.methods.findAllByPropGroupPointer(id);
-          const templates = await tempRepo.methods.findAllByPropGroupPointer(
-            id,
+          const groups = await groupRepo.methods.findAllByPropGroupPointer(
+            `${group._id}`,
           );
-          const widgets = await widRepo.methods.findAllByPropGroupPointer(id);
+          const templates = await tempRepo.methods.findAllByPropGroupPointer(
+            `${group._id}`,
+          );
+          const widgets = await widRepo.methods.findAllByPropGroupPointer(
+            `${group._id}`,
+          );
 
           return {
-            groupIds: groups.map((e) => e.cid),
-            templateIds: templates.map((e) => e.cid),
-            widgetIds: widgets.map((e) => e.cid),
+            groupIds: groups.map((e) => {
+              return { cid: e.cid, _id: `${e._id}` };
+            }),
+            templateIds: templates.map((e) => {
+              return { cid: e.cid, _id: `${e._id}` };
+            }),
+            widgetIds: widgets.map((e) => {
+              return { cid: e.cid, _id: `${e._id}` };
+            }),
           };
         },
       }),

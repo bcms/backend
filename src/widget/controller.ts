@@ -18,11 +18,13 @@ import { createJwtAndBodyCheckRouteProtection } from '../util';
 import { useBcmsWidgetFactory } from './factory';
 import { useBcmsWidgetRepository } from './repository';
 import {
+  BCMSEntryRepository,
   BCMSIdCounterFactory,
   BCMSIdCounterRepository,
   BCMSPropHandler,
   BCMSResponseCode,
   BCMSUserCustomPool,
+  BCMSWidget,
   BCMSWidgetCreateData,
   BCMSWidgetCreateDataSchema,
   BCMSWidgetFactory,
@@ -31,10 +33,12 @@ import {
   BCMSWidgetUpdateDataSchema,
 } from '../types';
 import { useBcmsResponseCode } from '../response-code';
+import { useBcmsEntryRepository } from '../entry';
 
 interface Setup {
   widRepo: BCMSWidgetRepository;
   widFactory: BCMSWidgetFactory;
+  entryRepo: BCMSEntryRepository;
   resCode: BCMSResponseCode;
   stringUtil: StringUtility;
   propHandler: BCMSPropHandler;
@@ -49,6 +53,7 @@ export const BCMSWidgetController = createController<Setup>({
     return {
       widRepo: useBcmsWidgetRepository(),
       widFactory: useBcmsWidgetFactory(),
+      entryRepo: useBcmsEntryRepository(),
       resCode: useBcmsResponseCode(),
       stringUtil: useStringUtility(),
       propHandler: useBcmsPropHandler(),
@@ -74,16 +79,28 @@ export const BCMSWidgetController = createController<Setup>({
             [JWTRoleName.ADMIN, JWTRoleName.USER],
             JWTPermissionName.READ,
           ),
-        async handler() {
-          // TODO: add logic
+        async handler({ request, errorHandler }) {
+          const id = request.params.id;
+          let widget: BCMSWidget | null = null;
+          if (id.length === 24) {
+            widget = await widRepo.findById(id);
+          } else {
+            widget = await widRepo.methods.findByCid(id);
+          }
+          if (!widget) {
+            throw errorHandler.occurred(
+              HTTPStatus.NOT_FOUNT,
+              resCode.get('wid001', { id }),
+            );
+          }
 
           return {
-            entries: [],
+            entryIds: [],
           };
         },
       }),
 
-      getAdd: createControllerMethod({
+      getAll: createControllerMethod({
         path: '/all',
         type: 'get',
         preRequestHandler:
@@ -139,7 +156,12 @@ export const BCMSWidgetController = createController<Setup>({
           ),
         async handler({ request, errorHandler }) {
           const id = request.params.id;
-          const widget = await widRepo.findById(id);
+          let widget: BCMSWidget | null = null;
+          if (id.length === 24) {
+            widget = await widRepo.findById(id);
+          } else {
+            widget = await widRepo.methods.findByCid(id);
+          }
           if (!widget) {
             throw errorHandler.occurred(
               HTTPStatus.NOT_FOUNT,

@@ -83,6 +83,17 @@ export function useBcmsGroupRepository(): BCMSGroupRepository {
               }
               return group;
             },
+            async findByCid(cid) {
+              const cacheHit = cacheHandler.findOne((e) => e.cid === cid);
+              if (cacheHit) {
+                return cacheHit;
+              }
+              const group = await mongoDBInterface.findOne({ cid });
+              if (group) {
+                cacheHandler.set(group._id.toHexString(), group);
+              }
+              return group;
+            },
             async findAllByPropGroupPointer(groupId) {
               return await mongoDBInterface.find({
                 'props.type': BCMSPropType.GROUP_POINTER,
@@ -95,13 +106,6 @@ export function useBcmsGroupRepository(): BCMSGroupRepository {
                 'props.defaultData.templateId': templateId,
               });
             },
-            async findByCid(cid) {
-              const cacheHit = await cacheHandler.findOne(e => e.cid === cid);
-              if (cacheHit) {
-                return cacheHit;
-              }
-              
-            }
           };
         },
       });
