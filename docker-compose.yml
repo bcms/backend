@@ -1,0 +1,16 @@
+version: '3.9'
+services:
+  backend:
+    build: ''
+    ports:
+      - '1280:1280'
+    volumes:
+      - type: bind
+        source: ./src
+        target: /app/src
+      - type: bind
+        source: ./uploads
+        target: /app/uploads
+      - type: bind
+        source: ./bcms.db.json
+        target: /app/bcms.db.json

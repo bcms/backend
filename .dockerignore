@@ -1,0 +1,12 @@
+/dist
+/logs
+/node_modules
+/dockerfile-local
+/uploads
+/functions
+/events
+/jobs
+/plugins
+
+/bcms.db.json
+/tools.js
