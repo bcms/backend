@@ -5,6 +5,7 @@ import type { BCMSGroupFSDB, BCMSGroupMongoDB } from './models';
 export interface BCMSGroupRepositoryMethods<E> {
   findByName(name: string): Promise<E | null>;
   findByCid(cid: string): Promise<E | null>;
+  findAllByCid(cids: string[]): Promise<E[]>;
   findAllByPropGroupPointer(groupId: string): Promise<E[]>;
   findAllByPropEntryPointer(templateId: string): Promise<E[]>;
 }

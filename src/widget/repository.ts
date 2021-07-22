@@ -36,6 +36,9 @@ export function useBcmsWidgetRepository(): BCMSWidgetRepository {
             async findByCid(cid) {
               return await repo.findBy((e) => e.cid === cid);
             },
+            async findAllByCid(cids) {
+              return await repo.findAllBy((e) => cids.includes(e.cid));
+            },
             async findAllByPropGroupPointer(groupId) {
               return await repo.findAllBy(
                 (e) =>
@@ -93,6 +96,27 @@ export function useBcmsWidgetRepository(): BCMSWidgetRepository {
                 cacheHandler.set(widget._id.toHexString(), widget);
               }
               return widget;
+            },
+            async findAllByCid(cids) {
+              const missingCids: string[] = [];
+              const output: BCMSWidgetMongoDB[] = cacheHandler.find((e) => {
+                const found = cids.includes(e.cid);
+                if (!found) {
+                  missingCids.push(e.cid);
+                }
+                return found;
+              });
+              if (missingCids.length > 0) {
+                const items = await mongoDBInterface.find({
+                  cid: { $in: missingCids },
+                });
+                for (let i = 0; i < items.length; i++) {
+                  const item = items[i];
+                  cacheHandler.set(item._id.toHexString(), item);
+                  output.push(item);
+                }
+              }
+              return output;
             },
             async findAllByPropGroupPointer(groupId) {
               return await mongoDBInterface.find({

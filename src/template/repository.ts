@@ -99,25 +99,25 @@ export function useBcmsTemplateRepository(): BCMSTemplateRepository {
               return item;
             },
             async findAllByCid(cids) {
-              const cacheHits = cacheHandler.find((e) => cids.includes(e.cid));
-              if (cacheHits.length === cids.length) {
-                return cacheHits;
-              }
               const missingCids: string[] = [];
-              for (let i = 0; i < cids.length; i++) {
-                const cid = cids[i];
-                if (!cacheHits.find((e) => e.cid === cid)) {
-                  missingCids.push(cid);
+              const output: BCMSTemplateMongoDB[] = cacheHandler.find((e) => {
+                const found = cids.includes(e.cid);
+                if (!found) {
+                  missingCids.push(e.cid);
+                }
+                return found;
+              });
+              if (missingCids.length > 0) {
+                const items = await mongoDBInterface.find({
+                  cid: { $in: missingCids },
+                });
+                for (let i = 0; i < items.length; i++) {
+                  const item = items[i];
+                  cacheHandler.set(item._id.toHexString(), item);
+                  output.push(item);
                 }
               }
-              const items = await mongoDBInterface.find({
-                cid: { $in: missingCids },
-              });
-              for (let i = 0; i < items.length; i++) {
-                const item = items[i];
-                cacheHandler.set(item._id.toHexString(), item);
-              }
-              return [...cacheHits, ...items];
+              return output;
             },
             async findAllByPropGroupPointer(groupId) {
               return await mongoDBInterface.find({

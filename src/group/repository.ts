@@ -58,6 +58,9 @@ export function useBcmsGroupRepository(): BCMSGroupRepository {
             async findByCid(cid) {
               return await repo.findBy((e) => e.cid === cid);
             },
+            async findAllByCid(cids) {
+              return await repo.findAllBy((e) => cids.includes(e.cid));
+            },
           };
         },
       });
@@ -93,6 +96,25 @@ export function useBcmsGroupRepository(): BCMSGroupRepository {
                 cacheHandler.set(group._id.toHexString(), group);
               }
               return group;
+            },
+            async findAllByCid(cids) {
+              const missingCids: string[] = [];
+              const output: BCMSGroupMongoDB[] = cacheHandler.find(e => {
+                const found = cids.includes(e.cid);
+                if (!found) {
+                  missingCids.push(e.cid)
+                }
+                return found;
+              });
+              if (missingCids.length > 0) {
+                const items = await mongoDBInterface.find({cid: {$in: missingCids}});
+                for (let i = 0; i < items.length; i++) {
+                  const item = items[i];
+                  cacheHandler.set(item._id.toHexString(), item);
+                  output.push(item);
+                }
+              }
+              return output;
             },
             async findAllByPropGroupPointer(groupId) {
               return await mongoDBInterface.find({

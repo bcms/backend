@@ -102,9 +102,15 @@ export const BCMSTemplateController = createController<Setup>({
           ),
         async handler({ request }) {
           const ids = (request.headers['x-bcms-ids'] as string).split('-');
-          return {
-            items: await tempRepo.methods.findAllByCid(ids),
-          };
+          if (ids[0] && ids[0].length === 24) {
+            return {
+              items: await tempRepo.findAllById(ids),
+            };
+          } else {
+            return {
+              items: await tempRepo.methods.findAllByCid(ids),
+            };
+          }
         },
       }),
 
