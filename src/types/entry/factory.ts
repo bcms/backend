@@ -1,4 +1,9 @@
-import type { BCMSEntry, BCMSEntryLite, BCMSEntryMeta } from './models';
+import type {
+  BCMSEntry,
+  BCMSEntryContent,
+  BCMSEntryLite,
+  BCMSEntryMeta,
+} from './models';
 
 export interface BCMSEntryFactory {
   create(data: {
@@ -7,6 +12,7 @@ export interface BCMSEntryFactory {
     userId?: string;
     status?: string;
     meta?: BCMSEntryMeta[];
+    content?: BCMSEntryContent[];
   }): BCMSEntry;
   toLite(entry: BCMSEntry): BCMSEntryLite;
 }

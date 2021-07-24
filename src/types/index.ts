@@ -15,6 +15,7 @@ export * from './shim';
 export * from './status';
 export * from './template';
 export * from './user';
+export * from './util';
 export * from './widget';
 
 export * from './config';

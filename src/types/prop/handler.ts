@@ -23,7 +23,6 @@ export interface BCMSPropHandler {
     pointer?: BCMSPropHandlerPointer,
     level?: string,
   ): Promise<Error | void>;
-  propsValidate(props: BCMSProp[], level?: string): Promise<Error | void>;
   propsChecker(
     propsToCheck: BCMSProp[],
     props: BCMSProp[],
@@ -57,15 +56,4 @@ export interface BCMSPropHandler {
    * database.
    */
    removeEntryPointer(data: { templateId: string }): Promise<void | Error[]>;
-  // parseProps(
-  //   props: BCMSProp[],
-  //   lng: string,
-  //   level?: string,
-  //   entryPointerDepth?: number,
-  // ): Promise<{
-  //   quill: boolean;
-  //   key: string;
-  //   name: string;
-  //   value: BCMSPropParsed;
-  // }>;
 }

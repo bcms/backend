@@ -1,22 +1,6 @@
-import type { ObjectSchema } from '@becomes/purple-cheetah/types';
-
-export interface BCMSPropMediaData {
-  id: string;
-  altText: string;
-}
+export type BCMSPropMediaData = string
 
 export interface BCMSPropMediaDataParsed {
+  _id: string;
   src: string;
-  altText: string;
 }
-
-export const BCMSPropMediaDataSchema: ObjectSchema = {
-  id: {
-    __type: 'string',
-    __required: true,
-  },
-  altText: {
-    __type: 'string',
-    __required: true,
-  },
-};

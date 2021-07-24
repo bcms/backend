@@ -357,6 +357,7 @@ export const BCMSEntryController = createController<Setup>({
             userId: token ? token.payload.userId : `key_${key?._id}`,
             status: status ? `${status._id}` : undefined,
             meta: meta,
+            content: body.content,
           });
           const addedEntry = await entryRepo.add(entry as never);
           if (!addedEntry) {
@@ -365,6 +366,7 @@ export const BCMSEntryController = createController<Setup>({
               resCode.get('etr004'),
             );
           }
+          // TODO: trigger socket event
           return {
             item: addedEntry,
           };
@@ -378,7 +380,7 @@ export const BCMSEntryController = createController<Setup>({
           roleNames: [JWTRoleName.ADMIN, JWTRoleName.USER],
           permissionName: JWTPermissionName.WRITE,
         }),
-        async handler({ request, errorHandler, token, key }) {
+        async handler({ request, errorHandler }) {
           const checkBody = objectUtil.compareWithSchema(
             request.body,
             BCMSEntryUpdateDataSchema,
@@ -400,6 +402,13 @@ export const BCMSEntryController = createController<Setup>({
               resCode.get('tmp001', {
                 id: body.templateId,
               }),
+            );
+          }
+          const entry = await entryRepo.findById(body._id);
+          if (!entry) {
+            throw errorHandler.occurred(
+              HTTPStatus.NOT_FOUNT,
+              resCode.get('etr001', { id: request.params.eid }),
             );
           }
           const meta: BCMSEntryMeta[] = [];
@@ -435,21 +444,19 @@ export const BCMSEntryController = createController<Setup>({
             }
             meta.push(langMeta);
           }
-          const entry = entryFactory.create({
-            templateId: `${template._id}`,
-            userId: token ? token.payload.userId : `key_${key?._id}`,
-            status: status ? `${status._id}` : undefined,
-            meta: meta,
-          });
-          const addedEntry = await entryRepo.add(entry as never);
-          if (!addedEntry) {
+          entry.status = status ? `${status._id}` : '';
+          entry.meta = meta;
+          entry.content = body.content;
+          const updatedEntry = await entryRepo.update(entry as never);
+          if (!updatedEntry) {
             throw errorHandler.occurred(
               HTTPStatus.INTERNAL_SERVER_ERROR,
               resCode.get('etr004'),
             );
           }
+          // TODO: trigger socket event
           return {
-            item: addedEntry,
+            item: updatedEntry,
           };
         },
       }),

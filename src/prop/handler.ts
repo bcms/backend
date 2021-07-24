@@ -18,7 +18,6 @@ import {
   BCMSPropHandlerPointer,
   BCMSPropMediaData,
   BCMSPropMediaDataParsed,
-  BCMSPropMediaDataSchema,
   BCMSPropParsed,
   BCMSPropType,
   BCMSPropValueGroupPointerData,
@@ -191,8 +190,7 @@ export function createBcmsPropHandler(): Module {
                         __type: 'array',
                         __required: true,
                         __child: {
-                          __type: 'object',
-                          __content: BCMSPropMediaDataSchema,
+                          __type: 'string',
                         },
                       },
                     },
@@ -226,7 +224,7 @@ export function createBcmsPropHandler(): Module {
                     const item = valueData.items[j];
                     const groupCheckPropValuesResult =
                       await propHandler.checkPropValues({
-                        level: `${level}.${prop.name}.items.${j}`,
+                        level: `${level}.${prop.name}.items.${j}.props`,
                         props: group.props,
                         values: item.props,
                       });
@@ -337,10 +335,8 @@ export function createBcmsPropHandler(): Module {
             }
           }
         },
-        async propsValidate(_props, _level) {
-          return;
-        },
         async propsChecker(_propsToCheck, _props, _level, _inTemplate) {
+          // TODO: Implement logic
           return;
         },
         async applyPropChanges(_props, changes, level) {
@@ -509,24 +505,22 @@ export function createBcmsPropHandler(): Module {
                   for (let j = 0; j < valueData.length; j++) {
                     const singleValueData = valueData[j];
                     if (typeof singleValueData === 'object') {
-                      const media = await mediaRepo.findById(
-                        singleValueData.id,
-                      );
+                      const media = await mediaRepo.findById(singleValueData);
                       if (media) {
                         (parsed[prop.name] as BCMSPropMediaDataParsed) = {
                           src: await mediaService.getPath(media),
-                          altText: singleValueData.altText,
+                          _id: singleValueData,
                         };
                       }
                     }
                   }
                 } else {
                   if (typeof valueData[0] === 'object') {
-                    const media = await mediaRepo.findById(valueData[0].id);
+                    const media = await mediaRepo.findById(valueData[0]);
                     if (media) {
                       (parsed[prop.name] as BCMSPropMediaDataParsed) = {
                         src: await mediaService.getPath(media),
-                        altText: valueData[0].altText,
+                        _id: valueData[0],
                       };
                     }
                   }

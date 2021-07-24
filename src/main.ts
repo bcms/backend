@@ -10,6 +10,7 @@ import type {
   Module,
 } from '@becomes/purple-cheetah/types';
 import {
+  JWT,
   JWTAlgorithm,
   JWTError,
   JWTPermissionName,
@@ -19,7 +20,7 @@ import { createJwt, useJwt } from '@becomes/purple-cheetah-mod-jwt';
 import { createFSDB } from '@becomes/purple-cheetah-mod-fsdb';
 import { createMongoDB } from '@becomes/purple-cheetah-mod-mongodb';
 
-import type { BCMSBackend } from './types';
+import type { BCMSBackend, BCMSUserCustomPool } from './types';
 import { loadBcmsConfig, useBcmsConfig } from './config';
 import { loadResponseCode } from './response-code';
 import { BCMSSwaggerController, BCMSSwaggerMiddleware } from './swagger';
@@ -73,8 +74,21 @@ async function initialize() {
     createSocket({
       path: '/api/socket/server',
       onConnection(socket) {
+        let id: string;
+        if (socket.handshake.query.at) {
+          try {
+            const token: JWT<BCMSUserCustomPool> = JSON.parse(
+              socket.handshake.query.token as string,
+            );
+            id = token.payload.userId;
+          } catch (err) {
+            id = 'none';
+          }
+        } else {
+          id = socket.handshake.query.key as string;
+        }
         return {
-          id: new Types.ObjectId().toHexString(),
+          id,
           createdAt: Date.now(),
           scope: 'global',
           socket,

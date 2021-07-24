@@ -18,6 +18,7 @@ export function useBcmsEntryFactory(): BCMSEntryFactory {
           userId: data.userId ? data.userId : '',
           status: data.status ? data.status : '',
           meta: data.meta ? data.meta : [],
+          content: data.content ? data.content : [],
         };
         if (bcmsConfig.database.fs) {
           entry._id = entry._id.toHexString() as never;

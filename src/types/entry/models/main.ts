@@ -8,7 +8,16 @@ import {
 } from '@becomes/purple-cheetah-mod-mongodb/types';
 import type { ObjectSchema } from '@becomes/purple-cheetah/types';
 import { Schema } from 'mongoose';
-import type { BCMSPropValue } from '../../../types';
+import {
+  BCMSEntryContent,
+  BCMSEntryContentFSDBSchema,
+  BCMSEntryContentMongoDBSchema,
+} from './content';
+import {
+  BCMSEntryMeta,
+  BCMSEntryMetaFSDBSchema,
+  BCMSEntryMetaMongoDBSchema,
+} from './meta';
 
 export interface BCMSEntryProps {
   cid: string;
@@ -16,41 +25,8 @@ export interface BCMSEntryProps {
   userId: string;
   status?: string;
   meta: BCMSEntryMeta[];
+  content: BCMSEntryContent[];
 }
-
-export interface BCMSEntryMeta {
-  lng: string;
-  props: BCMSPropValue[];
-}
-export const BCMSEntryMetaFSDBSchema: ObjectSchema = {
-  lng: {
-    __type: 'string',
-    __required: true,
-  },
-  props: {
-    __type: 'array',
-    __required: true,
-    __child: {
-      __type: 'object',
-      __content: {
-        id: {
-          __type: 'string',
-          __required: true,
-        },
-      },
-    },
-  },
-};
-export const BCMSEntryMetaMongoDBSchema = new Schema({
-  lng: {
-    type: String,
-    required: true,
-  },
-  props: {
-    type: [Object],
-    required: true,
-  },
-});
 
 export type BCMSEntryFSDB = FSDBEntity & BCMSEntryProps;
 export const BCMSEntryFSDBSchema: ObjectSchema = {
@@ -79,6 +55,14 @@ export const BCMSEntryFSDBSchema: ObjectSchema = {
       __content: BCMSEntryMetaFSDBSchema,
     },
   },
+  content: {
+    __type: 'array',
+    __required: true,
+    __child: {
+      __type: 'object',
+      __content: BCMSEntryContentFSDBSchema,
+    },
+  },
 };
 
 export type BCMSEntryMongoDB = MongoDBEntity & BCMSEntryProps;
@@ -99,6 +83,10 @@ export const BCMSEntryMongoDBSchema = new Schema({
   status: String,
   meta: {
     type: [BCMSEntryMetaMongoDBSchema],
+    required: true,
+  },
+  content: {
+    type: [BCMSEntryContentMongoDBSchema],
     required: true,
   },
 });

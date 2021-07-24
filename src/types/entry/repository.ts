@@ -9,6 +9,7 @@ export interface BCMSEntryRepositoryMethods<E> {
   ): Promise<E | null>;
   findAllByStatus(status: string): Promise<E[]>;
   findAllByTemplateId(templateId: string): Promise<E[]>;
+  findAllByWidgetId(widgetId: string): Promise<E[]>;
   clearAllStatuses(currentStatus: string): Promise<void>;
   deleteAllByTemplateId(templateId: string): Promise<void>;
   countByTemplateId(templateId: string): Promise<number>;

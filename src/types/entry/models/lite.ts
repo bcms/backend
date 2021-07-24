@@ -3,7 +3,7 @@ import {
   FSDBEntitySchema,
 } from '@becomes/purple-cheetah-mod-fsdb/types';
 import type { ObjectSchema } from '@becomes/purple-cheetah/types';
-import { BCMSEntryMeta, BCMSEntryMetaFSDBSchema } from './main';
+import { BCMSEntryMeta, BCMSEntryMetaFSDBSchema } from './meta';
 
 export interface BCMSEntryLite extends FSDBEntity {
   cid: string;

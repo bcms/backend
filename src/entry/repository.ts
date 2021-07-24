@@ -8,6 +8,7 @@ import {
   BCMSEntryMongoDBSchema,
   BCMSEntryRepository,
   BCMSEntryRepositoryMethods,
+  BCMSPropValueWidgetData,
 } from '../types';
 
 let entryRepo: BCMSEntryRepository;
@@ -38,6 +39,19 @@ export function useBcmsEntryRepository(): BCMSEntryRepository {
             },
             async findAllByTemplateId(templateId) {
               return await repo.findAllBy((e) => e.templateId === templateId);
+            },
+            async findAllByWidgetId(widgetId) {
+              return await repo.findAllBy(
+                (e) =>
+                  !!e.content.find((langContent) =>
+                    langContent.nodes.find(
+                      (node) =>
+                        node.attrs &&
+                        (node.attrs as BCMSPropValueWidgetData)._id ===
+                          widgetId,
+                    ),
+                  ),
+              );
             },
             async clearAllStatuses(status) {
               await repo.updateMany(
@@ -75,9 +89,13 @@ export function useBcmsEntryRepository(): BCMSEntryRepository {
             template: {
               [id: string]: boolean;
             };
+            widget: {
+              [id: string]: boolean;
+            };
           } = {
             status: {},
             template: {},
+            widget: {},
           };
           return {
             async findByTemplateIdAndCid(templateId, entryCid) {
@@ -118,6 +136,29 @@ export function useBcmsEntryRepository(): BCMSEntryRepository {
                 cacheHandler.set(item._id.toHexString(), item);
               }
               latches.template[templateId] = true;
+              return items;
+            },
+            async findAllByWidgetId(widgetId) {
+              if (latches.widget[widgetId]) {
+                return cacheHandler.find(
+                  (e) =>
+                    !!e.content.find((langContent) =>
+                      langContent.nodes.find(
+                        (node) =>
+                          node.attrs &&
+                          (node.attrs as BCMSPropValueWidgetData)._id ===
+                            widgetId,
+                      ),
+                    ),
+                );
+              }
+              const items: BCMSEntryMongoDB[] = await mongoDBInterface.find({
+                'content.nodes.attrs._id': widgetId,
+              });
+              for (let i = 0; i < items.length; i++) {
+                const item = items[i];
+                cacheHandler.set(item._id.toHexString(), item);
+              }
               return items;
             },
             async clearAllStatuses(status) {
