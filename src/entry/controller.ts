@@ -192,17 +192,26 @@ export const BCMSEntryController = createController<Setup>({
           permissionName: JWTPermissionName.READ,
         }),
         async handler({ request, errorHandler }) {
-          const template = await tempRepo.methods.findByCid(request.params.tid);
+          const template =
+            request.params.tid.length === 24
+              ? await tempRepo.findById(request.params.tid)
+              : await tempRepo.methods.findByCid(request.params.tid);
           if (!template) {
             throw errorHandler.occurred(
               HTTPStatus.NOT_FOUNT,
               resCode.get('tmp001', { id: request.params.tid }),
             );
           }
-          const entry = await entryRepo.methods.findByTemplateIdAndCid(
-            `${template._id}`,
-            request.params.eid,
-          );
+          const entry =
+            request.params.eid.length === 24
+              ? await entryRepo.methods.findByTemplateIdAndId(
+                  `${template._id}`,
+                  request.params.eid,
+                )
+              : await entryRepo.methods.findByTemplateIdAndCid(
+                  `${template._id}`,
+                  request.params.eid,
+                );
           if (!entry) {
             throw errorHandler.occurred(
               HTTPStatus.NOT_FOUNT,
@@ -484,6 +493,9 @@ export const BCMSEntryController = createController<Setup>({
               resCode.get('etr006'),
             );
           }
+          return {
+            message: 'Success.',
+          };
         },
       }),
     };

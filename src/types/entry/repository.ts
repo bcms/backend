@@ -7,6 +7,10 @@ export interface BCMSEntryRepositoryMethods<E> {
     templateId: string,
     entryCid: string,
   ): Promise<E | null>;
+  findByTemplateIdAndId(
+    templateId: string,
+    entryId: string,
+  ): Promise<E | null>;
   findAllByStatus(status: string): Promise<E[]>;
   findAllByTemplateId(templateId: string): Promise<E[]>;
   findAllByWidgetId(widgetId: string): Promise<E[]>;

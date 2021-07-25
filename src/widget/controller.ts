@@ -69,6 +69,7 @@ export const BCMSWidgetController = createController<Setup>({
     propHandler,
     idcRepo,
     idcFactory,
+    entryRepo,
   }) {
     return {
       whereIsItUsed: createControllerMethod({
@@ -93,9 +94,14 @@ export const BCMSWidgetController = createController<Setup>({
               resCode.get('wid001', { id }),
             );
           }
+          const entries = await entryRepo.methods.findAllByWidgetId(
+            `${widget._id}`,
+          );
 
           return {
-            entryIds: [],
+            entryIds: entries.map((e) => {
+              return { _id: `${e._id}`, cid: e.cid, tid: e.templateId };
+            }),
           };
         },
       }),

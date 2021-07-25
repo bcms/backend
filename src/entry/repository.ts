@@ -34,6 +34,11 @@ export function useBcmsEntryRepository(): BCMSEntryRepository {
                 (e) => e.cid === entryCid && e.templateId === templateId,
               );
             },
+            async findByTemplateIdAndId(templateId, entryId) {
+              return await repo.findBy(
+                (e) => e._id === entryId && e.templateId === templateId,
+              );
+            },
             async findAllByStatus(status) {
               return await repo.findAllBy((e) => e.status === status);
             },
@@ -107,6 +112,22 @@ export function useBcmsEntryRepository(): BCMSEntryRepository {
               }
               const item = await mongoDBInterface.findOne({
                 cid: entryCid,
+                templateId,
+              });
+              if (item) {
+                cacheHandler.set(item._id.toHexString(), item);
+              }
+              return item;
+            },
+            async findByTemplateIdAndId(templateId, entryId) {
+              const cacheHit = cacheHandler.findOne(
+                (e) => e._id.toHexString() === entryId && e.templateId === templateId,
+              );
+              if (cacheHit) {
+                return cacheHit;
+              }
+              const item = await mongoDBInterface.findOne({
+                _id: entryId,
                 templateId,
               });
               if (item) {
