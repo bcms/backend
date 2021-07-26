@@ -47,16 +47,19 @@ import { BCMSStatusController } from './status';
 import { BCMSTemplateController } from './template';
 import { BCMSWidgetController } from './widget';
 import { createSocket } from '@becomes/purple-cheetah-mod-socket';
-import { Types } from 'mongoose';
 import { BCMSGroupController } from './group';
 import { createBcmsPropHandler } from './prop';
 import { createBcmsEntryParser, BCMSEntryController } from './entry';
+import { bcmsSetup } from './setup';
+import { createBcmsChildProcess, createBcmsFfmpeg } from './util';
+import { BCMSTemplateOrganizerController } from './template-organizer';
 
 let backend: BCMSBackend;
 
 async function initialize() {
   await loadBcmsConfig();
   await loadResponseCode();
+  createBcmsChildProcess();
   const bcmsConfig = useBcmsConfig();
 
   const modules: Module[] = [
@@ -143,6 +146,7 @@ async function initialize() {
       // eventHandlers: [createEntryChangeSocketHandler()],
     }),
     createBcmsMediaService(),
+    createBcmsFfmpeg(),
   ];
   const middleware: Middleware[] = [
     createCorsMiddleware(),
@@ -165,6 +169,7 @@ async function initialize() {
     BCMSTemplateController,
     BCMSWidgetController,
     BCMSEntryController,
+    BCMSTemplateOrganizerController,
   ];
   if (bcmsConfig.database.fs) {
     modules.push(
@@ -228,6 +233,8 @@ async function initialize() {
   modules.push(initLanguage());
 
   modules.push(createBcmsPluginModule(bcmsConfig));
+
+  modules.push(bcmsSetup());
 
   backend = {
     app: createPurpleCheetah({

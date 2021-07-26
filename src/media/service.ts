@@ -173,7 +173,7 @@ export function createBcmsMediaService(): Module {
           }
         },
         storage: {
-          async getPath({ media, size }) {
+          async getPath({ media, size, thumbnail }) {
             if (media.type === BCMSMediaType.DIR) {
               return path.join(
                 process.cwd(),
@@ -208,6 +208,27 @@ export function createBcmsMediaService(): Module {
                   }
                 }
               }
+            } else if (
+              thumbnail &&
+              (media.type === BCMSMediaType.VID ||
+                media.type === BCMSMediaType.GIF)
+            ) {
+              const pathParts = path
+                .join(
+                  process.cwd(),
+                  'uploads',
+                  await mediaService.getPath(media),
+                )
+                .split('/');
+              const dirPath = pathParts
+                .slice(0, pathParts.length - 1)
+                .join('/');
+              const nameParts = media.name.split('.');
+              const name =
+                'thumbnail-' +
+                nameParts.slice(0, nameParts.length - 1).join('.') +
+                '.png';
+              return `${dirPath}/${name}`;
             }
             return path.join(
               process.cwd(),
@@ -275,7 +296,6 @@ export function createBcmsMediaService(): Module {
           },
           async save(media, binary) {
             const pathToMedia = await mediaService.getPath(media);
-            console.log(pathToMedia);
             await fs.save(
               path.join(process.cwd(), 'uploads', pathToMedia),
               binary,
@@ -355,6 +375,16 @@ export function createBcmsMediaService(): Module {
                   ),
                 );
               }
+            } else if (media.type === BCMSMediaType.VID) {
+              const pathParts = mediaPath.split('/');
+              const dirPath =
+                process.cwd() +
+                '/uploads' +
+                pathParts.slice(0, pathParts.length - 1).join('/');
+              const nameParts = media.name.split('.');
+              const name =
+                nameParts.slice(0, nameParts.length - 1).join('.') + '.png';
+              await fs.deleteFile(`${dirPath}/thumbnail-${name}`);
             }
           },
           async removeDir(media) {

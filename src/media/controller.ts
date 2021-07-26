@@ -19,6 +19,7 @@ import { useBcmsMediaFactory } from './factory';
 import { useBcmsMediaRepository } from './repository';
 import { useBcmsMediaService } from './service';
 import {
+  BCMSFfmpeg,
   BCMSMedia,
   BCMSMediaAddDirData,
   BCMSMediaAddDirDataSchema,
@@ -29,7 +30,7 @@ import {
   BCMSResponseCode,
   BCMSUserCustomPool,
 } from '../types';
-import { createJwtAndBodyCheckRouteProtection } from '../util';
+import { createJwtAndBodyCheckRouteProtection, useBcmsFfmpeg } from '../util';
 import { useBcmsResponseCode } from '../response-code';
 
 interface Setup {
@@ -39,6 +40,7 @@ interface Setup {
   mediaService: BCMSMediaService;
   jwt: JWTManager;
   stringUtil: StringUtility;
+  ffmpeg: BCMSFfmpeg;
 }
 
 export const BCMSMediaController = createController<Setup>({
@@ -52,9 +54,18 @@ export const BCMSMediaController = createController<Setup>({
       mediaService: useBcmsMediaService(),
       jwt: useJwt(),
       stringUtil: useStringUtility(),
+      ffmpeg: useBcmsFfmpeg(),
     };
   },
-  methods({ mediaRepo, mediaFactory, mediaService, resCode, jwt, stringUtil }) {
+  methods({
+    mediaRepo,
+    mediaFactory,
+    mediaService,
+    resCode,
+    jwt,
+    stringUtil,
+    ffmpeg,
+  }) {
     return {
       getAll: createControllerMethod({
         path: '/all',
@@ -359,6 +370,49 @@ export const BCMSMediaController = createController<Setup>({
         },
       }),
 
+      getVideoThumbnail: createControllerMethod<unknown, { __file: string }>({
+        path: '/:id/vid/bin/thumbnail',
+        type: 'get',
+        async handler({ request, errorHandler }) {
+          const accessToken = jwt.get({
+            jwtString: request.query.act + '',
+            roleNames: [JWTRoleName.ADMIN, JWTRoleName.USER],
+            permissionName: JWTPermissionName.READ,
+          });
+          if (accessToken instanceof JWTError) {
+            throw errorHandler.occurred(
+              HTTPStatus.UNAUTHORIZED,
+              resCode.get('mda012'),
+            );
+          }
+          const media = await mediaRepo.findById(request.params.id);
+          if (!media) {
+            throw errorHandler.occurred(
+              HTTPStatus.NOT_FOUNT,
+              resCode.get('mda001', { id: request.params.id }),
+            );
+          }
+          if (media.type === BCMSMediaType.DIR) {
+            throw errorHandler.occurred(
+              HTTPStatus.FORBIDDEN,
+              resCode.get('mda007', { id: request.params.id }),
+            );
+          }
+          if (!(await mediaService.storage.exist(media))) {
+            throw errorHandler.occurred(
+              HTTPStatus.INTERNAL_SERVER_ERROR,
+              resCode.get('mda008', { id: request.params.id }),
+            );
+          }
+          return {
+            __file: await mediaService.storage.getPath({
+              media,
+              thumbnail: true,
+            }),
+          };
+        },
+      }),
+
       createFile: createControllerMethod({
         path: '/file',
         type: 'post',
@@ -367,7 +421,7 @@ export const BCMSMediaController = createController<Setup>({
             [JWTRoleName.ADMIN, JWTRoleName.DEV],
             JWTPermissionName.WRITE,
           ),
-        async handler({ request, errorHandler, accessToken }) {
+        async handler({ request, errorHandler, accessToken, logger, name }) {
           const parentId = request.query.parentId as string;
           const file = request.file;
           if (!file) {
@@ -425,6 +479,19 @@ export const BCMSMediaController = createController<Setup>({
               HTTPStatus.INTERNAL_SERVER_ERROR,
               resCode.get('mda003'),
             );
+          }
+          if (media.type === BCMSMediaType.VID) {
+            try {
+              await ffmpeg.createVideoThumbnail({ media });
+            } catch (error) {
+              logger.error(name, error);
+            }
+          } else if (media.type === BCMSMediaType.GIF) {
+            try {
+              await ffmpeg.createGifThumbnail({ media });
+            } catch (error) {
+              logger.error(name, error);
+            }
           }
 
           // TODO: trigger socket event and event manager
@@ -526,7 +593,7 @@ export const BCMSMediaController = createController<Setup>({
                 resCode.get('mda006'),
               );
             }
-            await mediaService.storage.removeDir(media);
+            await mediaService.storage.removeFile(media);
           }
 
           // TODO: trigger socket event and event manager

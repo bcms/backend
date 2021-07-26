@@ -14,6 +14,7 @@ export * from './security';
 export * from './shim';
 export * from './status';
 export * from './template';
+export * from './template-organizer';
 export * from './user';
 export * from './util';
 export * from './widget';
