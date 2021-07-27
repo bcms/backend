@@ -28,10 +28,13 @@ import {
   BCMSMediaService,
   BCMSMediaType,
   BCMSResponseCode,
+  BCMSSocketEventType,
+  BCMSSocketManager,
   BCMSUserCustomPool,
 } from '../types';
 import { createJwtAndBodyCheckRouteProtection, useBcmsFfmpeg } from '../util';
 import { useBcmsResponseCode } from '../response-code';
+import { useBcmsSocketManager } from '../socket';
 
 interface Setup {
   mediaRepo: BCMSMediaRepository;
@@ -41,6 +44,7 @@ interface Setup {
   jwt: JWTManager;
   stringUtil: StringUtility;
   ffmpeg: BCMSFfmpeg;
+  socket: BCMSSocketManager;
 }
 
 export const BCMSMediaController = createController<Setup>({
@@ -55,6 +59,7 @@ export const BCMSMediaController = createController<Setup>({
       jwt: useJwt(),
       stringUtil: useStringUtility(),
       ffmpeg: useBcmsFfmpeg(),
+      socket: useBcmsSocketManager(),
     };
   },
   methods({
@@ -65,6 +70,7 @@ export const BCMSMediaController = createController<Setup>({
     jwt,
     stringUtil,
     ffmpeg,
+    socket,
   }) {
     return {
       getAll: createControllerMethod({
@@ -493,9 +499,12 @@ export const BCMSMediaController = createController<Setup>({
               logger.error(name, error);
             }
           }
-
-          // TODO: trigger socket event and event manager
-
+          await socket.emit.media({
+            mediaId: `${addedMedia._id}`,
+            type: BCMSSocketEventType.UPDATE,
+            userIds: 'all',
+            excludeUserId: [accessToken.payload.userId],
+          });
           return {
             item: addedMedia,
           };
@@ -549,9 +558,12 @@ export const BCMSMediaController = createController<Setup>({
             );
           }
           await mediaService.storage.mkdir(addedMedia);
-
-          // TODO: trigger socket event and event manager
-
+          await socket.emit.media({
+            mediaId: `${addedMedia._id}`,
+            type: BCMSSocketEventType.UPDATE,
+            userIds: 'all',
+            excludeUserId: [accessToken.payload.userId],
+          });
           return {
             item: addedMedia,
           };
@@ -566,7 +578,7 @@ export const BCMSMediaController = createController<Setup>({
             [JWTRoleName.ADMIN, JWTRoleName.DEV],
             JWTPermissionName.DELETE,
           ),
-        async handler({ request, errorHandler }) {
+        async handler({ request, errorHandler, accessToken }) {
           const media = await mediaRepo.findById(request.params.id);
           if (!media) {
             throw errorHandler.occurred(
@@ -595,9 +607,12 @@ export const BCMSMediaController = createController<Setup>({
             }
             await mediaService.storage.removeFile(media);
           }
-
-          // TODO: trigger socket event and event manager
-
+          await socket.emit.media({
+            mediaId: `${media._id}`,
+            type: BCMSSocketEventType.REMOVE,
+            userIds: 'all',
+            excludeUserId: [accessToken.payload.userId],
+          });
           return {
             message: 'Success.',
           };

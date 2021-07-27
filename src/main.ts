@@ -53,6 +53,7 @@ import { createBcmsEntryParser, BCMSEntryController } from './entry';
 import { bcmsSetup } from './setup';
 import { createBcmsChildProcess, createBcmsFfmpeg } from './util';
 import { BCMSTemplateOrganizerController } from './template-organizer';
+import { createBcmsSocketManager } from './socket';
 
 let backend: BCMSBackend;
 
@@ -145,6 +146,7 @@ async function initialize() {
       },
       // eventHandlers: [createEntryChangeSocketHandler()],
     }),
+    createBcmsSocketManager(),
     createBcmsMediaService(),
     createBcmsFfmpeg(),
   ];

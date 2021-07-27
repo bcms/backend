@@ -11,7 +11,6 @@ export * from './prop';
 export * from './response-code';
 export * from './security';
 export * from './shim';
-export * from './socket';
 export * from './status';
 export * from './template';
 export * from './template-organizer';

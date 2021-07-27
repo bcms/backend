@@ -20,6 +20,8 @@ import {
   BCMSUserUpdateData,
   BCMSUser,
   BCMSResponseCode,
+  BCMSSocketManager,
+  BCMSSocketEventType,
 } from '../types';
 import { useUserFactory } from './factory';
 import type { Socket } from '@becomes/purple-cheetah-mod-socket/types';
@@ -31,12 +33,13 @@ import {
   JWTRoleName,
 } from '@becomes/purple-cheetah-mod-jwt/types';
 import { useBcmsResponseCode } from '../response-code';
+import { useBcmsSocketManager } from '../socket';
 
 interface Setup {
   repo: BCMSUserRepository;
   resCode: BCMSResponseCode;
   objectUtil: ObjectUtility;
-  socket: Socket;
+  socket: BCMSSocketManager;
   userFactory: BCMSUserFactory;
 }
 
@@ -48,11 +51,11 @@ export const BCMSUserController = createController<Setup>({
       repo: useUserRepository(),
       resCode: useBcmsResponseCode(),
       objectUtil: useObjectUtility(),
-      socket: useSocket(),
+      socket: useBcmsSocketManager(),
       userFactory: useUserFactory(),
     };
   },
-  methods({ repo, resCode, objectUtil, userFactory }) {
+  methods({ repo, resCode, objectUtil, userFactory, socket }) {
     return {
       count: createControllerMethod<unknown, { count: number }>({
         path: '/count',
@@ -212,6 +215,12 @@ export const BCMSUserController = createController<Setup>({
           const updatedUser = await repo.update(
             user as BCMSUserFSDB & BCMSUserMongoDB,
           );
+          await socket.emit.user({
+            userId: `${updatedUser._id}`,
+            type: BCMSSocketEventType.UPDATE,
+            userIds: 'all',
+            excludeUserId: [accessToken.payload.userId],
+          });
           return {
             item: userFactory.toProtected(updatedUser),
           };

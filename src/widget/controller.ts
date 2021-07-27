@@ -23,6 +23,8 @@ import {
   BCMSIdCounterRepository,
   BCMSPropHandler,
   BCMSResponseCode,
+  BCMSSocketEventType,
+  BCMSSocketManager,
   BCMSUserCustomPool,
   BCMSWidget,
   BCMSWidgetCreateData,
@@ -34,6 +36,7 @@ import {
 } from '../types';
 import { useBcmsResponseCode } from '../response-code';
 import { useBcmsEntryRepository } from '../entry';
+import { useBcmsSocketManager } from '../socket';
 
 interface Setup {
   widRepo: BCMSWidgetRepository;
@@ -44,6 +47,7 @@ interface Setup {
   propHandler: BCMSPropHandler;
   idcRepo: BCMSIdCounterRepository;
   idcFactory: BCMSIdCounterFactory;
+  socket: BCMSSocketManager;
 }
 
 export const BCMSWidgetController = createController<Setup>({
@@ -59,6 +63,7 @@ export const BCMSWidgetController = createController<Setup>({
       propHandler: useBcmsPropHandler(),
       idcRepo: useBcmsIdCounterRepository(),
       idcFactory: useBcmsIdCounterFactory(),
+      socket: useBcmsSocketManager(),
     };
   },
   methods({
@@ -70,6 +75,7 @@ export const BCMSWidgetController = createController<Setup>({
     idcRepo,
     idcFactory,
     entryRepo,
+    socket,
   }) {
     return {
       whereIsItUsed: createControllerMethod({
@@ -195,7 +201,7 @@ export const BCMSWidgetController = createController<Setup>({
             permissionName: JWTPermissionName.WRITE,
             bodySchema: BCMSWidgetCreateDataSchema,
           }),
-        async handler({ body, errorHandler }) {
+        async handler({ body, errorHandler, accessToken }) {
           let idc = await idcRepo.methods.findAndIncByForId('widgets');
           if (!idc) {
             const widgetIdc = idcFactory.create({
@@ -234,9 +240,12 @@ export const BCMSWidgetController = createController<Setup>({
               resCode.get('wid003'),
             );
           }
-
-          // TODO: trigger socket event and event manager
-
+          await socket.emit.widget({
+            widgetId: `${addedWidget._id}`,
+            type: BCMSSocketEventType.UPDATE,
+            userIds: 'all',
+            excludeUserId: [accessToken.payload.userId],
+          });
           return {
             item: widget,
           };
@@ -251,7 +260,7 @@ export const BCMSWidgetController = createController<Setup>({
             permissionName: JWTPermissionName.WRITE,
             bodySchema: BCMSWidgetUpdateDataSchema,
           }),
-        async handler({ body, errorHandler }) {
+        async handler({ body, errorHandler, accessToken }) {
           const id = body._id;
           const widget = await widRepo.findById(id);
           if (!widget) {
@@ -358,9 +367,12 @@ export const BCMSWidgetController = createController<Setup>({
               resCode.get('wid005'),
             );
           }
-
-          // TODO: trigger socket event and event manager
-
+          await socket.emit.widget({
+            widgetId: `${updatedWidget._id}`,
+            type: BCMSSocketEventType.UPDATE,
+            userIds: 'all',
+            excludeUserId: [accessToken.payload.userId],
+          });
           return {
             item: widget,
           };
@@ -375,7 +387,7 @@ export const BCMSWidgetController = createController<Setup>({
             [JWTRoleName.ADMIN],
             JWTPermissionName.DELETE,
           ),
-        async handler({ request, errorHandler }) {
+        async handler({ request, errorHandler, accessToken }) {
           const id = request.params.id;
           const widget = await widRepo.findById(id);
           if (!widget) {
@@ -391,9 +403,12 @@ export const BCMSWidgetController = createController<Setup>({
               resCode.get('wid006'),
             );
           }
-
-          // TODO: trigger socket event and event manager
-
+          await socket.emit.widget({
+            widgetId: `${widget._id}`,
+            type: BCMSSocketEventType.REMOVE,
+            userIds: 'all',
+            excludeUserId: [accessToken.payload.userId],
+          });
           return {
             message: 'Success.',
           };

@@ -33,9 +33,12 @@ import {
   BCMSIdCounterRepository,
   BCMSIdCounterFactory,
   BCMSEntryRepository,
+  BCMSSocketManager,
+  BCMSSocketEventType,
 } from '../types';
 import { useBcmsResponseCode } from '../response-code';
 import { useBcmsEntryRepository } from '../entry';
+import { useBcmsSocketManager } from '../socket';
 
 interface Setup {
   entryRepo: BCMSEntryRepository;
@@ -47,6 +50,7 @@ interface Setup {
   propHandler: BCMSPropHandler;
   idcRepo: BCMSIdCounterRepository;
   idcFactory: BCMSIdCounterFactory;
+  socket: BCMSSocketManager;
 }
 
 export const BCMSTemplateController = createController<Setup>({
@@ -63,6 +67,7 @@ export const BCMSTemplateController = createController<Setup>({
       propHandler: useBcmsPropHandler(),
       idcRepo: useBcmsIdCounterRepository(),
       idcFactory: useBcmsIdCounterFactory(),
+      socket: useBcmsSocketManager(),
     };
   },
   methods({
@@ -75,6 +80,7 @@ export const BCMSTemplateController = createController<Setup>({
     propHandler,
     idcRepo,
     idcFactory,
+    socket,
   }) {
     return {
       getAll: createControllerMethod({
@@ -204,8 +210,12 @@ export const BCMSTemplateController = createController<Setup>({
               resCode.get('tmp003'),
             );
           }
-          // TODO: trigger socket event and event manager
-
+          await socket.emit.template({
+            templateId: `${addedTemplate._id}`,
+            type: BCMSSocketEventType.UPDATE,
+            userIds: 'all',
+            excludeUserId: [accessToken.payload.userId],
+          });
           return {
             item: addedTemplate,
           };
@@ -220,7 +230,7 @@ export const BCMSTemplateController = createController<Setup>({
             permissionName: JWTPermissionName.WRITE,
             bodySchema: BCMSTemplateUpdateDataSchema,
           }),
-        async handler({ body, errorHandler }) {
+        async handler({ body, errorHandler, accessToken }) {
           const id = body._id;
           const template = await tempRepo.findById(id);
           if (!template) {
@@ -350,9 +360,12 @@ export const BCMSTemplateController = createController<Setup>({
               resCode.get('tmp005'),
             );
           }
-
-          // TODO: trigger socket event and event manager
-
+          await socket.emit.template({
+            templateId: `${updatedTemplate._id}`,
+            type: BCMSSocketEventType.UPDATE,
+            userIds: 'all',
+            excludeUserId: [accessToken.payload.userId],
+          });
           return {
             item: updatedTemplate,
           };
@@ -367,7 +380,7 @@ export const BCMSTemplateController = createController<Setup>({
             [JWTRoleName.ADMIN, JWTRoleName.USER],
             JWTPermissionName.DELETE,
           ),
-        async handler({ request, errorHandler, logger, name }) {
+        async handler({ request, errorHandler, logger, name, accessToken }) {
           const id = request.params.id;
           const template = await tempRepo.findById(id);
           if (!template) {
@@ -405,11 +418,18 @@ export const BCMSTemplateController = createController<Setup>({
           for (let i = 0; i < updateKeys.length; i++) {
             const key = updateKeys[i];
             await apiKeyRepo.update(key as never);
-
-            // TODO: trigger socket event and event manager for API KEY update
+            await socket.emit.apiKey({
+              apiKeyId: `${key._id}`,
+              type: BCMSSocketEventType.UPDATE,
+              userIds: 'all',
+            });
           }
-          // TODO: trigger socket event and event manager for Template update
-
+          await socket.emit.template({
+            templateId: `${template._id}`,
+            type: BCMSSocketEventType.REMOVE,
+            userIds: 'all',
+            excludeUserId: [accessToken.payload.userId],
+          });
           return {
             message: 'Success.',
           };

@@ -15,6 +15,7 @@ import {
 } from '../id-counter';
 import { useBcmsPropHandler } from '../prop';
 import { useBcmsResponseCode } from '../response-code';
+import { useBcmsSocketManager } from '../socket';
 import { useBcmsTemplateRepository } from '../template';
 import {
   BCMSPropHandler,
@@ -31,6 +32,8 @@ import {
   BCMSTemplateRepository,
   BCMSWidgetRepository,
   BCMSGroup,
+  BCMSSocketManager,
+  BCMSSocketEventType,
 } from '../types';
 import { createJwtAndBodyCheckRouteProtection } from '../util';
 import { useBcmsWidgetRepository } from '../widget';
@@ -47,6 +50,7 @@ interface Setup {
   propHandler: BCMSPropHandler;
   idcRepo: BCMSIdCounterRepository;
   idcFactory: BCMSIdCounterFactory;
+  socket: BCMSSocketManager;
 }
 
 export const BCMSGroupController = createController<Setup>({
@@ -64,6 +68,7 @@ export const BCMSGroupController = createController<Setup>({
       propHandler: useBcmsPropHandler(),
       idcRepo: useBcmsIdCounterRepository(),
       idcFactory: useBcmsIdCounterFactory(),
+      socket: useBcmsSocketManager(),
     };
   },
   methods({
@@ -76,6 +81,7 @@ export const BCMSGroupController = createController<Setup>({
     idcFactory,
     stringUtil,
     propHandler,
+    socket,
   }) {
     return {
       whereIsItUsed: createControllerMethod({
@@ -222,7 +228,7 @@ export const BCMSGroupController = createController<Setup>({
             permissionName: JWTPermissionName.WRITE,
             bodySchema: BCMSGroupAddDataSchema,
           }),
-        async handler({ errorHandler, body }) {
+        async handler({ errorHandler, body, accessToken }) {
           let idc = await idcRepo.methods.findAndIncByForId('groups');
           if (!idc) {
             const groupIdc = idcFactory.create({
@@ -258,9 +264,12 @@ export const BCMSGroupController = createController<Setup>({
               resCode.get('grp003'),
             );
           }
-
-          // TODO: trigger socket event and event manager
-
+          await socket.emit.group({
+            groupId: `${addedGroup._id}`,
+            type: BCMSSocketEventType.UPDATE,
+            userIds: 'all',
+            excludeUserId: [accessToken.payload.userId],
+          });
           return {
             item: addedGroup,
           };
@@ -275,7 +284,7 @@ export const BCMSGroupController = createController<Setup>({
             permissionName: JWTPermissionName.WRITE,
             bodySchema: BCMSGroupUpdateDataSchema,
           }),
-        async handler({ errorHandler, body }) {
+        async handler({ errorHandler, body, accessToken }) {
           const group = await groupRepo.findById(body._id);
           if (!group) {
             throw errorHandler.occurred(
@@ -370,10 +379,12 @@ export const BCMSGroupController = createController<Setup>({
               resCode.get('grp005'),
             );
           }
-
-          // TODO: Do props update?
-          // TODO: trigger socket event and event manager
-
+          await socket.emit.group({
+            groupId: `${updatedGroup._id}`,
+            type: BCMSSocketEventType.UPDATE,
+            userIds: 'all',
+            excludeUserId: [accessToken.payload.userId],
+          });
           return {
             item: updatedGroup,
           };
@@ -388,7 +399,7 @@ export const BCMSGroupController = createController<Setup>({
             [JWTRoleName.ADMIN],
             JWTPermissionName.DELETE,
           ),
-        async handler({ request, errorHandler, logger, name }) {
+        async handler({ request, errorHandler, logger, name, accessToken }) {
           const group = await groupRepo.findById(request.params.id);
           if (!group) {
             throw errorHandler.occurred(
@@ -409,8 +420,12 @@ export const BCMSGroupController = createController<Setup>({
           if (errors) {
             logger.error(name, errors);
           }
-          // TODO: trigger socket event and event manager
-
+          await socket.emit.group({
+            groupId: `${group._id}`,
+            type: BCMSSocketEventType.REMOVE,
+            userIds: 'all',
+            excludeUserId: [accessToken.payload.userId],
+          });
           return {
             message: 'Success.',
           };

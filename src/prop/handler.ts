@@ -21,8 +21,10 @@ import {
   BCMSPropParsed,
   BCMSPropType,
   BCMSPropValueGroupPointerData,
+  BCMSSocketEventType,
 } from '../types';
 import { useBcmsWidgetRepository } from '../widget';
+import { useBcmsSocketManager } from '../socket';
 
 let propHandler: BCMSPropHandler;
 
@@ -44,6 +46,7 @@ export function createBcmsPropHandler(): Module {
       const propFactory = useBcmsPropFactory();
       const stringUtil = useStringUtility();
       const widgetRepo = useBcmsWidgetRepository();
+      const socket = useBcmsSocketManager();
 
       propHandler = {
         async checkPropValues({ props, values, level }) {
@@ -708,7 +711,11 @@ export function createBcmsPropHandler(): Module {
             if (!updatedGroup) {
               errors.push(Error(`Failed to update group "${group._id}"`));
             } else {
-              // TODO: trigger socket event
+              await socket.emit.group({
+                groupId: `${group._id}`,
+                type: BCMSSocketEventType.UPDATE,
+                userIds: 'all',
+              });
             }
           }
           const widgets = await widgetRepo.methods.findAllByPropGroupPointer(
@@ -723,7 +730,11 @@ export function createBcmsPropHandler(): Module {
             if (!updatedWidget) {
               errors.push(Error(`Failed to update widget "${widget._id}"`));
             } else {
-              // TODO: trigger socket event
+              await socket.emit.widget({
+                widgetId: `${widget._id}`,
+                type: BCMSSocketEventType.UPDATE,
+                userIds: 'all',
+              });
             }
           }
           const templates = await tempRepo.methods.findAllByPropGroupPointer(
@@ -738,7 +749,11 @@ export function createBcmsPropHandler(): Module {
             if (!updatedTemplate) {
               errors.push(Error(`Failed to update template "${template._id}"`));
             } else {
-              // TODO: trigger socket event
+              await socket.emit.template({
+                templateId: `${template._id}`,
+                type: BCMSSocketEventType.UPDATE,
+                userIds: 'all',
+              });
             }
           }
           if (errors.length > 0) {
@@ -769,7 +784,11 @@ export function createBcmsPropHandler(): Module {
             if (!updatedGroup) {
               errors.push(Error(`Failed to update group "${group._id}"`));
             } else {
-              // TODO: trigger socket event
+              await socket.emit.group({
+                groupId: `${group._id}`,
+                type: BCMSSocketEventType.UPDATE,
+                userIds: 'all',
+              });
             }
           }
           const widgets = await widgetRepo.methods.findAllByPropEntryPointer(
@@ -784,7 +803,11 @@ export function createBcmsPropHandler(): Module {
             if (!updatedWidget) {
               errors.push(Error(`Failed to update widget "${widget._id}"`));
             } else {
-              // TODO: trigger socket event
+              await socket.emit.widget({
+                widgetId: `${widget._id}`,
+                type: BCMSSocketEventType.UPDATE,
+                userIds: 'all',
+              });
             }
           }
           const templates = await tempRepo.methods.findAllByPropEntryPointer(
@@ -799,7 +822,11 @@ export function createBcmsPropHandler(): Module {
             if (!updatedTemplate) {
               errors.push(Error(`Failed to update template "${template._id}"`));
             } else {
-              // TODO: trigger socket event
+              await socket.emit.template({
+                templateId: `${template._id}`,
+                type: BCMSSocketEventType.UPDATE,
+                userIds: 'all',
+              });
             }
           }
           if (errors.length > 0) {

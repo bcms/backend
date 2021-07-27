@@ -25,14 +25,18 @@ import {
   BCMSApiKeyUpdateData,
   BCMSApiKeyUpdateDataSchema,
   BCMSResponseCode,
+  BCMSSocketEventType,
+  BCMSSocketManager,
   BCMSUserCustomPool,
 } from '../types';
+import { useBcmsSocketManager } from '../socket';
 
 interface Setup {
   repo: BCMSApiKeyRepository;
   resCode: BCMSResponseCode;
   objectUtil: ObjectUtility;
   apiKeyFactory: BCMSApiKeyFactory;
+  socket: BCMSSocketManager;
 }
 
 export const BCMSApiKeyController = createController<Setup>({
@@ -44,9 +48,10 @@ export const BCMSApiKeyController = createController<Setup>({
       resCode: useBcmsResponseCode(),
       objectUtil: useObjectUtility(),
       apiKeyFactory: useBcmsApiKeyFactory(),
+      socket: useBcmsSocketManager(),
     };
   },
-  methods({ repo, resCode, objectUtil, apiKeyFactory }) {
+  methods({ repo, resCode, objectUtil, apiKeyFactory, socket }) {
     return {
       getAccessList: createControllerMethod({
         path: '/access/list',
@@ -142,7 +147,12 @@ export const BCMSApiKeyController = createController<Setup>({
                 resCode.get('ak003'),
               );
             }
-            // TODO: trigger socket event and event manager
+            await socket.emit.apiKey({
+              apiKeyId: `${key._id}`,
+              type: BCMSSocketEventType.UPDATE,
+              userIds: 'all',
+              excludeUserId: [accessToken.payload.userId],
+            });
             return key;
           }
         },
@@ -155,7 +165,7 @@ export const BCMSApiKeyController = createController<Setup>({
             [JWTRoleName.ADMIN],
             JWTPermissionName.WRITE,
           ),
-        async handler({ request, errorHandler }) {
+        async handler({ request, errorHandler, accessToken }) {
           const data: BCMSApiKeyUpdateData = request.body;
           {
             const checkBody = objectUtil.compareWithSchema(
@@ -210,7 +220,12 @@ export const BCMSApiKeyController = createController<Setup>({
               resCode.get('ak005'),
             );
           }
-          // TODO: trigger socket event and event manager
+          await socket.emit.apiKey({
+            apiKeyId: `${updatedKey._id}`,
+            type: BCMSSocketEventType.UPDATE,
+            userIds: 'all',
+            excludeUserId: [accessToken.payload.userId],
+          });
           return updatedKey;
         },
       }),
@@ -223,7 +238,7 @@ export const BCMSApiKeyController = createController<Setup>({
             [JWTRoleName.ADMIN],
             JWTPermissionName.DELETE,
           ),
-        async handler({ request, errorHandler }) {
+        async handler({ request, errorHandler, accessToken }) {
           const key = await repo.findById(request.params.id);
           if (!key) {
             throw errorHandler.occurred(
@@ -237,7 +252,12 @@ export const BCMSApiKeyController = createController<Setup>({
               resCode.get('ak006'),
             );
           }
-          // TODO: trigger socket event and event manager
+          await socket.emit.apiKey({
+            apiKeyId: `${key._id}`,
+            type: BCMSSocketEventType.REMOVE,
+            userIds: 'all',
+            excludeUserId: [accessToken.payload.userId],
+          });
         },
       }),
     };

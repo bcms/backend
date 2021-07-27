@@ -20,6 +20,7 @@ import {
 import { useBcmsLanguageRepository } from '../language';
 import { useBcmsPropHandler } from '../prop';
 import { useBcmsResponseCode } from '../response-code';
+import { useBcmsSocketManager } from '../socket';
 import { useBcmsStatusRepository } from '../status';
 import { useBcmsTemplateRepository } from '../template';
 import {
@@ -37,6 +38,8 @@ import {
   BCMSLanguageRepository,
   BCMSPropHandler,
   BCMSResponseCode,
+  BCMSSocketEventType,
+  BCMSSocketManager,
   BCMSStatusRepository,
   BCMSTemplateRepository,
   BCMSUserCustomPool,
@@ -58,6 +61,7 @@ interface Setup {
   statusRepo: BCMSStatusRepository;
   idcRepo: BCMSIdCounterRepository;
   idcFactory: BCMSIdCounterFactory;
+  socket: BCMSSocketManager;
 }
 
 export const BCMSEntryController = createController<Setup>({
@@ -76,6 +80,7 @@ export const BCMSEntryController = createController<Setup>({
       statusRepo: useBcmsStatusRepository(),
       idcRepo: useBcmsIdCounterRepository(),
       idcFactory: useBcmsIdCounterFactory(),
+      socket: useBcmsSocketManager(),
     };
   },
   methods({
@@ -90,6 +95,7 @@ export const BCMSEntryController = createController<Setup>({
     statusRepo,
     idcRepo,
     idcFactory,
+    socket,
   }) {
     return {
       getManyLiteById: createControllerMethod({
@@ -375,7 +381,13 @@ export const BCMSEntryController = createController<Setup>({
               resCode.get('etr004'),
             );
           }
-          // TODO: trigger socket event
+          await socket.emit.entry({
+            entryId: `${addedEntry._id}`,
+            templateId: addedEntry.templateId,
+            type: BCMSSocketEventType.UPDATE,
+            userIds: 'all',
+            excludeUserId: token ? [token.payload.userId] : undefined,
+          });
           return {
             item: addedEntry,
           };
@@ -389,7 +401,7 @@ export const BCMSEntryController = createController<Setup>({
           roleNames: [JWTRoleName.ADMIN, JWTRoleName.USER],
           permissionName: JWTPermissionName.WRITE,
         }),
-        async handler({ request, errorHandler }) {
+        async handler({ request, errorHandler, token }) {
           const checkBody = objectUtil.compareWithSchema(
             request.body,
             BCMSEntryUpdateDataSchema,
@@ -463,7 +475,13 @@ export const BCMSEntryController = createController<Setup>({
               resCode.get('etr004'),
             );
           }
-          // TODO: trigger socket event
+          await socket.emit.entry({
+            entryId: `${updatedEntry._id}`,
+            templateId: updatedEntry.templateId,
+            type: BCMSSocketEventType.UPDATE,
+            userIds: 'all',
+            excludeUserId: token ? [token.payload.userId] : undefined,
+          });
           return {
             item: updatedEntry,
           };
@@ -477,7 +495,7 @@ export const BCMSEntryController = createController<Setup>({
           roleNames: [JWTRoleName.ADMIN, JWTRoleName.USER],
           permissionName: JWTPermissionName.DELETE,
         }),
-        async handler({ request, errorHandler }) {
+        async handler({ request, errorHandler, token }) {
           const eid = request.params.eid;
           const entry = await entryRepo.findById(eid);
           if (!entry) {
@@ -493,6 +511,13 @@ export const BCMSEntryController = createController<Setup>({
               resCode.get('etr006'),
             );
           }
+          await socket.emit.entry({
+            entryId: `${entry._id}`,
+            templateId: entry.templateId,
+            type: BCMSSocketEventType.REMOVE,
+            userIds: 'all',
+            excludeUserId: token ? [token.payload.userId] : undefined,
+          });
           return {
             message: 'Success.',
           };

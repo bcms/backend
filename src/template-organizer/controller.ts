@@ -8,13 +8,13 @@ import {
   JWTPermissionName,
   JWTRoleName,
 } from '@becomes/purple-cheetah-mod-jwt/types';
-import {
-  HTTPStatus,
-  StringUtility,
-} from '@becomes/purple-cheetah/types';
+import { HTTPStatus, StringUtility } from '@becomes/purple-cheetah/types';
 import { useBcmsResponseCode } from '../response-code';
+import { useBcmsSocketManager } from '../socket';
 import {
   BCMSResponseCode,
+  BCMSSocketEventType,
+  BCMSSocketManager,
   BCMSTemplateOrganizerCreateData,
   BCMSTemplateOrganizerCreateDataSchema,
   BCMSTemplateOrganizerFactory,
@@ -32,6 +32,7 @@ interface Setup {
   tempOrgFactory: BCMSTemplateOrganizerFactory;
   resCode: BCMSResponseCode;
   stringUtil: StringUtility;
+  socket: BCMSSocketManager;
 }
 
 export const BCMSTemplateOrganizerController = createController<Setup>({
@@ -43,9 +44,10 @@ export const BCMSTemplateOrganizerController = createController<Setup>({
       tempOrgFactory: useBcmsTemplateOrganizerFactory(),
       resCode: useBcmsResponseCode(),
       stringUtil: useStringUtility(),
+      socket: useBcmsSocketManager(),
     };
   },
-  methods({ tempOrgRepo, tempOrgFactory, resCode, stringUtil }) {
+  methods({ tempOrgRepo, tempOrgFactory, resCode, stringUtil, socket }) {
     return {
       getAll: createControllerMethod({
         path: '/all',
@@ -107,7 +109,7 @@ export const BCMSTemplateOrganizerController = createController<Setup>({
               roleNames: [JWTRoleName.ADMIN],
             },
           ),
-        async handler({ errorHandler, body }) {
+        async handler({ errorHandler, body, accessToken }) {
           const org = tempOrgFactory.create({
             label: body.label,
             name: stringUtil.toSlugUnderscore(body.label),
@@ -121,6 +123,12 @@ export const BCMSTemplateOrganizerController = createController<Setup>({
               resCode.get('tpo003'),
             );
           }
+          await socket.emit.templateOrganizer({
+            templateOrganizerId: `${addedOrg._id}`,
+            type: BCMSSocketEventType.UPDATE,
+            userIds: 'all',
+            excludeUserId: [accessToken.payload.userId],
+          });
           return {
             item: addedOrg,
           };
@@ -136,7 +144,7 @@ export const BCMSTemplateOrganizerController = createController<Setup>({
               roleNames: [JWTRoleName.ADMIN],
             },
           ),
-        async handler({ errorHandler, body }) {
+        async handler({ errorHandler, body, accessToken }) {
           const tempOrg = await tempOrgRepo.findById(body._id);
           if (!tempOrg) {
             throw errorHandler.occurred(
@@ -181,6 +189,12 @@ export const BCMSTemplateOrganizerController = createController<Setup>({
               resCode.get('tpo002'),
             );
           }
+          await socket.emit.templateOrganizer({
+            templateOrganizerId: `${updatedTempOrg._id}`,
+            type: BCMSSocketEventType.UPDATE,
+            userIds: 'all',
+            excludeUserId: [accessToken.payload.userId],
+          });
           return {
             item: updatedTempOrg,
           };
@@ -194,7 +208,7 @@ export const BCMSTemplateOrganizerController = createController<Setup>({
             [JWTRoleName.ADMIN, JWTRoleName.USER],
             JWTPermissionName.READ,
           ),
-        async handler({ request, errorHandler }) {
+        async handler({ request, errorHandler, accessToken }) {
           const tempOrg = await tempOrgRepo.findById(request.params.id);
           if (!tempOrg) {
             throw errorHandler.occurred(
@@ -209,6 +223,12 @@ export const BCMSTemplateOrganizerController = createController<Setup>({
               resCode.get('tpo004'),
             );
           }
+          await socket.emit.templateOrganizer({
+            templateOrganizerId: `${tempOrg._id}`,
+            type: BCMSSocketEventType.REMOVE,
+            userIds: 'all',
+            excludeUserId: [accessToken.payload.userId],
+          });
           return {
             message: 'Success.',
           };

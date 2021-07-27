@@ -14,6 +14,8 @@ import { useBcmsStatusFactory } from './factory';
 import { useBcmsStatusRepository } from './repository';
 import {
   BCMSResponseCode,
+  BCMSSocketEventType,
+  BCMSSocketManager,
   BCMSStatusCreateData,
   BCMSStatusCreateDataSchema,
   BCMSStatusFactory,
@@ -23,12 +25,14 @@ import {
   BCMSUserCustomPool,
 } from '../types';
 import { useBcmsResponseCode } from '../response-code';
+import { useBcmsSocketManager } from '../socket';
 
 interface Setup {
   statusRepo: BCMSStatusRepository;
   statusFactory: BCMSStatusFactory;
   resCode: BCMSResponseCode;
   stringUtil: StringUtility;
+  socket: BCMSSocketManager;
 }
 
 export const BCMSStatusController = createController<Setup>({
@@ -40,9 +44,10 @@ export const BCMSStatusController = createController<Setup>({
       statusFactory: useBcmsStatusFactory(),
       resCode: useBcmsResponseCode(),
       stringUtil: useStringUtility(),
+      socket: useBcmsSocketManager(),
     };
   },
-  methods({ statusRepo, statusFactory, resCode, stringUtil }) {
+  methods({ statusRepo, statusFactory, resCode, stringUtil, socket }) {
     return {
       getAll: createControllerMethod({
         path: '/all',
@@ -107,7 +112,7 @@ export const BCMSStatusController = createController<Setup>({
             permissionName: JWTPermissionName.READ,
             bodySchema: BCMSStatusCreateDataSchema,
           }),
-        async handler({ body, errorHandler }) {
+        async handler({ body, errorHandler, accessToken }) {
           const status = statusFactory.create({
             label: body.label,
             name: stringUtil.toSlugUnderscore(body.label),
@@ -129,9 +134,12 @@ export const BCMSStatusController = createController<Setup>({
               resCode.get('sts003'),
             );
           }
-
-          // TODO: trigger socket event and event manager
-
+          await socket.emit.status({
+            statusId: `${addedStatus._id}`,
+            type: BCMSSocketEventType.UPDATE,
+            userIds: 'all',
+            excludeUserId: [accessToken.payload.userId],
+          });
           return {
             item: addedStatus,
           };
@@ -146,7 +154,7 @@ export const BCMSStatusController = createController<Setup>({
             permissionName: JWTPermissionName.READ,
             bodySchema: BCMSStatusUpdateDataSchema,
           }),
-        async handler({ body, errorHandler }) {
+        async handler({ body, errorHandler, accessToken }) {
           const id = body._id;
           const status = await statusRepo.findById(id);
           if (!status) {
@@ -192,9 +200,12 @@ export const BCMSStatusController = createController<Setup>({
               resCode.get('sts004'),
             );
           }
-
-          // TODO: trigger socket event and event manager
-
+          await socket.emit.status({
+            statusId: `${updatedStatus._id}`,
+            type: BCMSSocketEventType.UPDATE,
+            userIds: 'all',
+            excludeUserId: [accessToken.payload.userId],
+          });
           return {
             item: updatedStatus,
           };
@@ -209,7 +220,7 @@ export const BCMSStatusController = createController<Setup>({
             [JWTRoleName.ADMIN],
             JWTPermissionName.READ,
           ),
-        async handler({ request, errorHandler }) {
+        async handler({ request, errorHandler, accessToken }) {
           const id = request.params.id;
           const status = await statusRepo.findById(id);
           if (!status) {
@@ -227,9 +238,12 @@ export const BCMSStatusController = createController<Setup>({
               resCode.get('sts005'),
             );
           }
-
-          // TODO: trigger socket event and event manager
-
+          await socket.emit.status({
+            statusId: `${status._id}`,
+            type: BCMSSocketEventType.REMOVE,
+            userIds: 'all',
+            excludeUserId: [accessToken.payload.userId],
+          });
           return {
             message: 'Success.',
           };
