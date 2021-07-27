@@ -178,9 +178,17 @@ async function localDevBundle() {
     {
       title: 'Copy package.json.',
       task: async () => {
-        await fse.copy(
-          path.join(__dirname, 'package.json'),
-          path.join(__dirname, 'local-dev-dist', 'package.json'),
+        const data = JSON.parse(
+          (
+            await util.promisify(fs.readFile)(
+              path.join(__dirname, 'package.json'),
+            )
+          ).toString(),
+        );
+        data.scripts.dev = 'nodemon main.ts'
+        await util.promisify(fs.writeFile)(
+          path.join(__dirname, 'dist', 'package.json'),
+          JSON.stringify(data, null, '  '),
         );
       },
     },
