@@ -36,7 +36,6 @@
   "devDependencies": {
     "@becomes/purple-cheetah": "file:purple-cheetah/core.tgz",
     "@becomes/purple-cheetah-mod-fsdb": "file:purple-cheetah/fsdb.tgz",
-    "@becomes/purple-cheetah-mod-graphql": "file:purple-cheetah/graphql.tgz",
     "@becomes/purple-cheetah-mod-jwt": "file:purple-cheetah/jwt.tgz",
     "@becomes/purple-cheetah-mod-mem-cache": "file:purple-cheetah/mem-cache.tgz",
     "@becomes/purple-cheetah-mod-mongodb": "file:purple-cheetah/mongodb.tgz",
