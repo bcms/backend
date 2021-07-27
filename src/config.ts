@@ -16,6 +16,10 @@ const bcmsConfig: BCMSConfig = {
   },
 };
 
+export function createBcmsConfig(config: BCMSConfig): BCMSConfig {
+  return config;
+}
+
 export function useBcmsConfig(): BCMSConfig {
   return { ...bcmsConfig };
 }

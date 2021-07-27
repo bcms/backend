@@ -24,8 +24,6 @@ import {
   BCMSSocketEventType,
 } from '../types';
 import { useUserFactory } from './factory';
-import type { Socket } from '@becomes/purple-cheetah-mod-socket/types';
-import { useSocket } from '@becomes/purple-cheetah-mod-socket';
 import { createJwtProtectionPreRequestHandler } from '@becomes/purple-cheetah-mod-jwt';
 import {
   JWT,

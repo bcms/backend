@@ -62,11 +62,13 @@ export function createBcmsPluginModule(bcmsConfig: BCMSConfig): Module {
       process.cwd(),
       'plugins',
       bcmsConfig.plugins[data.index],
+      'backend',
     );
     const nodeModulePluginPath = path.join(
       process.cwd(),
       'node_modules',
       bcmsConfig.plugins[data.index],
+      'backend',
     );
     let pluginPath = '';
     if (await data.fs.exist(localPluginPath)) {
@@ -78,15 +80,15 @@ export function createBcmsPluginModule(bcmsConfig: BCMSConfig): Module {
         `Plugin with name "${bcmsConfig.plugins[data.index]}" does not exist.`,
       );
     }
-    if (await data.fs.exist(path.join(pluginPath, 'main.ts'))) {
+    if (await data.fs.exist(path.join(pluginPath, 'main.ts'), true)) {
       pluginPath = path.join(pluginPath, 'main.ts');
-    } else if (await data.fs.exist(path.join(pluginPath, 'main.js'))) {
+    } else if (await data.fs.exist(path.join(pluginPath, 'main.js'), true)) {
       pluginPath = path.join(pluginPath, 'main.js');
     } else {
       throw Error(
         `Plugin with name "${
           bcmsConfig.plugins[data.index]
-        }" does not contain "main.js" or "main.ts" file.`,
+        }" does not contain "main.js" or "main.ts" file at path ${pluginPath}.`,
       );
     }
     const plugin: BCMSPlugin = await import(pluginPath);

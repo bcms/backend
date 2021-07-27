@@ -10,6 +10,7 @@
 /ts-plugins
 /plugins
 /dockerfile-local/dist
+/local-dev-dist
 
 # Logs
 /log

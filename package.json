@@ -1,6 +1,6 @@
 {
   "name": "@becomes/cms-backend",
-  "version": "2.0.45",
+  "version": "3.0.0",
   "description": "Backend for the BCMS",
   "author": "becomes.co",
   "license": "MIT",
@@ -12,9 +12,12 @@
     "build:ts": "npm run lint && tsc -p .",
     "build": "node tools.js --build",
     "bundle": "node tools.js --bundle",
+    "bundle:local": "node tools.js --local-dev",
     "link": "node tools.js --link",
     "unlink": "node tools.js --unlink",
     "publish": "node tools.js --publish",
+    "pack": "node tools.js --pack",
+    "pack:local": "node tools.js --local-dev-pack",
     "generate-doc": "typedoc",
     "lint": "eslint . --ext .ts",
     "build:plugins": "tsc -p tsconfig.plugins.json"
@@ -31,21 +34,21 @@
     "sharp": "^0.26.3",
     "swagger-ui-express": "^4.1.6",
     "uuid": "^8.3.2",
-    "yamljs": "^0.3.0"
-  },
-  "devDependencies": {
+    "yamljs": "^0.3.0",
     "@becomes/purple-cheetah": "file:purple-cheetah/core.tgz",
     "@becomes/purple-cheetah-mod-fsdb": "file:purple-cheetah/fsdb.tgz",
     "@becomes/purple-cheetah-mod-jwt": "file:purple-cheetah/jwt.tgz",
     "@becomes/purple-cheetah-mod-mem-cache": "file:purple-cheetah/mem-cache.tgz",
     "@becomes/purple-cheetah-mod-mongodb": "file:purple-cheetah/mongodb.tgz",
-    "@becomes/purple-cheetah-mod-socket": "file:purple-cheetah/socket.tgz",
+    "@becomes/purple-cheetah-mod-socket": "file:purple-cheetah/socket.tgz"
+  },
+  "devDependencies": {
     "@types/bcrypt": "^3.0.1",
     "@types/chokidar": "^2.1.3",
     "@types/cron": "^1.7.2",
     "@types/express": "^4.17.9",
     "@types/fs-extra": "^8.1.0",
-    "@types/node": "^12.20.13",
+    "@types/node": "^15.6.2",
     "@types/sharp": "^0.26.1",
     "@types/swagger-ui-express": "^4.1.2",
     "@types/uuid": "^8.3.0",
@@ -58,21 +61,14 @@
     "nodemon": "^2.0.7",
     "prettier": "^2.2.1",
     "ts-node": "^9.1.1",
-    "tsconfig-paths": "^3.9.0",
     "typedoc": "^0.17.8",
     "typedoc-neo-theme": "^1.0.10",
-    "typescript": "^4.3.2"
+    "typescript": "^4.3.5"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/becomesco/cms-backend.git"
   },
-  "bin": {
-    "bcms-backend": "bin/bcms-backend.js"
-  },
-  "keywords": [
-    "bcms-backend"
-  ],
   "bugs": {
     "url": "https://github.com/becomesco/cms-backend/issues"
   },

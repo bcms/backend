@@ -82,6 +82,12 @@ const parseArgs = (rawArgs) => {
     build: args['--build'] === '' || args['--build'] === 'true' || false,
     sudo: args['--sudo'] === '' || args['--sudo'] === 'true' || false,
     pack: args['--pack'] === '' || args['--pack'] === 'true' || false,
+    localDevBundle:
+      args['--local-dev'] === '' || args['--local-dev'] === 'true' || false,
+    localDevPack:
+      args['--local-dev-pack'] === '' ||
+      args['--local-dev-pack'] === 'true' ||
+      false,
   };
 };
 async function bundle() {
@@ -123,6 +129,67 @@ async function bundle() {
         await util.promisify(fs.copyFile)(
           path.join(__dirname, 'LICENSE'),
           path.join(__dirname, 'dist', 'LICENSE'),
+        );
+      },
+    },
+  ]);
+  await tasks.run();
+}
+async function localDevBundle() {
+  const tasks = createTasks([
+    {
+      title: 'Remove dist directory.',
+      task: async () => {
+        await fse.remove(path.join(__dirname, 'local-dev-dist'));
+      },
+    },
+    {
+      title: 'Copy src',
+      task: async () => {
+        await fse.copy(
+          path.join(__dirname, 'src'),
+          path.join(__dirname, 'local-dev-dist'),
+        );
+      },
+    },
+    {
+      title: 'Copy assets',
+      task: async () => {
+        const files = ['tsconfig.json', '.eslintrc', '.eslintignore'];
+        for (let i = 0; i < files.length; i++) {
+          const file = files[i];
+          await fse.copy(
+            path.join(__dirname, file),
+            path.join(__dirname, 'local-dev-dist', file),
+          );
+        }
+      },
+    },
+    {
+      // TODO: Remove this set when prod is ready
+      title: 'Copy purple Cheetah - DEV ONLY',
+      task: async () => {
+        await fse.copy(
+          path.join(__dirname, 'purple-cheetah'),
+          path.join(__dirname, 'local-dev-dist', 'purple-cheetah'),
+        );
+      },
+    },
+    {
+      title: 'Copy package.json.',
+      task: async () => {
+        await fse.copy(
+          path.join(__dirname, 'package.json'),
+          path.join(__dirname, 'local-dev-dist', 'package.json'),
+        );
+      },
+    },
+    {
+      title: 'Copy LICENSE',
+      task: async () => {
+        await util.promisify(fs.copyFile)(
+          path.join(__dirname, 'LICENSE'),
+          path.join(__dirname, 'local-dev-dist', 'LICENSE'),
         );
       },
     },
@@ -195,6 +262,12 @@ async function pack() {
     stdio: 'inherit',
   });
 }
+async function localDevPack() {
+  await spawn('npm', ['pack'], {
+    cwd: path.join(process.cwd(), 'local-dev-dist'),
+    stdio: 'inherit',
+  });
+}
 
 async function main() {
   const options = parseArgs(process.argv);
@@ -210,6 +283,10 @@ async function main() {
     await build();
   } else if (options.pack === true) {
     await pack();
+  } else if (options.localDevBundle) {
+    await localDevBundle();
+  } else if (options.localDevPack) {
+    await localDevPack();
   }
 }
 main().catch((error) => {
