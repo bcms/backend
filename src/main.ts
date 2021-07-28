@@ -54,6 +54,7 @@ import { bcmsSetup } from './setup';
 import { createBcmsChildProcess, createBcmsFfmpeg } from './util';
 import { BCMSTemplateOrganizerController } from './template-organizer';
 import { createBcmsSocketManager } from './socket';
+import { BCMSUiAssetMiddleware } from './ui-middleware';
 
 let backend: BCMSBackend;
 
@@ -156,6 +157,7 @@ async function initialize() {
       limit: bcmsConfig.bodySizeLimit ? bcmsConfig.bodySizeLimit : undefined,
     }),
     BCMSMediaMiddleware,
+    BCMSUiAssetMiddleware,
   ];
   const controllers: Controller[] = [
     BCMSUserController,
