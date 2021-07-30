@@ -9,18 +9,19 @@ export const BCMSUiAssetMiddleware = createMiddleware({
   handler() {
     const fs = useFS();
     return async (req: Request, res: Response, next: NextFunction) => {
-      if (req.path.startsWith('/api')) {
+      if (req.originalUrl.startsWith('/api')) {
         next();
       } else {
         const filePath = path.join(
           process.cwd(),
           'public',
-          req.path.replace(/../g, ''),
+          ...req.originalUrl.substring(1).replace(/\.\./g, '').split('/'),
         );
-        if (fs.exist(filePath, true)) {
+        console.log(filePath);
+        if (await fs.exist(filePath, true)) {
           res.sendFile(filePath);
         } else {
-          res.send(path.join(process.cwd(), 'public', 'index.html'));
+          res.sendFile(path.join(process.cwd(), 'public', 'index.html'));
         }
       }
     };

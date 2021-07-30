@@ -33,9 +33,3 @@ services:
       - type: bind
         source: ./uploads
         target: /app/uploads
-      - type: bind
-        source: ./plugins
-        target: /app/plugins
-#      - type: bind
-#        source: /usr/local/lib/node_modules/@becomes/purple-cheetah
-#        target: /app/src/node_modules/@becomes/purple-cheetah
