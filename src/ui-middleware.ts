@@ -17,7 +17,6 @@ export const BCMSUiAssetMiddleware = createMiddleware({
           'public',
           ...req.originalUrl.substring(1).replace(/\.\./g, '').split('/'),
         );
-        console.log(filePath);
         if (await fs.exist(filePath, true)) {
           res.sendFile(filePath);
         } else {
