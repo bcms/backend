@@ -185,9 +185,8 @@ async function localDevBundle() {
             )
           ).toString(),
         );
-        data.scripts.dev = 'nodemon main.ts'
         await util.promisify(fs.writeFile)(
-          path.join(__dirname, 'dist', 'package.json'),
+          path.join(__dirname, 'local-dev-dist', 'package.json'),
           JSON.stringify(data, null, '  '),
         );
       },
