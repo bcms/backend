@@ -8,8 +8,8 @@
   "scripts": {
     "start": "node dist/bin/bcms-backend.js",
     "start:local": "node bin/bcms-backend.js --dev",
-    "dev": "env-cmd -f .env.dev nodemon src/main.ts",
-    "build:ts": "npm run lint && tsc -p .",
+    "dev": "env-cmd -f .env.dev nodemon -r tsconfig-paths/register src/main.ts",
+    "build:ts": "tsc --project tsconfig.json && tscpaths -p tsconfig.json -s ./src -o ./dist",
     "build": "node tools.js --build",
     "bundle": "node tools.js --bundle",
     "bundle:local": "node tools.js --local-dev",
@@ -23,6 +23,12 @@
     "build:plugins": "tsc -p tsconfig.plugins.json"
   },
   "dependencies": {
+    "@becomes/purple-cheetah": "file:purple-cheetah/core.tgz",
+    "@becomes/purple-cheetah-mod-fsdb": "file:purple-cheetah/fsdb.tgz",
+    "@becomes/purple-cheetah-mod-jwt": "file:purple-cheetah/jwt.tgz",
+    "@becomes/purple-cheetah-mod-mem-cache": "file:purple-cheetah/mem-cache.tgz",
+    "@becomes/purple-cheetah-mod-mongodb": "file:purple-cheetah/mongodb.tgz",
+    "@becomes/purple-cheetah-mod-socket": "file:purple-cheetah/socket.tgz",
     "@types/multer": "^1.4.5",
     "bcrypt": "^5.0.0",
     "chokidar": "^3.5.0",
@@ -34,13 +40,7 @@
     "sharp": "^0.26.3",
     "swagger-ui-express": "^4.1.6",
     "uuid": "^8.3.2",
-    "yamljs": "^0.3.0",
-    "@becomes/purple-cheetah": "file:purple-cheetah/core.tgz",
-    "@becomes/purple-cheetah-mod-fsdb": "file:purple-cheetah/fsdb.tgz",
-    "@becomes/purple-cheetah-mod-jwt": "file:purple-cheetah/jwt.tgz",
-    "@becomes/purple-cheetah-mod-mem-cache": "file:purple-cheetah/mem-cache.tgz",
-    "@becomes/purple-cheetah-mod-mongodb": "file:purple-cheetah/mongodb.tgz",
-    "@becomes/purple-cheetah-mod-socket": "file:purple-cheetah/socket.tgz"
+    "yamljs": "^0.3.0"
   },
   "devDependencies": {
     "@types/bcrypt": "^3.0.1",
@@ -57,10 +57,11 @@
     "@typescript-eslint/parser": "^4.24.0",
     "env-cmd": "^10.1.0",
     "eslint": "^7.24.0",
-    "listr": "^0.14.3",
     "nodemon": "^2.0.7",
     "prettier": "^2.2.1",
     "ts-node": "^9.1.1",
+    "tsconfig-paths": "^3.10.1",
+    "tscpaths": "0.0.9",
     "typedoc": "^0.17.8",
     "typedoc-neo-theme": "^1.0.10",
     "typescript": "^4.3.5"

@@ -18,14 +18,14 @@ export const BCMSPluginConfigSchema: ObjectSchema = {
     __type: 'array',
     __required: false,
     __child: {
-      __type: 'object',
+      __type: 'function',
     },
   },
   middleware: {
     __type: 'array',
     __required: false,
     __child: {
-      __type: 'object',
+      __type: 'function',
     },
   },
 };

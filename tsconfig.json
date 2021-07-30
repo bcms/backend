@@ -10,11 +10,13 @@
     "strict": true,
     "target": "ES2020",
     "outDir": "./dist",
-    "rootDir": "src",
-    "incremental": true,
-    "importsNotUsedAsValues": "error"
+    "baseUrl": "src",
+    "importsNotUsedAsValues": "error",
+    "paths": {
+      "@bcms/*": ["./*"]
+    }
   },
-  "include": ["src/**/*"],
+  "include": ["src/**/*", "plugins/**/*"],
   "exclude": ["node_modules", "dist", "src/node_modules"],
   "typedocOptions": {
     "entryPoints": ["src"],

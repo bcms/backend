@@ -1,12 +1,14 @@
 import * as path from 'path';
 import {
   useFS,
+  useLogger,
   useObjectUtility,
   useStringUtility,
 } from '@becomes/purple-cheetah';
 import {
   Controller,
   FS,
+  Logger,
   Middleware,
   Module,
   ObjectUtilityError,
@@ -48,6 +50,7 @@ export function createBcmsPluginModule(bcmsConfig: BCMSConfig): Module {
     stringUtil: StringUtility;
     shimService: BCMSShimService;
     fs: FS;
+    logger: Logger;
   }): Promise<{
     controllers: Controller[];
     middleware: Middleware[];
@@ -76,61 +79,85 @@ export function createBcmsPluginModule(bcmsConfig: BCMSConfig): Module {
     } else if (await data.fs.exist(nodeModulePluginPath)) {
       pluginPath = nodeModulePluginPath;
     } else {
-      throw Error(
+      data.logger.error(
+        '',
         `Plugin with name "${bcmsConfig.plugins[data.index]}" does not exist.`,
       );
+      return {
+        controllers: data.controllers,
+        middleware: data.middleware,
+      };
     }
     if (await data.fs.exist(path.join(pluginPath, 'main.ts'), true)) {
       pluginPath = path.join(pluginPath, 'main.ts');
     } else if (await data.fs.exist(path.join(pluginPath, 'main.js'), true)) {
       pluginPath = path.join(pluginPath, 'main.js');
     } else {
-      throw Error(
+      data.logger.error(
+        '',
         `Plugin with name "${
           bcmsConfig.plugins[data.index]
         }" does not contain "main.js" or "main.ts" file at path ${pluginPath}.`,
       );
-    }
-    const plugin: BCMSPlugin = await import(pluginPath);
-    if (!plugin.name) {
       return {
         controllers: data.controllers,
         middleware: data.middleware,
       };
     }
-    plugin.name = data.stringUtil.toSlug(plugin.name);
-    if (data.addedPlugins.includes(plugin.name)) {
-      throw Error(`Plugin with name "${plugin.name}" is duplicate.`);
+    const plugin: { default: BCMSPlugin } = await import(pluginPath);
+    if (!plugin || !plugin.default || !plugin.default.name) {
+      return {
+        controllers: data.controllers,
+        middleware: data.middleware,
+      };
     }
-    data.addedPlugins.push(plugin.name);
-
+    plugin.default.name = data.stringUtil.toSlug(plugin.default.name);
+    if (data.addedPlugins.includes(plugin.default.name)) {
+      data.logger.error(
+        '',
+        `Plugin with name "${plugin.default.name}" is duplicate.`,
+      );
+      return {
+        controllers: data.controllers,
+        middleware: data.middleware,
+      };
+    }
+    data.addedPlugins.push(plugin.default.name);
     const verifyResult: { ok: boolean } = await data.shimService.send({
-      uri: `/instance/plugin/verify/${plugin.name}`,
+      uri: `/instance/plugin/verify/${plugin.default.name}`,
       payload: {},
     });
 
     if (!verifyResult.ok) {
-      throw Error(`Plugin "${plugin.name}" is denied by the BCMS Cloud.`);
+      data.logger.error(
+        '',
+        `Plugin "${plugin.default.name}" is denied by the BCMS Cloud.`,
+      );
+      return {
+        controllers: data.controllers,
+        middleware: data.middleware,
+      };
     }
 
-    if (plugin.controllers) {
-      for (let j = 0; j < plugin.controllers.length; j++) {
-        const controller = plugin.controllers[j]();
-        controller.path = `/api/plugin/${plugin.name}`;
+    if (plugin.default.controllers) {
+      for (let j = 0; j < plugin.default.controllers.length; j++) {
         data.controllers.push(() => {
+          const controller = plugin.default.controllers[j]();
+          controller.path = `/api/plugin/${plugin.default.name}`;
           return controller;
         });
       }
     }
-    if (plugin.middleware) {
-      for (let j = 0; j < plugin.middleware.length; j++) {
-        const mid = plugin.middleware[j]();
-        mid.path = `/api/plugin/${plugin.name}`;
+    if (plugin.default.middleware) {
+      for (let j = 0; j < plugin.default.middleware.length; j++) {
         data.middleware.push(() => {
+          const mid = plugin.default.middleware[j]();
+          mid.path = `/api/plugin/${plugin.default.name}`;
           return mid;
         });
       }
     }
+    data.logger.info('', plugin.default.name + ' loaded successfully');
     return loadNext({
       index: data.index + 1,
       controllers: data.controllers,
@@ -139,6 +166,7 @@ export function createBcmsPluginModule(bcmsConfig: BCMSConfig): Module {
       shimService: data.shimService,
       stringUtil: data.stringUtil,
       fs: data.fs,
+      logger: data.logger,
     });
   }
 
@@ -149,6 +177,7 @@ export function createBcmsPluginModule(bcmsConfig: BCMSConfig): Module {
       const stringUtil = useStringUtility();
       const shimService = useBcmsShimService();
       const fs = useFS();
+      const logger = useLogger({ name: 'Plugin loader' });
 
       if (bcmsConfig.plugins) {
         loadNext({
@@ -159,6 +188,7 @@ export function createBcmsPluginModule(bcmsConfig: BCMSConfig): Module {
           stringUtil,
           shimService,
           fs,
+          logger,
         })
           .then((result) => {
             pluginManager = {
