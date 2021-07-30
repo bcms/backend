@@ -23,7 +23,7 @@
     "build:plugins": "tsc -p tsconfig.plugins.json"
   },
   "dependencies": {
-    "@becomes/purple-cheetah": "file:purple-cheetah/core.tgz",
+    "@becomes/purple-cheetah": "^3.1.0",
     "@becomes/purple-cheetah-mod-fsdb": "file:purple-cheetah/fsdb.tgz",
     "@becomes/purple-cheetah-mod-jwt": "file:purple-cheetah/jwt.tgz",
     "@becomes/purple-cheetah-mod-mem-cache": "file:purple-cheetah/mem-cache.tgz",
