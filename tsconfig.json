@@ -26,5 +26,5 @@
     "plugin": "typedoc-neo-theme",
     "mode": "file",
     "out": "doc"
-  },
+  }
 }
