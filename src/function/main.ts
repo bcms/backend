@@ -29,9 +29,23 @@ export function createBcmsFunctionModule(): Module {
             for (let i = 0; i < fnNames.length; i++) {
               const fnName = fnNames[i];
               if (fnName.endsWith('.js') || fnName.endsWith('.ts')) {
-                const fn: BCMSFunction<unknown> = await import(
-                  path.join(fnsPath, fnName)
+                const fnImport: { default: () => BCMSFunction<unknown> } =
+                  await import(path.join(fnsPath, fnName));
+                const checkFn = objectUtil.compareWithSchema(
+                  { fn: fnImport.default },
+                  {
+                    fn: {
+                      __type: 'function',
+                      __required: true,
+                    },
+                  },
+                  fnName,
                 );
+                if (checkFn instanceof ObjectUtilityError) {
+                  moduleConfig.next(Error(checkFn.message));
+                  return;
+                }
+                const fn = fnImport.default();
                 const checkObject = objectUtil.compareWithSchema(
                   fn,
                   BCMSFunctionSchema,

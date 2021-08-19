@@ -1,3 +1,4 @@
+import 'module-alias/register';
 import {
   createBodyParserMiddleware,
   createCorsMiddleware,
@@ -228,13 +229,13 @@ async function initialize() {
     controllers.push(BCMSSwaggerController);
     controllers.push(BCMSCypressController);
   }
-  modules.push(createBcmsFunctionModule());
-  modules.push(createBcmsEventModule());
-  modules.push(createBcmsJobModule());
   modules.push(createBcmsApiKeySecurity());
   modules.push(createBcmsPropHandler());
   modules.push(createBcmsEntryParser());
   modules.push(initLanguage());
+  modules.push(createBcmsFunctionModule());
+  modules.push(createBcmsEventModule());
+  modules.push(createBcmsJobModule());
 
   modules.push(createBcmsPluginModule(bcmsConfig));
 

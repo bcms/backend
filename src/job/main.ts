@@ -20,11 +20,11 @@ export function createBcmsJobModule(): Module {
             for (let i = 0; i < files.length; i++) {
               const fileName = files[i];
               if (fileName.endsWith('.js') || fileName.endsWith('.ts')) {
-                const jobFn: () => BCMSJob = await import(
+                const jobFn: { default: () => BCMSJob } = await import(
                   path.join(jobsPath, fileName)
                 );
                 const checkFn = objectUtil.compareWithSchema(
-                  { fn: jobFn },
+                  { fn: jobFn.default },
                   {
                     fn: {
                       __type: 'function',
@@ -37,7 +37,7 @@ export function createBcmsJobModule(): Module {
                   moduleConfig.next(Error(checkFn.message));
                   return;
                 }
-                const job = jobFn();
+                const job = jobFn.default();
                 const checkObject = objectUtil.compareWithSchema(
                   job,
                   BCMSJobSchema,
