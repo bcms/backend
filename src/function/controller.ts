@@ -127,7 +127,8 @@ export const BCMSFunctionController = createController<Setup>({
               }),
             };
           } catch (error) {
-            if (error instanceof HTTPException) {
+            const e = error as HTTPException<unknown>;
+            if (e.message && e.stack && e.status) {
               throw error;
             }
             logger.error(name, error);
