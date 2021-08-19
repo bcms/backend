@@ -23,7 +23,7 @@ export function createBcmsEventModule(): Module {
       const logger = useLogger({ name: 'Event manager' });
       const fs = useFS();
       const objectUtil = useObjectUtility();
-      const eventsPath = path.join(process.cwd(), 'functions');
+      const eventsPath = path.join(process.cwd(), 'events');
 
       fs.exist(eventsPath)
         .then(async (result) => {
