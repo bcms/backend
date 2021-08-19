@@ -13,7 +13,8 @@
     "baseUrl": "src",
     "importsNotUsedAsValues": "error",
     "paths": {
-      "@bcms/*": ["./*"]
+      "@bcms/*": ["./*"],
+      "@becomes/cms-backend/*": ["./*"]
     }
   },
   "include": ["src/**/*", "plugins/**/*"],
@@ -25,5 +26,5 @@
     "plugin": "typedoc-neo-theme",
     "mode": "file",
     "out": "doc"
-  }
+  },
 }
