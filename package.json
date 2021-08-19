@@ -80,7 +80,10 @@
   "nodemonConfig": {
     "watch": [
       "src",
-      "plugins"
+      "plugins",
+      "functions",
+      "events",
+      "jobs"
     ],
     "ext": "ts"
   },
