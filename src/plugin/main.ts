@@ -205,6 +205,11 @@ export function createBcmsPluginModule(bcmsConfig: BCMSConfig): Module {
             moduleConfig.next(error);
           });
       } else {
+        pluginManager = {
+          getList() {
+            return addedPlugins;
+          },
+        };
         moduleConfig.next();
       }
     },
