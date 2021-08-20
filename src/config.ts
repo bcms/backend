@@ -15,7 +15,9 @@ export class Config {
     JWTConfigService.add({
       id: 'user-token-config',
       alg: JWTEncryptionAlg.HMACSHA256,
-      expIn: parseInt(process.env.JWT_EXP_AFTER, 10),
+      expIn: process.env.JWT_EXP_AFTER
+        ? parseInt(process.env.JWT_EXP_AFTER, 10)
+        : 300000,
       issuer: process.env.JWT_ISSUER,
       secret: process.env.JWT_SECRET,
     });
