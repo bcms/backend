@@ -6,11 +6,14 @@ services:
       - '1280:1280'
     volumes:
       - type: bind
+        source: ./bcms.config.js
+        target: /app/bcms.config.js
+      - type: bind
         source: ./src
         target: /app/src
       - type: bind
-        source: ./bcms.db.json
-        target: /app/bcms.db.json
+        source: ./db
+        target: /app/db
       - type: bind
         source: ./uploads
         target: /app/uploads
