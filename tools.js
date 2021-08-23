@@ -260,7 +260,7 @@ async function build() {
   await spawn('npm', ['run', 'build:ts']);
   await fse.copy(
     path.join(__dirname, 'src', 'response-code', 'codes'),
-    path.join(__dirname, 'dist', 'response-code', 'codes'),
+    path.join(__dirname, 'dist', 'src', 'response-code', 'codes'),
   );
 }
 async function pack() {
