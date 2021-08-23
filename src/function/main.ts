@@ -63,6 +63,7 @@ export function createBcmsFunctionModule(): Module {
                         ' This is not allowed.',
                     ),
                   );
+                  return;
                 }
                 fns.push(fn);
               }
@@ -78,7 +79,6 @@ export function createBcmsFunctionModule(): Module {
                 return fns;
               },
             };
-            moduleConfig.next();
           }
           moduleConfig.next();
         })

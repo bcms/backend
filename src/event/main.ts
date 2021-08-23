@@ -88,8 +88,6 @@ export function createBcmsEventModule(): Module {
                 }
               },
             };
-
-            moduleConfig.next();
           }
           moduleConfig.next();
         })
