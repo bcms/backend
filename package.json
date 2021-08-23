@@ -4,9 +4,9 @@
   "description": "Backend for the BCMS",
   "author": "becomes.co",
   "license": "MIT",
-  "main": "main.js",
+  "main": "src/main.js",
   "scripts": {
-    "start": "node dist/bin/bcms-backend.js",
+    "start": "node dist/src/main.js",
     "start:local": "node bin/bcms-backend.js --dev",
     "dev": "env-cmd -f .env.dev nodemon -r tsconfig-paths/register src/main.ts",
     "build:ts": "tsc --project tsconfig.json && tscpaths -p tsconfig.json -s ./src -o ./dist",
