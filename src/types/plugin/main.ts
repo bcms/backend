@@ -3,11 +3,12 @@ import type {
   Middleware,
   ObjectSchema,
 } from '@becomes/purple-cheetah/types';
+import type { BCMSPluginInfo } from './info';
 
 export interface BCMSPluginConfig {
   name: string;
-  controllers?: Controller[],
-  middleware?: Middleware[],
+  controllers?: Controller[];
+  middleware?: Middleware[];
 }
 export const BCMSPluginConfigSchema: ObjectSchema = {
   name: {
@@ -58,4 +59,5 @@ export const BCMSPluginSchema: ObjectSchema = {
 
 export interface BCMSPluginManager {
   getList(): string[];
+  getListInfo(): BCMSPluginInfo[];
 }
