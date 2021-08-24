@@ -218,7 +218,7 @@ export function createBcmsPluginModule(bcmsConfig: BCMSConfig): Module {
       const fs = useFS();
       const logger = useLogger({ name: 'Plugin loader' });
 
-      if (bcmsConfig.plugins) {
+      if (bcmsConfig.plugins && bcmsConfig.plugins.length > 0) {
         installLocalPlugins(fs)
           .then(async () => {
             const result = await loadNext({
