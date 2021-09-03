@@ -1,3 +1,8 @@
+import { BCMSFactory } from '@bcms/factory';
+import { BCMSPropHandler } from '@bcms/prop';
+import { BCMSRepo } from '@bcms/repo';
+import { bcmsResCode } from '@bcms/response-code';
+import { BCMSSocketManager } from '@bcms/socket';
 import {
   createController,
   createControllerMethod,
@@ -14,54 +19,22 @@ import {
   ObjectUtilityError,
 } from '@becomes/purple-cheetah/types';
 import {
-  useBcmsIdCounterFactory,
-  useBcmsIdCounterRepository,
-} from '../id-counter';
-import { useBcmsLanguageRepository } from '../language';
-import { useBcmsPropHandler } from '../prop';
-import { useBcmsResponseCode } from '../response-code';
-import { useBcmsSocketManager } from '../socket';
-import { useBcmsStatusRepository } from '../status';
-import { useBcmsTemplateRepository } from '../template';
-import {
   BCMSEntryCreateData,
   BCMSEntryCreateDataSchema,
-  BCMSEntryFactory,
   BCMSEntryMeta,
   BCMSEntryParsed,
   BCMSEntryParser,
-  BCMSEntryRepository,
   BCMSEntryUpdateData,
   BCMSEntryUpdateDataSchema,
-  BCMSIdCounterFactory,
-  BCMSIdCounterRepository,
-  BCMSLanguageRepository,
-  BCMSPropHandler,
-  BCMSResponseCode,
   BCMSSocketEventType,
-  BCMSSocketManager,
-  BCMSStatusRepository,
-  BCMSTemplateRepository,
   BCMSUserCustomPool,
 } from '../types';
 import { createJwtApiProtectionPreRequestHandler } from '../util';
-import { useBcmsEntryFactory } from './factory';
 import { useBcmsEntryParser } from './parser';
-import { useBcmsEntryRepository } from './repository';
 
 interface Setup {
-  entryRepo: BCMSEntryRepository;
-  entryFactory: BCMSEntryFactory;
-  resCode: BCMSResponseCode;
-  tempRepo: BCMSTemplateRepository;
   entryParser: BCMSEntryParser;
   objectUtil: ObjectUtility;
-  langRepo: BCMSLanguageRepository;
-  propHandler: BCMSPropHandler;
-  statusRepo: BCMSStatusRepository;
-  idcRepo: BCMSIdCounterRepository;
-  idcFactory: BCMSIdCounterFactory;
-  socket: BCMSSocketManager;
 }
 
 export const BCMSEntryController = createController<Setup>({
@@ -69,33 +42,13 @@ export const BCMSEntryController = createController<Setup>({
   path: '/api/entry',
   setup() {
     return {
-      entryRepo: useBcmsEntryRepository(),
-      entryFactory: useBcmsEntryFactory(),
-      resCode: useBcmsResponseCode(),
-      tempRepo: useBcmsTemplateRepository(),
       entryParser: useBcmsEntryParser(),
       objectUtil: useObjectUtility(),
-      langRepo: useBcmsLanguageRepository(),
-      propHandler: useBcmsPropHandler(),
-      statusRepo: useBcmsStatusRepository(),
-      idcRepo: useBcmsIdCounterRepository(),
-      idcFactory: useBcmsIdCounterFactory(),
-      socket: useBcmsSocketManager(),
     };
   },
   methods({
-    entryRepo,
-    entryFactory,
-    resCode,
-    tempRepo,
     entryParser,
     objectUtil,
-    langRepo,
-    propHandler,
-    statusRepo,
-    idcRepo,
-    idcFactory,
-    socket,
   }) {
     return {
       getManyLiteById: createControllerMethod({
@@ -109,7 +62,7 @@ export const BCMSEntryController = createController<Setup>({
         async handler({ request }) {
           const ids = (request.headers['x-bcms-ids'] as string).split('-');
           return {
-            items: await entryRepo.findAllById(ids),
+            items: await BCMSRepo.entry.findAllById(ids),
           };
         },
       }),
@@ -123,7 +76,7 @@ export const BCMSEntryController = createController<Setup>({
         }),
         async handler({ request }) {
           return {
-            items: await entryRepo.methods.findAllByTemplateId(
+            items: await BCMSRepo.entry.methods.findAllByTemplateId(
               request.params.tid,
             ),
           };
@@ -138,7 +91,7 @@ export const BCMSEntryController = createController<Setup>({
           permissionName: JWTPermissionName.READ,
         }),
         async handler({ request }) {
-          const entries = await entryRepo.methods.findAllByTemplateId(
+          const entries = await BCMSRepo.entry.methods.findAllByTemplateId(
             request.params.tid,
           );
           const entriesParsed: BCMSEntryParsed[] = [];
@@ -167,11 +120,11 @@ export const BCMSEntryController = createController<Setup>({
           permissionName: JWTPermissionName.READ,
         }),
         async handler({ request }) {
-          const entries = await entryRepo.methods.findAllByTemplateId(
+          const entries = await BCMSRepo.entry.methods.findAllByTemplateId(
             request.params.tid,
           );
           return {
-            items: entries.map((e) => entryFactory.toLite(e)),
+            items: entries.map((e) => BCMSFactory.entry.toLite(e)),
           };
         },
       }),
@@ -185,7 +138,7 @@ export const BCMSEntryController = createController<Setup>({
         }),
         async handler({ request }) {
           return {
-            count: entryRepo.methods.countByTemplateId(request.params.tid),
+            count: BCMSRepo.entry.methods.countByTemplateId(request.params.tid),
           };
         },
       }),
@@ -200,28 +153,28 @@ export const BCMSEntryController = createController<Setup>({
         async handler({ request, errorHandler }) {
           const template =
             request.params.tid.length === 24
-              ? await tempRepo.findById(request.params.tid)
-              : await tempRepo.methods.findByCid(request.params.tid);
+              ? await BCMSRepo.template.findById(request.params.tid)
+              : await BCMSRepo.template.methods.findByCid(request.params.tid);
           if (!template) {
             throw errorHandler.occurred(
               HTTPStatus.NOT_FOUNT,
-              resCode.get('tmp001', { id: request.params.tid }),
+              bcmsResCode('tmp001', { id: request.params.tid }),
             );
           }
           const entry =
             request.params.eid.length === 24
-              ? await entryRepo.methods.findByTemplateIdAndId(
+              ? await BCMSRepo.entry.methods.findByTemplateIdAndId(
                   `${template._id}`,
                   request.params.eid,
                 )
-              : await entryRepo.methods.findByTemplateIdAndCid(
+              : await BCMSRepo.entry.methods.findByTemplateIdAndCid(
                   `${template._id}`,
                   request.params.eid,
                 );
           if (!entry) {
             throw errorHandler.occurred(
               HTTPStatus.NOT_FOUNT,
-              resCode.get('etr001', { id: request.params.eid }),
+              bcmsResCode('etr001', { id: request.params.eid }),
             );
           }
           return {
@@ -239,18 +192,18 @@ export const BCMSEntryController = createController<Setup>({
         }),
         async handler({ request, errorHandler }) {
           const eid = request.params.eid;
-          const entry = await entryRepo.findById(eid);
+          const entry = await BCMSRepo.entry.findById(eid);
           if (!entry) {
             throw errorHandler.occurred(
               HTTPStatus.NOT_FOUNT,
-              resCode.get('etr001', { eid }),
+              bcmsResCode('etr001', { eid }),
             );
           }
-          const template = await tempRepo.findById(entry.templateId);
+          const template = await BCMSRepo.template.findById(entry.templateId);
           if (!template) {
             throw errorHandler.occurred(
               HTTPStatus.NOT_FOUNT,
-              resCode.get('etr001', { eid }),
+              bcmsResCode('etr001', { eid }),
             );
           }
           return {
@@ -272,15 +225,15 @@ export const BCMSEntryController = createController<Setup>({
         }),
         async handler({ request, errorHandler }) {
           const eid = request.params.eid;
-          const entry = await entryRepo.findById(eid);
+          const entry = await BCMSRepo.entry.findById(eid);
           if (!entry) {
             throw errorHandler.occurred(
               HTTPStatus.NOT_FOUNT,
-              resCode.get('etr001', { eid }),
+              bcmsResCode('etr001', { eid }),
             );
           }
           return {
-            item: entryFactory.toLite(entry),
+            item: BCMSFactory.entry.toLite(entry),
           };
         },
       }),
@@ -301,26 +254,26 @@ export const BCMSEntryController = createController<Setup>({
           if (checkBody instanceof ObjectUtilityError) {
             throw errorHandler.occurred(
               HTTPStatus.BAD_REQUEST,
-              resCode.get('g002', {
+              bcmsResCode('g002', {
                 msg: checkBody.message,
               }),
             );
           }
           const body = request.body as BCMSEntryCreateData;
-          const template = await tempRepo.findById(body.templateId);
+          const template = await BCMSRepo.template.findById(body.templateId);
           if (!template) {
             throw errorHandler.occurred(
               HTTPStatus.NOT_FOUNT,
-              resCode.get('tmp001', {
+              bcmsResCode('tmp001', {
                 id: body.templateId,
               }),
             );
           }
 
           const meta: BCMSEntryMeta[] = [];
-          const langs = await langRepo.findAll();
+          const langs = await BCMSRepo.language.findAll();
           const status = body.status
-            ? await statusRepo.findById(body.status)
+            ? await BCMSRepo.status.findById(body.status)
             : null;
           for (let i = 0; i < langs.length; i++) {
             const lang = langs[i];
@@ -328,13 +281,13 @@ export const BCMSEntryController = createController<Setup>({
             if (!langMeta) {
               throw errorHandler.occurred(
                 HTTPStatus.BAD_REQUEST,
-                resCode.get('etr002', {
+                bcmsResCode('etr002', {
                   lng: lang.name,
                   prop: 'meta',
                 }),
               );
             }
-            const metaCheckResult = await propHandler.checkPropValues({
+            const metaCheckResult = await BCMSPropHandler.checkPropValues({
               props: template.props,
               values: langMeta.props,
               level: `body.meta[${i}].props`,
@@ -342,7 +295,7 @@ export const BCMSEntryController = createController<Setup>({
             if (metaCheckResult instanceof Error) {
               throw errorHandler.occurred(
                 HTTPStatus.BAD_REQUEST,
-                resCode.get('etr003', {
+                bcmsResCode('etr003', {
                   error: metaCheckResult.message,
                   prop: 'meta',
                 }),
@@ -350,14 +303,14 @@ export const BCMSEntryController = createController<Setup>({
             }
             meta.push(langMeta);
           }
-          let idc = await idcRepo.methods.findAndIncByForId('entries');
+          let idc = await BCMSRepo.idc.methods.findAndIncByForId('entries');
           if (!idc) {
-            const entryIdc = idcFactory.create({
+            const entryIdc = BCMSFactory.idc.create({
               count: 2,
               forId: 'entries',
               name: 'Entries',
             });
-            const addIdcResult = await idcRepo.add(entryIdc as never);
+            const addIdcResult = await BCMSRepo.idc.add(entryIdc as never);
             if (!addIdcResult) {
               throw errorHandler.occurred(
                 HTTPStatus.INTERNAL_SERVER_ERROR,
@@ -366,7 +319,7 @@ export const BCMSEntryController = createController<Setup>({
             }
             idc = 1;
           }
-          const entry = entryFactory.create({
+          const entry = BCMSFactory.entry.create({
             cid: idc.toString(16),
             templateId: `${template._id}`,
             userId: token ? token.payload.userId : `key_${key?._id}`,
@@ -374,14 +327,14 @@ export const BCMSEntryController = createController<Setup>({
             meta: meta,
             content: body.content,
           });
-          const addedEntry = await entryRepo.add(entry as never);
+          const addedEntry = await BCMSRepo.entry.add(entry as never);
           if (!addedEntry) {
             throw errorHandler.occurred(
               HTTPStatus.INTERNAL_SERVER_ERROR,
-              resCode.get('etr004'),
+              bcmsResCode('etr004'),
             );
           }
-          await socket.emit.entry({
+          await BCMSSocketManager.emit.entry({
             entryId: `${addedEntry._id}`,
             templateId: addedEntry.templateId,
             type: BCMSSocketEventType.UPDATE,
@@ -410,32 +363,32 @@ export const BCMSEntryController = createController<Setup>({
           if (checkBody instanceof ObjectUtilityError) {
             throw errorHandler.occurred(
               HTTPStatus.BAD_REQUEST,
-              resCode.get('g002', {
+              bcmsResCode('g002', {
                 msg: checkBody.message,
               }),
             );
           }
           const body = request.body as BCMSEntryUpdateData;
-          const template = await tempRepo.findById(body.templateId);
+          const template = await BCMSRepo.template.findById(body.templateId);
           if (!template) {
             throw errorHandler.occurred(
               HTTPStatus.NOT_FOUNT,
-              resCode.get('tmp001', {
+              bcmsResCode('tmp001', {
                 id: body.templateId,
               }),
             );
           }
-          const entry = await entryRepo.findById(body._id);
+          const entry = await BCMSRepo.entry.findById(body._id);
           if (!entry) {
             throw errorHandler.occurred(
               HTTPStatus.NOT_FOUNT,
-              resCode.get('etr001', { id: request.params.eid }),
+              bcmsResCode('etr001', { id: request.params.eid }),
             );
           }
           const meta: BCMSEntryMeta[] = [];
-          const langs = await langRepo.findAll();
+          const langs = await BCMSRepo.language.findAll();
           const status = body.status
-            ? await statusRepo.findById(body.status)
+            ? await BCMSRepo.status.findById(body.status)
             : null;
           for (let i = 0; i < langs.length; i++) {
             const lang = langs[i];
@@ -443,13 +396,13 @@ export const BCMSEntryController = createController<Setup>({
             if (!langMeta) {
               throw errorHandler.occurred(
                 HTTPStatus.BAD_REQUEST,
-                resCode.get('etr002', {
+                bcmsResCode('etr002', {
                   lng: lang.name,
                   prop: 'meta',
                 }),
               );
             }
-            const metaCheckResult = await propHandler.checkPropValues({
+            const metaCheckResult = await BCMSPropHandler.checkPropValues({
               props: template.props,
               values: langMeta.props,
               level: `body.meta[${i}].props`,
@@ -457,7 +410,7 @@ export const BCMSEntryController = createController<Setup>({
             if (metaCheckResult instanceof Error) {
               throw errorHandler.occurred(
                 HTTPStatus.BAD_REQUEST,
-                resCode.get('etr003', {
+                bcmsResCode('etr003', {
                   error: metaCheckResult.message,
                   prop: 'meta',
                 }),
@@ -468,14 +421,14 @@ export const BCMSEntryController = createController<Setup>({
           entry.status = status ? `${status._id}` : '';
           entry.meta = meta;
           entry.content = body.content;
-          const updatedEntry = await entryRepo.update(entry as never);
+          const updatedEntry = await BCMSRepo.entry.update(entry as never);
           if (!updatedEntry) {
             throw errorHandler.occurred(
               HTTPStatus.INTERNAL_SERVER_ERROR,
-              resCode.get('etr004'),
+              bcmsResCode('etr004'),
             );
           }
-          await socket.emit.entry({
+          await BCMSSocketManager.emit.entry({
             entryId: `${updatedEntry._id}`,
             templateId: updatedEntry.templateId,
             type: BCMSSocketEventType.UPDATE,
@@ -497,21 +450,21 @@ export const BCMSEntryController = createController<Setup>({
         }),
         async handler({ request, errorHandler, token }) {
           const eid = request.params.eid;
-          const entry = await entryRepo.findById(eid);
+          const entry = await BCMSRepo.entry.findById(eid);
           if (!entry) {
             throw errorHandler.occurred(
               HTTPStatus.NOT_FOUNT,
-              resCode.get('etr001', { eid }),
+              bcmsResCode('etr001', { eid }),
             );
           }
-          const deleteResult = await entryRepo.deleteById(eid);
+          const deleteResult = await BCMSRepo.entry.deleteById(eid);
           if (!deleteResult) {
             throw errorHandler.occurred(
               HTTPStatus.INTERNAL_SERVER_ERROR,
-              resCode.get('etr006'),
+              bcmsResCode('etr006'),
             );
           }
-          await socket.emit.entry({
+          await BCMSSocketManager.emit.entry({
             entryId: `${entry._id}`,
             templateId: entry.templateId,
             type: BCMSSocketEventType.REMOVE,

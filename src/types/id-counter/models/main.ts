@@ -50,3 +50,4 @@ export const BCMSIdCounterMongoDBSchema = new Schema({
 });
 
 export type BCMSIdCounter = BCMSIdCounterMongoDB | BCMSIdCounterFSDB;
+export type BCMSIdCounterCross = BCMSIdCounterMongoDB & BCMSIdCounterFSDB;

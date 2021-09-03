@@ -1,8 +1,6 @@
+import { BCMSPropHandler } from '@bcms/prop';
+import { BCMSRepo } from '@bcms/repo';
 import type { Module } from '@becomes/purple-cheetah/types';
-import { useBcmsLanguageRepository } from '../language';
-import { useBcmsPropHandler } from '../prop';
-import { useBcmsStatusRepository } from '../status';
-import { useBcmsTemplateRepository } from '../template';
 import type { BCMSEntryParsed, BCMSEntryParser, BCMSStatus } from '../types';
 
 let parser: BCMSEntryParser;
@@ -15,11 +13,6 @@ export function createBcmsEntryParser(): Module {
   return {
     name: 'Entry parser',
     initialize(moduleConfig) {
-      const statusRepo = useBcmsStatusRepository();
-      const tempRepo = useBcmsTemplateRepository();
-      const langRepo = useBcmsLanguageRepository();
-      const propHandler = useBcmsPropHandler();
-
       parser = {
         async parse({ entry, maxDepth, depth, level }) {
           if (!level) {
@@ -30,7 +23,7 @@ export function createBcmsEntryParser(): Module {
           }
           let status: BCMSStatus | null = null;
           if (entry.status) {
-            status = await statusRepo.findById(entry.status);
+            status = await BCMSRepo.status.findById(entry.status);
           }
           const entryParsed: BCMSEntryParsed = {
             _id: `${entry._id}`,
@@ -41,8 +34,8 @@ export function createBcmsEntryParser(): Module {
             status: status ? status.name : '',
             meta: {},
           };
-          const langs = await langRepo.findAll();
-          const temp = await tempRepo.findById(entry.templateId);
+          const langs = await BCMSRepo.language.findAll();
+          const temp = await BCMSRepo.template.findById(entry.templateId);
           if (!temp) {
             return null;
           }
@@ -50,7 +43,7 @@ export function createBcmsEntryParser(): Module {
             const lang = langs[i];
             const meta = entry.meta.find((e) => e.lng === lang.code);
             if (meta) {
-              entryParsed.meta[lang.code] = await propHandler.parse({
+              entryParsed.meta[lang.code] = await BCMSPropHandler.parse({
                 meta: temp.props,
                 values: meta.props,
                 maxDepth,
@@ -59,7 +52,7 @@ export function createBcmsEntryParser(): Module {
                 onlyLng: lang.code,
               });
             } else {
-              entryParsed.meta[lang.code] = await propHandler.parse({
+              entryParsed.meta[lang.code] = await BCMSPropHandler.parse({
                 meta: temp.props,
                 values: [],
                 maxDepth,

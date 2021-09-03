@@ -4,10 +4,8 @@ import {
   useFS,
 } from '@becomes/purple-cheetah';
 import * as path from 'path';
-import { useBcmsConfig } from '../config';
 import { setup } from 'swagger-ui-express';
 import * as YAML from 'yamljs';
-import type { BCMSConfig } from '../types';
 import type { Request, Response } from 'express';
 
 let swaggerHandler: (
@@ -16,16 +14,9 @@ let swaggerHandler: (
   callback: () => void,
 ) => void;
 
-export const BCMSSwaggerController = createController<{
-  bcmsConfig: BCMSConfig;
-}>({
+export const BCMSSwaggerController = createController({
   name: 'Swagger Controller',
   path: '/api/swagger',
-  setup() {
-    return {
-      bcmsConfig: useBcmsConfig(),
-    };
-  },
   methods({ bcmsConfig }) {
     return {
       get: createControllerMethod({

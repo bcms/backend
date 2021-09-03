@@ -4,20 +4,49 @@ import * as path from 'path';
 import * as YAML from 'yamljs';
 import { useObjectUtility } from '@becomes/purple-cheetah';
 import { ObjectUtilityError } from '@becomes/purple-cheetah/types';
-import type { BCMSResponseCode, BCMSResponseCodeList } from '../types';
+import type {
+  BCMSResponseCode,
+  BCMSResponseCodeList,
+  BCMSResponseCodeRegister,
+} from '../types';
 
-let responseCode: BCMSResponseCode;
+const codes: BCMSResponseCodeList = {};
+const registry: Array<{
+  name: string;
+  msg: string;
+}> = [];
 
-export function useBcmsResponseCode(): BCMSResponseCode {
-  return responseCode;
-}
-export async function loadResponseCode(): Promise<void> {
-  const codes: BCMSResponseCodeList = {};
-  const registry: Array<{
-    name: string;
-    msg: string;
-  }> = [];
+export const bcmsResCode: BCMSResponseCode = (code, vars) => {
+  const c = codes[code];
+  if (!c) {
+    throw new Error(`Code "${code}" does not exist.`);
+  }
+  let msg = '' + c.msg;
+  if (vars) {
+    for (const key in vars) {
+      let buf = '' + msg;
+      // eslint-disable-next-line no-constant-condition
+      while (true) {
+        msg = msg.replace(`%${key}%`, vars[key] as string);
+        if (buf === msg) {
+          break;
+        }
+        buf = '' + msg;
+      }
+    }
+  }
+  return {
+    code,
+    message: msg,
+  };
+};
+export const bcmsResCodeRegister: BCMSResponseCodeRegister = (_codes) => {
+  _codes.forEach((code) => {
+    registry.push(code);
+  });
+};
 
+export async function loadBcmsResponseCodes(): Promise<void> {
   async function fileTree(dir: string) {
     const ft: string[] = [];
     const files = await util.promisify(fs.readdir)(dir);
@@ -85,35 +114,4 @@ export async function loadResponseCode(): Promise<void> {
       });
     }
   }
-  responseCode = {
-    register(_codes) {
-      _codes.forEach((code) => {
-        registry.push(code);
-      });
-    },
-    get(code, vars) {
-      const c = codes[code];
-      if (!c) {
-        throw new Error(`Code "${code}" does not exist.`);
-      }
-      let msg = '' + c.msg;
-      if (vars) {
-        for (const key in vars) {
-          let buf = '' + msg;
-          // eslint-disable-next-line no-constant-condition
-          while (true) {
-            msg = msg.replace(`%${key}%`, vars[key] as string);
-            if (buf === msg) {
-              break;
-            }
-            buf = '' + msg;
-          }
-        }
-      }
-      return {
-        code,
-        message: msg,
-      };
-    },
-  };
 }

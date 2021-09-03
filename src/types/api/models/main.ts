@@ -76,3 +76,4 @@ export const BCMSApiKeyMongoDBSchema = new Schema({
 });
 
 export type BCMSApiKey = BCMSApiKeyFSDB | BCMSApiKeyMongoDB;
+export type BCMSApiKeyCross = BCMSApiKeyFSDB & BCMSApiKeyMongoDB;

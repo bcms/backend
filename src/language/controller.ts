@@ -9,40 +9,21 @@ import {
 } from '@becomes/purple-cheetah-mod-jwt/types';
 import { HTTPStatus } from '@becomes/purple-cheetah/types';
 import { createJwtAndBodyCheckRouteProtection } from '../util';
-import { useBcmsLanguageFactory } from './factory';
-import { useBcmsLanguageRepository } from './repository';
 import {
   BCMSLanguageAddData,
   BCMSLanguageAddDataSchema,
-  BCMSLanguageFactory,
-  BCMSLanguageRepository,
-  BCMSResponseCode,
   BCMSSocketEventType,
-  BCMSSocketManager,
   BCMSUserCustomPool,
 } from '../types';
-import { useBcmsResponseCode } from '../response-code';
-import { useBcmsSocketManager } from '../socket';
+import { BCMSRepo } from '@bcms/repo';
+import { bcmsResCode } from '@bcms/response-code';
+import { BCMSFactory } from '@bcms/factory';
+import { BCMSSocketManager } from '@bcms/socket';
 
-interface Setup {
-  langRepo: BCMSLanguageRepository;
-  resCode: BCMSResponseCode;
-  langFactory: BCMSLanguageFactory;
-  socket: BCMSSocketManager;
-}
-
-export const BCMSLanguageController = createController<Setup>({
+export const BCMSLanguageController = createController({
   path: '/api/language',
   name: 'Language controller',
-  setup() {
-    return {
-      langRepo: useBcmsLanguageRepository(),
-      resCode: useBcmsResponseCode(),
-      langFactory: useBcmsLanguageFactory(),
-      socket: useBcmsSocketManager(),
-    };
-  },
-  methods({ langRepo, resCode, langFactory, socket }) {
+  methods() {
     return {
       getAll: createControllerMethod({
         path: '/all',
@@ -54,7 +35,7 @@ export const BCMSLanguageController = createController<Setup>({
           ),
         async handler() {
           return {
-            items: await langRepo.findAll(),
+            items: await BCMSRepo.language.findAll(),
           };
         },
       }),
@@ -69,7 +50,7 @@ export const BCMSLanguageController = createController<Setup>({
           ),
         async handler() {
           return {
-            count: await langRepo.count(),
+            count: await BCMSRepo.language.count(),
           };
         },
       }),
@@ -83,11 +64,11 @@ export const BCMSLanguageController = createController<Setup>({
             JWTPermissionName.READ,
           ),
         async handler({ request, errorHandler }) {
-          const lang = await langRepo.findById(request.params.id);
+          const lang = await BCMSRepo.language.findById(request.params.id);
           if (!lang) {
             throw errorHandler.occurred(
               HTTPStatus.NOT_FOUNT,
-              resCode.get('lng001', { id: request.params.id }),
+              bcmsResCode('lng001', { id: request.params.id }),
             );
           }
           return {
@@ -105,27 +86,27 @@ export const BCMSLanguageController = createController<Setup>({
             bodySchema: BCMSLanguageAddDataSchema,
           }),
         async handler({ body, accessToken, errorHandler }) {
-          const language = langFactory.create({
+          const language = BCMSFactory.language.create({
             name: body.name,
             code: body.code,
             nativeName: body.nativeName,
             def: false,
             userId: accessToken.payload.userId,
           });
-          if (await langRepo.methods.findByCode(language.code)) {
+          if (await BCMSRepo.language.methods.findByCode(language.code)) {
             throw errorHandler.occurred(
               HTTPStatus.FORBIDDEN,
-              resCode.get('lng002', { code: language.code }),
+              bcmsResCode('lng002', { code: language.code }),
             );
           }
-          const addedLanguage = await langRepo.add(language as never);
+          const addedLanguage = await BCMSRepo.language.add(language as never);
           if (!addedLanguage) {
             throw errorHandler.occurred(
               HTTPStatus.INTERNAL_SERVER_ERROR,
-              resCode.get('lng003'),
+              bcmsResCode('lng003'),
             );
           }
-          await socket.emit.language({
+          await BCMSSocketManager.emit.language({
             languageId: `${addedLanguage._id}`,
             type: BCMSSocketEventType.UPDATE,
             userIds: 'all',
@@ -146,21 +127,23 @@ export const BCMSLanguageController = createController<Setup>({
             JWTPermissionName.DELETE,
           ),
         async handler({ request, errorHandler, accessToken }) {
-          const lang = await langRepo.findById(request.params.id);
+          const lang = await BCMSRepo.language.findById(request.params.id);
           if (!lang) {
             throw errorHandler.occurred(
               HTTPStatus.NOT_FOUNT,
-              resCode.get('lng001', { id: request.params.id }),
+              bcmsResCode('lng001', { id: request.params.id }),
             );
           }
-          const deleteResult = await langRepo.deleteById(request.params.id);
+          const deleteResult = await BCMSRepo.language.deleteById(
+            request.params.id,
+          );
           if (!deleteResult) {
             throw errorHandler.occurred(
               HTTPStatus.INTERNAL_SERVER_ERROR,
-              resCode.get('lng006'),
+              bcmsResCode('lng006'),
             );
           }
-          await socket.emit.language({
+          await BCMSSocketManager.emit.language({
             languageId: `${lang._id}`,
             type: BCMSSocketEventType.REMOVE,
             userIds: 'all',

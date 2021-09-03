@@ -22,8 +22,8 @@ import { createFSDB } from '@becomes/purple-cheetah-mod-fsdb';
 import { createMongoDB } from '@becomes/purple-cheetah-mod-mongodb';
 
 import type { BCMSBackend, BCMSUserCustomPool } from './types';
-import { loadBcmsConfig, useBcmsConfig } from './config';
-import { loadResponseCode } from './response-code';
+import { BCMSConfig, loadBcmsConfig } from './config';
+import { loadBcmsResponseCodes } from './response-code';
 import { BCMSSwaggerController, BCMSSwaggerMiddleware } from './swagger';
 import { BCMSCypressController } from './cypress';
 import {
@@ -31,9 +31,9 @@ import {
   BCMSShimUserController,
   createBcmsShimService,
 } from './shim';
-import { BCMSUserController } from './user';
+import { BCMSUserController, createBcmsUserRepository } from './user';
 import { createBcmsApiKeySecurity, useBcmsApiKeySecurity } from './security';
-import { BCMSApiKeyController } from './api';
+import { BCMSApiKeyController, createBcmsApiKeyRepository } from './api';
 import { BCMSFunctionController, createBcmsFunctionModule } from './function';
 import { BCMSPluginController, createBcmsPluginModule } from './plugin';
 import { createBcmsEventModule } from './event';
@@ -42,38 +42,40 @@ import { BCMSLanguageController, initLanguage } from './language';
 import {
   BCMSMediaController,
   BCMSMediaMiddleware,
+  createBcmsMediaRepository,
   createBcmsMediaService,
 } from './media';
-import { BCMSStatusController } from './status';
-import { BCMSTemplateController } from './template';
-import { BCMSWidgetController } from './widget';
+import { BCMSStatusController, createBcmsStatusRepository } from './status';
+import { BCMSTemplateController, createBcmsTemplateRepository } from './template';
+import { BCMSWidgetController, createBcmsWidgetRepository } from './widget';
 import { createSocket } from '@becomes/purple-cheetah-mod-socket';
-import { BCMSGroupController } from './group';
+import { BCMSGroupController, createBcmsGroupRepository } from './group';
 import { createBcmsPropHandler } from './prop';
-import { createBcmsEntryParser, BCMSEntryController } from './entry';
-import { bcmsSetup } from './setup';
+import { createBcmsEntryParser, BCMSEntryController, createBcmsEntryRepository } from './entry';
 import { createBcmsChildProcess, createBcmsFfmpeg } from './util';
-import { BCMSTemplateOrganizerController } from './template-organizer';
+import { BCMSTemplateOrganizerController, createBcmsTemplateOrganizerRepository } from './template-organizer';
 import { createBcmsSocketManager } from './socket';
 import { BCMSUiAssetMiddleware } from './ui-middleware';
+import { createBcmsIdCounterRepository } from './id-counter';
+import { createBcmsFactories } from './factory';
 
 let backend: BCMSBackend;
 
 async function initialize() {
   await loadBcmsConfig();
-  await loadResponseCode();
+  await loadBcmsResponseCodes();
   createBcmsChildProcess();
-  const bcmsConfig = useBcmsConfig();
 
   const modules: Module[] = [
+    createBcmsFactories(),
     createBcmsShimService(),
     createJwt({
       scopes: [
         {
-          secret: bcmsConfig.jwt.secret,
-          issuer: bcmsConfig.jwt.scope,
+          secret: BCMSConfig.jwt.secret,
+          issuer: BCMSConfig.jwt.scope,
           alg: JWTAlgorithm.HMACSHA256,
-          expIn: bcmsConfig.jwt.expireIn,
+          expIn: BCMSConfig.jwt.expireIn,
         },
       ],
     }),
@@ -151,11 +153,22 @@ async function initialize() {
     createBcmsSocketManager(),
     createBcmsMediaService(),
     createBcmsFfmpeg(),
+    // Repos
+    createBcmsApiKeyRepository(),
+    createBcmsEntryRepository(),
+    createBcmsGroupRepository(),
+    createBcmsIdCounterRepository(),
+    createBcmsMediaRepository(),
+    createBcmsStatusRepository(),
+    createBcmsTemplateRepository(),
+    createBcmsTemplateOrganizerRepository(),
+    createBcmsUserRepository(),
+    createBcmsWidgetRepository(),
   ];
   const middleware: Middleware[] = [
     createCorsMiddleware(),
     createBodyParserMiddleware({
-      limit: bcmsConfig.bodySizeLimit ? bcmsConfig.bodySizeLimit : undefined,
+      limit: BCMSConfig.bodySizeLimit ? BCMSConfig.bodySizeLimit : undefined,
     }),
     BCMSMediaMiddleware,
     BCMSUiAssetMiddleware,
@@ -176,43 +189,43 @@ async function initialize() {
     BCMSEntryController,
     BCMSTemplateOrganizerController,
   ];
-  if (bcmsConfig.database.fs) {
+  if (BCMSConfig.database.fs) {
     modules.push(
       createFSDB({
-        output: `db${bcmsConfig.database.prefix.startsWith('/') ? '' : '/'}${
-          bcmsConfig.database.prefix
+        output: `db${BCMSConfig.database.prefix.startsWith('/') ? '' : '/'}${
+          BCMSConfig.database.prefix
         }`,
       }),
     );
-  } else if (bcmsConfig.database.mongodb) {
-    if (bcmsConfig.database.mongodb.selfHosted) {
+  } else if (BCMSConfig.database.mongodb) {
+    if (BCMSConfig.database.mongodb.selfHosted) {
       modules.push(
         createMongoDB({
           selfHosted: {
             db: {
-              port: bcmsConfig.database.mongodb.selfHosted.port,
-              host: bcmsConfig.database.mongodb.selfHosted.host,
-              name: bcmsConfig.database.mongodb.selfHosted.name,
+              port: BCMSConfig.database.mongodb.selfHosted.port,
+              host: BCMSConfig.database.mongodb.selfHosted.host,
+              name: BCMSConfig.database.mongodb.selfHosted.name,
             },
             user: {
-              name: bcmsConfig.database.mongodb.selfHosted.user,
-              password: bcmsConfig.database.mongodb.selfHosted.password,
+              name: BCMSConfig.database.mongodb.selfHosted.user,
+              password: BCMSConfig.database.mongodb.selfHosted.password,
             },
           },
         }),
       );
-    } else if (bcmsConfig.database.mongodb.atlas) {
+    } else if (BCMSConfig.database.mongodb.atlas) {
       modules.push(
         createMongoDB({
           atlas: {
             db: {
-              name: bcmsConfig.database.mongodb.atlas.name,
+              name: BCMSConfig.database.mongodb.atlas.name,
               readWrite: true,
-              cluster: bcmsConfig.database.mongodb.atlas.cluster,
+              cluster: BCMSConfig.database.mongodb.atlas.cluster,
             },
             user: {
-              name: bcmsConfig.database.mongodb.atlas.user,
-              password: bcmsConfig.database.mongodb.atlas.password,
+              name: BCMSConfig.database.mongodb.atlas.user,
+              password: BCMSConfig.database.mongodb.atlas.password,
             },
           },
         }),
@@ -237,13 +250,11 @@ async function initialize() {
   modules.push(createBcmsEventModule());
   modules.push(createBcmsJobModule());
 
-  modules.push(createBcmsPluginModule(bcmsConfig));
-
-  modules.push(bcmsSetup());
+  modules.push(createBcmsPluginModule(BCMSConfig));
 
   backend = {
     app: createPurpleCheetah({
-      port: bcmsConfig.port,
+      port: BCMSConfig.port,
       middleware,
       controllers,
       modules,

@@ -103,3 +103,4 @@ export const BCMSMediaMongoDBSchema = new Schema({
 });
 
 export type BCMSMedia = BCMSMediaFSDB | BCMSMediaMongoDB;
+export type BCMSMediaCross = BCMSMediaFSDB & BCMSMediaMongoDB;

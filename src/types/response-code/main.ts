@@ -1,9 +1,11 @@
 export interface BCMSResponseCode {
-  register(codes: Array<{ name: string; msg: string }>): void;
-  get(
-    code: string,
-    vars?: { [key: string]: string },
-  ): { code: string; message: string };
+  (code: string, vars?: { [key: string]: string }): {
+    code: string;
+    message: string;
+  };
+}
+export interface BCMSResponseCodeRegister {
+  (codes: Array<{ name: string; msg: string }>): void;
 }
 export interface BCMSResponseCodeList {
   [key: string]: {

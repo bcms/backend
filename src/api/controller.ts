@@ -3,40 +3,32 @@ import {
   createControllerMethod,
   useObjectUtility,
 } from '@becomes/purple-cheetah';
-import { useBcmsApiKeyRepository } from './repository';
 import { createBcmsApiKeySecurityPreRequestHandler } from '../security';
 import { createJwtProtectionPreRequestHandler } from '@becomes/purple-cheetah-mod-jwt';
 import {
   JWTPermissionName,
   JWTRoleName,
 } from '@becomes/purple-cheetah-mod-jwt/types';
-import { useBcmsResponseCode } from '../response-code';
 import {
   HTTPStatus,
   ObjectUtility,
   ObjectUtilityError,
 } from '@becomes/purple-cheetah/types';
-import { useBcmsApiKeyFactory } from './factory';
 import {
   BCMSApiKeyAddData,
   BCMSApiKeyAddDataSchema,
-  BCMSApiKeyFactory,
-  BCMSApiKeyRepository,
   BCMSApiKeyUpdateData,
   BCMSApiKeyUpdateDataSchema,
-  BCMSResponseCode,
   BCMSSocketEventType,
-  BCMSSocketManager,
   BCMSUserCustomPool,
 } from '../types';
-import { useBcmsSocketManager } from '../socket';
+import { bcmsResCode } from '@bcms/response-code';
+import { BCMSFactory } from '@bcms/factory';
+import { BCMSSocketManager } from '@bcms/socket';
+import { BCMSRepo } from '@bcms/repo';
 
 interface Setup {
-  repo: BCMSApiKeyRepository;
-  resCode: BCMSResponseCode;
   objectUtil: ObjectUtility;
-  apiKeyFactory: BCMSApiKeyFactory;
-  socket: BCMSSocketManager;
 }
 
 export const BCMSApiKeyController = createController<Setup>({
@@ -44,14 +36,10 @@ export const BCMSApiKeyController = createController<Setup>({
   path: '/api/key',
   setup() {
     return {
-      repo: useBcmsApiKeyRepository(),
-      resCode: useBcmsResponseCode(),
       objectUtil: useObjectUtility(),
-      apiKeyFactory: useBcmsApiKeyFactory(),
-      socket: useBcmsSocketManager(),
     };
   },
-  methods({ repo, resCode, objectUtil, apiKeyFactory, socket }) {
+  methods({ objectUtil }) {
     return {
       getAccessList: createControllerMethod({
         path: '/access/list',
@@ -71,7 +59,7 @@ export const BCMSApiKeyController = createController<Setup>({
             JWTPermissionName.READ,
           ),
         async handler() {
-          return await repo.count();
+          return await BCMSRepo.apiKey.count();
         },
       }),
 
@@ -84,7 +72,7 @@ export const BCMSApiKeyController = createController<Setup>({
             JWTPermissionName.READ,
           ),
         async handler() {
-          return await repo.findAll();
+          return await BCMSRepo.apiKey.findAll();
         },
       }),
 
@@ -97,11 +85,11 @@ export const BCMSApiKeyController = createController<Setup>({
             JWTPermissionName.READ,
           ),
         async handler({ request, errorHandler }) {
-          const key = await repo.findById(request.params.id);
+          const key = await BCMSRepo.apiKey.findById(request.params.id);
           if (!key) {
             throw errorHandler.occurred(
               HTTPStatus.NOT_FOUNT,
-              resCode.get('ak001', { id: request.params.id }),
+              bcmsResCode('ak001', { id: request.params.id }),
             );
           }
           return key;
@@ -126,13 +114,13 @@ export const BCMSApiKeyController = createController<Setup>({
             if (checkBody instanceof ObjectUtilityError) {
               throw errorHandler.occurred(
                 HTTPStatus.BAD_REQUEST,
-                resCode.get('g002', {
+                bcmsResCode('g002', {
                   msg: checkBody.message,
                 }),
               );
             }
-            const rewriteResult = apiKeyFactory.rewriteKey(
-              apiKeyFactory.create({
+            const rewriteResult = BCMSFactory.apiKey.rewriteKey(
+              BCMSFactory.apiKey.create({
                 userId: accessToken.payload.userId,
                 name: data.name,
                 desc: data.desc,
@@ -140,14 +128,14 @@ export const BCMSApiKeyController = createController<Setup>({
                 access: data.access,
               }),
             );
-            const key = await repo.add(rewriteResult.key as never);
+            const key = await BCMSRepo.apiKey.add(rewriteResult.key as never);
             if (!key) {
               throw errorHandler.occurred(
                 HTTPStatus.INTERNAL_SERVER_ERROR,
-                resCode.get('ak003'),
+                bcmsResCode('ak003'),
               );
             }
-            await socket.emit.apiKey({
+            await BCMSSocketManager.emit.apiKey({
               apiKeyId: `${key._id}`,
               type: BCMSSocketEventType.UPDATE,
               userIds: 'all',
@@ -176,15 +164,15 @@ export const BCMSApiKeyController = createController<Setup>({
             if (checkBody instanceof ObjectUtilityError) {
               throw errorHandler.occurred(
                 HTTPStatus.BAD_REQUEST,
-                resCode.get('g002'),
+                bcmsResCode('g002'),
               );
             }
           }
-          const key = await repo.findById(data._id);
+          const key = await BCMSRepo.apiKey.findById(data._id);
           if (!key) {
             throw errorHandler.occurred(
               HTTPStatus.NOT_FOUNT,
-              resCode.get('ak001', { id: data._id }),
+              bcmsResCode('ak001', { id: data._id }),
             );
           }
           let changeDetected = false;
@@ -210,17 +198,17 @@ export const BCMSApiKeyController = createController<Setup>({
           if (!changeDetected) {
             throw errorHandler.occurred(
               HTTPStatus.FORBIDDEN,
-              resCode.get('g003'),
+              bcmsResCode('g003'),
             );
           }
-          const updatedKey = await repo.update(key as never);
+          const updatedKey = await BCMSRepo.apiKey.update(key as never);
           if (!updatedKey) {
             throw errorHandler.occurred(
               HTTPStatus.INTERNAL_SERVER_ERROR,
-              resCode.get('ak005'),
+              bcmsResCode('ak005'),
             );
           }
-          await socket.emit.apiKey({
+          await BCMSSocketManager.emit.apiKey({
             apiKeyId: `${updatedKey._id}`,
             type: BCMSSocketEventType.UPDATE,
             userIds: 'all',
@@ -239,20 +227,20 @@ export const BCMSApiKeyController = createController<Setup>({
             JWTPermissionName.DELETE,
           ),
         async handler({ request, errorHandler, accessToken }) {
-          const key = await repo.findById(request.params.id);
+          const key = await BCMSRepo.apiKey.findById(request.params.id);
           if (!key) {
             throw errorHandler.occurred(
               HTTPStatus.NOT_FOUNT,
-              resCode.get('ak001', { id: request.params.id }),
+              bcmsResCode('ak001', { id: request.params.id }),
             );
           }
-          if (!(await repo.deleteById(request.params.id))) {
+          if (!(await BCMSRepo.apiKey.deleteById(request.params.id))) {
             throw errorHandler.occurred(
               HTTPStatus.INTERNAL_SERVER_ERROR,
-              resCode.get('ak006'),
+              bcmsResCode('ak006'),
             );
           }
-          await socket.emit.apiKey({
+          await BCMSSocketManager.emit.apiKey({
             apiKeyId: `${key._id}`,
             type: BCMSSocketEventType.REMOVE,
             userIds: 'all',

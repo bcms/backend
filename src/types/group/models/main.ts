@@ -53,3 +53,4 @@ export const BCMSGroupMongoDBSchema = new Schema({
 });
 
 export type BCMSGroup = BCMSGroupMongoDB | BCMSGroupFSDB;
+export type BCMSGroupCross = BCMSGroupMongoDB & BCMSGroupFSDB;

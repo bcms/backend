@@ -1,39 +1,59 @@
+import { BCMSConfig } from '@bcms/config';
+import { BCMSRepo } from '@bcms/repo';
 import { createFSDBRepository } from '@becomes/purple-cheetah-mod-fsdb';
 import { createMongoDBCachedRepository } from '@becomes/purple-cheetah-mod-mongodb';
-import { useBcmsConfig } from '../config';
+import type { Module } from '@becomes/purple-cheetah/types';
 import {
   BCMSApiKeyAccessFSDBSchema,
   BCMSApiKeyFSDB,
   BCMSApiKeyMongoDB,
   BCMSApiKeyMongoDBSchema,
-  BCMSApiKeyRepository,
 } from '../types';
 
-let apiKeyRepo: BCMSApiKeyRepository;
+export function createBcmsApiKeyRepository(): Module {
+  return {
+    name: 'Create api key repository',
+    initialize({ next }) {
+      const name = 'Api key repository';
+      const collection = `${BCMSConfig.database.prefix}_api_keys`;
 
-export function useBcmsApiKeyRepository(): BCMSApiKeyRepository {
-  if (!apiKeyRepo) {
-    const bcmsConfig = useBcmsConfig();
-    const name = 'Api key repository';
-    const collection = `${bcmsConfig.database.prefix}_api_keys`;
+      BCMSRepo.apiKey = BCMSConfig.database.fs
+        ? createFSDBRepository<BCMSApiKeyFSDB, undefined>({
+            name,
+            collection,
+            schema: BCMSApiKeyAccessFSDBSchema,
+          })
+        : createMongoDBCachedRepository<
+            BCMSApiKeyMongoDB,
+            undefined,
+            undefined
+          >({
+            name,
+            collection,
+            schema: BCMSApiKeyMongoDBSchema,
+          });
 
-    if (bcmsConfig.database.fs) {
-      apiKeyRepo = createFSDBRepository<BCMSApiKeyFSDB, undefined>({
-        name,
-        collection,
-        schema: BCMSApiKeyAccessFSDBSchema,
-      });
-    } else {
-      apiKeyRepo = createMongoDBCachedRepository<
-        BCMSApiKeyMongoDB,
-        undefined,
-        undefined
-      >({
-        name,
-        collection,
-        schema: BCMSApiKeyMongoDBSchema,
-      });
-    }
-  }
-  return apiKeyRepo;
+      next();
+    },
+  };
+  // if (!apiKeyRepo) {
+  //   if (bcmsConfig.database.fs) {
+  //     apiKeyRepo = createFSDBRepository<BCMSApiKeyFSDB, undefined>({
+  //       name,
+  //       collection,
+  //       schema: BCMSApiKeyAccessFSDBSchema,
+  //     });
+  //   } else {
+  //     apiKeyRepo = createMongoDBCachedRepository<
+  //       BCMSApiKeyMongoDB,
+  //       undefined,
+  //       undefined
+  //     >({
+  //       name,
+  //       collection,
+  //       schema: BCMSApiKeyMongoDBSchema,
+  //     });
+  //   }
+  // }
+  // return apiKeyRepo;
 }

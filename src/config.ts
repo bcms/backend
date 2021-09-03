@@ -1,9 +1,9 @@
 import * as path from 'path';
 import { useObjectUtility } from '@becomes/purple-cheetah';
 import { ObjectUtilityError } from '@becomes/purple-cheetah/types';
-import { BCMSConfig, BCMSConfigSchema } from './types';
+import { BCMSConfig as BCMSConfigType, BCMSConfigSchema } from './types';
 
-const bcmsConfig: BCMSConfig = {
+export const BCMSConfig: BCMSConfigType = {
   port: 1280,
   jwt: {
     expireIn: 300000,
@@ -16,13 +16,10 @@ const bcmsConfig: BCMSConfig = {
   },
 };
 
-export function createBcmsConfig(config: BCMSConfig): BCMSConfig {
+export function createBcmsConfig(config: BCMSConfigType): BCMSConfigType {
   return config;
 }
 
-export function useBcmsConfig(): BCMSConfig {
-  return { ...bcmsConfig };
-}
 export async function loadBcmsConfig(): Promise<void> {
   const configFile = await import(path.join(process.cwd(), 'bcms.config.js'));
   const objectUtil = useObjectUtility();
@@ -34,9 +31,9 @@ export async function loadBcmsConfig(): Promise<void> {
   if (checkSchema instanceof ObjectUtilityError) {
     throw Error(checkSchema.errorCode + ' ---> ' + checkSchema.message);
   }
-  bcmsConfig.port = configFile.port;
-  bcmsConfig.jwt = configFile.jwt;
-  bcmsConfig.database = configFile.database;
-  bcmsConfig.bodySizeLimit = configFile.bodySizeLimit;
-  bcmsConfig.plugins = configFile.plugins;
+  BCMSConfig.port = configFile.port;
+  BCMSConfig.jwt = configFile.jwt;
+  BCMSConfig.database = configFile.database;
+  BCMSConfig.bodySizeLimit = configFile.bodySizeLimit;
+  BCMSConfig.plugins = configFile.plugins;
 }

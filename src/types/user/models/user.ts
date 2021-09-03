@@ -85,3 +85,4 @@ export const BCMSUserFSDBSchema: ObjectSchema = {
 };
 
 export type BCMSUser = BCMSUserMongoDB | BCMSUserFSDB;
+export type BCMSUserCross = BCMSUserMongoDB & BCMSUserFSDB;

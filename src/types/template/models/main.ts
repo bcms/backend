@@ -83,3 +83,4 @@ export const BCMSTemplateMongoDBSchema = new Schema({
 });
 
 export type BCMSTemplate = BCMSTemplateFSDB | BCMSTemplateMongoDB;
+export type BCMSTemplateCross = BCMSTemplateFSDB & BCMSTemplateMongoDB;

@@ -47,3 +47,4 @@ export const BCMSStatusMongoDBSchema = new Schema({
 });
 
 export type BCMSStatus = BCMSStatusFSDB | BCMSStatusMongoDB;
+export type BCMSStatusCross = BCMSStatusFSDB & BCMSStatusMongoDB;

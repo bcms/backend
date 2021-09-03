@@ -62,3 +62,5 @@ export const BCMSTemplateOrganizerMongoDBSchema = new Schema({
 export type BCMSTemplateOrganizer =
   | BCMSTemplateOrganizerMongoDB
   | BCMSTemplateOrganizerFSDB;
+export type BCMSTemplateOrganizerCross = BCMSTemplateOrganizerMongoDB &
+  BCMSTemplateOrganizerFSDB;

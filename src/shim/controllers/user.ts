@@ -9,7 +9,6 @@ import {
 import { HTTPStatus, RefreshTokenService } from '@becomes/purple-cheetah/types';
 import { useBcmsShimService } from '../service';
 import { useUserFactory, useUserRepository } from '../../user';
-import { useBcmsConfig } from '../../config';
 import {
   JWTEncoding,
   JWTError,
@@ -23,7 +22,6 @@ import {
   useJwtEncoding,
 } from '@becomes/purple-cheetah-mod-jwt';
 import type {
-  BCMSConfig,
   BCMSResponseCode,
   BCMSShimInstanceUser,
   BCMSShimService,
@@ -31,13 +29,13 @@ import type {
   BCMSUserRepository,
 } from '../../types';
 import { useBcmsResponseCode } from '../../response-code';
+import { BCMSConfig } from '@bcms/config';
 
 export const BCMSShimUserController = createController<{
   shimService: BCMSShimService;
   resCode: BCMSResponseCode;
   userRepo: BCMSUserRepository;
   userFactory: BCMSUserFactory;
-  bcmsConfig: BCMSConfig;
   refreshTokenService: RefreshTokenService;
   jwtManager: JWTManager;
   jwtEncoder: JWTEncoding;
@@ -50,7 +48,6 @@ export const BCMSShimUserController = createController<{
       resCode: useBcmsResponseCode(),
       userRepo: useUserRepository(),
       userFactory: useUserFactory(),
-      bcmsConfig: useBcmsConfig(),
       refreshTokenService: useRefreshTokenService(),
       jwtManager: useJwt(),
       jwtEncoder: useJwtEncoding(),
@@ -61,7 +58,6 @@ export const BCMSShimUserController = createController<{
     resCode,
     userRepo,
     userFactory,
-    bcmsConfig,
     refreshTokenService,
     jwtManager,
     jwtEncoder,
@@ -130,7 +126,7 @@ export const BCMSShimUserController = createController<{
               });
             }
           }
-          if (bcmsConfig.database.fs) {
+          if (BCMSConfig.database.fs) {
             user._id = result.user._id;
           } else {
             user._id = new Types.ObjectId(result.user._id);
@@ -153,7 +149,7 @@ export const BCMSShimUserController = createController<{
             userId: `${user._id}`,
             roles: user.roles,
             props: user.customPool,
-            issuer: bcmsConfig.jwt.scope,
+            issuer: BCMSConfig.jwt.scope,
           });
           if (accessToken instanceof JWTError) {
             throw errorHandler.occurred(

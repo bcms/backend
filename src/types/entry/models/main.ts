@@ -92,3 +92,4 @@ export const BCMSEntryMongoDBSchema = new Schema({
 });
 
 export type BCMSEntry = BCMSEntryMongoDB | BCMSEntryFSDB;
+export type BCMSEntryCross = BCMSEntryMongoDB & BCMSEntryFSDB;

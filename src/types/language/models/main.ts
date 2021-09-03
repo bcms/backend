@@ -68,3 +68,4 @@ export const BCMSLanguageMongoDBSchema = new Schema({
 });
 
 export type BCMSLanguage = BCMSLanguageFSDB | BCMSLanguageMongoDB;
+export type BCMSLanguageCross = BCMSLanguageFSDB & BCMSLanguageMongoDB;

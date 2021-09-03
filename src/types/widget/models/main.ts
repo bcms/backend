@@ -89,3 +89,4 @@ export const BCMSWidgetMongoDBSchema = new Schema({
 });
 
 export type BCMSWidget = BCMSWidgetFSDB | BCMSWidgetMongoDB;
+export type BCMSWidgetCross = BCMSWidgetFSDB & BCMSWidgetMongoDB;
