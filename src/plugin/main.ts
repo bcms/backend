@@ -16,17 +16,16 @@ import {
   ObjectUtilityError,
   StringUtility,
 } from '@becomes/purple-cheetah/types';
-import { useBcmsShimService } from '../shim';
 import {
   BCMSConfig,
-  BCMSShimService,
   BCMSPlugin,
   BCMSPluginConfig,
   BCMSPluginConfigSchema,
   BCMSPluginManager,
   BCMSPluginInfo,
 } from '../types';
-import { useBcmsChildProcess, bcmsGetDirFileTree } from '@bcms/util';
+import { bcmsGetDirFileTree, BCMSChildProcess } from '@bcms/util';
+import { BCMSShimService } from '@bcms/shim';
 
 export function createBcmsPlugin(config: BCMSPluginConfig): BCMSPlugin {
   const objectUtil = useObjectUtility();
@@ -66,7 +65,6 @@ export function createBcmsPluginModule(bcmsConfig: BCMSConfig): Module {
     middleware: Middleware[];
     addedPlugins: BCMSPluginInfo[];
     stringUtil: StringUtility;
-    shimService: BCMSShimService;
     fs: FS;
     logger: Logger;
   }): Promise<{
@@ -150,7 +148,7 @@ export function createBcmsPluginModule(bcmsConfig: BCMSConfig): Module {
       name: plugin.default.name,
       dirPath: pluginDirPath,
     });
-    const verifyResult: { ok: boolean } = await data.shimService.send({
+    const verifyResult: { ok: boolean } = await BCMSShimService.send({
       uri: `/instance/plugin/verify/${plugin.default.name}`,
       payload: {},
     });
@@ -190,19 +188,17 @@ export function createBcmsPluginModule(bcmsConfig: BCMSConfig): Module {
       controllers: data.controllers,
       middleware: data.middleware,
       addedPlugins: data.addedPlugins,
-      shimService: data.shimService,
       stringUtil: data.stringUtil,
       fs: data.fs,
       logger: data.logger,
     });
   }
   async function installLocalPlugins(fs: FS) {
-    const cp = useBcmsChildProcess();
     const files = await fs.readdir(path.join(process.cwd(), 'plugins'));
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
       if (file.endsWith('.tgz')) {
-        await cp.spawn('npm', ['i', '--save', `./plugins/${file}`], {
+        await BCMSChildProcess.spawn('npm', ['i', '--save', `./plugins/${file}`], {
           stdio: 'ignore',
         });
       }
@@ -214,7 +210,6 @@ export function createBcmsPluginModule(bcmsConfig: BCMSConfig): Module {
     initialize(moduleConfig) {
       const addedPlugins: BCMSPluginInfo[] = [];
       const stringUtil = useStringUtility();
-      const shimService = useBcmsShimService();
       const fs = useFS();
       const logger = useLogger({ name: 'Plugin loader' });
 
@@ -227,7 +222,6 @@ export function createBcmsPluginModule(bcmsConfig: BCMSConfig): Module {
               middleware: [],
               addedPlugins,
               stringUtil,
-              shimService,
               fs,
               logger,
             });

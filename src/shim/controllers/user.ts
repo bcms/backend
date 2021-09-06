@@ -7,8 +7,6 @@ import {
   useRefreshTokenService,
 } from '@becomes/purple-cheetah';
 import { HTTPStatus, RefreshTokenService } from '@becomes/purple-cheetah/types';
-import { useBcmsShimService } from '../service';
-import { useUserFactory, useUserRepository } from '../../user';
 import {
   JWTEncoding,
   JWTError,
@@ -21,21 +19,14 @@ import {
   useJwt,
   useJwtEncoding,
 } from '@becomes/purple-cheetah-mod-jwt';
-import type {
-  BCMSResponseCode,
-  BCMSShimInstanceUser,
-  BCMSShimService,
-  BCMSUserFactory,
-  BCMSUserRepository,
-} from '../../types';
-import { useBcmsResponseCode } from '../../response-code';
+import type { BCMSShimInstanceUser } from '../../types';
 import { BCMSConfig } from '@bcms/config';
+import { BCMSShimService } from '..';
+import { bcmsResCode } from '@bcms/response-code';
+import { BCMSRepo } from '@bcms/repo';
+import { BCMSFactory } from '@bcms/factory';
 
 export const BCMSShimUserController = createController<{
-  shimService: BCMSShimService;
-  resCode: BCMSResponseCode;
-  userRepo: BCMSUserRepository;
-  userFactory: BCMSUserFactory;
   refreshTokenService: RefreshTokenService;
   jwtManager: JWTManager;
   jwtEncoder: JWTEncoding;
@@ -44,24 +35,12 @@ export const BCMSShimUserController = createController<{
   path: '/api/shim/user',
   setup() {
     return {
-      shimService: useBcmsShimService(),
-      resCode: useBcmsResponseCode(),
-      userRepo: useUserRepository(),
-      userFactory: useUserFactory(),
       refreshTokenService: useRefreshTokenService(),
       jwtManager: useJwt(),
       jwtEncoder: useJwtEncoding(),
     };
   },
-  methods({
-    shimService,
-    resCode,
-    userRepo,
-    userFactory,
-    refreshTokenService,
-    jwtManager,
-    jwtEncoder,
-  }) {
+  methods({ refreshTokenService, jwtManager, jwtEncoder }) {
     return {
       getAll: createControllerMethod({
         path: '/all',
@@ -71,7 +50,7 @@ export const BCMSShimUserController = createController<{
           JWTPermissionName.READ,
         ),
         async handler({ errorHandler }) {
-          return await shimService.send({
+          return await BCMSShimService.send({
             uri: '/instance/user/all',
             payload: {},
             errorHandler,
@@ -89,7 +68,7 @@ export const BCMSShimUserController = createController<{
           const result: {
             ok: boolean;
             user?: BCMSShimInstanceUser;
-          } = await shimService.send({
+          } = await BCMSShimService.send({
             uri: '/instance/user/verify/otp',
             payload: { otp: request.body.otp },
             errorHandler,
@@ -97,15 +76,15 @@ export const BCMSShimUserController = createController<{
           if (!result.user) {
             throw errorHandler.occurred(
               HTTPStatus.UNAUTHORIZED,
-              resCode.get('a003'),
+              bcmsResCode('a003'),
             );
           }
-          let user = await userRepo.findById(result.user._id);
+          let user = await BCMSRepo.user.findById(result.user._id);
           let createUser = false;
           if (!user) {
             createUser = true;
             if (result.user.roles[0].name === JWTRoleName.ADMIN) {
-              user = userFactory.create({
+              user = BCMSFactory.user.create({
                 admin: true,
                 options: {
                   email: result.user.email,
@@ -115,7 +94,7 @@ export const BCMSShimUserController = createController<{
                 },
               });
             } else {
-              user = userFactory.create({
+              user = BCMSFactory.user.create({
                 admin: false,
                 options: {
                   email: result.user.email,
@@ -136,7 +115,7 @@ export const BCMSShimUserController = createController<{
             10,
           );
           if (createUser) {
-            user = await userRepo.add(user as never);
+            user = await BCMSRepo.user.add(user as never);
             if (!user) {
               throw errorHandler.occurred(
                 HTTPStatus.INTERNAL_SERVER_ERROR,

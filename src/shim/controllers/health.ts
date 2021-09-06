@@ -3,7 +3,7 @@ import {
   createControllerMethod,
 } from '@becomes/purple-cheetah';
 import { HTTPStatus } from '@becomes/purple-cheetah/types';
-import { useBcmsShimService } from '../service';
+import { BCMSShimService } from '..';
 
 export const BCMSShimHealthController = createController({
   name: 'Shim health controller',
@@ -24,17 +24,16 @@ export const BCMSShimHealthController = createController({
               'Missing important headers',
             );
           }
-          const shimService = useBcmsShimService();
           if (
             process.env.BCMS_LOCAL !== 'true' &&
-            shimCode !== shimService.getCode()
+            shimCode !== BCMSShimService.getCode()
           ) {
             throw errorHandler.occurred(
               HTTPStatus.UNAUTHORIZED,
               'Unauthorized',
             );
           }
-          shimService.refreshAvailable();
+          BCMSShimService.refreshAvailable();
           const mem = process.memoryUsage();
           return {
             heepAvailable: mem.heapTotal,

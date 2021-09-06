@@ -1,3 +1,4 @@
+import { BCMSApiKeySecurity } from '@bcms/security';
 import { useObjectUtility } from '@becomes/purple-cheetah';
 import { useJwt } from '@becomes/purple-cheetah-mod-jwt';
 import {
@@ -12,7 +13,6 @@ import {
   ObjectSchema,
   ObjectUtilityError,
 } from '@becomes/purple-cheetah/types';
-import { useBcmsApiKeySecurity } from '../security';
 import type { BCMSApiKey, BCMSUserCustomPool } from '../types';
 
 export function createJwtAndBodyCheckRouteProtection<Body>(config: {
@@ -59,18 +59,18 @@ export function createJwtApiProtectionPreRequestHandler(config: {
   key?: BCMSApiKey;
 }> {
   const jwt = useJwt();
-  const apiSecurity = useBcmsApiKeySecurity();
 
   return async ({ request, errorHandler }) => {
     if (request.query.signature) {
       try {
-        const key = await apiSecurity.verify(
-          apiSecurity.httpRequestToApiKeyRequest(request),
+        const key = await BCMSApiKeySecurity.verify(
+          BCMSApiKeySecurity.httpRequestToApiKeyRequest(request),
         );
         return {
           key,
         };
-      } catch (error) {
+      } catch (err) {
+        const error = err as Error;
         throw errorHandler.occurred(HTTPStatus.UNAUTHORIZED, error.message);
       }
     } else {

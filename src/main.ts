@@ -32,13 +32,13 @@ import {
   createBcmsShimService,
 } from './shim';
 import { BCMSUserController, createBcmsUserRepository } from './user';
-import { createBcmsApiKeySecurity, useBcmsApiKeySecurity } from './security';
+import { BCMSApiKeySecurity, createBcmsApiKeySecurity } from './security';
 import { BCMSApiKeyController, createBcmsApiKeyRepository } from './api';
 import { BCMSFunctionController, createBcmsFunctionModule } from './function';
 import { BCMSPluginController, createBcmsPluginModule } from './plugin';
 import { createBcmsEventModule } from './event';
 import { createBcmsJobModule } from './job';
-import { BCMSLanguageController, initLanguage } from './language';
+import { BCMSLanguageController, createBcmsLanguageRepository, initLanguage } from './language';
 import {
   BCMSMediaController,
   BCMSMediaMiddleware,
@@ -46,14 +46,24 @@ import {
   createBcmsMediaService,
 } from './media';
 import { BCMSStatusController, createBcmsStatusRepository } from './status';
-import { BCMSTemplateController, createBcmsTemplateRepository } from './template';
+import {
+  BCMSTemplateController,
+  createBcmsTemplateRepository,
+} from './template';
 import { BCMSWidgetController, createBcmsWidgetRepository } from './widget';
 import { createSocket } from '@becomes/purple-cheetah-mod-socket';
 import { BCMSGroupController, createBcmsGroupRepository } from './group';
 import { createBcmsPropHandler } from './prop';
-import { createBcmsEntryParser, BCMSEntryController, createBcmsEntryRepository } from './entry';
-import { createBcmsChildProcess, createBcmsFfmpeg } from './util';
-import { BCMSTemplateOrganizerController, createBcmsTemplateOrganizerRepository } from './template-organizer';
+import {
+  createBcmsEntryParser,
+  BCMSEntryController,
+  createBcmsEntryRepository,
+} from './entry';
+import { createBcmsFfmpeg } from './util';
+import {
+  BCMSTemplateOrganizerController,
+  createBcmsTemplateOrganizerRepository,
+} from './template-organizer';
 import { createBcmsSocketManager } from './socket';
 import { BCMSUiAssetMiddleware } from './ui-middleware';
 import { createBcmsIdCounterRepository } from './id-counter';
@@ -64,7 +74,6 @@ let backend: BCMSBackend;
 async function initialize() {
   await loadBcmsConfig();
   await loadBcmsResponseCodes();
-  createBcmsChildProcess();
 
   const modules: Module[] = [
     createBcmsFactories(),
@@ -112,8 +121,7 @@ async function initialize() {
         };
         if (query.signature) {
           try {
-            const apiKeySecurity = useBcmsApiKeySecurity();
-            const key = await apiKeySecurity.verify(
+            const key = await BCMSApiKeySecurity.verify(
               {
                 path: '',
                 requestMethod: 'POST',
@@ -158,6 +166,7 @@ async function initialize() {
     createBcmsEntryRepository(),
     createBcmsGroupRepository(),
     createBcmsIdCounterRepository(),
+    createBcmsLanguageRepository(),
     createBcmsMediaRepository(),
     createBcmsStatusRepository(),
     createBcmsTemplateRepository(),

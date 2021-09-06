@@ -9,45 +9,24 @@ import {
   JWTRoleName,
 } from '@becomes/purple-cheetah-mod-jwt/types';
 import { HTTPStatus, StringUtility } from '@becomes/purple-cheetah/types';
-import {
-  useBcmsIdCounterFactory,
-  useBcmsIdCounterRepository,
-} from '../id-counter';
-import { useBcmsPropHandler } from '../prop';
 import { createJwtAndBodyCheckRouteProtection } from '../util';
-import { useBcmsWidgetFactory } from './factory';
-import { useBcmsWidgetRepository } from './repository';
 import {
-  BCMSEntryRepository,
-  BCMSIdCounterFactory,
-  BCMSIdCounterRepository,
-  BCMSPropHandler,
-  BCMSResponseCode,
   BCMSSocketEventType,
-  BCMSSocketManager,
   BCMSUserCustomPool,
   BCMSWidget,
   BCMSWidgetCreateData,
   BCMSWidgetCreateDataSchema,
-  BCMSWidgetFactory,
-  BCMSWidgetRepository,
   BCMSWidgetUpdateData,
   BCMSWidgetUpdateDataSchema,
 } from '../types';
-import { useBcmsResponseCode } from '../response-code';
-import { useBcmsEntryRepository } from '../entry';
-import { useBcmsSocketManager } from '../socket';
+import { BCMSRepo } from '@bcms/repo';
+import { bcmsResCode } from '@bcms/response-code';
+import { BCMSFactory } from '@bcms/factory';
+import { BCMSSocketManager } from '@bcms/socket';
+import { BCMSPropHandler } from '@bcms/prop';
 
 interface Setup {
-  widRepo: BCMSWidgetRepository;
-  widFactory: BCMSWidgetFactory;
-  entryRepo: BCMSEntryRepository;
-  resCode: BCMSResponseCode;
   stringUtil: StringUtility;
-  propHandler: BCMSPropHandler;
-  idcRepo: BCMSIdCounterRepository;
-  idcFactory: BCMSIdCounterFactory;
-  socket: BCMSSocketManager;
 }
 
 export const BCMSWidgetController = createController<Setup>({
@@ -55,28 +34,10 @@ export const BCMSWidgetController = createController<Setup>({
   path: '/api/widget',
   setup() {
     return {
-      widRepo: useBcmsWidgetRepository(),
-      widFactory: useBcmsWidgetFactory(),
-      entryRepo: useBcmsEntryRepository(),
-      resCode: useBcmsResponseCode(),
       stringUtil: useStringUtility(),
-      propHandler: useBcmsPropHandler(),
-      idcRepo: useBcmsIdCounterRepository(),
-      idcFactory: useBcmsIdCounterFactory(),
-      socket: useBcmsSocketManager(),
     };
   },
-  methods({
-    widRepo,
-    widFactory,
-    resCode,
-    stringUtil,
-    propHandler,
-    idcRepo,
-    idcFactory,
-    entryRepo,
-    socket,
-  }) {
+  methods({ stringUtil }) {
     return {
       whereIsItUsed: createControllerMethod({
         path: '/:id/where-is-it-used',
@@ -90,17 +51,17 @@ export const BCMSWidgetController = createController<Setup>({
           const id = request.params.id;
           let widget: BCMSWidget | null = null;
           if (id.length === 24) {
-            widget = await widRepo.findById(id);
+            widget = await BCMSRepo.widget.findById(id);
           } else {
-            widget = await widRepo.methods.findByCid(id);
+            widget = await BCMSRepo.widget.methods.findByCid(id);
           }
           if (!widget) {
             throw errorHandler.occurred(
               HTTPStatus.NOT_FOUNT,
-              resCode.get('wid001', { id }),
+              bcmsResCode('wid001', { id }),
             );
           }
-          const entries = await entryRepo.methods.findAllByWidgetId(
+          const entries = await BCMSRepo.entry.methods.findAllByWidgetId(
             `${widget._id}`,
           );
 
@@ -122,7 +83,7 @@ export const BCMSWidgetController = createController<Setup>({
           ),
         async handler() {
           return {
-            items: await widRepo.findAll(),
+            items: await BCMSRepo.widget.findAll(),
           };
         },
       }),
@@ -139,11 +100,11 @@ export const BCMSWidgetController = createController<Setup>({
           const ids = (request.headers['x-bcms-ids'] as string).split('-');
           if (ids[0] && ids[0].length === 24) {
             return {
-              items: await widRepo.findAllById(ids),
+              items: await BCMSRepo.widget.findAllById(ids),
             };
           } else {
             return {
-              items: await widRepo.methods.findAllByCid(ids),
+              items: await BCMSRepo.widget.methods.findAllByCid(ids),
             };
           }
         },
@@ -159,7 +120,7 @@ export const BCMSWidgetController = createController<Setup>({
           ),
         async handler() {
           return {
-            count: await widRepo.count(),
+            count: await BCMSRepo.widget.count(),
           };
         },
       }),
@@ -176,14 +137,14 @@ export const BCMSWidgetController = createController<Setup>({
           const id = request.params.id;
           let widget: BCMSWidget | null = null;
           if (id.length === 24) {
-            widget = await widRepo.findById(id);
+            widget = await BCMSRepo.widget.findById(id);
           } else {
-            widget = await widRepo.methods.findByCid(id);
+            widget = await BCMSRepo.widget.methods.findByCid(id);
           }
           if (!widget) {
             throw errorHandler.occurred(
               HTTPStatus.NOT_FOUNT,
-              resCode.get('wid001', { id }),
+              bcmsResCode('wid001', { id }),
             );
           }
 
@@ -202,14 +163,14 @@ export const BCMSWidgetController = createController<Setup>({
             bodySchema: BCMSWidgetCreateDataSchema,
           }),
         async handler({ body, errorHandler, accessToken }) {
-          let idc = await idcRepo.methods.findAndIncByForId('widgets');
+          let idc = await BCMSRepo.idc.methods.findAndIncByForId('widgets');
           if (!idc) {
-            const widgetIdc = idcFactory.create({
+            const widgetIdc = BCMSFactory.idc.create({
               count: 2,
               forId: 'widgets',
               name: 'Widgets',
             });
-            const addIdcResult = await idcRepo.add(widgetIdc as never);
+            const addIdcResult = await BCMSRepo.idc.add(widgetIdc as never);
             if (!addIdcResult) {
               throw errorHandler.occurred(
                 HTTPStatus.INTERNAL_SERVER_ERROR,
@@ -218,7 +179,7 @@ export const BCMSWidgetController = createController<Setup>({
             }
             idc = 1;
           }
-          const widget = widFactory.create({
+          const widget = BCMSFactory.widget.create({
             cid: idc.toString(16),
             desc: body.desc,
             label: body.label,
@@ -227,20 +188,20 @@ export const BCMSWidgetController = createController<Setup>({
             previewScript: body.previewScript,
             previewStyle: body.previewStyle,
           });
-          if (await widRepo.methods.findByName(widget.name)) {
+          if (await BCMSRepo.widget.methods.findByName(widget.name)) {
             throw errorHandler.occurred(
               HTTPStatus.FORBIDDEN,
-              resCode.get('wid002', { name: widget.name }),
+              bcmsResCode('wid002', { name: widget.name }),
             );
           }
-          const addedWidget = await widRepo.add(widget as never);
+          const addedWidget = await BCMSRepo.widget.add(widget as never);
           if (!addedWidget) {
             throw errorHandler.occurred(
               HTTPStatus.INTERNAL_SERVER_ERROR,
-              resCode.get('wid003'),
+              bcmsResCode('wid003'),
             );
           }
-          await socket.emit.widget({
+          await BCMSSocketManager.emit.widget({
             widgetId: `${addedWidget._id}`,
             type: BCMSSocketEventType.UPDATE,
             userIds: 'all',
@@ -262,21 +223,21 @@ export const BCMSWidgetController = createController<Setup>({
           }),
         async handler({ body, errorHandler, accessToken }) {
           const id = body._id;
-          const widget = await widRepo.findById(id);
+          const widget = await BCMSRepo.widget.findById(id);
           if (!widget) {
             throw errorHandler.occurred(
               HTTPStatus.NOT_FOUNT,
-              resCode.get('wid001', { id }),
+              bcmsResCode('wid001', { id }),
             );
           }
           let changeDetected = false;
           if (typeof body.label === 'string' && body.label !== widget.label) {
             const name = stringUtil.toSlugUnderscore(body.label);
             if (widget.name !== name) {
-              if (await widRepo.methods.findByName(name)) {
+              if (await BCMSRepo.widget.methods.findByName(name)) {
                 throw errorHandler.occurred(
                   HTTPStatus.FORBIDDEN,
-                  resCode.get('wid002', { name: widget.name }),
+                  bcmsResCode('wid002', { name: widget.name }),
                 );
               }
             }
@@ -314,7 +275,7 @@ export const BCMSWidgetController = createController<Setup>({
             body.propChanges.length > 0
           ) {
             changeDetected = true;
-            const changes = await propHandler.applyPropChanges(
+            const changes = await BCMSPropHandler.applyPropChanges(
               widget.props,
               body.propChanges,
               'widget.props',
@@ -322,7 +283,7 @@ export const BCMSWidgetController = createController<Setup>({
             if (changes instanceof Error) {
               throw errorHandler.occurred(
                 HTTPStatus.BAD_REQUEST,
-                resCode.get('g009', {
+                bcmsResCode('g009', {
                   msg: changes.message,
                 }),
               );
@@ -332,21 +293,21 @@ export const BCMSWidgetController = createController<Setup>({
           if (!changeDetected) {
             throw errorHandler.occurred(
               HTTPStatus.FORBIDDEN,
-              resCode.get('g003'),
+              bcmsResCode('g003'),
             );
           }
-          const hasInfiniteLoop = await propHandler.testInfiniteLoop(
+          const hasInfiniteLoop = await BCMSPropHandler.testInfiniteLoop(
             widget.props,
           );
           if (hasInfiniteLoop instanceof Error) {
             throw errorHandler.occurred(
               HTTPStatus.BAD_REQUEST,
-              resCode.get('g008', {
+              bcmsResCode('g008', {
                 msg: hasInfiniteLoop.message,
               }),
             );
           }
-          const checkProps = await propHandler.propsChecker(
+          const checkProps = await BCMSPropHandler.propsChecker(
             widget.props,
             widget.props,
             'widget.props',
@@ -355,19 +316,19 @@ export const BCMSWidgetController = createController<Setup>({
           if (checkProps instanceof Error) {
             throw errorHandler.occurred(
               HTTPStatus.BAD_REQUEST,
-              resCode.get('g007', {
+              bcmsResCode('g007', {
                 msg: checkProps.message,
               }),
             );
           }
-          const updatedWidget = await widRepo.update(widget as never);
+          const updatedWidget = await BCMSRepo.widget.update(widget as never);
           if (!updatedWidget) {
             throw errorHandler.occurred(
               HTTPStatus.INTERNAL_SERVER_ERROR,
-              resCode.get('wid005'),
+              bcmsResCode('wid005'),
             );
           }
-          await socket.emit.widget({
+          await BCMSSocketManager.emit.widget({
             widgetId: `${updatedWidget._id}`,
             type: BCMSSocketEventType.UPDATE,
             userIds: 'all',
@@ -389,21 +350,21 @@ export const BCMSWidgetController = createController<Setup>({
           ),
         async handler({ request, errorHandler, accessToken }) {
           const id = request.params.id;
-          const widget = await widRepo.findById(id);
+          const widget = await BCMSRepo.widget.findById(id);
           if (!widget) {
             throw errorHandler.occurred(
               HTTPStatus.NOT_FOUNT,
-              resCode.get('wid001', { id }),
+              bcmsResCode('wid001', { id }),
             );
           }
-          const deleteResult = await widRepo.deleteById(id);
+          const deleteResult = await BCMSRepo.widget.deleteById(id);
           if (!deleteResult) {
             throw errorHandler.occurred(
               HTTPStatus.INTERNAL_SERVER_ERROR,
-              resCode.get('wid006'),
+              bcmsResCode('wid006'),
             );
           }
-          await socket.emit.widget({
+          await BCMSSocketManager.emit.widget({
             widgetId: `${widget._id}`,
             type: BCMSSocketEventType.REMOVE,
             userIds: 'all',

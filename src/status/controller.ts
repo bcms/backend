@@ -10,29 +10,21 @@ import {
 } from '@becomes/purple-cheetah-mod-jwt/types';
 import { HTTPStatus, StringUtility } from '@becomes/purple-cheetah/types';
 import { createJwtAndBodyCheckRouteProtection } from '../util';
-import { useBcmsStatusFactory } from './factory';
-import { useBcmsStatusRepository } from './repository';
 import {
-  BCMSResponseCode,
   BCMSSocketEventType,
-  BCMSSocketManager,
   BCMSStatusCreateData,
   BCMSStatusCreateDataSchema,
-  BCMSStatusFactory,
-  BCMSStatusRepository,
   BCMSStatusUpdateData,
   BCMSStatusUpdateDataSchema,
   BCMSUserCustomPool,
 } from '../types';
-import { useBcmsResponseCode } from '../response-code';
-import { useBcmsSocketManager } from '../socket';
+import { BCMSRepo } from '@bcms/repo';
+import { bcmsResCode } from '@bcms/response-code';
+import { BCMSFactory } from '@bcms/factory';
+import { BCMSSocketManager } from '@bcms/socket';
 
 interface Setup {
-  statusRepo: BCMSStatusRepository;
-  statusFactory: BCMSStatusFactory;
-  resCode: BCMSResponseCode;
   stringUtil: StringUtility;
-  socket: BCMSSocketManager;
 }
 
 export const BCMSStatusController = createController<Setup>({
@@ -40,14 +32,10 @@ export const BCMSStatusController = createController<Setup>({
   path: '/api/status',
   setup() {
     return {
-      statusRepo: useBcmsStatusRepository(),
-      statusFactory: useBcmsStatusFactory(),
-      resCode: useBcmsResponseCode(),
       stringUtil: useStringUtility(),
-      socket: useBcmsSocketManager(),
     };
   },
-  methods({ statusRepo, statusFactory, resCode, stringUtil, socket }) {
+  methods({ stringUtil }) {
     return {
       getAll: createControllerMethod({
         path: '/all',
@@ -59,7 +47,7 @@ export const BCMSStatusController = createController<Setup>({
           ),
         async handler() {
           return {
-            items: await statusRepo.findAll(),
+            items: await BCMSRepo.status.findAll(),
           };
         },
       }),
@@ -74,7 +62,7 @@ export const BCMSStatusController = createController<Setup>({
           ),
         async handler() {
           return {
-            count: statusRepo.count(),
+            count: BCMSRepo.status.count(),
           };
         },
       }),
@@ -89,11 +77,11 @@ export const BCMSStatusController = createController<Setup>({
           ),
         async handler({ request, errorHandler }) {
           const id = request.params.id;
-          const status = await statusRepo.findById(id);
+          const status = await BCMSRepo.status.findById(id);
           if (!status) {
             throw errorHandler.occurred(
               HTTPStatus.NOT_FOUNT,
-              resCode.get('sts001', {
+              bcmsResCode('sts001', {
                 id,
               }),
             );
@@ -113,28 +101,28 @@ export const BCMSStatusController = createController<Setup>({
             bodySchema: BCMSStatusCreateDataSchema,
           }),
         async handler({ body, errorHandler, accessToken }) {
-          const status = statusFactory.create({
+          const status = BCMSFactory.status.create({
             label: body.label,
             name: stringUtil.toSlugUnderscore(body.label),
             color: body.color,
           });
-          const statusWithSameName = await statusRepo.methods.findByName(
+          const statusWithSameName = await BCMSRepo.status.methods.findByName(
             status.name,
           );
           if (statusWithSameName) {
             throw errorHandler.occurred(
               HTTPStatus.FORBIDDEN,
-              resCode.get('sts002', { name: status.name }),
+              bcmsResCode('sts002', { name: status.name }),
             );
           }
-          const addedStatus = await statusRepo.add(status as never);
+          const addedStatus = await BCMSRepo.status.add(status as never);
           if (!addedStatus) {
             throw errorHandler.occurred(
               HTTPStatus.INTERNAL_SERVER_ERROR,
-              resCode.get('sts003'),
+              bcmsResCode('sts003'),
             );
           }
-          await socket.emit.status({
+          await BCMSSocketManager.emit.status({
             statusId: `${addedStatus._id}`,
             type: BCMSSocketEventType.UPDATE,
             userIds: 'all',
@@ -156,11 +144,11 @@ export const BCMSStatusController = createController<Setup>({
           }),
         async handler({ body, errorHandler, accessToken }) {
           const id = body._id;
-          const status = await statusRepo.findById(id);
+          const status = await BCMSRepo.status.findById(id);
           if (!status) {
             throw errorHandler.occurred(
               HTTPStatus.NOT_FOUNT,
-              resCode.get('sts001', {
+              bcmsResCode('sts001', {
                 id,
               }),
             );
@@ -170,13 +158,13 @@ export const BCMSStatusController = createController<Setup>({
             changeDetected = true;
             const newName = stringUtil.toSlugUnderscore(body.label);
             if (status.name !== newName) {
-              const statusWithSameName = await statusRepo.methods.findByName(
+              const statusWithSameName = await BCMSRepo.status.methods.findByName(
                 newName,
               );
               if (statusWithSameName) {
                 throw errorHandler.occurred(
                   HTTPStatus.FORBIDDEN,
-                  resCode.get('sts002', { name: newName }),
+                  bcmsResCode('sts002', { name: newName }),
                 );
               }
               status.name = newName;
@@ -190,17 +178,17 @@ export const BCMSStatusController = createController<Setup>({
           if (!changeDetected) {
             throw errorHandler.occurred(
               HTTPStatus.BAD_REQUEST,
-              resCode.get('g003'),
+              bcmsResCode('g003'),
             );
           }
-          const updatedStatus = await statusRepo.update(status as never);
+          const updatedStatus = await BCMSRepo.status.update(status as never);
           if (!updatedStatus) {
             throw errorHandler.occurred(
               HTTPStatus.INTERNAL_SERVER_ERROR,
-              resCode.get('sts004'),
+              bcmsResCode('sts004'),
             );
           }
-          await socket.emit.status({
+          await BCMSSocketManager.emit.status({
             statusId: `${updatedStatus._id}`,
             type: BCMSSocketEventType.UPDATE,
             userIds: 'all',
@@ -222,23 +210,23 @@ export const BCMSStatusController = createController<Setup>({
           ),
         async handler({ request, errorHandler, accessToken }) {
           const id = request.params.id;
-          const status = await statusRepo.findById(id);
+          const status = await BCMSRepo.status.findById(id);
           if (!status) {
             throw errorHandler.occurred(
               HTTPStatus.NOT_FOUNT,
-              resCode.get('sts001', {
+              bcmsResCode('sts001', {
                 id,
               }),
             );
           }
-          const deleteResult = await statusRepo.deleteById(id);
+          const deleteResult = await BCMSRepo.status.deleteById(id);
           if (!deleteResult) {
             throw errorHandler.occurred(
               HTTPStatus.INTERNAL_SERVER_ERROR,
-              resCode.get('sts005'),
+              bcmsResCode('sts005'),
             );
           }
-          await socket.emit.status({
+          await BCMSSocketManager.emit.status({
             statusId: `${status._id}`,
             type: BCMSSocketEventType.REMOVE,
             userIds: 'all',

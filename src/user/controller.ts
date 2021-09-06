@@ -8,37 +8,29 @@ import {
   ObjectUtility,
   ObjectUtilityError,
 } from '@becomes/purple-cheetah/types';
-import { useUserRepository } from './repository';
 import {
   BCMSProtectedUser,
   BCMSUserFSDB,
   BCMSUserMongoDB,
-  BCMSUserRepository,
-  BCMSUserFactory,
   BCMSUserCustomPool,
   BCMSUserUpdateDataSchema,
   BCMSUserUpdateData,
   BCMSUser,
-  BCMSResponseCode,
-  BCMSSocketManager,
   BCMSSocketEventType,
 } from '../types';
-import { useUserFactory } from './factory';
 import { createJwtProtectionPreRequestHandler } from '@becomes/purple-cheetah-mod-jwt';
 import {
   JWT,
   JWTPermissionName,
   JWTRoleName,
 } from '@becomes/purple-cheetah-mod-jwt/types';
-import { useBcmsResponseCode } from '../response-code';
-import { useBcmsSocketManager } from '../socket';
+import { BCMSRepo } from '@bcms/repo';
+import { BCMSFactory } from '@bcms/factory';
+import { bcmsResCode } from '@bcms/response-code';
+import { BCMSSocketManager } from '@bcms/socket';
 
 interface Setup {
-  repo: BCMSUserRepository;
-  resCode: BCMSResponseCode;
   objectUtil: ObjectUtility;
-  socket: BCMSSocketManager;
-  userFactory: BCMSUserFactory;
 }
 
 export const BCMSUserController = createController<Setup>({
@@ -46,14 +38,10 @@ export const BCMSUserController = createController<Setup>({
   path: '/api/user',
   setup() {
     return {
-      repo: useUserRepository(),
-      resCode: useBcmsResponseCode(),
       objectUtil: useObjectUtility(),
-      socket: useBcmsSocketManager(),
-      userFactory: useUserFactory(),
     };
   },
-  methods({ repo, resCode, objectUtil, userFactory, socket }) {
+  methods({ objectUtil }) {
     return {
       count: createControllerMethod<unknown, { count: number }>({
         path: '/count',
@@ -65,7 +53,7 @@ export const BCMSUserController = createController<Setup>({
           ),
         async handler() {
           return {
-            count: await repo.count(),
+            count: await BCMSRepo.user.count(),
           };
         },
       }),
@@ -79,8 +67,8 @@ export const BCMSUserController = createController<Setup>({
           ),
         async handler() {
           return {
-            items: (await repo.findAll()).map((e: BCMSUser) => {
-              return userFactory.toProtected(e);
+            items: (await BCMSRepo.user.findAll()).map((e: BCMSUser) => {
+              return BCMSFactory.user.toProtected(e);
             }),
           };
         },
@@ -97,15 +85,15 @@ export const BCMSUserController = createController<Setup>({
             JWTPermissionName.READ,
           ),
         async handler({ accessToken, errorHandler }) {
-          const user = await repo.findById(accessToken.payload.userId);
+          const user = await BCMSRepo.user.findById(accessToken.payload.userId);
           if (!user) {
             throw errorHandler.occurred(
               HTTPStatus.INTERNAL_SERVER_ERROR,
-              resCode.get('u001'),
+              bcmsResCode('u001'),
             );
           }
           return {
-            item: userFactory.toProtected(user),
+            item: BCMSFactory.user.toProtected(user),
           };
         },
       }),
@@ -118,15 +106,15 @@ export const BCMSUserController = createController<Setup>({
             JWTPermissionName.READ,
           ),
         async handler({ request, errorHandler }) {
-          const user = await repo.findById(request.params.id);
+          const user = await BCMSRepo.user.findById(request.params.id);
           if (!user) {
             throw errorHandler.occurred(
               HTTPStatus.NOT_FOUNT,
-              resCode.get('g002', { id: request.params.id }),
+              bcmsResCode('g002', { id: request.params.id }),
             );
           }
           return {
-            item: userFactory.toProtected(user),
+            item: BCMSFactory.user.toProtected(user),
           };
         },
       }),
@@ -152,7 +140,7 @@ export const BCMSUserController = createController<Setup>({
             if (checkBody instanceof ObjectUtilityError) {
               throw errorHandler.occurred(
                 HTTPStatus.BAD_REQUEST,
-                resCode.get('g002', {
+                bcmsResCode('g002', {
                   msg: checkBody.message,
                 }),
               );
@@ -166,14 +154,14 @@ export const BCMSUserController = createController<Setup>({
           ) {
             throw errorHandler.occurred(
               HTTPStatus.FORBIDDEN,
-              resCode.get('u003'),
+              bcmsResCode('u003'),
             );
           }
-          const user = await repo.findById(data._id);
+          const user = await BCMSRepo.user.findById(data._id);
           if (!user) {
             throw errorHandler.occurred(
               HTTPStatus.NOT_FOUNT,
-              resCode.get('u002', { id: request.params.id }),
+              bcmsResCode('u002', { id: request.params.id }),
             );
           }
           let change = false;
@@ -186,7 +174,7 @@ export const BCMSUserController = createController<Setup>({
               ) {
                 throw errorHandler.occurred(
                   HTTPStatus.FORBIDDEN,
-                  resCode.get('u008'),
+                  bcmsResCode('u008'),
                 );
               }
               if (typeof data.customPool.policy.templates !== 'undefined') {
@@ -207,20 +195,20 @@ export const BCMSUserController = createController<Setup>({
           if (!change) {
             throw errorHandler.occurred(
               HTTPStatus.BAD_REQUEST,
-              resCode.get('g003'),
+              bcmsResCode('g003'),
             );
           }
-          const updatedUser = await repo.update(
+          const updatedUser = await BCMSRepo.user.update(
             user as BCMSUserFSDB & BCMSUserMongoDB,
           );
-          await socket.emit.user({
+          await BCMSSocketManager.emit.user({
             userId: `${updatedUser._id}`,
             type: BCMSSocketEventType.UPDATE,
             userIds: 'all',
             excludeUserId: [accessToken.payload.userId],
           });
           return {
-            item: userFactory.toProtected(updatedUser),
+            item: BCMSFactory.user.toProtected(updatedUser),
           };
         },
       }),

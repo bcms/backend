@@ -1,3 +1,7 @@
+import { BCMSFactory } from '@bcms/factory';
+import { BCMSRepo } from '@bcms/repo';
+import { bcmsResCode } from '@bcms/response-code';
+import { BCMSSocketManager } from '@bcms/socket';
 import {
   createController,
   createControllerMethod,
@@ -9,30 +13,18 @@ import {
   JWTRoleName,
 } from '@becomes/purple-cheetah-mod-jwt/types';
 import { HTTPStatus, StringUtility } from '@becomes/purple-cheetah/types';
-import { useBcmsResponseCode } from '../response-code';
-import { useBcmsSocketManager } from '../socket';
 import {
-  BCMSResponseCode,
   BCMSSocketEventType,
-  BCMSSocketManager,
   BCMSTemplateOrganizerCreateData,
   BCMSTemplateOrganizerCreateDataSchema,
-  BCMSTemplateOrganizerFactory,
-  BCMSTemplateOrganizerRepository,
   BCMSTemplateOrganizerUpdateData,
   BCMSTemplateOrganizerUpdateDataSchema,
   BCMSUserCustomPool,
 } from '../types';
 import { createJwtAndBodyCheckRouteProtection } from '../util';
-import { useBcmsTemplateOrganizerFactory } from './factory';
-import { useBcmsTemplateOrganizerRepository } from './repository';
 
 interface Setup {
-  tempOrgRepo: BCMSTemplateOrganizerRepository;
-  tempOrgFactory: BCMSTemplateOrganizerFactory;
-  resCode: BCMSResponseCode;
   stringUtil: StringUtility;
-  socket: BCMSSocketManager;
 }
 
 export const BCMSTemplateOrganizerController = createController<Setup>({
@@ -40,14 +32,10 @@ export const BCMSTemplateOrganizerController = createController<Setup>({
   path: '/api/template/organizer',
   setup() {
     return {
-      tempOrgRepo: useBcmsTemplateOrganizerRepository(),
-      tempOrgFactory: useBcmsTemplateOrganizerFactory(),
-      resCode: useBcmsResponseCode(),
       stringUtil: useStringUtility(),
-      socket: useBcmsSocketManager(),
     };
   },
-  methods({ tempOrgRepo, tempOrgFactory, resCode, stringUtil, socket }) {
+  methods({ stringUtil }) {
     return {
       getAll: createControllerMethod({
         path: '/all',
@@ -59,7 +47,7 @@ export const BCMSTemplateOrganizerController = createController<Setup>({
           ),
         async handler() {
           return {
-            items: await tempOrgRepo.findAll(),
+            items: await BCMSRepo.templateOrganizer.findAll(),
           };
         },
       }),
@@ -74,7 +62,7 @@ export const BCMSTemplateOrganizerController = createController<Setup>({
         async handler({ request }) {
           const ids = (request.headers['x-bcms-ids'] as string).split('-');
           return {
-            items: await tempOrgRepo.findAllById(ids),
+            items: await BCMSRepo.templateOrganizer.findAllById(ids),
           };
         },
       }),
@@ -87,11 +75,11 @@ export const BCMSTemplateOrganizerController = createController<Setup>({
             JWTPermissionName.READ,
           ),
         async handler({ request, errorHandler }) {
-          const tempOrg = await tempOrgRepo.findById(request.params.id);
+          const tempOrg = await BCMSRepo.templateOrganizer.findById(request.params.id);
           if (!tempOrg) {
             throw errorHandler.occurred(
               HTTPStatus.NOT_FOUNT,
-              resCode.get('tpo001', { id: request.params.id }),
+              bcmsResCode('tpo001', { id: request.params.id }),
             );
           }
           return {
@@ -110,20 +98,20 @@ export const BCMSTemplateOrganizerController = createController<Setup>({
             },
           ),
         async handler({ errorHandler, body, accessToken }) {
-          const org = tempOrgFactory.create({
+          const org = BCMSFactory.templateOrganizer.create({
             label: body.label,
             name: stringUtil.toSlugUnderscore(body.label),
             parentId: body.parentId,
             templateIds: body.templateIds,
           });
-          const addedOrg = await tempOrgRepo.add(org as never);
+          const addedOrg = await BCMSRepo.templateOrganizer.add(org as never);
           if (!addedOrg) {
             throw errorHandler.occurred(
               HTTPStatus.INTERNAL_SERVER_ERROR,
-              resCode.get('tpo003'),
+              bcmsResCode('tpo003'),
             );
           }
-          await socket.emit.templateOrganizer({
+          await BCMSSocketManager.emit.templateOrganizer({
             templateOrganizerId: `${addedOrg._id}`,
             type: BCMSSocketEventType.UPDATE,
             userIds: 'all',
@@ -145,11 +133,11 @@ export const BCMSTemplateOrganizerController = createController<Setup>({
             },
           ),
         async handler({ errorHandler, body, accessToken }) {
-          const tempOrg = await tempOrgRepo.findById(body._id);
+          const tempOrg = await BCMSRepo.templateOrganizer.findById(body._id);
           if (!tempOrg) {
             throw errorHandler.occurred(
               HTTPStatus.NOT_FOUNT,
-              resCode.get('tpo001', { id: body._id }),
+              bcmsResCode('tpo001', { id: body._id }),
             );
           }
           let changeDetected = false;
@@ -164,11 +152,11 @@ export const BCMSTemplateOrganizerController = createController<Setup>({
           ) {
             changeDetected = true;
             tempOrg.parentId = body.parentId;
-            const parentOrg = await tempOrgRepo.findById(body.parentId);
+            const parentOrg = await BCMSRepo.templateOrganizer.findById(body.parentId);
             if (!parentOrg) {
               throw errorHandler.occurred(
                 HTTPStatus.NOT_FOUNT,
-                resCode.get('tpo001', { id: body.parentId }),
+                bcmsResCode('tpo001', { id: body.parentId }),
               );
             }
           }
@@ -179,17 +167,17 @@ export const BCMSTemplateOrganizerController = createController<Setup>({
           if (!changeDetected) {
             throw errorHandler.occurred(
               HTTPStatus.FORBIDDEN,
-              resCode.get('g003'),
+              bcmsResCode('g003'),
             );
           }
-          const updatedTempOrg = await tempOrgRepo.update(tempOrg as never);
+          const updatedTempOrg = await BCMSRepo.templateOrganizer.update(tempOrg as never);
           if (!updatedTempOrg) {
             throw errorHandler.occurred(
               HTTPStatus.INTERNAL_SERVER_ERROR,
-              resCode.get('tpo002'),
+              bcmsResCode('tpo002'),
             );
           }
-          await socket.emit.templateOrganizer({
+          await BCMSSocketManager.emit.templateOrganizer({
             templateOrganizerId: `${updatedTempOrg._id}`,
             type: BCMSSocketEventType.UPDATE,
             userIds: 'all',
@@ -209,21 +197,21 @@ export const BCMSTemplateOrganizerController = createController<Setup>({
             JWTPermissionName.READ,
           ),
         async handler({ request, errorHandler, accessToken }) {
-          const tempOrg = await tempOrgRepo.findById(request.params.id);
+          const tempOrg = await BCMSRepo.templateOrganizer.findById(request.params.id);
           if (!tempOrg) {
             throw errorHandler.occurred(
               HTTPStatus.NOT_FOUNT,
-              resCode.get('tpo001', { id: request.params.id }),
+              bcmsResCode('tpo001', { id: request.params.id }),
             );
           }
-          const deleteResult = await tempOrgRepo.deleteById(request.params.id);
+          const deleteResult = await BCMSRepo.templateOrganizer.deleteById(request.params.id);
           if (!deleteResult) {
             throw errorHandler.occurred(
               HTTPStatus.INTERNAL_SERVER_ERROR,
-              resCode.get('tpo004'),
+              bcmsResCode('tpo004'),
             );
           }
-          await socket.emit.templateOrganizer({
+          await BCMSSocketManager.emit.templateOrganizer({
             templateOrganizerId: `${tempOrg._id}`,
             type: BCMSSocketEventType.REMOVE,
             userIds: 'all',

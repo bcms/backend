@@ -83,6 +83,7 @@ export function createBcmsStatusRepository(): Module {
               }) as never,
             );
           }
+          next();
         })
         .catch((error) => {
           next(error);

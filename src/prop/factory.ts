@@ -2,38 +2,38 @@ import { v4 as uuidv4 } from 'uuid';
 import { BCMSPropFactory, BCMSPropType } from '../types';
 
 export function createBcmsPropFactory(): BCMSPropFactory {
-  return {
+  const self: BCMSPropFactory = {
     create(type, array) {
       switch (type) {
         case BCMSPropType.STRING: {
-          return propFactory.string(array);
+          return self.string(array);
         }
         case BCMSPropType.NUMBER: {
-          return propFactory.number(array);
+          return self.number(array);
         }
         case BCMSPropType.BOOLEAN: {
-          return propFactory.bool(array);
+          return self.bool(array);
         }
         case BCMSPropType.DATE: {
-          return propFactory.date();
+          return self.date();
         }
         case BCMSPropType.ENUMERATION: {
-          return propFactory.enum();
+          return self.enum();
         }
         case BCMSPropType.MEDIA: {
-          return propFactory.media(array);
+          return self.media(array);
         }
         case BCMSPropType.GROUP_POINTER: {
-          return propFactory.groupPointer(array);
+          return self.groupPointer(array);
         }
         case BCMSPropType.ENTRY_POINTER: {
-          return propFactory.entryPointer(array);
+          return self.entryPointer(array);
         }
         default: {
           return null;
         }
         // default: {
-        //   return propFactory.richText(array);
+        //   return self.richText(array);
         // }
       }
     },
@@ -135,4 +135,5 @@ export function createBcmsPropFactory(): BCMSPropFactory {
       };
     },
   };
+  return self;
 }

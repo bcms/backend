@@ -1,3 +1,5 @@
+import { bcmsResCode } from '@bcms/response-code';
+import { BCMSApiKeySecurity } from '@bcms/security';
 import {
   createController,
   createControllerMethod,
@@ -16,22 +18,16 @@ import {
   JWTRoleName,
 } from '@becomes/purple-cheetah-mod-jwt/types';
 import { HTTPException, HTTPStatus } from '@becomes/purple-cheetah/types';
-import { useBcmsResponseCode } from '../response-code';
-import { useBcmsApiKeySecurity } from '../security';
 import type {
   BCMSApiKey,
-  BCMSApiKeySecurity,
   BCMSUserCustomPool,
-  BCMSResponseCode,
   BCMSFunctionManager,
 } from '../types';
 import { useBcmsFunctionManger } from './main';
 
 interface Setup {
   fnManager: BCMSFunctionManager;
-  resCode: BCMSResponseCode;
   jwt: JWTManager;
-  apiSecurity: BCMSApiKeySecurity;
 }
 
 export const BCMSFunctionController = createController<Setup>({
@@ -40,12 +36,10 @@ export const BCMSFunctionController = createController<Setup>({
   setup() {
     return {
       fnManager: useBcmsFunctionManger(),
-      resCode: useBcmsResponseCode(),
       jwt: useJwt(),
-      apiSecurity: useBcmsApiKeySecurity(),
     };
   },
-  methods({ fnManager, resCode, jwt, apiSecurity }) {
+  methods({ fnManager, jwt }) {
     return {
       getAvailable: createControllerMethod({
         path: '/available',
@@ -75,7 +69,7 @@ export const BCMSFunctionController = createController<Setup>({
           if (!fn) {
             throw errorHandler.occurred(
               HTTPStatus.NOT_FOUNT,
-              resCode.get('fn001', { name: request.params.name }),
+              bcmsResCode('fn001', { name: request.params.name }),
             );
           }
           let apiKey: BCMSApiKey | null = null;
@@ -90,7 +84,7 @@ export const BCMSFunctionController = createController<Setup>({
               if (accessToken instanceof JWTError) {
                 throw errorHandler.occurred(
                   HTTPStatus.UNAUTHORIZED,
-                  resCode.get('g001', {
+                  bcmsResCode('g001', {
                     msg: accessToken.message,
                   }),
                 );
@@ -98,13 +92,14 @@ export const BCMSFunctionController = createController<Setup>({
               at = accessToken;
             } else {
               try {
-                apiKey = await apiSecurity.verify(
-                  apiSecurity.httpRequestToApiKeyRequest(request),
+                apiKey = await BCMSApiKeySecurity.verify(
+                  BCMSApiKeySecurity.httpRequestToApiKeyRequest(request),
                 );
-              } catch (e) {
+              } catch (err) {
+                const e = err as Error;
                 throw errorHandler.occurred(
                   HTTPStatus.UNAUTHORIZED,
-                  resCode.get('ak007', { msg: e.message }),
+                  bcmsResCode('ak007', { msg: e.message }),
                 );
               }
             }
@@ -134,7 +129,7 @@ export const BCMSFunctionController = createController<Setup>({
             logger.error(name, error);
             throw errorHandler.occurred(HTTPStatus.INTERNAL_SERVER_ERROR, {
               success: false,
-              err: error.message,
+              err: (error as Error).message,
             });
           }
         },

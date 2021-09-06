@@ -9,48 +9,24 @@ import {
   JWTRoleName,
 } from '@becomes/purple-cheetah-mod-jwt/types';
 import { HTTPStatus, StringUtility } from '@becomes/purple-cheetah/types';
-import { useBcmsApiKeyRepository } from '../api';
-import {
-  useBcmsIdCounterFactory,
-  useBcmsIdCounterRepository,
-} from '../id-counter';
-import { useBcmsPropHandler } from '../prop';
 import { createJwtAndBodyCheckRouteProtection } from '../util';
-import { useBcmsTemplateFactory } from './factory';
-import { useBcmsTemplateRepository } from './repository';
 import {
   BCMSApiKey,
-  BCMSApiKeyRepository,
-  BCMSPropHandler,
   BCMSUserCustomPool,
   BCMSTemplateCreateData,
   BCMSTemplateCreateDataSchema,
-  BCMSTemplateFactory,
-  BCMSTemplateRepository,
   BCMSTemplateUpdateData,
   BCMSTemplateUpdateDataSchema,
-  BCMSResponseCode,
-  BCMSIdCounterRepository,
-  BCMSIdCounterFactory,
-  BCMSEntryRepository,
-  BCMSSocketManager,
   BCMSSocketEventType,
 } from '../types';
-import { useBcmsResponseCode } from '../response-code';
-import { useBcmsEntryRepository } from '../entry';
-import { useBcmsSocketManager } from '../socket';
+import { BCMSRepo } from '@bcms/repo';
+import { bcmsResCode } from '@bcms/response-code';
+import { BCMSFactory } from '@bcms/factory';
+import { BCMSSocketManager } from '@bcms/socket';
+import { BCMSPropHandler } from '@bcms/prop';
 
 interface Setup {
-  entryRepo: BCMSEntryRepository;
-  tempRepo: BCMSTemplateRepository;
-  tempFactory: BCMSTemplateFactory;
-  resCode: BCMSResponseCode;
-  apiKeyRepo: BCMSApiKeyRepository;
   stringUtil: StringUtility;
-  propHandler: BCMSPropHandler;
-  idcRepo: BCMSIdCounterRepository;
-  idcFactory: BCMSIdCounterFactory;
-  socket: BCMSSocketManager;
 }
 
 export const BCMSTemplateController = createController<Setup>({
@@ -58,30 +34,10 @@ export const BCMSTemplateController = createController<Setup>({
   path: '/api/template',
   setup() {
     return {
-      entryRepo: useBcmsEntryRepository(),
-      tempRepo: useBcmsTemplateRepository(),
-      tempFactory: useBcmsTemplateFactory(),
-      resCode: useBcmsResponseCode(),
-      apiKeyRepo: useBcmsApiKeyRepository(),
       stringUtil: useStringUtility(),
-      propHandler: useBcmsPropHandler(),
-      idcRepo: useBcmsIdCounterRepository(),
-      idcFactory: useBcmsIdCounterFactory(),
-      socket: useBcmsSocketManager(),
     };
   },
-  methods({
-    entryRepo,
-    tempRepo,
-    tempFactory,
-    resCode,
-    apiKeyRepo,
-    stringUtil,
-    propHandler,
-    idcRepo,
-    idcFactory,
-    socket,
-  }) {
+  methods({ stringUtil }) {
     return {
       getAll: createControllerMethod({
         path: '/all',
@@ -93,7 +49,7 @@ export const BCMSTemplateController = createController<Setup>({
           ),
         async handler() {
           return {
-            items: await tempRepo.findAll(),
+            items: await BCMSRepo.template.findAll(),
           };
         },
       }),
@@ -110,11 +66,11 @@ export const BCMSTemplateController = createController<Setup>({
           const ids = (request.headers['x-bcms-ids'] as string).split('-');
           if (ids[0] && ids[0].length === 24) {
             return {
-              items: await tempRepo.findAllById(ids),
+              items: await BCMSRepo.template.findAllById(ids),
             };
           } else {
             return {
-              items: await tempRepo.methods.findAllByCid(ids),
+              items: await BCMSRepo.template.methods.findAllByCid(ids),
             };
           }
         },
@@ -130,7 +86,7 @@ export const BCMSTemplateController = createController<Setup>({
           ),
         async handler() {
           return {
-            count: await tempRepo.count(),
+            count: await BCMSRepo.template.count(),
           };
         },
       }),
@@ -147,12 +103,12 @@ export const BCMSTemplateController = createController<Setup>({
           const id = request.params.id;
           const template =
             id.length === 24
-              ? await tempRepo.findById(id)
-              : await tempRepo.methods.findByCid(id);
+              ? await BCMSRepo.template.findById(id)
+              : await BCMSRepo.template.methods.findByCid(id);
           if (!template) {
             throw errorHandler.occurred(
               HTTPStatus.NOT_FOUNT,
-              resCode.get('tmp001', { id }),
+              bcmsResCode('tmp001', { id }),
             );
           }
           return {
@@ -170,14 +126,14 @@ export const BCMSTemplateController = createController<Setup>({
             bodySchema: BCMSTemplateCreateDataSchema,
           }),
         async handler({ body, errorHandler, accessToken }) {
-          let idc = await idcRepo.methods.findAndIncByForId('templates');
+          let idc = await BCMSRepo.idc.methods.findAndIncByForId('templates');
           if (!idc) {
-            const templateIdc = idcFactory.create({
+            const templateIdc = BCMSFactory.idc.create({
               count: 2,
               forId: 'templates',
               name: 'Templates',
             });
-            const addIdcResult = await idcRepo.add(templateIdc as never);
+            const addIdcResult = await BCMSRepo.idc.add(templateIdc as never);
             if (!addIdcResult) {
               throw errorHandler.occurred(
                 HTTPStatus.INTERNAL_SERVER_ERROR,
@@ -186,7 +142,7 @@ export const BCMSTemplateController = createController<Setup>({
             }
             idc = 1;
           }
-          const template = tempFactory.create({
+          const template = BCMSFactory.template.create({
             cid: idc.toString(16),
             label: body.label,
             name: stringUtil.toSlugUnderscore(body.label),
@@ -194,23 +150,22 @@ export const BCMSTemplateController = createController<Setup>({
             singleEntry: body.singleEntry,
             userId: accessToken.payload.userId,
           });
-          const templateWithSameName = await tempRepo.methods.findByName(
-            template.name,
-          );
+          const templateWithSameName =
+            await BCMSRepo.template.methods.findByName(template.name);
           if (templateWithSameName) {
             throw errorHandler.occurred(
               HTTPStatus.FORBIDDEN,
-              resCode.get('tmp002', { name: template.name }),
+              bcmsResCode('tmp002', { name: template.name }),
             );
           }
-          const addedTemplate = await tempRepo.add(template as never);
+          const addedTemplate = await BCMSRepo.template.add(template as never);
           if (!addedTemplate) {
             throw errorHandler.occurred(
               HTTPStatus.INTERNAL_SERVER_ERROR,
-              resCode.get('tmp003'),
+              bcmsResCode('tmp003'),
             );
           }
-          await socket.emit.template({
+          await BCMSSocketManager.emit.template({
             templateId: `${addedTemplate._id}`,
             type: BCMSSocketEventType.UPDATE,
             userIds: 'all',
@@ -232,11 +187,11 @@ export const BCMSTemplateController = createController<Setup>({
           }),
         async handler({ body, errorHandler, accessToken }) {
           const id = body._id;
-          const template = await tempRepo.findById(id);
+          const template = await BCMSRepo.template.findById(id);
           if (!template) {
             throw errorHandler.occurred(
               HTTPStatus.NOT_FOUNT,
-              resCode.get('tmp001', { id }),
+              bcmsResCode('tmp001', { id }),
             );
           }
           let changeDetected = false;
@@ -246,10 +201,10 @@ export const BCMSTemplateController = createController<Setup>({
           ) {
             const name = stringUtil.toSlugUnderscore(body.label);
             if (template.name !== name) {
-              if (await tempRepo.methods.findByName(name)) {
+              if (await BCMSRepo.template.methods.findByName(name)) {
                 throw errorHandler.occurred(
                   HTTPStatus.FORBIDDEN,
-                  resCode.get('tmp002', { name: template.name }),
+                  bcmsResCode('tmp002', { name: template.name }),
                 );
               }
             }
@@ -279,7 +234,7 @@ export const BCMSTemplateController = createController<Setup>({
                 if (name === 'title' || name === 'slug') {
                   throw errorHandler.occurred(
                     HTTPStatus.FORBIDDEN,
-                    resCode.get('tmp009', {
+                    bcmsResCode('tmp009', {
                       name,
                     }),
                   );
@@ -291,7 +246,7 @@ export const BCMSTemplateController = createController<Setup>({
                 ) {
                   throw errorHandler.occurred(
                     HTTPStatus.FORBIDDEN,
-                    resCode.get('tmp009', {
+                    bcmsResCode('tmp009', {
                       name: change.update.label,
                     }),
                   );
@@ -300,7 +255,7 @@ export const BCMSTemplateController = createController<Setup>({
                 if (change.remove === 'title' || change.remove === 'slug') {
                   throw errorHandler.occurred(
                     HTTPStatus.FORBIDDEN,
-                    resCode.get('tmp009', {
+                    bcmsResCode('tmp009', {
                       name: change.remove,
                     }),
                   );
@@ -308,14 +263,14 @@ export const BCMSTemplateController = createController<Setup>({
               }
             }
             changeDetected = true;
-            const result = await propHandler.applyPropChanges(
+            const result = await BCMSPropHandler.applyPropChanges(
               template.props,
               body.propChanges,
             );
             if (result instanceof Error) {
               throw errorHandler.occurred(
                 HTTPStatus.BAD_REQUEST,
-                resCode.get('g009', {
+                bcmsResCode('g009', {
                   msg: result.message,
                 }),
               );
@@ -325,21 +280,21 @@ export const BCMSTemplateController = createController<Setup>({
           if (!changeDetected) {
             throw errorHandler.occurred(
               HTTPStatus.FORBIDDEN,
-              resCode.get('g003'),
+              bcmsResCode('g003'),
             );
           }
-          const hasInfiniteLoop = await propHandler.testInfiniteLoop(
+          const hasInfiniteLoop = await BCMSPropHandler.testInfiniteLoop(
             template.props,
           );
           if (hasInfiniteLoop instanceof Error) {
             throw errorHandler.occurred(
               HTTPStatus.BAD_REQUEST,
-              resCode.get('g008', {
+              bcmsResCode('g008', {
                 msg: hasInfiniteLoop.message,
               }),
             );
           }
-          const checkProps = await propHandler.propsChecker(
+          const checkProps = await BCMSPropHandler.propsChecker(
             template.props,
             template.props,
             'template.props',
@@ -348,19 +303,21 @@ export const BCMSTemplateController = createController<Setup>({
           if (checkProps instanceof Error) {
             throw errorHandler.occurred(
               HTTPStatus.BAD_REQUEST,
-              resCode.get('g007', {
+              bcmsResCode('g007', {
                 msg: checkProps.message,
               }),
             );
           }
-          const updatedTemplate = await tempRepo.update(template as never);
+          const updatedTemplate = await BCMSRepo.template.update(
+            template as never,
+          );
           if (!updatedTemplate) {
             throw errorHandler.occurred(
               HTTPStatus.INTERNAL_SERVER_ERROR,
-              resCode.get('tmp005'),
+              bcmsResCode('tmp005'),
             );
           }
-          await socket.emit.template({
+          await BCMSSocketManager.emit.template({
             templateId: `${updatedTemplate._id}`,
             type: BCMSSocketEventType.UPDATE,
             userIds: 'all',
@@ -382,29 +339,29 @@ export const BCMSTemplateController = createController<Setup>({
           ),
         async handler({ request, errorHandler, logger, name, accessToken }) {
           const id = request.params.id;
-          const template = await tempRepo.findById(id);
+          const template = await BCMSRepo.template.findById(id);
           if (!template) {
             throw errorHandler.occurred(
               HTTPStatus.NOT_FOUNT,
-              resCode.get('tmp001', { id }),
+              bcmsResCode('tmp001', { id }),
             );
           }
-          const deleteResult = await tempRepo.deleteById(id);
+          const deleteResult = await BCMSRepo.template.deleteById(id);
           if (!deleteResult) {
             throw errorHandler.occurred(
               HTTPStatus.INTERNAL_SERVER_ERROR,
-              resCode.get('tmp006'),
+              bcmsResCode('tmp006'),
             );
           }
-          await entryRepo.methods.deleteAllByTemplateId(id);
-          const errors = await propHandler.removeEntryPointer({
+          await BCMSRepo.entry.methods.deleteAllByTemplateId(id);
+          const errors = await BCMSPropHandler.removeEntryPointer({
             templateId: id,
           });
           if (errors) {
             logger.error(name, errors);
           }
 
-          const keys = await apiKeyRepo.findAll();
+          const keys = await BCMSRepo.apiKey.findAll();
           const updateKeys: BCMSApiKey[] = [];
           for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
@@ -417,14 +374,14 @@ export const BCMSTemplateController = createController<Setup>({
           }
           for (let i = 0; i < updateKeys.length; i++) {
             const key = updateKeys[i];
-            await apiKeyRepo.update(key as never);
-            await socket.emit.apiKey({
+            await BCMSRepo.apiKey.update(key as never);
+            await BCMSSocketManager.emit.apiKey({
               apiKeyId: `${key._id}`,
               type: BCMSSocketEventType.UPDATE,
               userIds: 'all',
             });
           }
-          await socket.emit.template({
+          await BCMSSocketManager.emit.template({
             templateId: `${template._id}`,
             type: BCMSSocketEventType.REMOVE,
             userIds: 'all',
