@@ -7,6 +7,7 @@ import * as path from 'path';
 import { setup } from 'swagger-ui-express';
 import * as YAML from 'yamljs';
 import type { Request, Response } from 'express';
+import { BCMSConfig } from '@bcms/config';
 
 let swaggerHandler: (
   request: Request,
@@ -17,7 +18,7 @@ let swaggerHandler: (
 export const BCMSSwaggerController = createController({
   name: 'Swagger Controller',
   path: '/api/swagger',
-  methods({ bcmsConfig }) {
+  methods() {
     return {
       get: createControllerMethod({
         path: '',
@@ -27,7 +28,7 @@ export const BCMSSwaggerController = createController({
             const fs = useFS();
             const file = (await fs.read(path.join(__dirname, 'spec.yaml')))
               .toString()
-              .replace('@PORT', '' + bcmsConfig.port);
+              .replace('@PORT', '' + BCMSConfig.port);
             swaggerHandler = setup(YAML.parse(file), {
               customCss: '.swagger-ui .topbar { display: none }',
             });
