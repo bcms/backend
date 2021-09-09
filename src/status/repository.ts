@@ -62,10 +62,10 @@ export function createBcmsStatusRepository(): Module {
             },
           });
 
+      const stringUtil = useStringUtility();
       BCMSRepo.status.methods
-        .findByName('Draft')
+        .findByName(stringUtil.toSlugUnderscore('Draft'))
         .then(async (draftStatus) => {
-          const stringUtil = useStringUtility();
           if (!draftStatus) {
             await BCMSRepo.status.add(
               BCMSFactory.status.create({
@@ -74,11 +74,13 @@ export function createBcmsStatusRepository(): Module {
               }) as BCMSStatusCross,
             );
           }
-          const activeStatus = await BCMSRepo.status.methods.findByName('Active');
+          const activeStatus = await BCMSRepo.status.methods.findByName(
+            stringUtil.toSlugUnderscore('Active'),
+          );
           if (!activeStatus) {
             await BCMSRepo.status.add(
               BCMSFactory.status.create({
-                label: 'Active',
+                label: 'active',
                 name: stringUtil.toSlugUnderscore('Active'),
               }) as never,
             );
