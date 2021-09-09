@@ -1,3 +1,4 @@
+import type { Express } from 'express';
 import * as fileSystem from 'fs';
 import * as path from 'path';
 import * as util from 'util';
@@ -67,6 +68,7 @@ export function createBcmsPluginModule(bcmsConfig: BCMSConfig): Module {
     stringUtil: StringUtility;
     fs: FS;
     logger: Logger;
+    expressApp: Express;
   }): Promise<{
     controllers: Controller[];
     middleware: Middleware[];
@@ -166,8 +168,10 @@ export function createBcmsPluginModule(bcmsConfig: BCMSConfig): Module {
 
     if (plugin.default.controllers) {
       for (let j = 0; j < plugin.default.controllers.length; j++) {
-        data.controllers.push(() => {
-          const controller = plugin.default.controllers[j]();
+        data.controllers.push(async () => {
+          const controller = await plugin.default.controllers[j]({
+            expressApp: data.expressApp,
+          });
           controller.path = `/api/plugin/${plugin.default.name}`;
           return controller;
         });
@@ -191,6 +195,7 @@ export function createBcmsPluginModule(bcmsConfig: BCMSConfig): Module {
       stringUtil: data.stringUtil,
       fs: data.fs,
       logger: data.logger,
+      expressApp: data.expressApp,
     });
   }
   async function installLocalPlugins(fs: FS) {
@@ -198,16 +203,20 @@ export function createBcmsPluginModule(bcmsConfig: BCMSConfig): Module {
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
       if (file.endsWith('.tgz')) {
-        await BCMSChildProcess.spawn('npm', ['i', '--save', `./plugins/${file}`], {
-          stdio: 'ignore',
-        });
+        await BCMSChildProcess.spawn(
+          'npm',
+          ['i', '--save', `./plugins/${file}`],
+          {
+            stdio: 'ignore',
+          },
+        );
       }
     }
   }
 
   return {
     name: 'Plugins',
-    initialize(moduleConfig) {
+    initialize({ next, expressApp }) {
       const addedPlugins: BCMSPluginInfo[] = [];
       const stringUtil = useStringUtility();
       const fs = useFS();
@@ -224,6 +233,7 @@ export function createBcmsPluginModule(bcmsConfig: BCMSConfig): Module {
               stringUtil,
               fs,
               logger,
+              expressApp,
             });
             pluginManager = {
               getList() {
@@ -233,13 +243,13 @@ export function createBcmsPluginModule(bcmsConfig: BCMSConfig): Module {
                 return addedPlugins;
               },
             };
-            moduleConfig.next(undefined, {
+            next(undefined, {
               controllers: result.controllers,
               middleware: result.middleware,
             });
           })
           .catch((error) => {
-            moduleConfig.next(error);
+            next(error);
           });
       } else {
         pluginManager = {
@@ -250,7 +260,7 @@ export function createBcmsPluginModule(bcmsConfig: BCMSConfig): Module {
             return addedPlugins;
           },
         };
-        moduleConfig.next();
+        next();
       }
     },
   };
