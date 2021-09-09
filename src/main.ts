@@ -37,7 +37,11 @@ import { BCMSFunctionController, createBcmsFunctionModule } from './function';
 import { BCMSPluginController, createBcmsPluginModule } from './plugin';
 import { createBcmsEventModule } from './event';
 import { createBcmsJobModule } from './job';
-import { BCMSLanguageController, createBcmsLanguageRepository, initLanguage } from './language';
+import {
+  BCMSLanguageController,
+  createBcmsLanguageRepository,
+  initLanguage,
+} from './language';
 import {
   BCMSMediaController,
   BCMSMediaMiddleware,
@@ -67,6 +71,10 @@ import { createBcmsSocketManager } from './socket';
 import { BCMSUiAssetMiddleware } from './ui-middleware';
 import { createBcmsIdCounterRepository } from './id-counter';
 import { createBcmsFactories } from './factory';
+import {
+  BCMSShimConnectionAccess,
+  BCMSShimSecurityMiddleware,
+} from './shim/middleware';
 
 let backend: BCMSBackend;
 
@@ -178,6 +186,8 @@ async function initialize() {
     createBodyParserMiddleware({
       limit: BCMSConfig.bodySizeLimit ? BCMSConfig.bodySizeLimit : undefined,
     }),
+    BCMSShimSecurityMiddleware,
+    BCMSShimConnectionAccess,
     BCMSMediaMiddleware,
     BCMSUiAssetMiddleware,
   ];

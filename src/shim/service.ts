@@ -31,7 +31,7 @@ export const BCMSShimService: BCMSShimServiceType = {
       connected = true;
       logger.info('refreshAvailable', 'Connected to the SHIM.');
     }
-    validTo = Date.now() + 5000;
+    validTo = Date.now() + 10000;
   },
   async send<Return, Payload>(data: {
     uri: string;
@@ -80,7 +80,7 @@ export const BCMSShimService: BCMSShimServiceType = {
 export function createBcmsShimService(): Module {
   return {
     name: 'Shim service',
-    initialize(moduleConfig) {
+    initialize({next}) {
       logger = useLogger({ name: 'Shim service' });
       const fs = useFS();
       fs.read('shim.json')
@@ -89,7 +89,7 @@ export function createBcmsShimService(): Module {
             const shimJson = JSON.parse(file.toString());
             code = shimJson.code;
           } catch (err) {
-            moduleConfig.next(err as Error);
+            next(err as Error);
             return;
           }
           setInterval(() => {
@@ -98,10 +98,10 @@ export function createBcmsShimService(): Module {
               logger.warn('', 'Lost connection to the SHIM.');
             }
           }, 1000);
-          moduleConfig.next();
+          next();
         })
         .catch((err) => {
-          moduleConfig.next(err);
+          next(err);
         });
     },
   };
