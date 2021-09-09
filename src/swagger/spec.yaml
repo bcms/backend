@@ -20,8 +20,6 @@ paths:
     post:
       tags:
         - Auth
-      requestBody:
-
       responses:
         '200':
           description: OK
