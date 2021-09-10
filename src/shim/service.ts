@@ -64,7 +64,7 @@ export const BCMSShimService: BCMSShimServiceType = {
       },
     });
     if (response instanceof HttpClientResponseError) {
-      logger.error('send', response);
+      // logger.error('send', response);
       if (data.errorHandler) {
         throw data.errorHandler.occurred(
           HTTPStatus.INTERNAL_SERVER_ERROR,

@@ -76,7 +76,9 @@ import {
   BCMSShimSecurityMiddleware,
 } from './shim/middleware';
 
-let backend: BCMSBackend;
+const backend: BCMSBackend = {
+  app: undefined as never,
+};
 
 async function initialize() {
   await loadBcmsConfig();
@@ -270,14 +272,12 @@ async function initialize() {
 
   modules.push(createBcmsPluginModule(BCMSConfig));
 
-  backend = {
-    app: createPurpleCheetah({
-      port: BCMSConfig.port,
-      middleware,
-      controllers,
-      modules,
-    }),
-  };
+  backend.app = createPurpleCheetah({
+    port: BCMSConfig.port,
+    middleware,
+    controllers,
+    modules,
+  });
 }
 initialize().catch((error) => {
   // eslint-disable-next-line no-console

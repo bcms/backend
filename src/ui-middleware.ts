@@ -12,6 +12,7 @@ export const BCMSUiAssetMiddleware = createMiddleware({
     const fs = useFS();
     return async (req: Request, res: Response, next: NextFunction) => {
       if (req.originalUrl.startsWith('/api')) {
+        console.log('HETE');
         next();
       } else {
         let filePath = '';

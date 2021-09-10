@@ -23,7 +23,7 @@
     "build:plugins": "tsc -p tsconfig.plugins.json"
   },
   "dependencies": {
-    "@becomes/purple-cheetah": "^3.1.4",
+    "@becomes/purple-cheetah": "^3.1.5",
     "@becomes/purple-cheetah-mod-fsdb": "^1.1.1",
     "@becomes/purple-cheetah-mod-graphql": "^1.1.0",
     "@becomes/purple-cheetah-mod-jwt": "^1.1.0",
