@@ -19,12 +19,12 @@ import {
   useJwt,
   useJwtEncoding,
 } from '@becomes/purple-cheetah-mod-jwt';
-import type { BCMSShimInstanceUser } from '../../types';
 import { BCMSConfig } from '@bcms/config';
 import { BCMSShimService } from '..';
 import { bcmsResCode } from '@bcms/response-code';
 import { BCMSRepo } from '@bcms/repo';
 import { BCMSFactory } from '@bcms/factory';
+import type { BCMSCloudUser } from '@bcms/types/shim';
 
 export const BCMSShimUserController = createController<{
   refreshTokenService: RefreshTokenService;
@@ -67,7 +67,7 @@ export const BCMSShimUserController = createController<{
         async handler({ request, errorHandler }) {
           const result: {
             ok: boolean;
-            user?: BCMSShimInstanceUser;
+            user?: BCMSCloudUser;
           } = await BCMSShimService.send({
             uri: '/instance/user/verify/otp',
             payload: { otp: request.body.otp },
@@ -89,8 +89,8 @@ export const BCMSShimUserController = createController<{
                 options: {
                   email: result.user.email,
                   avatarUri: '',
-                  firstName: result.user.firstName,
-                  lastName: result.user.lastName,
+                  firstName: result.user.personal.firstName,
+                  lastName: result.user.personal.lastName,
                 },
               });
             } else {
@@ -99,8 +99,8 @@ export const BCMSShimUserController = createController<{
                 options: {
                   email: result.user.email,
                   avatarUri: '',
-                  firstName: result.user.firstName,
-                  lastName: result.user.lastName,
+                  firstName: result.user.personal.firstName,
+                  lastName: result.user.personal.lastName,
                 },
               });
             }
