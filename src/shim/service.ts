@@ -12,7 +12,7 @@ import { createHttpClient, useFS, useLogger } from '@becomes/purple-cheetah';
 let logger: Logger;
 const http = createHttpClient({
   name: 'shimClient',
-  host: { name: '172.17.0.1', port: '1282' },
+  host: { name: '172.17.0.1', port: '3000' },
   basePath: '/shim',
 });
 let code = '';

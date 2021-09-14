@@ -1,3 +1,4 @@
+import { BCMSConfig } from '@bcms/config';
 import { createMiddleware } from '@becomes/purple-cheetah';
 import type { NextFunction, Request, Response } from 'express';
 import { BCMSShimService } from '..';
@@ -10,7 +11,8 @@ export const BCMSShimConnectionAccess = createMiddleware({
     return async (req: Request, res: Response, next: NextFunction) => {
       if (
         req.originalUrl === '/api/shim/calls/health' ||
-        BCMSShimService.isConnected()
+        BCMSShimService.isConnected() ||
+        BCMSConfig.local
       ) {
         next();
       } else {

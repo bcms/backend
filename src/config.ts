@@ -31,6 +31,7 @@ export async function loadBcmsConfig(): Promise<void> {
   if (checkSchema instanceof ObjectUtilityError) {
     throw Error(checkSchema.errorCode + ' ---> ' + checkSchema.message);
   }
+  BCMSConfig.local = configFile.local;
   BCMSConfig.port = configFile.port;
   BCMSConfig.jwt = configFile.jwt;
   BCMSConfig.database = configFile.database;

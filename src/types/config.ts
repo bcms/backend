@@ -6,6 +6,11 @@ export interface BCMSConfig {
    */
   port: number;
   /**
+   * Flag which indicates is backend should run in
+   * local development mode.
+   */
+  local?: boolean;
+  /**
    * JSON Web Token configuration.
    */
   jwt: {
