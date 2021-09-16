@@ -1,5 +1,5 @@
 {
   "code": "local",
-  "local": false,
+  "local": true,
   "instanceId": ""
 }
