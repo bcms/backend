@@ -1,0 +1,20 @@
+version: '3.9'
+services:
+  backend_prod:
+    image: 'becomes/cms-backend'
+    ports:
+      - '1280:1280'
+    volumes:
+      - type: bind
+        source: ./bcms.config.js
+        target: /app/bcms.config.js
+      - type: bind
+        source: ./db
+        target: /app/db
+      - type: bind
+        source: ./uploads
+        target: /app/uploads
+      - type: bind
+        source: ./shim.json
+        target: /app/shim.json
+      

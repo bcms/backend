@@ -57,7 +57,17 @@ function createTasks(tasks) {
   };
 }
 
-const parseArgs = (rawArgs) => {
+/**
+ * 
+ * @param {string[]} rawArgs 
+ * @returns {Args}
+ */
+ function parseArgs(rawArgs) {
+  /**
+   * @type {{
+   *  [key: string]: string,
+   * }}
+   */
   const args = {};
   let i = 2;
   while (i < rawArgs.length) {
@@ -73,23 +83,36 @@ const parseArgs = (rawArgs) => {
       i = i + 2;
     }
   }
+  /**
+   * 
+   * @param {string} name 
+   * @param {'string' | 'boolean'} type 
+   * @returns {string | boolean}
+   */
+  function getArg(
+    name,
+    type,
+  ) {
+    if (type === 'string') {
+      return args[name];
+    } else {
+      return (args[name] === '' || args[name] === 'true' || false);
+    }
+  }
   return {
-    bundle: args['--bundle'] === '' || args['--bundle'] === 'true' || false,
-    local: args['--local'] === '' || args['--local'] === 'true' || false,
-    link: args['--link'] === '' || args['--link'] === 'true' || false,
-    unlink: args['--unlink'] === '' || args['--unlink'] === 'true' || false,
-    publish: args['--publish'] === '' || args['--publish'] === 'true' || false,
-    build: args['--build'] === '' || args['--build'] === 'true' || false,
-    sudo: args['--sudo'] === '' || args['--sudo'] === 'true' || false,
-    pack: args['--pack'] === '' || args['--pack'] === 'true' || false,
-    localDevBundle:
-      args['--local-dev'] === '' || args['--local-dev'] === 'true' || false,
-    localDevPack:
-      args['--local-dev-pack'] === '' ||
-      args['--local-dev-pack'] === 'true' ||
-      false,
+    bundle: getArg('--bundle', 'boolean' ),
+    local: getArg('--local', 'boolean' ),
+    link: getArg('--link', 'boolean' ),
+    unlink: getArg('--unlink', 'boolean' ),
+    publish: getArg('--publish', 'boolean' ),
+    build: getArg('--build', 'boolean' ),
+    sudo: getArg('--sudo', 'boolean' ),
+    pack: getArg('--pack', 'boolean' ),
+    localDevBundle: getArg('--local-dev-bundle', 'boolean' ),
+    localDevPack: getArg('--local-dev-pack', 'boolean' ),
+    createImage: getArg('--create-image', 'boolean' ),
   };
-};
+}
 async function bundle() {
   const tasks = createTasks([
     {
@@ -122,7 +145,9 @@ async function bundle() {
         );
         data.devDependencies = undefined;
         data.nodemonConfig = undefined;
-        data.scripts = undefined;
+        data.scripts = {
+          start: 'node src/main.js',
+        };
         await util.promisify(fs.writeFile)(
           path.join(__dirname, 'dist', 'package.json'),
           JSON.stringify(data, null, '  '),
@@ -344,6 +369,40 @@ async function fixImports() {
     }
   }
 }
+async function createImage() {
+  const tasks = createTasks([
+    {
+      title: 'Create bundle',
+      task: async () => {
+        await bundle();
+      }
+    },
+    {
+      title: 'Create lib',
+      task: async () => {
+        await fse.copy(
+          path.join(process.cwd(), 'dist'), 
+        path.join(process.cwd(), 'lib'));
+        await fse.copy(
+          path.join(process.cwd(), 'node_modules', '@becomes', 'cms-ui', 'public'), 
+          path.join(process.cwd(), 'lib', 'public'));
+      }
+    },
+    {
+      title: 'Create docker image',
+      task: async () => {
+        await spawn('docker', ['build', '.', '-t', 'becomes/cms-backend'])
+      }
+    },
+    {
+      title: 'Remove lib',
+      task: async () => {
+        await fse.remove(path.join(process.cwd(), 'lib'))
+      }
+    }
+  ])
+  await tasks.run()
+}
 
 async function main() {
   const options = parseArgs(process.argv);
@@ -363,6 +422,8 @@ async function main() {
     await localDevBundle();
   } else if (options.localDevPack) {
     await localDevPack();
+  } else if (options.createImage) {
+    await createImage();
   }
 }
 main().catch((error) => {

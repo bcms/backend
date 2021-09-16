@@ -1,7 +1,9 @@
 version: '3.9'
 services:
   backend:
-    build: ''
+    build:
+      context: ''
+      dockerfile: Dockerfile.dev
     ports:
       - '1280:1280'
     volumes:

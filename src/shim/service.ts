@@ -6,8 +6,15 @@ import {
   HTTPError,
   HttpClientResponseError,
   Logger,
+  ObjectUtilityError,
 } from '@becomes/purple-cheetah/types';
-import { createHttpClient, useFS, useLogger } from '@becomes/purple-cheetah';
+import {
+  createHttpClient,
+  useFS,
+  useLogger,
+  useObjectUtility,
+} from '@becomes/purple-cheetah';
+import { ShimConfig } from './config';
 
 let logger: Logger;
 const http = createHttpClient({
@@ -15,13 +22,12 @@ const http = createHttpClient({
   host: { name: '172.17.0.1', port: '3000' },
   basePath: '/shim',
 });
-let code = '';
 let connected = false;
 let validTo = 0;
 
 export const BCMSShimService: BCMSShimServiceType = {
   getCode() {
-    return code;
+    return ShimConfig.code;
   },
   isConnected() {
     return connected;
@@ -38,7 +44,7 @@ export const BCMSShimService: BCMSShimServiceType = {
     payload: Payload;
     errorHandler?: HTTPError;
   }): Promise<Return> {
-    if (!connected && process.env.BCMS_LOCAL !== 'true') {
+    if (!connected && !ShimConfig.local) {
       if (data.errorHandler) {
         throw data.errorHandler.occurred(
           HTTPStatus.FORBIDDEN,
@@ -54,7 +60,7 @@ export const BCMSShimService: BCMSShimServiceType = {
       method: 'post',
       data: data.payload,
       headers: {
-        'bcms-iid': '' + process.env.BCMS_INSTANCE_ID,
+        'bcms-iid': '' + ShimConfig.instanceId,
         'bcms-nc': nonce,
         'bcms-ts': '' + timestamp,
         'bcms-sig': crypto
@@ -80,14 +86,39 @@ export const BCMSShimService: BCMSShimServiceType = {
 export function createBcmsShimService(): Module {
   return {
     name: 'Shim service',
-    initialize({next}) {
+    initialize({ next }) {
       logger = useLogger({ name: 'Shim service' });
       const fs = useFS();
       fs.read('shim.json')
         .then((file) => {
+          const objectUtil = useObjectUtility();
           try {
             const shimJson = JSON.parse(file.toString());
-            code = shimJson.code;
+            const checkObject = objectUtil.compareWithSchema(
+              shimJson,
+              {
+                code: {
+                  __type: 'string',
+                  __required: false,
+                },
+                instanceId: {
+                  __type: 'string',
+                  __required: false,
+                },
+                local: {
+                  __type: 'boolean',
+                  __required: false,
+                },
+              },
+              'shim',
+            );
+            if (checkObject instanceof ObjectUtilityError) {
+              next(Error(checkObject.message));
+              return;
+            }
+            ShimConfig.code = shimJson.code || 'local';
+            ShimConfig.instanceId = shimJson.instanceId || '';
+            ShimConfig.local = shimJson.local || false;
           } catch (err) {
             next(err as Error);
             return;

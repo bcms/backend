@@ -21,7 +21,7 @@ export const BCMSShimConnectionAccess = createMiddleware({
         res.send(
           JSON.stringify({
             message:
-              'BCMS instance cannot be verified and because if that,' +
+              'BCMS instance cannot be verified and because of that,' +
               ' it is currently unavailable.',
           }),
         );

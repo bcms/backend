@@ -29,6 +29,7 @@ import {
   BCMSShimHealthController,
   BCMSShimUserController,
   createBcmsShimService,
+  ShimConfig,
 } from './shim';
 import { BCMSUserController, createBcmsUserRepository } from './user';
 import { BCMSApiKeySecurity, createBcmsApiKeySecurity } from './security';
@@ -256,7 +257,7 @@ async function initialize() {
   } else {
     throw Error('No database configuration detected.');
   }
-  if (process.env.BCMS_ENV !== 'PRODUCTION') {
+  if (ShimConfig.local) {
     middleware.push(BCMSSwaggerMiddleware);
     middleware.push(createRequestLoggerMiddleware());
     controllers.push(BCMSSwaggerController);

@@ -15,7 +15,9 @@ services:
   backend:
     depends_on:
       - shim
-    build: ''
+    build: 
+      context: '',
+      dockerfile: Dockerfile.dev
     ports:
       - '1280:1280'
     volumes:
