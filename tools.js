@@ -105,6 +105,12 @@ async function bundle() {
       },
     },
     {
+      title: 'Fix imports',
+      async task() {
+        await fixImports()
+      }
+    },
+    {
       title: 'Copy package.json.',
       task: async () => {
         const data = JSON.parse(
@@ -274,6 +280,69 @@ async function localDevPack() {
     cwd: path.join(process.cwd(), 'local-dev-dist'),
     stdio: 'inherit',
   });
+}
+/**
+ * @typedef {{
+ *  rel: string;
+ *  abs: string;
+ * }} FileTreeItem
+ */
+
+/**
+ * 
+ * @param {string} startingLocation 
+ * @param {string} location 
+ * @returns {Promise<FileTreeItem[]>}
+ */
+async function fileTree(
+  startingLocation,
+  location,
+) {
+  /**
+   * @type FileTreeItem[]
+   */
+  const output = [];
+  const basePath = path.join(startingLocation, location);
+  const files = await util.promisify(fs.readdir)(basePath);
+  for (let i = 0; i < files.length; i++) {
+    const file = files[i];
+    const filePath = path.join(basePath, file);
+    const stat = await util.promisify(fs.lstat)(filePath);
+    if (stat.isDirectory()) {
+      const children = await fileTree(
+        startingLocation,
+        path.join(location, file),
+      );
+      for (let j = 0; j < children.length; j++) {
+        const child = children[j];
+        output.push(child);
+      }
+    } else {
+      output.push({
+        abs: filePath,
+        rel: location,
+      });
+    }
+  }
+  return output;
+}
+async function fixImports() {
+  const filePaths = await fileTree(path.join(process.cwd(), 'dist'), '');
+  for (let i = 0; i < filePaths.length; i++) {
+    const filePath = filePaths[i];
+    if(filePath.abs.endsWith('.js')) {
+      let replacer = './';
+      if (filePath.rel !== '') {
+        const depth = filePath.rel.split('/').length;
+        replacer = new Array(depth - 1).fill('..').join('/');
+      }
+      const file = (await util.promisify(fs.readFile)(filePath.abs)).toString();
+      const fileFixed = file.replace(/@bcms/g, replacer).replace(/@becomes\/cms-backend/g, replacer);
+      if (file !== fileFixed) {
+        await util.promisify(fs.writeFile)(filePath.abs, fileFixed);
+      }
+    }
+  }
 }
 
 async function main() {

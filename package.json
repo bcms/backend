@@ -9,7 +9,7 @@
     "start": "node dist/src/main.js",
     "start:local": "node bin/bcms-backend.js --dev",
     "dev": "env-cmd -f .env.dev nodemon -r tsconfig-paths/register src/main.ts",
-    "build:ts": "tsc --project tsconfig.json && tscpaths -p tsconfig.json -s ./src -o ./dist",
+    "build:ts": "tsc --project tsconfig.json",
     "build": "node tools.js --build",
     "bundle": "node tools.js --bundle",
     "bundle:local": "node tools.js --local-dev",
