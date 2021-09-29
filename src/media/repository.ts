@@ -77,7 +77,7 @@ export function createBcmsMediaRepository(): Module {
                   }
                   const media = await mongoDBInterface.find({ isInRoot });
                   media.forEach((m) => {
-                    cacheHandler.set(m._id.toHexString(), m);
+                    cacheHandler.set(`${m._id}`, m);
                   });
                   latches.isInRoot = true;
                   return media;
@@ -95,7 +95,7 @@ export function createBcmsMediaRepository(): Module {
                       name: nm,
                     });
                     if (media) {
-                      cacheHandler.set(media._id.toHexString(), media);
+                      cacheHandler.set(`${media._id}`, media);
                     }
                     return media;
                   } else {
@@ -110,7 +110,7 @@ export function createBcmsMediaRepository(): Module {
                       name: nm,
                     });
                     if (media) {
-                      cacheHandler.set(media._id.toHexString(), media);
+                      cacheHandler.set(`${media._id}`, media);
                     }
                     return media;
                   }
@@ -121,7 +121,7 @@ export function createBcmsMediaRepository(): Module {
                   }
                   const media = await mongoDBInterface.find({ parentId });
                   media.forEach((m) => {
-                    cacheHandler.set(m._id.toHexString(), m);
+                    cacheHandler.set(`${m._id}`, m);
                   });
                   latches.parent[parentId] = true;
                   return media;

@@ -54,7 +54,7 @@ export function createBcmsStatusRepository(): Module {
                   }
                   const status = await mongoDBInterface.findOne({ name: nm });
                   if (status) {
-                    cacheHandler.set(status._id.toHexString(), status);
+                    cacheHandler.set(`${status._id}`, status);
                   }
                   return status;
                 },

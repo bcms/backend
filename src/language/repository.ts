@@ -54,7 +54,7 @@ export function createBcmsLanguageRepository(): Module {
                   }
                   const lang = await mongoDBInterface.findOne({ code });
                   if (lang) {
-                    cacheHandler.set(lang._id.toHexString(), lang);
+                    cacheHandler.set(`${lang._id}`, lang);
                   }
                   return lang;
                 },
@@ -65,7 +65,7 @@ export function createBcmsLanguageRepository(): Module {
                   }
                   const lang = await mongoDBInterface.findOne({ def: true });
                   if (lang) {
-                    cacheHandler.set(lang._id.toHexString(), lang);
+                    cacheHandler.set(`${lang._id}`, lang);
                   }
                   return lang;
                 },

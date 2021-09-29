@@ -19,7 +19,7 @@ export function createBcmsMediaFactory(): BCMSMediaFactory {
         userId: data.userId ? data.userId : '',
       };
       if (BCMSConfig.database.fs) {
-        media._id = media._id.toHexString() as never;
+        media._id = `${media._id}` as never;
       }
       return media;
     },

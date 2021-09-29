@@ -18,7 +18,7 @@ export function createBcmsTemplateOrganizerFactory(): BCMSTemplateOrganizerFacto
         parentId: data.parentId,
       };
       if (BCMSConfig.database.fs) {
-        output._id = output._id.toHexString() as never;
+        output._id = `${output._id}` as never;
       }
       return output;
     },

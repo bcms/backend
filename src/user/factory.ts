@@ -56,7 +56,7 @@ export function createBcmsUserFactory(): BCMSUserFactory {
       };
 
       if (BCMSConfig.database.fs) {
-        user._id = user._id.toHexString() as never;
+        user._id = `${user._id}` as never;
       }
       if (config.admin) {
         user.roles[0].name = JWTRoleName.ADMIN;

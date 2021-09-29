@@ -16,7 +16,7 @@ export function createBcmsLanguageFactory(): BCMSLanguageFactory {
         userId: data.userId ? data.userId : '',
       };
       if (BCMSConfig.database.fs) {
-        lang._id = lang._id.toHexString() as never;
+        lang._id = `${lang._id}` as never;
       }
 
       return lang;

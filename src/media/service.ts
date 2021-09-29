@@ -34,7 +34,7 @@ export const BCMSMediaService: BCMSMediaServiceType = {
     }
     const parentAggregate: BCMSMediaAggregate = {
       _id:
-        typeof parent._id === 'string' ? parent._id : parent._id.toHexString(),
+        typeof parent._id === 'string' ? parent._id : `${parent._id}`,
       createdAt: parent.createdAt,
       updatedAt: parent.updatedAt,
       isInRoot: parent.isInRoot,
@@ -66,7 +66,7 @@ export const BCMSMediaService: BCMSMediaServiceType = {
             _id:
               typeof child._id === 'string'
                 ? child._id
-                : child._id.toHexString(),
+                : `${child._id}`,
             createdAt: child.createdAt,
             updatedAt: child.updatedAt,
             isInRoot: child.isInRoot,

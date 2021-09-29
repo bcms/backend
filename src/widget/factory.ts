@@ -19,7 +19,7 @@ export function createBcmsWidgetFactory(): BCMSWidgetFactory {
         props: [],
       };
       if (BCMSConfig.database.fs) {
-        widget._id = widget._id.toHexString() as never;
+        widget._id = `${widget._id}` as never;
       }
       return widget;
     },

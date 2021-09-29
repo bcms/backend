@@ -17,7 +17,7 @@ export function createBcmsEntryFactory(): BCMSEntryFactory {
         content: data.content ? data.content : [],
       };
       if (BCMSConfig.database.fs) {
-        entry._id = entry._id.toHexString() as never;
+        entry._id = `${entry._id}` as never;
       }
       return entry;
     },

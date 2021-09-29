@@ -117,14 +117,14 @@ export function createBcmsEntryRepository(): Module {
                     templateId,
                   });
                   if (item) {
-                    cacheHandler.set(item._id.toHexString(), item);
+                    cacheHandler.set(`${item._id}`, item);
                   }
                   return item;
                 },
                 async findByTemplateIdAndId(templateId, entryId) {
                   const cacheHit = cacheHandler.findOne(
                     (e) =>
-                      e._id.toHexString() === entryId &&
+                      `${e._id}` === entryId &&
                       e.templateId === templateId,
                   );
                   if (cacheHit) {
@@ -135,7 +135,7 @@ export function createBcmsEntryRepository(): Module {
                     templateId,
                   });
                   if (item) {
-                    cacheHandler.set(item._id.toHexString(), item);
+                    cacheHandler.set(`${item._id}`, item);
                   }
                   return item;
                 },
@@ -146,7 +146,7 @@ export function createBcmsEntryRepository(): Module {
                   const items = await mongoDBInterface.find({ status });
                   for (let i = 0; i < items.length; i++) {
                     const item = items[i];
-                    cacheHandler.set(item._id.toHexString(), item);
+                    cacheHandler.set(`${item._id}`, item);
                   }
                   latches.status[status] = true;
                   return items;
@@ -160,7 +160,7 @@ export function createBcmsEntryRepository(): Module {
                   const items = await mongoDBInterface.find({ templateId });
                   for (let i = 0; i < items.length; i++) {
                     const item = items[i];
-                    cacheHandler.set(item._id.toHexString(), item);
+                    cacheHandler.set(`${item._id}`, item);
                   }
                   latches.template[templateId] = true;
                   return items;
@@ -186,7 +186,7 @@ export function createBcmsEntryRepository(): Module {
                   );
                   for (let i = 0; i < items.length; i++) {
                     const item = items[i];
-                    cacheHandler.set(item._id.toHexString(), item);
+                    cacheHandler.set(`${item._id}`, item);
                   }
                   return items;
                 },
@@ -201,7 +201,7 @@ export function createBcmsEntryRepository(): Module {
                   for (let i = 0; i < cacheItems.length; i++) {
                     const item = cacheItems[i];
                     item.status = '';
-                    cacheHandler.set(item._id.toHexString(), item);
+                    cacheHandler.set(`${item._id}`, item);
                   }
                 },
                 async deleteAllByTemplateId(templateId) {
@@ -211,7 +211,7 @@ export function createBcmsEntryRepository(): Module {
                   );
                   for (let i = 0; i < cacheItems.length; i++) {
                     const item = cacheItems[i];
-                    cacheHandler.remove(item._id.toHexString());
+                    cacheHandler.remove(`${item._id}`);
                   }
                 },
                 async countByTemplateId(templateId) {

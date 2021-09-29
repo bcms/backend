@@ -56,7 +56,6 @@ function createTasks(tasks) {
     },
   };
 }
-
 /**
  * 
  * @param {string[]} rawArgs 
@@ -113,6 +112,7 @@ function createTasks(tasks) {
     createImage: getArg('--create-image', 'boolean' ),
   };
 }
+
 async function bundle() {
   const tasks = createTasks([
     {
@@ -179,7 +179,7 @@ async function localDevBundle() {
       task: async () => {
         await fse.copy(
           path.join(__dirname, 'src'),
-          path.join(__dirname, 'local-dev-dist'),
+          path.join(__dirname, 'local-dev-dist',  'src'),
         );
       },
     },
@@ -198,11 +198,11 @@ async function localDevBundle() {
     },
     {
       // TODO: Remove this set when prod is ready
-      title: 'Copy purple Cheetah - DEV ONLY',
+      title: 'Copy packs - DEV ONLY',
       task: async () => {
         await fse.copy(
-          path.join(__dirname, 'purple-cheetah'),
-          path.join(__dirname, 'local-dev-dist', 'purple-cheetah'),
+          path.join(__dirname, 'packs'),
+          path.join(__dirname, 'local-dev-dist', 'packs'),
         );
       },
     },
@@ -228,6 +228,15 @@ async function localDevBundle() {
         await util.promisify(fs.copyFile)(
           path.join(__dirname, 'LICENSE'),
           path.join(__dirname, 'local-dev-dist', 'LICENSE'),
+        );
+      },
+    },
+    {
+      title: 'Copy Dockerfile',
+      task: async () => {
+        await util.promisify(fs.copyFile)(
+          path.join(__dirname, 'Dockerfile.dev'),
+          path.join(__dirname, 'local-dev-dist', 'Dockerfile'),
         );
       },
     },
