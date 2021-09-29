@@ -172,7 +172,11 @@ export function createBcmsPluginModule(bcmsConfig: BCMSConfig): Module {
           const controller = await plugin.default.controllers[j]({
             expressApp: data.expressApp,
           });
-          controller.path = `/api/plugin/${plugin.default.name}`;
+          controller.path = `/api/plugin/${plugin.default.name}${
+            controller.path.startsWith('/')
+              ? controller.path
+              : '/' + controller.path
+          }`;
           return controller;
         });
       }
@@ -181,7 +185,9 @@ export function createBcmsPluginModule(bcmsConfig: BCMSConfig): Module {
       for (let j = 0; j < plugin.default.middleware.length; j++) {
         data.middleware.push(() => {
           const mid = plugin.default.middleware[j]();
-          mid.path = `/api/plugin/${plugin.default.name}`;
+          mid.path = `/api/plugin/${plugin.default.name}${
+            mid.path.startsWith('/') ? mid.path : '/' + mid.path
+          }`;
           return mid;
         });
       }
