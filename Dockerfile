@@ -6,6 +6,7 @@ COPY ./lib/ /app/
 
 RUN apt update
 RUN apt install ffmpeg -y
+RUN apt install git -y
 RUN npm i
 
 ENTRYPOINT ["npm", "start"]
