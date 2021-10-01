@@ -15,7 +15,7 @@ export function createBcmsIdCounterFactory(): BCMSIdCounterFactory {
       };
 
       if (BCMSConfig.database.fs) {
-        idCounter._id = idCounter._id.toHexString() as never;
+        idCounter._id = `${idCounter._id}` as never;
       }
       return idCounter;
     },

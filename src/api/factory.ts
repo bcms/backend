@@ -6,7 +6,7 @@ import type { BCMSApiKey, BCMSApiKeyFactory } from '../types';
 
 export function createBcmsApiKeyFactory(): BCMSApiKeyFactory {
   const functionManager = useBcmsFunctionManger();
-  
+
   return {
     create(data) {
       const apiKey: BCMSApiKey = {
@@ -21,7 +21,7 @@ export function createBcmsApiKeyFactory(): BCMSApiKeyFactory {
         userId: data.userId,
       };
       if (BCMSConfig.database.fs) {
-        apiKey._id = apiKey._id.toHexString() as never;
+        apiKey._id = `${apiKey._id}` as never;
       }
       return apiKey;
     },

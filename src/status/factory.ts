@@ -14,7 +14,7 @@ export function createBcmsStatusFactory(): BCMSStatusFactory {
         name: data.name ? data.name : '',
       };
       if (BCMSConfig.database.fs) {
-        status._id = status._id.toHexString() as never;
+        status._id = `${status._id}` as never;
       }
       return status;
     },

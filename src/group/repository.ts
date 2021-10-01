@@ -82,7 +82,7 @@ export function createBcmsGroupRepository(): Module {
                   }
                   const group = await mongoDBInterface.findOne({ name: nm });
                   if (group) {
-                    cacheHandler.set(group._id.toHexString(), group);
+                    cacheHandler.set(`${group._id}`, group);
                   }
                   return group;
                 },
@@ -93,7 +93,7 @@ export function createBcmsGroupRepository(): Module {
                   }
                   const group = await mongoDBInterface.findOne({ cid });
                   if (group) {
-                    cacheHandler.set(group._id.toHexString(), group);
+                    cacheHandler.set(`${group._id}`, group);
                   }
                   return group;
                 },
@@ -112,7 +112,7 @@ export function createBcmsGroupRepository(): Module {
                     });
                     for (let i = 0; i < items.length; i++) {
                       const item = items[i];
-                      cacheHandler.set(item._id.toHexString(), item);
+                      cacheHandler.set(`${item._id}`, item);
                       output.push(item);
                     }
                   }

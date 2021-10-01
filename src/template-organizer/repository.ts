@@ -64,7 +64,7 @@ export function createBcmsTemplateOrganizerRepository(): Module {
                   const items = await mongoDBInterface.find({ parentId });
                   for (let i = 0; i < items.length; i++) {
                     const item = items[i];
-                    cacheHandler.set(item._id.toHexString(), item);
+                    cacheHandler.set(`${item._id}`, item);
                   }
                   latches.parentId[parentId] = true;
                   return items;
@@ -76,7 +76,7 @@ export function createBcmsTemplateOrganizerRepository(): Module {
                   }
                   const item = await mongoDBInterface.findOne({ name });
                   if (item) {
-                    cacheHandler.set(item._id.toHexString(), item);
+                    cacheHandler.set(`${item._id}`, item);
                   }
                   return item;
                 },
@@ -91,7 +91,7 @@ export function createBcmsTemplateOrganizerRepository(): Module {
                     templateIds: templateId,
                   });
                   if (item) {
-                    cacheHandler.set(item._id.toHexString(), item);
+                    cacheHandler.set(`${item._id}`, item);
                   }
                   return item;
                 },

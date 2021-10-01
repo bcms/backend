@@ -53,7 +53,7 @@ export function createBcmsUserRepository(): Module {
                   }
                   const result = await mongoDBInterface.findOne({ email });
                   if (result) {
-                    cacheHandler.set(result._id.toHexString(), result);
+                    cacheHandler.set(`${result._id}`, result);
                   }
                   return result;
                 },

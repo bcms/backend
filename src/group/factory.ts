@@ -16,7 +16,7 @@ export function createBcmsGroupFactory(): BCMSGroupFactory {
         props: [],
       };
       if (BCMSConfig.database.fs) {
-        group._id = group._id.toHexString() as never;
+        group._id = `${group._id}` as never;
       }
       return group;
     },

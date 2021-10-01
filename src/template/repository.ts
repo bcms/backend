@@ -82,7 +82,7 @@ export function createBcmsTemplateRepository(): Module {
                   }
                   const temp = await mongoDBInterface.findOne({ name });
                   if (temp) {
-                    cacheHandler.set(temp._id.toHexString(), temp);
+                    cacheHandler.set(`${temp._id}`, temp);
                   }
                   return temp;
                 },
@@ -93,7 +93,7 @@ export function createBcmsTemplateRepository(): Module {
                   }
                   const item = await mongoDBInterface.findOne({ cid });
                   if (item) {
-                    cacheHandler.set(item._id.toHexString(), item);
+                    cacheHandler.set(`${item._id}`, item);
                   }
                   return item;
                 },
@@ -114,7 +114,7 @@ export function createBcmsTemplateRepository(): Module {
                     });
                     for (let i = 0; i < items.length; i++) {
                       const item = items[i];
-                      cacheHandler.set(item._id.toHexString(), item);
+                      cacheHandler.set(`${item._id}`, item);
                       output.push(item);
                     }
                   }

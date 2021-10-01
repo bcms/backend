@@ -40,7 +40,7 @@ export function createBcmsTemplateFactory(): BCMSTemplateFactory {
             ],
       };
       if (BCMSConfig.database.fs) {
-        temp._id = temp._id.toHexString() as never;
+        temp._id = `${temp._id}` as never;
       }
       return temp;
     },
