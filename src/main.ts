@@ -30,6 +30,8 @@ import {
   BCMSShimUserController,
   createBcmsShimService,
   ShimConfig,
+  BCMSShimConnectionAccess,
+  BCMSShimSecurityMiddleware,
 } from './shim';
 import { BCMSUserController, createBcmsUserRepository } from './user';
 import { BCMSApiKeySecurity, createBcmsApiKeySecurity } from './security';
@@ -72,10 +74,7 @@ import { createBcmsSocketManager } from './socket';
 import { BCMSUiAssetMiddleware } from './ui-middleware';
 import { createBcmsIdCounterRepository } from './id-counter';
 import { createBcmsFactories } from './factory';
-import {
-  BCMSShimConnectionAccess,
-  BCMSShimSecurityMiddleware,
-} from './shim/middleware';
+import { BCMSAuthController } from './auth';
 
 const backend: BCMSBackend = {
   app: undefined as never,
@@ -195,6 +194,7 @@ async function initialize() {
     BCMSUiAssetMiddleware,
   ];
   const controllers: Controller[] = [
+    BCMSAuthController,
     BCMSUserController,
     BCMSShimHealthController,
     BCMSShimUserController,
