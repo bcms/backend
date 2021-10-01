@@ -1,7 +1,7 @@
 version: '3.9'
 services:
   proxy:
-    image: 'becomes/cms-proxy-local'
+    image: 'becomes/cms-proxy-local:1.0.2'
     ports:
       - '8080:8080'
     logging:
@@ -11,7 +11,7 @@ services:
       - proxy
     image: 'becomes/cms-shim-local'
     ports:
-      - '1282:1282'
+      - '1279:1279'
   backend:
     depends_on:
       - shim

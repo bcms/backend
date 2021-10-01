@@ -114,6 +114,7 @@ export const BCMSShimUserController = createController<{
             crypto.randomBytes(64).toString(),
             10,
           );
+
           if (createUser) {
             user = await BCMSRepo.user.add(user as never);
             if (!user) {

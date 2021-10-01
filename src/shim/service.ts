@@ -7,6 +7,7 @@ import {
   HttpClientResponseError,
   Logger,
   ObjectUtilityError,
+  HttpClient,
 } from '@becomes/purple-cheetah/types';
 import {
   createHttpClient,
@@ -15,13 +16,10 @@ import {
   useObjectUtility,
 } from '@becomes/purple-cheetah';
 import { ShimConfig } from './config';
+import { BCMSConfig } from '@bcms/config';
 
 let logger: Logger;
-const http = createHttpClient({
-  name: 'shimClient',
-  host: { name: '172.17.0.1', port: '3000' },
-  basePath: '/shim',
-});
+let http: HttpClient;
 let connected = false;
 let validTo = 0;
 
@@ -88,6 +86,11 @@ export function createBcmsShimService(): Module {
     name: 'Shim service',
     initialize({ next }) {
       logger = useLogger({ name: 'Shim service' });
+      http = createHttpClient({
+        name: 'shimClient',
+        host: { name: '172.17.0.1', port: BCMSConfig.local ? '1279' : '3000' },
+        basePath: '/shim',
+      });
       const fs = useFS();
       fs.read('shim.json')
         .then((file) => {

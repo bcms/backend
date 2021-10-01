@@ -36,12 +36,12 @@
     "cron": "^1.8.2",
     "express": "^4.17.1",
     "fs-extra": "^8.1.0",
-    "mongoose": "^5.12.10",
     "multer": "^1.4.2",
     "sharp": "^0.26.3",
     "swagger-ui-express": "^4.1.6",
     "uuid": "^8.3.2",
-    "yamljs": "^0.3.0"
+    "yamljs": "^0.3.0",
+    "mongoose": "^6.0.8"
   },
   "devDependencies": {
     "@becomes/cms-sdk": "file:packs/bcms-sdk.tgz",
