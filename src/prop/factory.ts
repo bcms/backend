@@ -29,6 +29,9 @@ export function createBcmsPropFactory(): BCMSPropFactory {
         case BCMSPropType.ENTRY_POINTER: {
           return self.entryPointer(array);
         }
+        case BCMSPropType.RICH_TEXT: {
+          return self.richText(array);
+        }
         default: {
           return null;
         }
@@ -132,6 +135,17 @@ export function createBcmsPropFactory(): BCMSPropFactory {
           entryIds: [],
           displayProp: 'title',
         },
+      };
+    },
+    richText(array) {
+      return {
+        id: uuidv4(),
+        name: '',
+        label: '',
+        array: array ? array : false,
+        required: true,
+        type: BCMSPropType.RICH_TEXT,
+        defaultData: [],
       };
     },
   };

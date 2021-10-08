@@ -1,3 +1,7 @@
+import type {
+  BCMSPropRichTextData,
+  BCMSPropValueRichTextData,
+} from '@bcms/types';
 import type { ObjectSchema } from '@becomes/purple-cheetah/types';
 import type { BCMSPropDateData } from './date';
 import type { BCMSPropEntryPointerData } from './entry-pointer';
@@ -76,7 +80,8 @@ export type BCMSPropData =
   | BCMSPropEntryPointerData
   | BCMSPropGroupPointerData
   | BCMSPropMediaData[]
-  | BCMSPropWidgetData;
+  | BCMSPropWidgetData
+  | BCMSPropRichTextData[];
 
 export interface BCMSPropParsed {
   [name: string]: BCMSPropDataParsed;
@@ -117,4 +122,5 @@ export type BCMSPropValueData =
   | BCMSPropDateData
   | BCMSPropValueGroupPointerData
   | BCMSPropMediaData[]
-  | BCMSPropValueWidgetData;
+  | BCMSPropValueWidgetData
+  | BCMSPropValueRichTextData[];

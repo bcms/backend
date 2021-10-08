@@ -10,5 +10,5 @@ export interface BCMSPropFactory {
   media(array?: boolean): BCMSProp;
   groupPointer(array?: boolean): BCMSProp;
   entryPointer(array?: boolean): BCMSProp;
-  // richText(array?: boolean): BCMSProp;
+  richText(array?: boolean): BCMSProp;
 }

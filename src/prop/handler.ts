@@ -232,24 +232,56 @@ export const BCMSPropHandler: BCMSPropHandlerType = {
             const valueData = value.data as string[];
             for (let j = 0; j < valueData.length; j++) {
               const entryId = valueData[j];
-              const entry = await BCMSRepo.entry.findById(entryId);
-              if (!entry) {
-                return Error(
-                  `[${level}.${prop.name}.${j}] -> ` +
-                    `Entry with ID ${entryId} does not exist.`,
-                );
-              }
-              if (entry.templateId !== propData.templateId) {
-                return Error(
-                  `[${level}.${prop.name}.${j}] -> ` +
-                    `Entry with ID ${entryId} does not belong` +
-                    ` to template "${propData.templateId}" but to` +
-                    ` template "${entry.templateId}".`,
-                );
+              if (entryId) {
+                const entry = await BCMSRepo.entry.findById(entryId);
+                if (!entry) {
+                  return Error(
+                    `[${level}.${prop.name}.${j}] -> ` +
+                      `Entry with ID ${entryId} does not exist.`,
+                  );
+                }
+                if (entry.templateId !== propData.templateId) {
+                  return Error(
+                    `[${level}.${prop.name}.${j}] -> ` +
+                      `Entry with ID ${entryId} does not belong` +
+                      ` to template "${propData.templateId}" but to` +
+                      ` template "${entry.templateId}".`,
+                  );
+                }
               }
             }
           }
           break;
+        case BCMSPropType.RICH_TEXT: {
+          const checkData = objectUtil.compareWithSchema(
+            {
+              data: value.data,
+            },
+            {
+              data: {
+                __type: 'array',
+                __required: true,
+                __child: {
+                  __type: 'object',
+                  __content: {
+                    nodes: {
+                      __type: "array",
+                      __required: true,
+                      __child: {
+                        __type: 'object',
+                        __content: {}
+                      }
+                    }
+                  }
+                },
+              },
+            },
+            `${level}.${prop.name}`,
+          );
+          if (checkData instanceof ObjectUtilityError) {
+            return Error(`[${level}.${prop.name}] -> ` + checkData.message);
+          }
+        } break;
         default: {
           return Error(
             `[${level}.${prop.name}] -> Unknown prop type "${prop.type}"`,

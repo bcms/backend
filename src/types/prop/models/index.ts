@@ -5,4 +5,5 @@ export * from './enum';
 export * from './group-pointer';
 export * from './main';
 export * from './media';
+export * from './rich-text';
 export * from './widget';
