@@ -2,7 +2,8 @@ openapi: '3.0.2'
 info:
   version: '3.0.0'
   title: 'BCMS - REST API'
-  description: 'This is OpenAPI documentation for the BCMS REST API. It is recommended to use
+  description:
+    'This is OpenAPI documentation for the BCMS REST API. It is recommended to use
     provided tools (like @becomes/cms-client) for communication with CMS but if you need
     to implement some custom solution this documentation will help you.'
   contact:
@@ -16,7 +17,6 @@ paths: {}
 
 components:
   schemas:
-    
     BCMSPropDateData:
       oneOf:
         - type: array
@@ -34,22 +34,24 @@ components:
     BCMSPropEntryPointerData:
       type: object
       properties:
-        templateId: 
+        templateId:
           type: string
         entryIds:
           type: array
           items:
             type: string
         displayProp:
-          type: string  
+          type: string
     BCMSPropGroupPointerData:
       type: object
       properties:
         _id:
           type: string
+
     BCMSPropMediaData:
       oneOf:
         - type: string
+
     BCMSPropWidgetData:
       type: object
       properties:
@@ -60,49 +62,216 @@ components:
       properties:
         level:
           type: number
+
+    BCMSEntryContentNodeLinkAttr:
+      type: object
+      properties:
+        href:
+          type: string
+        target:
+          type: string
+    BCMSTemplateCreateData:
+      type: object
+      properties:
+        label:
+          type: string
+        desc:
+          type: string
+        singleEntry:
+          type: boolean
+    BCMSTemplateUpdateData:
+      type: object
+      properties:
+        _id:
+          type: string
+        label:
+          type: string
+        desc:
+          type: string
+        singleEntry:
+          type: boolean
+        propChanges:
+          type: array
+          items:
+            $ref: '#/components/schemas/BCMSPropChange'
+
+    BCMSPropChange:
+      type: object
+      properties:
+        add:
+          $ref: '#/components/schemas/BCMSPropChangeAdd'
+        remove:
+          type: string
+        update:
+          $ref: '#/components/schemas/BCMSPropChangeUpdate'
+
+    BCMSPropChangeUpdate:
+      type: object
+      properties:
+        id:
+          type: string
+        label:
+          type: string
+        move:
+          type: number
+        required:
+          type: boolean
+        enumItems:
+          type: array
+          items:
+            type: string
+
+    BCMSPropChangeAdd:
+      type: object
+      properties:
+        label:
+          type: string
+        type:
+          $ref: '#/components/schemas/BCMSPropType'
+        required:
+          type: boolean
+        array:
+          type: boolean
+        defaultData:
+          $ref: '#/components/schemas/BCMSPropData'
+    BCMSEntryContentNodeMarker:
+      type: object
+      properties:
+        type:
+          $ref: '#/components/schemas/BCMSEntryContentNodeMarkerType'
+        attrs:
+          $ref: '#/components/schemas/BCMSEntryContentNodeLinkAttr'
+
+    BCMSPropValue:
+      type: object
+      properties:
+        id:
+          type: string
+        data:
+          $ref: '#/components/schemas/BCMSPropValueData'
+
+    BCMSPropValueGroupPointerData:
+      type: object
+      properties:
+        _id:
+          type: string
+        items:
+          type: array
+          items:
+            type: object
+            properties:
+              props:
+                type: array
+                items:
+                  $ref: '#/components/schemas/BCMSPropValue'
+    BCMSPropValueRichTextData:
+      type: object
+      properties:
+        nodes:
+          type: array
+          items:
+            $ref: '#/components/schemas/BCMSEntryContentNode'
+    BCMSPropValueData:
+      oneOf:
+        - type: array
+          items:
+            type: string
+        - type: array
+          items:
+            type: boolean
+        - type: array
+          items:
+            type: number
+        - $ref: '#/components/schemas/BCMSPropDateData'
+        - $ref: '#/components/schemas/BCMSPropValueGroupPointerData'
+        - type: array
+          items:
+            $ref: '#/components/schemas/BCMSPropMediaData'
+        - $ref: '#/components/schemas/BCMSPropValueWidgetData'
+        - type: array
+          items:
+            $ref: '#/components/schemas/BCMSPropValueRichTextData'
+
+    BCMSPropValueWidgetData:
+      type: object
+      properties:
+        _id:
+          type: string
+        props:
+          type: array
+          items:
+            $ref: '#/components/schemas/BCMSPropValue'
+
     BCMSEntryContentNode:
       type: object
       properties:
-        type: 
+        type:
           $ref: '#/components/schemas/BCMSEntryContentNodeType'
-        content: 
+        content:
           type: array
           items:
             $ref: '#/components/schemas/BCMSEntryContentNode'
         attrs:
           oneOf:
-            -   $ref: '#/components/schemas/BCMSEntryContentNodeHeadingAttr'
+            - $ref: '#/components/schemas/BCMSEntryContentNodeHeadingAttr'
+            - $ref: '#/components/schemas/BCMSPropValueWidgetData'
+            - $ref: '#/components/schemas/BCMSEntryContentNodeLinkAttr'
+        marks:
+          type: array
+          items:
+            $ref: '#/components/schemas/BCMSEntryContentNodeMarker'
+        text:
+          type: string
+
     BCMSPropRichTextData:
       type: object
       properties:
         nodes:
           type: array
           items:
-           $ref: '#/components/schemas/BCMSEntryContentNode'
- 
+            $ref: '#/components/schemas/BCMSEntryContentNode'
+
+    BCMSPropEntryPointerDataParsed:
+      type: object
+      properties:
+        schema:
+          type: object
+          additionalProperties:
+            name: lng
+            type: array
+            $ref: '#/components/schemas/BCMSPropData'
+
+
     BCMSPropData:
       oneOf:
-          - type: array
-            items:
-              type: string
-          - type: array
-            items: 
-              type: boolean
-          - type: array
-            items:
-              type: number
-          - $ref: '#/components/schemas/BCMSPropDateData'
-          - $ref: '#/components/schemas/BCMSPropEnumData'
-          - $ref: '#/components/schemas/BCMSPropEntryPointerData'
-          - $ref: '#/components/schemas/BCMSPropGroupPointerData'
-          - type: array
-            items:
-              $ref: '#/components/schemas/BCMSPropMediaData'
-          - $ref: '#/components/schemas/BCMSPropWidgetData'
-          - type: array
-            items:
-              $ref: '#/components/schemas/BCMSPropRichTextData'
-
+        - type: array
+          items:
+            type: string
+        - type: array
+          items:
+            type: boolean
+        - type: array
+          items:
+            type: number
+        - $ref: '#/components/schemas/BCMSPropDateData'
+        - $ref: '#/components/schemas/BCMSPropEnumData'
+        - $ref: '#/components/schemas/BCMSPropEntryPointerData'
+        - $ref: '#/components/schemas/BCMSPropGroupPointerData'
+        - type: array
+          items:
+            $ref: '#/components/schemas/BCMSPropMediaData'
+        - $ref: '#/components/schemas/BCMSPropWidgetData'
+        - type: array
+          items:
+            $ref: '#/components/schemas/BCMSPropRichTextData'
+    BCMSEntryContentNodeMarkerType:
+      type: string
+      enum:
+        - bold
+        - italic
+        - underline
+        - stripe
+        - link
 
     BCMSEntryContentNodeType:
       type: string
@@ -132,7 +301,7 @@ components:
     BCMSProp:
       type: object
       properties:
-        id: 
+        id:
           type: string
         type:
           $ref: '#/components/schemas/BCMSPropType'
@@ -147,7 +316,6 @@ components:
         defaultData:
           $ref: '#/components/schemas/BCMSPropData'
 
-        
     BCMSTemplate:
       type: object
       properties:
