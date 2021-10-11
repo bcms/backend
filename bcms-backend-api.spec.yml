@@ -16,8 +16,138 @@ paths: {}
 
 components:
   schemas:
+    
+    BCMSPropDateData:
+      oneOf:
+        - type: array
+          items:
+            type: number
+    BCMSPropEnumData:
+      type: object
+      properties:
+        items:
+          type: array
+          items:
+            type: string
+        selected:
+          type: string
+    BCMSPropEntryPointerData:
+      type: object
+      properties:
+        templateId: 
+          type: string
+        entryIds:
+          type: array
+          items:
+            type: string
+        displayProp:
+          type: string  
+    BCMSPropGroupPointerData:
+      type: object
+      properties:
+        _id:
+          type: string
+    BCMSPropMediaData:
+      oneOf:
+        - type: string
+    BCMSPropWidgetData:
+      type: object
+      properties:
+        _id:
+          type: string
+    BCMSEntryContentNodeHeadingAttr:
+      type: object
+      properties:
+        level:
+          type: number
+    BCMSEntryContentNode:
+      type: object
+      properties:
+        type: 
+          $ref: '#/components/schemas/BCMSEntryContentNodeType'
+        content: 
+          type: array
+          items:
+            $ref: '#/components/schemas/BCMSEntryContentNode'
+        attrs:
+          oneOf:
+            -   $ref: '#/components/schemas/BCMSEntryContentNodeHeadingAttr'
+    BCMSPropRichTextData:
+      type: object
+      properties:
+        nodes:
+          type: array
+          items:
+           $ref: '#/components/schemas/BCMSEntryContentNode'
+ 
+    BCMSPropData:
+      oneOf:
+          - type: array
+            items:
+              type: string
+          - type: array
+            items: 
+              type: boolean
+          - type: array
+            items:
+              type: number
+          - $ref: '#/components/schemas/BCMSPropDateData'
+          - $ref: '#/components/schemas/BCMSPropEnumData'
+          - $ref: '#/components/schemas/BCMSPropEntryPointerData'
+          - $ref: '#/components/schemas/BCMSPropGroupPointerData'
+          - type: array
+            items:
+              $ref: '#/components/schemas/BCMSPropMediaData'
+          - $ref: '#/components/schemas/BCMSPropWidgetData'
+          - type: array
+            items:
+              $ref: '#/components/schemas/BCMSPropRichTextData'
+
+
+    BCMSEntryContentNodeType:
+      type: string
+      enum:
+        - paragraph
+        - heading
+        - widget
+        - bulletList
+        - listItem
+        - orderedList
+        - text
+
+    BCMSPropType:
+      type: string
+      enum:
+        - STRING
+        - NUMBER
+        - BOOLEAN
+        - DATE
+        - ENUMERATION
+        - MEDIA
+        - GROUP_POINTER
+        - ENTRY_POINTER
+        - WIDGET
+        - RICH_TEXT
+
     BCMSProp:
-      
+      type: object
+      properties:
+        id: 
+          type: string
+        type:
+          $ref: '#/components/schemas/BCMSPropType'
+        required:
+          type: boolean
+        name:
+          type: string
+        label:
+          type: string
+        array:
+          type: boolean
+        defaultData:
+          $ref: '#/components/schemas/BCMSPropData'
+
+        
     BCMSTemplate:
       type: object
       properties:
