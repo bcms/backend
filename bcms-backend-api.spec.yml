@@ -1,0 +1,53 @@
+openapi: '3.0.2'
+info:
+  version: '3.0.0'
+  title: 'BCMS - REST API'
+  description: 'This is OpenAPI documentation for the BCMS REST API. It is recommended to use
+    provided tools (like @becomes/cms-client) for communication with CMS but if you need
+    to implement some custom solution this documentation will help you.'
+  contact:
+    name: 'Becomes'
+    url: 'https://thebcms.com/contact'
+    email: 'dev@thebcms.com'
+servers:
+  - url: 'http://localhost:8080/api'
+    description: 'Local development'
+paths: {}
+
+components:
+  schemas:
+    BCMSProp:
+      
+    BCMSTemplate:
+      type: object
+      properties:
+        _id:
+          type: string
+        createdAt:
+          type: number
+        updatedAt:
+          type: number
+        cid:
+          type: string
+        name:
+          type: string
+        label:
+          type: string
+        desc:
+          type: string
+        userId:
+          type: string
+        singleEntry:
+          type: boolean
+        props:
+          type: array
+          items:
+            $ref: '#/components/schemas/BCMSProp'
+
+  securitySchemes:
+    AccessToken:
+      type: http
+      scheme: bearer
+    HttpSignature:
+      type: http
+      scheme: bearer

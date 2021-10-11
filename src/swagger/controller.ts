@@ -26,7 +26,11 @@ export const BCMSSwaggerController = createController({
         async handler({ request, response }) {
           if (!swaggerHandler) {
             const fs = useFS();
-            const file = (await fs.read(path.join(__dirname, 'spec.yaml')))
+            const file = (
+              await fs.read(
+                path.join(process.cwd(), 'bcms-backend-api.spec.yml'),
+              )
+            )
               .toString()
               .replace('@PORT', '' + BCMSConfig.port);
             swaggerHandler = setup(YAML.parse(file), {
