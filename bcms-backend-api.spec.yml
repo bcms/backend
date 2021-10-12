@@ -17,13 +17,27 @@ paths: {}
 
 components:
   schemas:
+    BCMSPropType:
+      type: string
+      enum:
+        - STRING
+        - NUMBER
+        - BOOLEAN
+        - DATE
+        - ENUMERATION
+        - MEDIA
+        - GROUP_POINTER
+        - ENTRY_POINTER
+        - WIDGET
+        - RICH_TEXT
     BCMSPropDateData:
-      oneOf:
-        - type: array
-          items:
-            type: number
+      type: array
+      items:
+        type: number
     BCMSPropEnumData:
       type: object
+      required:
+        - items
       properties:
         items:
           type: array
@@ -33,6 +47,10 @@ components:
           type: string
     BCMSPropEntryPointerData:
       type: object
+      required:
+        - templateId
+        - entryIds
+        - displayProp
       properties:
         templateId:
           type: string
@@ -44,114 +62,35 @@ components:
           type: string
     BCMSPropGroupPointerData:
       type: object
+      required:
+        - _id
       properties:
         _id:
           type: string
-
     BCMSPropMediaData:
-      oneOf:
-        - type: string
-
+      type: string
     BCMSPropWidgetData:
       type: object
+      required:
+        - _id
       properties:
         _id:
           type: string
-    BCMSEntryContentNodeHeadingAttr:
-      type: object
-      properties:
-        level:
-          type: number
-
-    BCMSEntryContentNodeLinkAttr:
-      type: object
-      properties:
-        href:
-          type: string
-        target:
-          type: string
-    BCMSTemplateCreateData:
-      type: object
-      properties:
-        label:
-          type: string
-        desc:
-          type: string
-        singleEntry:
-          type: boolean
-    BCMSTemplateUpdateData:
-      type: object
-      properties:
-        _id:
-          type: string
-        label:
-          type: string
-        desc:
-          type: string
-        singleEntry:
-          type: boolean
-        propChanges:
-          type: array
-          items:
-            $ref: '#/components/schemas/BCMSPropChange'
-
-    BCMSPropChange:
-      type: object
-      properties:
-        add:
-          $ref: '#/components/schemas/BCMSPropChangeAdd'
-        remove:
-          type: string
-        update:
-          $ref: '#/components/schemas/BCMSPropChangeUpdate'
-
-    BCMSPropChangeUpdate:
-      type: object
-      properties:
-        id:
-          type: string
-        label:
-          type: string
-        move:
-          type: number
-        required:
-          type: boolean
-        enumItems:
-          type: array
-          items:
-            type: string
-
-    BCMSPropChangeAdd:
-      type: object
-      properties:
-        label:
-          type: string
-        type:
-          $ref: '#/components/schemas/BCMSPropType'
-        required:
-          type: boolean
-        array:
-          type: boolean
-        defaultData:
-          $ref: '#/components/schemas/BCMSPropData'
-    BCMSEntryContentNodeMarker:
-      type: object
-      properties:
-        type:
-          $ref: '#/components/schemas/BCMSEntryContentNodeMarkerType'
-        attrs:
-          $ref: '#/components/schemas/BCMSEntryContentNodeLinkAttr'
-
     BCMSPropValue:
       type: object
+      required:
+        - id
+        - data
       properties:
         id:
           type: string
         data:
-          $ref: '#/components/schemas/BCMSPropValueData'
-
+          $ref: '#/components/schemas/BCMSPropValueData'    
     BCMSPropValueGroupPointerData:
       type: object
+      required:
+        - _id
+        - items
       properties:
         _id:
           type: string
@@ -159,6 +98,8 @@ components:
           type: array
           items:
             type: object
+            required:
+              - props
             properties:
               props:
                 type: array
@@ -166,11 +107,34 @@ components:
                   $ref: '#/components/schemas/BCMSPropValue'
     BCMSPropValueRichTextData:
       type: object
+      required:
+        - nodes
       properties:
         nodes:
           type: array
           items:
             $ref: '#/components/schemas/BCMSEntryContentNode'
+    BCMSPropRichTextData:
+      type: object
+      required:
+        - nodes
+      properties:
+        nodes:
+          type: array
+          items:
+            $ref: '#/components/schemas/BCMSEntryContentNode'
+    BCMSPropValueWidgetData:
+      type: object
+      required:
+        - _id
+        - props
+      properties:
+        _id:
+          type: string
+        props:
+          type: array
+          items:
+            $ref: '#/components/schemas/BCMSPropValue'
     BCMSPropValueData:
       oneOf:
         - type: array
@@ -191,57 +155,13 @@ components:
         - type: array
           items:
             $ref: '#/components/schemas/BCMSPropValueRichTextData'
-
-    BCMSPropValueWidgetData:
-      type: object
-      properties:
-        _id:
-          type: string
-        props:
-          type: array
-          items:
-            $ref: '#/components/schemas/BCMSPropValue'
-
-    BCMSEntryContentNode:
-      type: object
-      properties:
-        type:
-          $ref: '#/components/schemas/BCMSEntryContentNodeType'
-        content:
-          type: array
-          items:
-            $ref: '#/components/schemas/BCMSEntryContentNode'
-        attrs:
-          oneOf:
-            - $ref: '#/components/schemas/BCMSEntryContentNodeHeadingAttr'
-            - $ref: '#/components/schemas/BCMSPropValueWidgetData'
-            - $ref: '#/components/schemas/BCMSEntryContentNodeLinkAttr'
-        marks:
-          type: array
-          items:
-            $ref: '#/components/schemas/BCMSEntryContentNodeMarker'
-        text:
-          type: string
-
-    BCMSPropRichTextData:
-      type: object
-      properties:
-        nodes:
-          type: array
-          items:
-            $ref: '#/components/schemas/BCMSEntryContentNode'
-
     BCMSPropEntryPointerDataParsed:
       type: object
-      properties:
-        schema:
-          type: object
-          additionalProperties:
-            name: lng
-            type: array
-            $ref: '#/components/schemas/BCMSPropData'
-
-
+      additionalProperties:
+        x-name: lng
+        type: array
+        items:
+          $ref: '#/components/schemas/BCMSPropData'
     BCMSPropData:
       oneOf:
         - type: array
@@ -264,42 +184,16 @@ components:
         - type: array
           items:
             $ref: '#/components/schemas/BCMSPropRichTextData'
-    BCMSEntryContentNodeMarkerType:
-      type: string
-      enum:
-        - bold
-        - italic
-        - underline
-        - stripe
-        - link
-
-    BCMSEntryContentNodeType:
-      type: string
-      enum:
-        - paragraph
-        - heading
-        - widget
-        - bulletList
-        - listItem
-        - orderedList
-        - text
-
-    BCMSPropType:
-      type: string
-      enum:
-        - STRING
-        - NUMBER
-        - BOOLEAN
-        - DATE
-        - ENUMERATION
-        - MEDIA
-        - GROUP_POINTER
-        - ENTRY_POINTER
-        - WIDGET
-        - RICH_TEXT
-
     BCMSProp:
       type: object
+      required:
+        - id
+        - type
+        - required
+        - name
+        - label
+        - array
+        - defaultData
       properties:
         id:
           type: string
@@ -316,8 +210,165 @@ components:
         defaultData:
           $ref: '#/components/schemas/BCMSPropData'
 
+    BCMSPropChangeUpdate:
+      type: object
+      required:
+        - id
+        - label
+        - move
+        - required
+      properties:
+        id:
+          type: string
+        label:
+          type: string
+        move:
+          type: number
+        required:
+          type: boolean
+        enumItems:
+          type: array
+          items:
+            type: string
+    BCMSPropChangeAdd:
+      type: object
+      required:
+        - label
+        - type
+        - required
+        - array
+      properties:
+        label:
+          type: string
+        type:
+          $ref: '#/components/schemas/BCMSPropType'
+        required:
+          type: boolean
+        array:
+          type: boolean
+        defaultData:
+          $ref: '#/components/schemas/BCMSPropData'
+    BCMSPropChange:
+      type: object
+      properties:
+        add:
+          $ref: '#/components/schemas/BCMSPropChangeAdd'
+        remove:
+          type: string
+        update:
+          $ref: '#/components/schemas/BCMSPropChangeUpdate'
+
+    BCMSEntryContentNodeHeadingAttr:
+      type: object
+      required:
+        - level
+      properties:
+        level:
+          type: number
+    BCMSEntryContentNodeLinkAttr:
+      type: object
+      required:
+        - href
+        - target
+      properties:
+        href:
+          type: string
+        target:
+          type: string
+    BCMSEntryContentNodeMarker:
+      type: object
+      required:
+        - type
+        - attrs
+      properties:
+        type:
+          $ref: '#/components/schemas/BCMSEntryContentNodeMarkerType'
+        attrs:
+          $ref: '#/components/schemas/BCMSEntryContentNodeLinkAttr'
+    BCMSEntryContentNodeMarkerType:
+      type: string
+      enum:
+        - bold
+        - italic
+        - underline
+        - stripe
+        - link
+    BCMSEntryContentNodeType:
+      type: string
+      enum:
+        - paragraph
+        - heading
+        - widget
+        - bulletList
+        - listItem
+        - orderedList
+        - text
+    BCMSEntryContentNode:
+      type: object
+      required:
+        - type
+      properties:
+        type:
+          $ref: '#/components/schemas/BCMSEntryContentNodeType'
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/BCMSEntryContentNode'
+        attrs:
+          oneOf:
+            - $ref: '#/components/schemas/BCMSEntryContentNodeHeadingAttr'
+            - $ref: '#/components/schemas/BCMSPropValueWidgetData'
+            - $ref: '#/components/schemas/BCMSEntryContentNodeLinkAttr'
+        marks:
+          type: array
+          items:
+            $ref: '#/components/schemas/BCMSEntryContentNodeMarker'
+        text:
+          type: string
+
+    BCMSTemplateCreateData:
+      type: object
+      required:
+        - label
+        - desc
+        - singleEntry
+      properties:
+        label:
+          type: string
+        desc:
+          type: string
+        singleEntry:
+          type: boolean
+    BCMSTemplateUpdateData:
+      type: object
+      required:
+        - _id
+      properties:
+        _id:
+          type: string
+        label:
+          type: string
+        desc:
+          type: string
+        singleEntry:
+          type: boolean
+        propChanges:
+          type: array
+          items:
+            $ref: '#/components/schemas/BCMSPropChange'
     BCMSTemplate:
       type: object
+      required:
+        - _id
+        - createdAt
+        - updatedAt
+        - cid
+        - name
+        - label
+        - desc
+        - userId
+        - singleEntry
+        - props
       properties:
         _id:
           type: string
