@@ -33,6 +33,20 @@ components:
           type: boolean
         delete:
           type: boolean
+    BCMSMediaType:
+      type: string
+      enum:
+        - DIR
+        - IMG
+        - VID
+        - TXT
+        - GIF
+        - OTH
+        - PDF
+        - JS
+        - HTML
+        - CSS
+        - JAVA
     BCMSPropType:
       type: string
       enum:
@@ -72,7 +86,7 @@ components:
       type: object
       required:
         - _id
-        - security
+        - src
       properties:
         _id:
           type: string
@@ -182,7 +196,7 @@ components:
           type: string
         createdAt:
           type: number
-        updateAt:
+        updatedAt:
           type: number
         userId:
           type: string
@@ -203,6 +217,102 @@ components:
           type: string
         def:
           type: boolean
+    BCMSMediaAddDirData:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+        parentId: 
+          type: string
+    BCMSMediaUpdateData:
+      type: object
+      required:
+        - _id
+      properties:
+        _id:
+          type: string
+        rename:
+          type: string
+        moveTo:
+          type: string
+    BCMSMediaAggregate:
+      type: object
+      required:
+        - _id
+        - createdAt
+        - updatedAt
+        - userId
+        - type
+        - mimetype
+        - size
+        - name
+        - path
+        - isInRoot
+        - state
+      properties:
+        _id:
+          type: string
+        createdAt:
+          type: number
+        updateAt:
+          type: number
+        userId:
+          type: string
+        type:
+          $ref: '#/components/schemas/BCMSMediaType'
+        mimetype:
+          type: string
+        size:
+          type: number
+        name:
+          type: string
+        path:
+          type: string
+        isInRoot:
+          type: boolean
+        children:
+          $ref: '#/components/schemas/BCMSMediaAggregate'
+    
+            
+    BCMSMediaProps:
+      type: object
+      required:
+        - _id
+        - createdAt
+        - updatedAt
+        - userId
+        - type
+        - mimetype
+        - size
+        - name
+        - isInRoot
+        - hasChildren
+        - parentId
+      properties:
+        _id:
+          type: string
+        createdAt:
+          type: number
+        updateAt:
+          type: number
+        userId:
+          type: string
+        type:
+          $ref: '#/components/schemas/BCMSMediaType'
+        mimetype:
+          type: string
+        size:
+          type: number
+        name:
+          type: string
+        isInRoot:
+          type: boolean
+        hasChildren:
+          type: boolean
+        parentId:
+          type: string  
     BCMSGroupProps:
       type: object
       required:
@@ -590,7 +700,7 @@ components:
           type: string
         createdAt:
           type: number
-        updateAt:
+        updatedAt:
           type: number
         templateId:
           type: string
