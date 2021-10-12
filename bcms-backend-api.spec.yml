@@ -279,6 +279,80 @@ components:
           type: string
         moveTo:
           type: string
+    BCMSUserAddress:
+      type: object
+      properties:
+        country:
+          type: string
+        city:
+          type: string
+        state:
+          type: string
+        zip:
+          type: string
+        street:
+          type: object
+          properties:
+            name:
+              type: string
+            number:
+              type: string
+    BCMSTemplateOrganizerCreateData:
+      type: object
+      required:
+        - label
+        - templateIds
+      properties:
+        label:
+          type: string
+        parentId:
+          type: string
+        templateIds:
+          type: array
+          items:
+            type: string
+    BCMSTemplateOrganizerProps:
+      type: object
+      required:
+        - _id
+        - createdAt
+        - updatedAt
+        - label
+        - name
+        - templateIds
+      properties:
+        _id:
+          type: string
+        createdAt:
+          type: number
+        updatedAt:
+          type: number
+        parentId:
+          type: string
+        label:
+          type: string
+        name:
+          type: string
+        templateIds:
+          type: array
+          items:
+            type: string
+    BCMSTemplateOrganizerUpdateData:
+      type: object
+      required:
+        - _id
+      properties:
+        _id:
+          type: string
+        parentId:
+          type: string
+        label:
+          type: string
+        templateIds:
+          type: array
+          items: 
+            type: string
+
     BCMSMediaAggregate:
       type: object
       required:
