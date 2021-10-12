@@ -17,6 +17,22 @@ paths: {}
 
 components:
   schemas:
+    BCMSUserPolicyCRUD:
+      type: object
+      required:
+        - get
+        - post
+        - put
+        - delete
+      properties:
+        get:
+          type: boolean
+        post:
+          type: boolean
+        put:
+          type: boolean
+        delete:
+          type: boolean
     BCMSPropType:
       type: string
       enum:
@@ -623,6 +639,110 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/BCMSProp'
+    BCMSApiKeyAccess:
+      type: object
+      required:
+        - templates
+        - functions
+      properties:
+        templates:
+          type: array
+          items:
+            allOf:
+              - $ref: '#/components/schemas/BCMSUserPolicyCRUD'
+              - type: object
+                required:
+                  - _id
+                properties:
+                  _id: 
+                    type: string
+        functions:
+          type: array
+          items:
+            type: object
+            required: 
+              - name
+            properties:
+              name:
+                type: string
+    BCMSApiKeyAddData:
+      type: object
+      required:
+        - name
+        - desc
+        - blocked
+        - access
+      properties:
+        name:
+          type: string
+        desc:
+          type: string
+        blocked:
+          type: boolean
+        access:
+          $ref: '#/components/schemas/BCMSApiKeyAccess'
+    BCMSApiKeyRequest:
+      type: object
+      required:
+        - payload
+        - query
+      properties:
+        payload:
+          type: object
+          format: any
+        query:
+          type: object
+          format: any
+    BCMSApiKeyUpdateData:
+      type: object
+      required:
+        - _id
+      properties:
+        _id:
+          type: string
+        name:
+          type: string
+        desc:
+          type: string
+        blocked:
+          type: boolean
+        access:
+          $ref: '#/components/schemas/BCMSApiKeyAccess'
+        
+        
+    BCMSApiKeyProps:
+      type: object
+      required:
+        - _id
+        - createdAt
+        - updatedAt
+        - userId
+        - name
+        - desc
+        - blocked
+        - secret
+        - access
+      properties:
+        _id:
+          type: string
+        createdAt:
+          type: number
+        updatedAt:
+          type: number
+        userId:
+          type: string
+        name:
+          type: string
+        desc:
+          type: string
+        blocked:
+          type: boolean
+        secret:
+          type: string
+        access:
+          $ref: '#/components/schemas/BCMSApiKeyAccess'
+       
+
 
   securitySchemes:
     AccessToken:
