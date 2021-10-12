@@ -30,6 +30,17 @@ components:
         - ENTRY_POINTER
         - WIDGET
         - RICH_TEXT
+    BCMSPropMediaDataParsed:
+      type: object
+      required:
+        - _id
+        - security
+      properties:
+        _id:
+          type: string
+        src:
+          type: string
+
     BCMSPropDateData:
       type: array
       items:
@@ -162,6 +173,65 @@ components:
         type: array
         items:
           $ref: '#/components/schemas/BCMSPropData'
+    BCMSPropParsed:
+      type: object
+      additionalProperties:
+        x-name: name
+        type: array
+        items:
+          $ref: '#/components/schemas/BCMSPropDataParsed'
+    BCMSPropWidgetDataParsed:
+      type: object
+      additionalProperties:
+        x-name: key
+        type: array
+        items:
+          $ref: '#/components/schemas/BCMSPropDataParsed'
+    BCMSPropGroupPointerDataParsed:
+      type: object
+      additionalProperties:
+        x-name: key
+        type: array
+        items:
+          oneOf:
+            - $ref: '#/components/schemas/BCMSPropDataParsed'
+            - type: array
+              items:
+                $ref: '#/components/schemas/BCMSPropDataParsed'
+    BCMSPropDataParsed:
+      oneOf:
+        - type: string
+        - type: array
+          items:
+            type: string
+        - type: boolean
+        - type: array
+          items:
+            type: boolean
+        - type: number
+        - type: array
+          items:
+            type: number
+        - $ref: '#/components/schemas/BCMSPropEnumData'
+        - $ref: '#/components/schemas/BCMSPropEntryPointerData'
+        - $ref: '#/components/schemas/BCMSPropGroupPointerDataParsed'
+        - type: array
+          items:
+            $ref: '#/components/schemas/BCMSPropGroupPointerDataParsed'
+        - $ref: '#/components/schemas/BCMSPropWidgetDataParsed'
+        - $ref: '#/components/schemas/BCMSPropMediaDataParsed'
+        - type: array
+          items:
+            $ref: '#/components/schemas/BCMSPropMediaDataParsed'
+        - type: object
+          required:
+            - type
+            - value
+          properties:
+            type: 
+              $ref: '#/components/schemas/BCMSPropType'
+            value:
+              $ref: '#/components/schemas/BCMSPropDataParsed'
     BCMSPropData:
       oneOf:
         - type: array
