@@ -46,6 +46,28 @@ components:
         - ENTRY_POINTER
         - WIDGET
         - RICH_TEXT
+    BCMSIdCounterProps:
+      type: object
+      required:
+        - _id
+        - createdAt
+        - updatedAt
+        - name
+        - forId
+        - count
+      properties:
+        _id:
+          type: string
+        createdAt:
+          type: number
+        updatedAt:
+          type: number
+        name:
+          type: string
+        forId:
+          type: string
+        count:
+          type: number
     BCMSPropMediaDataParsed:
       type: object
       required:
