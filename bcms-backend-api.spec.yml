@@ -153,6 +153,56 @@ components:
       properties:
         _id:
           type: string
+    BCMSLanguageAddData:
+      type: object
+      required:
+        - code
+        - name
+        - nativeName
+      properties:
+        code:
+          type: string
+        name: 
+          type: string
+        nativeName:
+          type: string
+    BCMSLanguageProps: 
+      type: object
+      required:
+        - _id
+        - createdAt
+        - updatedAt
+        - userId
+        - code
+        - name
+        - nativeName
+        - def
+      properties:
+        _id:
+          type: string
+        createdAt:
+          type: number
+        updateAt:
+          type: number
+        userId:
+          type: string
+        code:
+          type: string
+        name:
+          type: string
+        nativeName:
+          type: string
+        def:
+          type: boolean
+    BCMSLanguageUpdateData:
+      type: object
+      required:
+        - _id
+      properties:
+        _id:
+          type: string
+        def:
+          type: boolean
     BCMSGroupProps:
       type: object
       required:
