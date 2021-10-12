@@ -217,6 +217,48 @@ components:
           type: string
         def:
           type: boolean
+    BCMSStatusCreateData:
+      type: object
+      required:
+        - label
+      properties:
+        label:
+          type: string
+        color:
+          type: string
+    BCMSStatusProps:
+      type: object
+      required:
+        - _id
+        - createdAt
+        - updatedAt
+        - label
+        - name
+        - color
+      properties:
+        _id:
+          type: string
+        createdAt:
+          type: number
+        updatedAt:
+          type: number
+        label:
+          type: string
+        name:
+          type: string
+        color:
+          type: string
+    BCMSStatusUpdateData:
+      type: object
+      required:
+        - _id
+      properties:
+        _id:
+          type: string
+        label:
+          type: string
+        color:
+          type: string
     BCMSMediaAddDirData:
       type: object
       required:
