@@ -166,6 +166,13 @@ components:
         - type: array
           items:
             $ref: '#/components/schemas/BCMSPropValueRichTextData'
+    BCMSEntryParsedMeta:
+      type: object
+      additionalProperties:
+        x-name: lng
+        type: array
+        items:
+          $ref: '#/components/schemas/BCMSPropParsed'
     BCMSPropEntryPointerDataParsed:
       type: object
       additionalProperties:
@@ -327,7 +334,161 @@ components:
           type: string
         update:
           $ref: '#/components/schemas/BCMSPropChangeUpdate'
+    BCMSEntryCreateData:
+      type: object
+      required:
+        - templateId
+        - meta
+        - content
+      properties:
+        templateId:
+          type: string
+        status:
+          type: string
+        meta:
+          type: array
+          items:
+            $ref: '#/components/schemas/BCMSEntryMeta'
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/BCMSEntryContent'
+    BCMSEntryLite:
+      type: object
+      required:
+        - _id
+        - createdAt
+        - updatedAt
+        - cid
+        - templateId
+        - userId
+        - meta
+      properties:
+        _id:
+          type: string
+        createdAt:
+          type: number
+        updatedAt:
+          type: number
+        cid:
+          type: string
+        templateId:
+          type: string
+        userId:
+          type: string
+        meta:
+          type: array
+          items:
+            $ref: '#/components/schemas/BCMSEntryMeta'
+    BCMSEntryProps:
+      type: object
+      required:
+        - _id
+        - createdAt
+        - updatedAt
+        - cid
+        - templateId
+        - userId
+        - meta
+        - content
+      properties:
+        _id:
+          type: string
+        createdAt:
+          type: number
+        updatedAt:
+          type: number
+        cid:
+          type: string
+        templateId:
+          type: string
+        userId:
+          type: string
+        status:
+          type: string
+        meta:
+          type: array
+          items:
+            $ref: '#/components/schemas/BCMSEntryMeta'
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/BCMSEntryContent'
+    BCMSEntryParsed:
+      type: object
+      required:
+        - _id
+        - createdAt
+        - updatedAt
+        - templateId
+        - userId
+        - status
+        - meta
+      properties:
+        _id:
+          type: string
+        createdAt:
+          type: number
+        updateAt:
+          type: number
+        templateId:
+          type: string
+        userId:
+          type: string
+        status:
+          type: string
+        meta:
+          type: array
+          items:
+            $ref: '#/components/schemas/BCMSEntryParsedMeta'
+    BCMSEntryUpdateData:
+      type: object
+      required: 
+        - _id
+        - templateId
+        - meta
+        - content
+      properties:
+        _id:
+          type: string
+        templateId:
+          type: string
+        status:
+          type: string
+        meta:
+          type: array
+          items:
+            $ref: '#/components/schemas/BCMSEntryMeta'
+        content:
+          type: array
+          items:
+            $ref: '#/components/schemas/BCMSEntryContent'
 
+    BCMSEntryMeta:
+      type: object
+      required:
+        - lng
+        - props
+      properties:
+        lng:
+          type: string
+        props:
+          type: array
+          items:
+            $ref: '#/components/schemas/BCMSPropValue'
+
+    BCMSEntryContent:
+      type: object
+      required:
+        - lng
+        - nodes
+      properties:
+        lng:
+          type: string
+        nodes:
+          type: array
+          items:
+            $ref: '#/components/schemas/BCMSEntryContentNode'
     BCMSEntryContentNodeHeadingAttr:
       type: object
       required:
@@ -426,7 +587,7 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/BCMSPropChange'
-    BCMSTemplate:
+    BCMSTemplateProps:
       type: object
       required:
         - _id
