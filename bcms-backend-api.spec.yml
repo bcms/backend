@@ -56,7 +56,35 @@ components:
           type: string
         src:
           type: string
-
+    BCMSGroupAddData:
+      type: object
+      required:
+        - label
+        - desc
+      properties:
+        label:
+          type: string
+        desc: 
+          type: string 
+    BCMSGroupLite:
+      type: object
+      required:
+        - cid
+        - name
+        - label
+        - desc
+        - propsCount
+      properties:
+        cid:
+          type: string
+        name:
+          type: string
+        label:
+          type: string
+        desc:
+          type: string
+        propsCount:
+          type: number
     BCMSPropDateData:
       type: array
       items:
@@ -103,6 +131,51 @@ components:
       properties:
         _id:
           type: string
+    BCMSGroupProps:
+      type: object
+      required:
+        - _id
+        - createdAt
+        - updatedAt
+        - cid
+        - name
+        - label
+        - desc
+        - props
+      properties:
+        _id:
+          type: string
+        createdAt:
+          type: number
+        updateAt:
+          type: number
+        cid:
+          type: string
+        name:
+          type: string
+        label:
+          type: string
+        desc:
+          type: string
+        props:
+          type: array
+          items:
+            $ref: '#/components/schemas/BCMSProp'
+    BCMSGroupUpdateData:
+      type: object
+      required:
+        - _id
+      properties:
+        _id:
+          type: string
+        label:
+          type: string
+        desc: 
+          type: string
+        propChanges:
+          type: array
+          items:
+            $ref: '#/components/schemas/BCMSPropChange'
     BCMSPropValue:
       type: object
       required:
@@ -741,7 +814,8 @@ components:
           type: string
         access:
           $ref: '#/components/schemas/BCMSApiKeyAccess'
-       
+    
+        
 
 
   securitySchemes:
