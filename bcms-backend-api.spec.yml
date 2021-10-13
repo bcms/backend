@@ -45,6 +45,137 @@ paths:
                     type: string
                   refreshToken:
                     type: string
+  /template/all:
+    get:
+      tags:
+        - Template
+      summary: Show all templates from database
+      security:
+        - AccessToken: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - items
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/BCMSTemplate'
+  /template/{id}:
+    get:
+      tags:
+        - Template
+      summary: Get all about template using id
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: Template ID
+      security:
+        - AccessToken: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - item
+                properties:
+                  item:
+                    $ref: '#/components/schemas/BCMSTemplate'
+  /template/many:
+    get:
+      tags: 
+        - Template
+      summary: Show all template using id
+      parameters:
+        - in: header
+          name: x-bcms-ids
+          schema:
+            type: string
+          required: true
+          description: Get templates with specified IDs. 
+      security:
+        - AccessToken: []    
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - items
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/BCMSTemplate'
+  /template/count:
+    get:
+      tags:
+        - Template
+      summary: Number of templates
+      security:
+        - AccessToken: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - count
+                properties:
+                  count:
+                    type: number
+  /template:
+    post:
+      tags:
+        - Template
+      summary: Create template
+      security:
+        - AccessToken: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - label
+                - desc
+                - singleEntry
+              properties:
+                label:
+                  type: string
+                desc:
+                  type: string
+                singleEntry:
+                  type: boolean
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - item
+                properties:
+                  item:
+                    $ref: '#/components/schemas/BCMSTemplate'
+
   /auth/token/refresh/{userId}:
     post:
       tags:
@@ -66,6 +197,8 @@ paths:
             application/json:
               schema:
                 type: object
+                required:
+                  - accessToken
                 properties:
                   accessToken:
                     type: string
@@ -90,6 +223,8 @@ paths:
             application/json:
               schema:
                 type: object
+                required:
+                  - ok
                 properties:
                   ok:
                     type: boolean
@@ -108,6 +243,8 @@ paths:
             application/json:
               schema:
                 type: object
+                required:
+                  - item
                 properties:
                   item:
                     $ref: '#/components/schemas/BCMSProtectedUser'
@@ -130,6 +267,8 @@ paths:
             application/json:
               schema:
                 type: object
+                required:
+                  - item
                 properties:
                   item:
                     $ref: '#/components/schemas/BCMSProtectedUser'
@@ -155,6 +294,8 @@ paths:
             application/json:
               schema:
                 type: object
+                required:
+                  - item
                 properties:
                   item:
                     $ref: '#/components/schemas/BCMSProtectedUser'
@@ -192,6 +333,8 @@ paths:
             application/json:
               schema:
                 type: object
+                required:
+                  - items
                 properties:
                   items:
                     type: array
@@ -263,7 +406,7 @@ components:
         - WRITE
         - DELETE
         - EXECUTE
-    BCMSIdCounterProps:
+    BCMSIdCounter:
       type: object
       required:
         - _id
@@ -383,7 +526,7 @@ components:
           type: string
         nativeName:
           type: string
-    BCMSLanguageProps:
+    BCMSLanguage:
       type: object
       required:
         - _id
@@ -429,7 +572,7 @@ components:
           type: string
         color:
           type: string
-    BCMSStatusProps:
+    BCMSStatus:
       type: object
       required:
         - _id
@@ -515,7 +658,7 @@ components:
           type: array
           items:
             type: string
-    BCMSTemplateOrganizerProps:
+    BCMSTemplateOrganizer:
       type: object
       required:
         - _id
@@ -747,7 +890,7 @@ components:
         children:
           $ref: '#/components/schemas/BCMSMediaAggregate'
 
-    BCMSMediaProps:
+    BCMSMedia:
       type: object
       required:
         - _id
@@ -784,7 +927,7 @@ components:
           type: boolean
         parentId:
           type: string
-    BCMSGroupProps:
+    BCMSGroup:
       type: object
       required:
         - _id
@@ -1122,7 +1265,7 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/BCMSEntryMeta'
-    BCMSEntryProps:
+    BCMSEntry:
       type: object
       required:
         - _id
@@ -1329,7 +1472,7 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/BCMSPropChange'
-    BCMSTemplateProps:
+    BCMSTemplate:
       type: object
       required:
         - _id
@@ -1435,7 +1578,7 @@ components:
         access:
           $ref: '#/components/schemas/BCMSApiKeyAccess'
 
-    BCMSApiKeyProps:
+    BCMSApiKey:
       type: object
       required:
         - _id
