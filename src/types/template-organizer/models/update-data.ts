@@ -4,7 +4,7 @@ export interface BCMSTemplateOrganizerUpdateData {
   _id: string;
   parentId?: string;
   label?: string;
-  templateIds?: [];
+  templateIds?: string[];
 }
 
 export const BCMSTemplateOrganizerUpdateDataSchema: ObjectSchema = {

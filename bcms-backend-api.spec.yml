@@ -17,6 +17,36 @@ paths: {}
 
 components:
   schemas:
+    BCMSUserPolicyCRUD:
+      type: object
+      required:
+        - get
+        - post
+        - put
+        - delete
+      properties:
+        get:
+          type: boolean
+        post:
+          type: boolean
+        put:
+          type: boolean
+        delete:
+          type: boolean
+    BCMSMediaType:
+      type: string
+      enum:
+        - DIR
+        - IMG
+        - VID
+        - TXT
+        - GIF
+        - OTH
+        - PDF
+        - JS
+        - HTML
+        - CSS
+        - JAVA
     BCMSPropType:
       type: string
       enum:
@@ -30,17 +60,67 @@ components:
         - ENTRY_POINTER
         - WIDGET
         - RICH_TEXT
+    BCMSIdCounterProps:
+      type: object
+      required:
+        - _id
+        - createdAt
+        - updatedAt
+        - name
+        - forId
+        - count
+      properties:
+        _id:
+          type: string
+        createdAt:
+          type: number
+        updatedAt:
+          type: number
+        name:
+          type: string
+        forId:
+          type: string
+        count:
+          type: number
     BCMSPropMediaDataParsed:
       type: object
       required:
         - _id
-        - security
+        - src
       properties:
         _id:
           type: string
         src:
           type: string
-
+    BCMSGroupAddData:
+      type: object
+      required:
+        - label
+        - desc
+      properties:
+        label:
+          type: string
+        desc: 
+          type: string 
+    BCMSGroupLite:
+      type: object
+      required:
+        - cid
+        - name
+        - label
+        - desc
+        - propsCount
+      properties:
+        cid:
+          type: string
+        name:
+          type: string
+        label:
+          type: string
+        desc:
+          type: string
+        propsCount:
+          type: number
     BCMSPropDateData:
       type: array
       items:
@@ -87,6 +167,313 @@ components:
       properties:
         _id:
           type: string
+    BCMSLanguageAddData:
+      type: object
+      required:
+        - code
+        - name
+        - nativeName
+      properties:
+        code:
+          type: string
+        name: 
+          type: string
+        nativeName:
+          type: string
+    BCMSLanguageProps: 
+      type: object
+      required:
+        - _id
+        - createdAt
+        - updatedAt
+        - userId
+        - code
+        - name
+        - nativeName
+        - def
+      properties:
+        _id:
+          type: string
+        createdAt:
+          type: number
+        updatedAt:
+          type: number
+        userId:
+          type: string
+        code:
+          type: string
+        name:
+          type: string
+        nativeName:
+          type: string
+        def:
+          type: boolean
+    BCMSLanguageUpdateData:
+      type: object
+      required:
+        - _id
+      properties:
+        _id:
+          type: string
+        def:
+          type: boolean
+    BCMSStatusCreateData:
+      type: object
+      required:
+        - label
+      properties:
+        label:
+          type: string
+        color:
+          type: string
+    BCMSStatusProps:
+      type: object
+      required:
+        - _id
+        - createdAt
+        - updatedAt
+        - label
+        - name
+        - color
+      properties:
+        _id:
+          type: string
+        createdAt:
+          type: number
+        updatedAt:
+          type: number
+        label:
+          type: string
+        name:
+          type: string
+        color:
+          type: string
+    BCMSStatusUpdateData:
+      type: object
+      required:
+        - _id
+      properties:
+        _id:
+          type: string
+        label:
+          type: string
+        color:
+          type: string
+    BCMSMediaAddDirData:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          type: string
+        parentId: 
+          type: string
+    BCMSMediaUpdateData:
+      type: object
+      required:
+        - _id
+      properties:
+        _id:
+          type: string
+        rename:
+          type: string
+        moveTo:
+          type: string
+    BCMSUserAddress:
+      type: object
+      properties:
+        country:
+          type: string
+        city:
+          type: string
+        state:
+          type: string
+        zip:
+          type: string
+        street:
+          type: object
+          properties:
+            name:
+              type: string
+            number:
+              type: string
+    BCMSTemplateOrganizerCreateData:
+      type: object
+      required:
+        - label
+        - templateIds
+      properties:
+        label:
+          type: string
+        parentId:
+          type: string
+        templateIds:
+          type: array
+          items:
+            type: string
+    BCMSTemplateOrganizerProps:
+      type: object
+      required:
+        - _id
+        - createdAt
+        - updatedAt
+        - label
+        - name
+        - templateIds
+      properties:
+        _id:
+          type: string
+        createdAt:
+          type: number
+        updatedAt:
+          type: number
+        parentId:
+          type: string
+        label:
+          type: string
+        name:
+          type: string
+        templateIds:
+          type: array
+          items:
+            type: string
+    BCMSTemplateOrganizerUpdateData:
+      type: object
+      required:
+        - _id
+      properties:
+        _id:
+          type: string
+        parentId:
+          type: string
+        label:
+          type: string
+        templateIds:
+          type: array
+          items: 
+            type: string
+
+    BCMSMediaAggregate:
+      type: object
+      required:
+        - _id
+        - createdAt
+        - updatedAt
+        - userId
+        - type
+        - mimetype
+        - size
+        - name
+        - path
+        - isInRoot
+        - state
+      properties:
+        _id:
+          type: string
+        createdAt:
+          type: number
+        updateAt:
+          type: number
+        userId:
+          type: string
+        type:
+          $ref: '#/components/schemas/BCMSMediaType'
+        mimetype:
+          type: string
+        size:
+          type: number
+        name:
+          type: string
+        path:
+          type: string
+        isInRoot:
+          type: boolean
+        children:
+          $ref: '#/components/schemas/BCMSMediaAggregate'
+    
+            
+    BCMSMediaProps:
+      type: object
+      required:
+        - _id
+        - createdAt
+        - updatedAt
+        - userId
+        - type
+        - mimetype
+        - size
+        - name
+        - isInRoot
+        - hasChildren
+        - parentId
+      properties:
+        _id:
+          type: string
+        createdAt:
+          type: number
+        updateAt:
+          type: number
+        userId:
+          type: string
+        type:
+          $ref: '#/components/schemas/BCMSMediaType'
+        mimetype:
+          type: string
+        size:
+          type: number
+        name:
+          type: string
+        isInRoot:
+          type: boolean
+        hasChildren:
+          type: boolean
+        parentId:
+          type: string  
+    BCMSGroupProps:
+      type: object
+      required:
+        - _id
+        - createdAt
+        - updatedAt
+        - cid
+        - name
+        - label
+        - desc
+        - props
+      properties:
+        _id:
+          type: string
+        createdAt:
+          type: number
+        updateAt:
+          type: number
+        cid:
+          type: string
+        name:
+          type: string
+        label:
+          type: string
+        desc:
+          type: string
+        props:
+          type: array
+          items:
+            $ref: '#/components/schemas/BCMSProp'
+    BCMSGroupUpdateData:
+      type: object
+      required:
+        - _id
+      properties:
+        _id:
+          type: string
+        label:
+          type: string
+        desc: 
+          type: string
+        propChanges:
+          type: array
+          items:
+            $ref: '#/components/schemas/BCMSPropChange'
     BCMSPropValue:
       type: object
       required:
@@ -429,7 +816,7 @@ components:
           type: string
         createdAt:
           type: number
-        updateAt:
+        updatedAt:
           type: number
         templateId:
           type: string
@@ -623,6 +1010,111 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/BCMSProp'
+    BCMSApiKeyAccess:
+      type: object
+      required:
+        - templates
+        - functions
+      properties:
+        templates:
+          type: array
+          items:
+            allOf:
+              - $ref: '#/components/schemas/BCMSUserPolicyCRUD'
+              - type: object
+                required:
+                  - _id
+                properties:
+                  _id: 
+                    type: string
+        functions:
+          type: array
+          items:
+            type: object
+            required: 
+              - name
+            properties:
+              name:
+                type: string
+    BCMSApiKeyAddData:
+      type: object
+      required:
+        - name
+        - desc
+        - blocked
+        - access
+      properties:
+        name:
+          type: string
+        desc:
+          type: string
+        blocked:
+          type: boolean
+        access:
+          $ref: '#/components/schemas/BCMSApiKeyAccess'
+    BCMSApiKeyRequest:
+      type: object
+      required:
+        - payload
+        - query
+      properties:
+        payload:
+          type: object
+          format: any
+        query:
+          type: object
+          format: any
+    BCMSApiKeyUpdateData:
+      type: object
+      required:
+        - _id
+      properties:
+        _id:
+          type: string
+        name:
+          type: string
+        desc:
+          type: string
+        blocked:
+          type: boolean
+        access:
+          $ref: '#/components/schemas/BCMSApiKeyAccess'
+        
+        
+    BCMSApiKeyProps:
+      type: object
+      required:
+        - _id
+        - createdAt
+        - updatedAt
+        - userId
+        - name
+        - desc
+        - blocked
+        - secret
+        - access
+      properties:
+        _id:
+          type: string
+        createdAt:
+          type: number
+        updatedAt:
+          type: number
+        userId:
+          type: string
+        name:
+          type: string
+        desc:
+          type: string
+        blocked:
+          type: boolean
+        secret:
+          type: string
+        access:
+          $ref: '#/components/schemas/BCMSApiKeyAccess'
+    
+        
+
 
   securitySchemes:
     AccessToken:
