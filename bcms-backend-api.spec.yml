@@ -28,14 +28,14 @@ paths:
               required:
                 - otp
               properties:
-                otp: 
+                otp:
                   type: string
       responses:
         '200':
           description: OK
           content:
             application/json:
-              schema: 
+              schema:
                 type: object
                 required:
                   - accessToken
@@ -45,10 +45,109 @@ paths:
                     type: string
                   refreshToken:
                     type: string
+  /user:
+    get:
+      tags:
+        - User
+      summary: Show all about current user
+      security:
+        - AccessToken: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  item:
+                    $ref: '#/components/schemas/BCMSProtectedUser'
+    put:
+      tags:
+        - User
+      summary: Update user
+      security:
+        - AccessToken: []
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BCMSUserUpdateData'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  item:
+                    $ref: '#/components/schemas/BCMSProtectedUser'
 
+  /user/{id}:
+    get:
+      tags:
+        - User
+      summary: Get all about user using id
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: User ID
+      security:
+        - AccessToken: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  item:
+                    $ref: '#/components/schemas/BCMSProtectedUser'
 
-
-
+  /user/count:
+    get:
+      tags:
+        - User
+      summary: Get number of user in database
+      security:
+        - AccessToken: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                required:
+                  - count
+                properties:
+                  count:
+                    type: number
+  /user/all:
+    get:
+      tags:
+        - User
+      summary: Show all user from database
+      security:
+        - AccessToken: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  items:
+                    type: array
+                    items:
+                      $ref: '#/components/schemas/BCMSProtectedUser'
 
 components:
   schemas:
@@ -155,8 +254,8 @@ components:
       properties:
         label:
           type: string
-        desc: 
-          type: string 
+        desc:
+          type: string
     BCMSGroupLite:
       type: object
       required:
@@ -231,11 +330,11 @@ components:
       properties:
         code:
           type: string
-        name: 
+        name:
           type: string
         nativeName:
           type: string
-    BCMSLanguageProps: 
+    BCMSLanguageProps:
       type: object
       required:
         - _id
@@ -321,7 +420,7 @@ components:
       properties:
         name:
           type: string
-        parentId: 
+        parentId:
           type: string
     BCMSMediaUpdateData:
       type: object
@@ -352,7 +451,7 @@ components:
               type: string
             number:
               type: string
-    
+
     BCMSTemplateOrganizerCreateData:
       type: object
       required:
@@ -406,8 +505,58 @@ components:
           type: string
         templateIds:
           type: array
-          items: 
+          items:
             type: string
+    BCMSUserUpdateData:
+      type: object
+      required:
+        - _id
+      properties:
+        _id:
+          type: string
+        customPool:
+          type: object
+          properties:
+            policy:
+              type: object
+              properties:
+                media:
+                  $ref: '#/components/schemas/BCMSUserPolicyCRUD'
+                customPortal:
+                  $ref: '#/components/schemas/BCMSUserPolicyCRUD'
+                templates:
+                  type: array
+                  items:
+                    allOf:
+                      - $ref: '#/components/schemas/BCMSUserPolicyCRUD'
+                      - type: object
+                        required:
+                          - _id
+                        properties:
+                          _id:
+                            type: string
+                webhooks:
+                  type: array
+                  items:
+                    allOf:
+                      - $ref: '#/components/schemas/BCMSUserPolicyCRUD'
+                      - type: object
+                        required:
+                          - _id
+                        properties:
+                          _id:
+                            type: string
+                plugins:
+                  type: array
+                  items:
+                    allOf:
+                      - $ref: '#/components/schemas/BCMSUserPolicyCRUD'
+                      - type: object
+                        required:
+                          - name
+                        properties:
+                          name:
+                            type: string
     JWTPermission:
       type: object
       required:
@@ -417,7 +566,7 @@ components:
           $ref: '#/components/schemas/JWTPermissionName'
     BCMSUserPersonal:
       type: object
-      required: 
+      required:
         - firstName
         - lastName
         - avatarUri
@@ -440,7 +589,7 @@ components:
           type: array
           items:
             $ref: '#/components/schemas/JWTPermission'
-      
+
     BCMSUserPolicy:
       type: object
       required:
@@ -457,7 +606,7 @@ components:
                 required:
                   - _id
                 properties:
-                  _id: 
+                  _id:
                     type: string
               - $ref: '#/components/schemas/BCMSUserPolicyCRUD'
         plugins:
@@ -468,7 +617,7 @@ components:
                 required:
                   - name
                 properties:
-                  name: 
+                  name:
                     type: string
               - $ref: '#/components/schemas/BCMSUserPolicyCRUD'
     BCMSProtectedUser:
@@ -495,7 +644,7 @@ components:
         roles:
           type: array
           items:
-             $ref: '#/components/schemas/JWTRole'
+            $ref: '#/components/schemas/JWTRole'
         customPool:
           $ref: '#/components/schemas/BCMSUserCustomPool'
     BCMSUserCustomPool:
@@ -548,8 +697,7 @@ components:
           type: boolean
         children:
           $ref: '#/components/schemas/BCMSMediaAggregate'
-    
-            
+
     BCMSMediaProps:
       type: object
       required:
@@ -586,7 +734,7 @@ components:
         hasChildren:
           type: boolean
         parentId:
-          type: string  
+          type: string
     BCMSGroupProps:
       type: object
       required:
@@ -626,7 +774,7 @@ components:
           type: string
         label:
           type: string
-        desc: 
+        desc:
           type: string
         propChanges:
           type: array
@@ -641,7 +789,7 @@ components:
         id:
           type: string
         data:
-          $ref: '#/components/schemas/BCMSPropValueData'    
+          $ref: '#/components/schemas/BCMSPropValueData'
     BCMSPropValueGroupPointerData:
       type: object
       required:
@@ -780,7 +928,7 @@ components:
             - type
             - value
           properties:
-            type: 
+            type:
               $ref: '#/components/schemas/BCMSPropType'
             value:
               $ref: '#/components/schemas/BCMSPropDataParsed'
@@ -988,7 +1136,7 @@ components:
             $ref: '#/components/schemas/BCMSEntryParsedMeta'
     BCMSEntryUpdateData:
       type: object
-      required: 
+      required:
         - _id
         - templateId
         - meta
@@ -1183,13 +1331,13 @@ components:
                 required:
                   - _id
                 properties:
-                  _id: 
+                  _id:
                     type: string
         functions:
           type: array
           items:
             type: object
-            required: 
+            required:
               - name
             properties:
               name:
@@ -1237,8 +1385,7 @@ components:
           type: boolean
         access:
           $ref: '#/components/schemas/BCMSApiKeyAccess'
-        
-        
+
     BCMSApiKeyProps:
       type: object
       required:
@@ -1270,9 +1417,6 @@ components:
           type: string
         access:
           $ref: '#/components/schemas/BCMSApiKeyAccess'
-    
-        
-
 
   securitySchemes:
     AccessToken:
