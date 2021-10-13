@@ -53,7 +53,7 @@ export interface BCMSEntryContentNodeLinkAttr {
 
 export interface BCMSEntryContentNodeMarker {
   type: BCMSEntryContentNodeMarkerType;
-  attrs: BCMSEntryContentNodeLinkAttr;
+  attrs?: BCMSEntryContentNodeLinkAttr;
 }
 
 // eslint-disable-next-line no-shadow
