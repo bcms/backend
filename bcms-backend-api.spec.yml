@@ -13,7 +13,42 @@ info:
 servers:
   - url: 'http://localhost:8080/api'
     description: 'Local development'
-paths: {}
+paths:
+  /shim/user/verify/otp:
+    post:
+      tags:
+        - Shim
+      summary: Exchange BCMS Cloud OTP code for access and refresh tokens
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              type: object
+              required:
+                - otp
+              properties:
+                otp: 
+                  type: string
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema: 
+                type: object
+                required:
+                  - accessToken
+                  - refreshToken
+                properties:
+                  accessToken:
+                    type: string
+                  refreshToken:
+                    type: string
+
+
+
+
 
 components:
   schemas:
@@ -60,6 +95,26 @@ components:
         - ENTRY_POINTER
         - WIDGET
         - RICH_TEXT
+    JWTRoleName:
+      type: string
+      enum:
+        - SUDO
+        - DEV
+        - ADMIN
+        - OWNER
+        - MANAGER
+        - SERVICE
+        - EDITOR
+        - SUPPORT
+        - USER
+        - GUEST
+    JWTPermissionName:
+      type: string
+      enum:
+        - READ
+        - WRITE
+        - DELETE
+        - EXECUTE
     BCMSIdCounterProps:
       type: object
       required:
@@ -297,6 +352,7 @@ components:
               type: string
             number:
               type: string
+    
     BCMSTemplateOrganizerCreateData:
       type: object
       required:
@@ -352,7 +408,109 @@ components:
           type: array
           items: 
             type: string
-
+    JWTPermission:
+      type: object
+      required:
+        - name
+      properties:
+        name:
+          $ref: '#/components/schemas/JWTPermissionName'
+    BCMSUserPersonal:
+      type: object
+      required: 
+        - firstName
+        - lastName
+        - avatarUri
+      properties:
+        firstName:
+          type: string
+        lastName:
+          type: string
+        avatarUri:
+          type: string
+    JWTRole:
+      type: object
+      required:
+        - name
+        - permissions
+      properties:
+        name:
+          $ref: '#/components/schemas/JWTRoleName'
+        permissions:
+          type: array
+          items:
+            $ref: '#/components/schemas/JWTPermission'
+      
+    BCMSUserPolicy:
+      type: object
+      required:
+        - media
+        - templates
+      properties:
+        media:
+          $ref: '#/components/schemas/BCMSUserPolicyCRUD'
+        templates:
+          type: array
+          items:
+            allOf:
+              - type: object
+                required:
+                  - _id
+                properties:
+                  _id: 
+                    type: string
+              - $ref: '#/components/schemas/BCMSUserPolicyCRUD'
+        plugins:
+          type: array
+          items:
+            allOf:
+              - type: object
+                required:
+                  - name
+                properties:
+                  name: 
+                    type: string
+              - $ref: '#/components/schemas/BCMSUserPolicyCRUD'
+    BCMSProtectedUser:
+      type: object
+      required:
+        - _id
+        - createdAt
+        - updatedAt
+        - username
+        - email
+        - roles
+        - customPool
+      properties:
+        _id:
+          type: string
+        createdAt:
+          type: number
+        updateAt:
+          type: number
+        username:
+          type: string
+        email:
+          type: string
+        roles:
+          type: array
+          items:
+             $ref: '#/components/schemas/JWTRole'
+        customPool:
+          $ref: '#/components/schemas/BCMSUserCustomPool'
+    BCMSUserCustomPool:
+      type: object
+      required:
+        - personal
+        - address
+        - policy
+      properties:
+        personal:
+          $ref: '#/components/schemas/BCMSUserPersonal'
+        address:
+          $ref: '#/components/schemas/BCMSUserAddress'
+        policy:
+          $ref: '#/components/schemas/BCMSUserPolicy'
     BCMSMediaAggregate:
       type: object
       required:
