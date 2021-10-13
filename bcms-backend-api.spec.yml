@@ -45,6 +45,55 @@ paths:
                     type: string
                   refreshToken:
                     type: string
+  /auth/token/refresh/{userId}:
+    post:
+      tags:
+        - Auth
+      summary: Refresh access with user id
+      parameters:
+        - in: path
+          name: userId
+          schema:
+            type: string
+          required: true
+          description: Id user
+      security:
+        - RefreshToken: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  accessToken:
+                    type: string
+  /auth/logout/{userId}:
+    post:
+      tags:
+        - Auth
+      summary: Logout
+      parameters:
+        - in: path
+          name: userId
+          schema:
+            type: string
+          required: true
+          description: Id user
+      security:
+        - AccessToken: []
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                type: object
+                properties:
+                  ok:
+                    type: boolean
+
   /user:
     get:
       tags:
@@ -1420,6 +1469,9 @@ components:
 
   securitySchemes:
     AccessToken:
+      type: http
+      scheme: bearer
+    RefreshToken:
       type: http
       scheme: bearer
     HttpSignature:
