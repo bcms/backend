@@ -28,6 +28,7 @@ import {
   BCMSWidgetCross,
   BCMSGroupCross,
   BCMSTemplateCross,
+  BCMSPropRichTextData,
 } from '../types';
 
 let objectUtil: ObjectUtility;
@@ -252,36 +253,38 @@ export const BCMSPropHandler: BCMSPropHandlerType = {
             }
           }
           break;
-        case BCMSPropType.RICH_TEXT: {
-          const checkData = objectUtil.compareWithSchema(
-            {
-              data: value.data,
-            },
-            {
-              data: {
-                __type: 'array',
-                __required: true,
-                __child: {
-                  __type: 'object',
-                  __content: {
-                    nodes: {
-                      __type: "array",
-                      __required: true,
-                      __child: {
-                        __type: 'object',
-                        __content: {}
-                      }
-                    }
-                  }
+        case BCMSPropType.RICH_TEXT:
+          {
+            const checkData = objectUtil.compareWithSchema(
+              {
+                data: value.data,
+              },
+              {
+                data: {
+                  __type: 'array',
+                  __required: true,
+                  __child: {
+                    __type: 'object',
+                    __content: {
+                      nodes: {
+                        __type: 'array',
+                        __required: true,
+                        __child: {
+                          __type: 'object',
+                          __content: {},
+                        },
+                      },
+                    },
+                  },
                 },
               },
-            },
-            `${level}.${prop.name}`,
-          );
-          if (checkData instanceof ObjectUtilityError) {
-            return Error(`[${level}.${prop.name}] -> ` + checkData.message);
+              `${level}.${prop.name}`,
+            );
+            if (checkData instanceof ObjectUtilityError) {
+              return Error(`[${level}.${prop.name}] -> ` + checkData.message);
+            }
           }
-        } break;
+          break;
         default: {
           return Error(
             `[${level}.${prop.name}] -> Unknown prop type "${prop.type}"`,
@@ -380,7 +383,15 @@ export const BCMSPropHandler: BCMSPropHandlerType = {
             `[${level}] -> Prop with name "${prop.name}" already exists.`,
           );
         }
-        if (prop.type === BCMSPropType.GROUP_POINTER) {
+        if (
+          prop.type === BCMSPropType.STRING ||
+          prop.type === BCMSPropType.NUMBER ||
+          prop.type === BCMSPropType.BOOLEAN
+        ) {
+          if (change.add.defaultData) {
+            prop.defaultData = change.add.defaultData;
+          }
+        } else if (prop.type === BCMSPropType.GROUP_POINTER) {
           const changeData = change.add.defaultData as BCMSPropGroupPointerData;
           if (!changeData || !changeData._id) {
             return Error(
@@ -419,6 +430,18 @@ export const BCMSPropHandler: BCMSPropHandlerType = {
             entryIds: [],
             templateId: changeData.templateId,
           };
+        } else if (prop.type === BCMSPropType.RICH_TEXT) {
+          if (change.add.defaultData) {
+            prop.defaultData = [];
+            const defaultData = change.add
+              .defaultData as BCMSPropRichTextData[];
+            for (let j = 0; j < defaultData.length; j++) {
+              const data = defaultData[j];
+              if (data.nodes) {
+                (prop.defaultData as BCMSPropRichTextData[]).push(data);
+              }
+            }
+          }
         }
         props.push(prop);
       } else if (typeof change.update === 'object') {
