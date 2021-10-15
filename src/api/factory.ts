@@ -5,8 +5,6 @@ import { useBcmsFunctionManger } from '../function';
 import type { BCMSApiKey, BCMSApiKeyFactory } from '../types';
 
 export function createBcmsApiKeyFactory(): BCMSApiKeyFactory {
-  const functionManager = useBcmsFunctionManger();
-
   return {
     create(data) {
       const apiKey: BCMSApiKey = {
@@ -26,6 +24,7 @@ export function createBcmsApiKeyFactory(): BCMSApiKeyFactory {
       return apiKey;
     },
     rewriteKey(key) {
+      const functionManager = useBcmsFunctionManger();
       const k: BCMSApiKey = JSON.parse(JSON.stringify(key));
       let modified = false;
       const fns = functionManager.getAll();
