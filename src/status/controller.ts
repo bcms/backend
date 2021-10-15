@@ -62,7 +62,7 @@ export const BCMSStatusController = createController<Setup>({
           ),
         async handler() {
           return {
-            count: BCMSRepo.status.count(),
+            count: await BCMSRepo.status.count(),
           };
         },
       }),
@@ -202,7 +202,7 @@ export const BCMSStatusController = createController<Setup>({
 
       deleteById: createControllerMethod({
         path: '/:id',
-        type: 'get',
+        type: 'delete',
         preRequestHandler:
           createJwtProtectionPreRequestHandler<BCMSUserCustomPool>(
             [JWTRoleName.ADMIN],
