@@ -246,6 +246,9 @@ export const BCMSApiKeyController = createController<Setup>({
             userIds: 'all',
             excludeUserId: [accessToken.payload.userId],
           });
+          return {
+            message: 'Success.',
+          }
         },
       }),
     };
