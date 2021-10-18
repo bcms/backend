@@ -33,6 +33,10 @@ export interface BCMSMediaProps {
   isInRoot: boolean;
   hasChildren: boolean;
   parentId: string;
+  altText: string;
+  caption: string;
+  width: number;
+  height: number;
 }
 
 export type BCMSMediaFSDB = FSDBEntity & BCMSMediaProps;
@@ -66,6 +70,22 @@ export const BCMSMediaFSDBSchema: ObjectSchema = {
     __type: 'string',
     __required: true,
   },
+  altText: {
+    __type: 'string',
+    __required: true,
+  },
+  caption: {
+    __type: 'string',
+    __required: true,
+  },
+  width: {
+    __type: 'number',
+    __required: true,
+  },
+  height: {
+    __type: 'number',
+    __required: true,
+  },
 };
 
 export type BCMSMediaMongoDB = MongoDBEntity & BCMSMediaProps;
@@ -97,6 +117,22 @@ export const BCMSMediaMongoDBSchema = new Schema({
   },
   hasChildren: {
     type: Boolean,
+    required: true,
+  },
+  altText: {
+    type: String,
+    required: true,
+  },
+  caption: {
+    type: String,
+    required: true,
+  },
+  width: {
+    type: Number,
+    required: true,
+  },
+  height: {
+    type: Number,
     required: true,
   },
   parentId: String,

@@ -17,6 +17,10 @@ export function createBcmsMediaFactory(): BCMSMediaFactory {
         size: data.size ? data.size : 0,
         type: data.type ? data.type : BCMSMediaType.DIR,
         userId: data.userId ? data.userId : '',
+        altText: data.altText ? data.altText : '',
+        caption: data.caption ? data.caption : '',
+        height: data.height ? data.height : -1,
+        width: data.width ? data.width : -1,
       };
       if (BCMSConfig.database.fs) {
         media._id = `${media._id}` as never;

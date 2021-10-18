@@ -10,5 +10,9 @@ export interface BCMSMediaFactory {
     isInRoot?: boolean;
     hasChildren?: boolean;
     parentId?: string;
+    altText: string;
+    caption: string;
+    width: number;
+    height: number;
   }): BCMSMedia;
 }
