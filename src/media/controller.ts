@@ -1,4 +1,6 @@
 import * as crypto from 'crypto';
+import sizeOf from 'image-size';
+import * as util from 'util';
 import {
   createController,
   createControllerMethod,
@@ -435,6 +437,23 @@ export const BCMSMediaController = createController<Setup>({
               crypto.randomBytes(6).toString('hex') + '-' + media.name;
           }
           await BCMSMediaService.storage.save(media, file.buffer);
+          if (media.type === BCMSMediaType.IMG) {
+            try {
+              const dimensions = await util.promisify(sizeOf)(
+                await BCMSMediaService.storage.getPath({ media }),
+              );
+              if (!dimensions) {
+                throw errorHandler.occurred(
+                  HTTPStatus.NOT_FOUNT,
+                  bcmsResCode('mda013'),
+                );
+              }
+              media.width = dimensions.width as number;
+              media.height = dimensions.height as number;
+            } catch (error) {
+              logger.error(name, error);
+            }
+          }
           const addedMedia = await BCMSRepo.media.add(media as never);
           if (!addedMedia) {
             await BCMSMediaService.storage.removeFile(media);
