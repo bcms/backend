@@ -33,8 +33,7 @@ export const BCMSMediaService: BCMSMediaServiceType = {
       basePath = await BCMSMediaService.getPath(parent);
     }
     const parentAggregate: BCMSMediaAggregate = {
-      _id:
-        typeof parent._id === 'string' ? parent._id : `${parent._id}`,
+      _id: typeof parent._id === 'string' ? parent._id : `${parent._id}`,
       createdAt: parent.createdAt,
       updatedAt: parent.updatedAt,
       isInRoot: parent.isInRoot,
@@ -63,10 +62,7 @@ export const BCMSMediaService: BCMSMediaServiceType = {
           );
         } else {
           parentAggregate.children.push({
-            _id:
-              typeof child._id === 'string'
-                ? child._id
-                : `${child._id}`,
+            _id: typeof child._id === 'string' ? child._id : `${child._id}`,
             createdAt: child.createdAt,
             updatedAt: child.updatedAt,
             isInRoot: child.isInRoot,
@@ -131,7 +127,9 @@ export const BCMSMediaService: BCMSMediaServiceType = {
     }
   },
   async getChildren(media) {
-    const children = await BCMSRepo.media.methods.findAllByParentId(`${media._id}`);
+    const children = await BCMSRepo.media.methods.findAllByParentId(
+      `${media._id}`,
+    );
     const childrenOfChildren: BCMSMedia[] = [];
     for (const i in children) {
       const child = children[i];
@@ -174,9 +172,9 @@ export const BCMSMediaService: BCMSMediaServiceType = {
           nameParts.ext === 'png'
         ) {
           if (size === 'small') {
-            const mediaPathParts = (await BCMSMediaService.getPath(media)).split(
-              '/',
-            );
+            const mediaPathParts = (
+              await BCMSMediaService.getPath(media)
+            ).split('/');
             const location = path.join(
               process.cwd(),
               'uploads',
@@ -211,7 +209,11 @@ export const BCMSMediaService: BCMSMediaServiceType = {
     },
     async exist(media) {
       return await fs.exist(
-        path.join(process.cwd(), 'uploads', await BCMSMediaService.getPath(media)),
+        path.join(
+          process.cwd(),
+          'uploads',
+          await BCMSMediaService.getPath(media),
+        ),
         media.type !== BCMSMediaType.DIR,
       );
     },
@@ -244,7 +246,11 @@ export const BCMSMediaService: BCMSMediaServiceType = {
         }
       }
       return await fs.read(
-        path.join(process.cwd(), 'uploads', await BCMSMediaService.getPath(media)),
+        path.join(
+          process.cwd(),
+          'uploads',
+          await BCMSMediaService.getPath(media),
+        ),
       );
     },
     async mkdir(media) {
@@ -301,6 +307,14 @@ export const BCMSMediaService: BCMSMediaServiceType = {
           );
         }
       }
+    },
+    async update(oldPath, newPath) {
+      const pathToOldMedia = await BCMSMediaService.getPath(oldPath);
+      const pathToNewMedia = await BCMSMediaService.getPath(newPath);
+      await fs.rename(
+        path.join(process.cwd(), 'uploads', pathToOldMedia),
+        path.join(process.cwd(), 'uploads', pathToNewMedia),
+      );
     },
     async removeFile(media) {
       const mediaPath = await BCMSMediaService.getPath(media);

@@ -19,6 +19,7 @@ export interface BCMSMediaService {
     get(data: { media: BCMSMedia; size?: 'small' }): Promise<Buffer>;
     mkdir(media: BCMSMedia): Promise<void>;
     save(media: BCMSMedia, binary: Buffer): Promise<void>;
+    update(oldPath: BCMSMedia, newPath: BCMSMedia): Promise<void>;
     removeFile(media: BCMSMedia): Promise<void>;
     removeDir(media: BCMSMedia): Promise<void>;
     move(from: string, to: string): Promise<void>;

@@ -564,6 +564,7 @@ export const BCMSMediaController = createController<Setup>({
         }),
         async handler({ errorHandler, body, accessToken }) {
           const media = await BCMSRepo.media.findById(body._id);
+          const oldPath = media;
           if (!media) {
             throw errorHandler.occurred(
               HTTPStatus.NOT_FOUNT,
@@ -616,6 +617,7 @@ export const BCMSMediaController = createController<Setup>({
               bcmsResCode('g003'),
             );
           }
+          await BCMSMediaService.storage.update(oldPath as BCMSMedia, media);
           const updateMedia = await BCMSRepo.media.update(media as never);
           if (!updateMedia) {
             throw errorHandler.occurred(
@@ -634,6 +636,11 @@ export const BCMSMediaController = createController<Setup>({
           };
         },
       }),
+      // moveFile: createControllerMethod({
+      //   path: '/move',
+      //   type: 'put',
+
+      // })
       deleteById: createControllerMethod({
         path: '/:id',
         type: 'delete',
