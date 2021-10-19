@@ -68,18 +68,18 @@ export function createBcmsFunctionModule(): Module {
                 fns.push(fn);
               }
             }
-            functionManager = {
-              clear() {
-                fns = [];
-              },
-              get(name) {
-                return fns.find((e) => e.config.name === name);
-              },
-              getAll() {
-                return fns;
-              },
-            };
           }
+          functionManager = {
+            clear() {
+              fns = [];
+            },
+            get(name) {
+              return fns.find((e) => e.config.name === name);
+            },
+            getAll() {
+              return fns;
+            },
+          };
           moduleConfig.next();
         })
         .catch((error) => {
