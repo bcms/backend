@@ -22,6 +22,8 @@ import {
   BCMSMediaAddDirData,
   BCMSMediaAddDirDataSchema,
   BCMSMediaType,
+  BCMSMediaUpdateData,
+  BCMSMediaUpdateDataSchema,
   BCMSSocketEventType,
   BCMSUserCustomPool,
 } from '../types';
@@ -550,7 +552,88 @@ export const BCMSMediaController = createController<Setup>({
           };
         },
       }),
-
+      update: createControllerMethod({
+        path: '/file',
+        type: 'put',
+        preRequestHandler: createJwtAndBodyCheckRouteProtection<
+          BCMSMediaUpdateData
+        >({
+          roleNames: [JWTRoleName.ADMIN, JWTRoleName.USER],
+          permissionName: JWTPermissionName.WRITE,
+          bodySchema: BCMSMediaUpdateDataSchema,
+        }),
+        async handler({ errorHandler, body, accessToken }) {
+          const media = await BCMSRepo.media.findById(body._id);
+          if (!media) {
+            throw errorHandler.occurred(
+              HTTPStatus.NOT_FOUNT,
+              bcmsResCode('mda001', { id: body._id }),
+            );
+          }
+          if (media.type === BCMSMediaType.DIR) {
+            throw errorHandler.occurred(
+              HTTPStatus.INTERNAL_SERVER_ERROR,
+              bcmsResCode('mda005'),
+            );
+          }
+          let changeDetected = false;
+          const fileNameParts = media.name.split('.');
+          const fileName =
+            fileNameParts.length > 1
+              ? fileNameParts[fileNameParts.length - 2]
+              : fileNameParts[0];
+          const fileExt =
+            fileNameParts.length > 1
+              ? fileNameParts[fileNameParts.length - 1]
+              : '';
+          if (typeof body.name === 'string' && body.name !== fileName) {
+            changeDetected = true;
+            const name =
+              stringUtil.toSlug(body.name) + '.' + stringUtil.toSlug(fileExt);
+            const useMedia = await BCMSRepo.media.methods.findByNameAndParentId(
+              name,
+              media.parentId,
+            );
+            media.name = !useMedia ? name : media.name;
+          }
+          if (
+            typeof body.altText === 'string' &&
+            body.altText !== media.altText
+          ) {
+            changeDetected = true;
+            media.altText = body.altText;
+          }
+          if (
+            typeof body.caption === 'string' &&
+            body.caption !== media.caption
+          ) {
+            changeDetected = true;
+            media.caption = body.caption;
+          }
+          if (!changeDetected) {
+            throw errorHandler.occurred(
+              HTTPStatus.FORBIDDEN,
+              bcmsResCode('g003'),
+            );
+          }
+          const updateMedia = await BCMSRepo.media.update(media as never);
+          if (!updateMedia) {
+            throw errorHandler.occurred(
+              HTTPStatus.INTERNAL_SERVER_ERROR,
+              bcmsResCode('mda005'),
+            );
+          }
+          await BCMSSocketManager.emit.media({
+            mediaId: `${updateMedia._id}`,
+            type: BCMSSocketEventType.UPDATE,
+            userIds: 'all',
+            excludeUserId: [accessToken.payload.userId],
+          });
+          return {
+            item: updateMedia,
+          };
+        },
+      }),
       deleteById: createControllerMethod({
         path: '/:id',
         type: 'delete',

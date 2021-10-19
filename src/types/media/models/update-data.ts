@@ -4,7 +4,7 @@ export interface BCMSMediaUpdateData {
   _id: string;
   altText?: string;
   caption?: string;
-  rename?: string;
+  name?: string;
   /** ID of the parent dir or `root`. */
 }
 
@@ -13,7 +13,7 @@ export const BCMSMediaUpdateDataSchema: ObjectSchema = {
     __type: 'string',
     __required: true,
   },
-  rename: {
+  name: {
     __type: 'string',
     __required: false,
   },
