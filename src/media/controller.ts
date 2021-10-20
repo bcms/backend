@@ -4,6 +4,7 @@ import * as util from 'util';
 import {
   createController,
   createControllerMethod,
+  useFS,
   useStringUtility,
 } from '@becomes/purple-cheetah';
 import {
@@ -35,12 +36,13 @@ import { bcmsResCode } from '@bcms/response-code';
 import { BCMSSocketManager } from '@bcms/socket';
 import { BCMSMediaService } from './service';
 import { BCMSFactory } from '@bcms/factory';
+import path = require('path');
 
 interface Setup {
   jwt: JWTManager;
   stringUtil: StringUtility;
 }
-
+const fs = useFS();
 export const BCMSMediaController = createController<Setup>({
   name: 'Media controller',
   path: '/api/media',
@@ -564,7 +566,7 @@ export const BCMSMediaController = createController<Setup>({
           permissionName: JWTPermissionName.WRITE,
           bodySchema: BCMSMediaUpdateDataSchema,
         }),
-        async handler({ errorHandler, body, accessToken }) {
+        async handler({ errorHandler, body, accessToken, logger }) {
           const media = await BCMSRepo.media.findById(body._id);
           if (!media) {
             throw errorHandler.occurred(
@@ -579,6 +581,12 @@ export const BCMSMediaController = createController<Setup>({
               bcmsResCode('mda005'),
             );
           }
+          const pathMedia = await BCMSMediaService.getPath(media);
+          const mediaPathParts = pathMedia.split('/');
+          const basePath = mediaPathParts
+            .slice(0, mediaPathParts.length - 1)
+            .join('');
+
           let changeDetected = false;
           const fileNameParts = media.name.split('.');
           const fileName =
@@ -603,6 +611,47 @@ export const BCMSMediaController = createController<Setup>({
                 HTTPStatus.INTERNAL_SERVER_ERROR,
                 bcmsResCode('mda002', { name }),
               );
+            }
+
+            if (media.type === BCMSMediaType.IMG) {
+              try {
+                const mediaThumbnailOld = path.join(
+                  process.cwd(),
+                  'uploads',
+                  basePath,
+                  '300-' + media.name,
+                );
+                const mediaThumbnailNew = path.join(
+                  process.cwd(),
+                  'uploads',
+                  basePath,
+                  '300-' + name,
+                );
+                await fs.rename(mediaThumbnailOld, mediaThumbnailNew);
+              } catch (error) {
+                logger.error(name, error);
+              }
+            } else if (
+              media.type === BCMSMediaType.VID ||
+              media.type === BCMSMediaType.GIF
+            ) {
+              try {
+                const mediaThumbnailOld = path.join(
+                  process.cwd(),
+                  'uploads',
+                  basePath,
+                  'thumbnail-' + fileName + '.png',
+                );
+                const mediaThumbnailNew = path.join(
+                  process.cwd(),
+                  'uploads',
+                  basePath,
+                  'thumbnail-' + body.name + '.png',
+                );
+                await fs.rename(mediaThumbnailOld, mediaThumbnailNew);
+              } catch (error) {
+                logger.error(name, error);
+              }
             }
             changeDetected = true;
             media.name = name;
@@ -656,28 +705,32 @@ export const BCMSMediaController = createController<Setup>({
       //     permissionName: JWTPermissionName.WRITE,
       //     bodySchema: BCMSMediaMoveDataSchema,
       //   }),
-      //   async handler({ request, errorHandler, accessToken }) {
-      //     const moveTo = await BCMSRepo.media.findById(request.body.moveTo);
-      //     if (!moveTo) {
-      //       throw errorHandler.occurred(
-      //         HTTPStatus.NOT_FOUNT,
-      //         bcmsResCode('mda001', { id: request.body.moveTo }),
-      //       );
-      //     }
-      //     if (moveTo.type !== BCMSMediaType.DIR) {
-      //       throw errorHandler.occurred(
-      //         HTTPStatus.INTERNAL_SERVER_ERROR,
-      //         bcmsResCode('mda005'),
-      //       );
-      //     }
-      //     const moveToPath = await BCMSMediaService.getPath(moveTo);
-      //     console.log(moveToPath);
+      //   async handler({ body, errorHandler, accessToken }) {
+      //     const moveTo = (await BCMSRepo.media.findById(
+      //       body.moveTo,
+      //     )) as BCMSMedia;
+      //     // if (!moveTo) {
+      //     //   throw errorHandler.occurred(
+      //     //     HTTPStatus.NOT_FOUNT,
+      //     //     bcmsResCode('mda001', { id: body.moveTo }),
+      //     //   );
+      //     // }
 
-      //     const media = await BCMSRepo.media.findById(request.body._id);
+      //     // if (moveTo.type !== BCMSMediaType.DIR) {
+      //     //   throw errorHandler.occurred(
+      //     //     HTTPStatus.INTERNAL_SERVER_ERROR,
+      //     //     bcmsResCode('mda005'),
+      //     //   );
+      //     // }
+      //     const moveToPath = await BCMSMediaService.getPath(
+      //       (body.moveTo as never) as BCMSMedia,
+      //     );
+
+      //     const media = await BCMSRepo.media.findById(body._id);
       //     if (!media) {
       //       throw errorHandler.occurred(
       //         HTTPStatus.NOT_FOUNT,
-      //         bcmsResCode('mda001', { id: request.body._id }),
+      //         bcmsResCode('mda001', { id: body._id }),
       //       );
       //     }
       //     if (media.type === BCMSMediaType.DIR) {
@@ -687,19 +740,16 @@ export const BCMSMediaController = createController<Setup>({
       //       );
       //     }
       //     const mediaPath = await BCMSMediaService.getPath(media);
-      //     console.log(mediaPath);
-
       //     const mediaPathParts = mediaPath.split('/');
       //     const mediaName = mediaPathParts
       //       .slice(mediaPathParts.length - 1, mediaPathParts.length)
-      //       .join('/');
-      //     console.log(mediaName);
+      //       .join('');
+      //     const mediaNameWithNewPath = moveToPath + '/' + mediaName;
 
-      //     const pi = mediaPath.split('/');
-      //     const pin = pi.slice(0, mediaPathParts.length - 1).join('/');
-      //     console.log(pin);
-      //     const al = moveToPath + mediaName;
-      //     await BCMSMediaService.storage.move(pin, al);
+      //     await BCMSMediaService.storage.move(mediaPath, mediaNameWithNewPath);
+
+      //     media.parentId = '';
+      //     const moveMedia = await BCMSRepo.media.update(media as never);
       //     await BCMSSocketManager.emit.media({
       //       mediaId: `${media._id}`,
       //       type: BCMSSocketEventType.UPDATE,
@@ -707,58 +757,58 @@ export const BCMSMediaController = createController<Setup>({
       //       excludeUserId: [accessToken.payload.userId],
       //     });
       //     return {
-      //       item: 'success',
+      //       item: moveMedia,
       //     };
       //   },
       // }),
-      deleteById: createControllerMethod({
-        path: '/:id',
-        type: 'delete',
-        preRequestHandler: createJwtProtectionPreRequestHandler<
-          BCMSUserCustomPool
-        >([JWTRoleName.ADMIN, JWTRoleName.DEV], JWTPermissionName.DELETE),
-        async handler({ request, errorHandler, accessToken }) {
-          const media = await BCMSRepo.media.findById(request.params.id);
-          if (!media) {
-            throw errorHandler.occurred(
-              HTTPStatus.NOT_FOUNT,
-              bcmsResCode('mda001', { id: request.params.id }),
-            );
-          }
-          let deletedChildrenIds: string[] = [];
-          if (media.type === BCMSMediaType.DIR) {
-            deletedChildrenIds = (
-              await BCMSMediaService.getChildren(media)
-            ).map((e) => `${e._id}`);
-            for (let i = 0; i < deletedChildrenIds.length; i++) {
-              const childId = deletedChildrenIds[i];
-              await BCMSRepo.media.deleteById(childId);
-            }
-            await BCMSRepo.media.deleteById(`${media._id}`);
-            await BCMSMediaService.storage.removeDir(media);
-          } else {
-            const deleteResult = await BCMSRepo.media.deleteById(
-              `${media._id}`,
-            );
-            if (!deleteResult) {
-              throw errorHandler.occurred(
-                HTTPStatus.INTERNAL_SERVER_ERROR,
-                bcmsResCode('mda006'),
-              );
-            }
-            await BCMSMediaService.storage.removeFile(media);
-          }
-          await BCMSSocketManager.emit.media({
-            mediaId: `${media._id}`,
-            type: BCMSSocketEventType.REMOVE,
-            userIds: 'all',
-            excludeUserId: [accessToken.payload.userId],
-          });
-          return {
-            message: 'Success.',
-          };
-        },
-      }),
+      // deleteById: createControllerMethod({
+      //   path: '/:id',
+      //   type: 'delete',
+      //   preRequestHandler: createJwtProtectionPreRequestHandler<
+      //     BCMSUserCustomPool
+      //   >([JWTRoleName.ADMIN, JWTRoleName.DEV], JWTPermissionName.DELETE),
+      //   async handler({ request, errorHandler, accessToken }) {
+      //     const media = await BCMSRepo.media.findById(request.params.id);
+      //     if (!media) {
+      //       throw errorHandler.occurred(
+      //         HTTPStatus.NOT_FOUNT,
+      //         bcmsResCode('mda001', { id: request.params.id }),
+      //       );
+      //     }
+      //     let deletedChildrenIds: string[] = [];
+      //     if (media.type === BCMSMediaType.DIR) {
+      //       deletedChildrenIds = (
+      //         await BCMSMediaService.getChildren(media)
+      //       ).map((e) => `${e._id}`);
+      //       for (let i = 0; i < deletedChildrenIds.length; i++) {
+      //         const childId = deletedChildrenIds[i];
+      //         await BCMSRepo.media.deleteById(childId);
+      //       }
+      //       await BCMSRepo.media.deleteById(`${media._id}`);
+      //       await BCMSMediaService.storage.removeDir(media);
+      //     } else {
+      //       const deleteResult = await BCMSRepo.media.deleteById(
+      //         `${media._id}`,
+      //       );
+      //       if (!deleteResult) {
+      //         throw errorHandler.occurred(
+      //           HTTPStatus.INTERNAL_SERVER_ERROR,
+      //           bcmsResCode('mda006'),
+      //         );
+      //       }
+      //       await BCMSMediaService.storage.removeFile(media);
+      //     }
+      //     await BCMSSocketManager.emit.media({
+      //       mediaId: `${media._id}`,
+      //       type: BCMSSocketEventType.REMOVE,
+      //       userIds: 'all',
+      //       excludeUserId: [accessToken.payload.userId],
+      //     });
+      //     return {
+      //       message: 'Success.',
+      //     };
+      //   },
+      // }),
     };
   },
 });
