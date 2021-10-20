@@ -21,6 +21,8 @@ import {
   BCMSMedia,
   BCMSMediaAddDirData,
   BCMSMediaAddDirDataSchema,
+  BCMSMediaMoveData,
+  BCMSMediaMoveDataSchema,
   BCMSMediaType,
   BCMSMediaUpdateData,
   BCMSMediaUpdateDataSchema,
@@ -552,7 +554,7 @@ export const BCMSMediaController = createController<Setup>({
           };
         },
       }),
-      update: createControllerMethod({
+      updateFile: createControllerMethod({
         path: '/file',
         type: 'put',
         preRequestHandler: createJwtAndBodyCheckRouteProtection<
@@ -564,13 +566,13 @@ export const BCMSMediaController = createController<Setup>({
         }),
         async handler({ errorHandler, body, accessToken }) {
           const media = await BCMSRepo.media.findById(body._id);
-          const oldPath = media;
           if (!media) {
             throw errorHandler.occurred(
               HTTPStatus.NOT_FOUNT,
               bcmsResCode('mda001', { id: body._id }),
             );
           }
+          const oldMedia = JSON.parse(JSON.stringify(media));
           if (media.type === BCMSMediaType.DIR) {
             throw errorHandler.occurred(
               HTTPStatus.INTERNAL_SERVER_ERROR,
@@ -587,15 +589,23 @@ export const BCMSMediaController = createController<Setup>({
             fileNameParts.length > 1
               ? fileNameParts[fileNameParts.length - 1]
               : '';
+
           if (typeof body.name === 'string' && body.name !== fileName) {
-            changeDetected = true;
             const name =
               stringUtil.toSlug(body.name) + '.' + stringUtil.toSlug(fileExt);
-            const useMedia = await BCMSRepo.media.methods.findByNameAndParentId(
+
+            const mediaWithSameParent = await BCMSRepo.media.methods.findByNameAndParentId(
               name,
               media.parentId,
             );
-            media.name = !useMedia ? name : media.name;
+            if (mediaWithSameParent) {
+              throw errorHandler.occurred(
+                HTTPStatus.INTERNAL_SERVER_ERROR,
+                bcmsResCode('mda002', { name }),
+              );
+            }
+            changeDetected = true;
+            media.name = name;
           }
           if (
             typeof body.altText === 'string' &&
@@ -617,7 +627,7 @@ export const BCMSMediaController = createController<Setup>({
               bcmsResCode('g003'),
             );
           }
-          await BCMSMediaService.storage.update(oldPath as BCMSMedia, media);
+          await BCMSMediaService.storage.rename(oldMedia, media);
           const updateMedia = await BCMSRepo.media.update(media as never);
           if (!updateMedia) {
             throw errorHandler.occurred(
@@ -639,8 +649,68 @@ export const BCMSMediaController = createController<Setup>({
       // moveFile: createControllerMethod({
       //   path: '/move',
       //   type: 'put',
+      //   preRequestHandler: createJwtAndBodyCheckRouteProtection<
+      //     BCMSMediaMoveData
+      //   >({
+      //     roleNames: [JWTRoleName.ADMIN, JWTRoleName.USER],
+      //     permissionName: JWTPermissionName.WRITE,
+      //     bodySchema: BCMSMediaMoveDataSchema,
+      //   }),
+      //   async handler({ request, errorHandler, accessToken }) {
+      //     const moveTo = await BCMSRepo.media.findById(request.body.moveTo);
+      //     if (!moveTo) {
+      //       throw errorHandler.occurred(
+      //         HTTPStatus.NOT_FOUNT,
+      //         bcmsResCode('mda001', { id: request.body.moveTo }),
+      //       );
+      //     }
+      //     if (moveTo.type !== BCMSMediaType.DIR) {
+      //       throw errorHandler.occurred(
+      //         HTTPStatus.INTERNAL_SERVER_ERROR,
+      //         bcmsResCode('mda005'),
+      //       );
+      //     }
+      //     const moveToPath = await BCMSMediaService.getPath(moveTo);
+      //     console.log(moveToPath);
 
-      // })
+      //     const media = await BCMSRepo.media.findById(request.body._id);
+      //     if (!media) {
+      //       throw errorHandler.occurred(
+      //         HTTPStatus.NOT_FOUNT,
+      //         bcmsResCode('mda001', { id: request.body._id }),
+      //       );
+      //     }
+      //     if (media.type === BCMSMediaType.DIR) {
+      //       throw errorHandler.occurred(
+      //         HTTPStatus.INTERNAL_SERVER_ERROR,
+      //         bcmsResCode('mda005'),
+      //       );
+      //     }
+      //     const mediaPath = await BCMSMediaService.getPath(media);
+      //     console.log(mediaPath);
+
+      //     const mediaPathParts = mediaPath.split('/');
+      //     const mediaName = mediaPathParts
+      //       .slice(mediaPathParts.length - 1, mediaPathParts.length)
+      //       .join('/');
+      //     console.log(mediaName);
+
+      //     const pi = mediaPath.split('/');
+      //     const pin = pi.slice(0, mediaPathParts.length - 1).join('/');
+      //     console.log(pin);
+      //     const al = moveToPath + mediaName;
+      //     await BCMSMediaService.storage.move(pin, al);
+      //     await BCMSSocketManager.emit.media({
+      //       mediaId: `${media._id}`,
+      //       type: BCMSSocketEventType.UPDATE,
+      //       userIds: 'all',
+      //       excludeUserId: [accessToken.payload.userId],
+      //     });
+      //     return {
+      //       item: 'success',
+      //     };
+      //   },
+      // }),
       deleteById: createControllerMethod({
         path: '/:id',
         type: 'delete',

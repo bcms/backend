@@ -308,9 +308,9 @@ export const BCMSMediaService: BCMSMediaServiceType = {
         }
       }
     },
-    async update(oldPath, newPath) {
-      const pathToOldMedia = await BCMSMediaService.getPath(oldPath);
-      const pathToNewMedia = await BCMSMediaService.getPath(newPath);
+    async rename(oldMedia, newMedia) {
+      const pathToOldMedia = await BCMSMediaService.getPath(oldMedia);
+      const pathToNewMedia = await BCMSMediaService.getPath(newMedia);
       await fs.rename(
         path.join(process.cwd(), 'uploads', pathToOldMedia),
         path.join(process.cwd(), 'uploads', pathToNewMedia),
