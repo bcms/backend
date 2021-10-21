@@ -2,9 +2,8 @@ import type { Module } from '@becomes/purple-cheetah/types';
 import { createFSDBRepository } from '@becomes/purple-cheetah-mod-fsdb';
 import { createMongoDBCachedRepository } from '@becomes/purple-cheetah-mod-mongodb';
 import {
-  BCMSGroupFSDB,
+  BCMSGroup,
   BCMSGroupFSDBSchema,
-  BCMSGroupMongoDB,
   BCMSGroupMongoDBSchema,
   BCMSGroupRepositoryMethods,
   BCMSPropEntryPointerData,
@@ -22,10 +21,7 @@ export function createBcmsGroupRepository(): Module {
       const collection = `${BCMSConfig.database.prefix}_groups`;
 
       BCMSRepo.group = BCMSConfig.database.fs
-        ? createFSDBRepository<
-            BCMSGroupFSDB,
-            BCMSGroupRepositoryMethods<BCMSGroupFSDB>
-          >({
+        ? createFSDBRepository<BCMSGroup, BCMSGroupRepositoryMethods>({
             name,
             collection,
             schema: BCMSGroupFSDBSchema,
@@ -66,8 +62,8 @@ export function createBcmsGroupRepository(): Module {
             },
           })
         : createMongoDBCachedRepository<
-            BCMSGroupMongoDB,
-            BCMSGroupRepositoryMethods<BCMSGroupMongoDB>,
+            BCMSGroup,
+            BCMSGroupRepositoryMethods,
             undefined
           >({
             name,
@@ -82,7 +78,7 @@ export function createBcmsGroupRepository(): Module {
                   }
                   const group = await mongoDBInterface.findOne({ name: nm });
                   if (group) {
-                    cacheHandler.set(`${group._id}`, group);
+                    cacheHandler.set(group._id, group);
                   }
                   return group;
                 },
@@ -93,13 +89,13 @@ export function createBcmsGroupRepository(): Module {
                   }
                   const group = await mongoDBInterface.findOne({ cid });
                   if (group) {
-                    cacheHandler.set(`${group._id}`, group);
+                    cacheHandler.set(group._id, group);
                   }
                   return group;
                 },
                 async findAllByCid(cids) {
                   const missingCids: string[] = [];
-                  const output: BCMSGroupMongoDB[] = cacheHandler.find((e) => {
+                  const output = cacheHandler.find((e) => {
                     const found = cids.includes(e.cid);
                     if (!found) {
                       missingCids.push(e.cid);
@@ -112,7 +108,7 @@ export function createBcmsGroupRepository(): Module {
                     });
                     for (let i = 0; i < items.length; i++) {
                       const item = items[i];
-                      cacheHandler.set(`${item._id}`, item);
+                      cacheHandler.set(item._id, item);
                       output.push(item);
                     }
                   }

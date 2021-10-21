@@ -2,21 +2,17 @@ import {
   FSDBEntity,
   FSDBEntitySchema,
 } from '@becomes/purple-cheetah-mod-fsdb/types';
-import {
-  MongoDBEntity,
-  MongoDBEntitySchema,
-} from '@becomes/purple-cheetah-mod-mongodb/types';
+import { MongoDBEntitySchemaString } from '@becomes/purple-cheetah-mod-mongodb/types';
 import type { ObjectSchema } from '@becomes/purple-cheetah/types';
 import { Schema } from 'mongoose';
 
-export interface BCMSTemplateOrganizerProps {
+export interface BCMSTemplateOrganizer extends FSDBEntity {
   parentId?: string;
   label: string;
   name: string;
   templateIds: string[];
 }
 
-export type BCMSTemplateOrganizerFSDB = FSDBEntity & BCMSTemplateOrganizerProps;
 export const BCMSTemplateOrganizerFSDBSchema: ObjectSchema = {
   ...FSDBEntitySchema,
   parentId: {
@@ -40,10 +36,8 @@ export const BCMSTemplateOrganizerFSDBSchema: ObjectSchema = {
   },
 };
 
-export type BCMSTemplateOrganizerMongoDB = MongoDBEntity &
-  BCMSTemplateOrganizerProps;
 export const BCMSTemplateOrganizerMongoDBSchema = new Schema({
-  ...MongoDBEntitySchema,
+  ...MongoDBEntitySchemaString,
   parentId: String,
   label: {
     type: String,
@@ -58,9 +52,3 @@ export const BCMSTemplateOrganizerMongoDBSchema = new Schema({
     required: true,
   },
 });
-
-export type BCMSTemplateOrganizer =
-  | BCMSTemplateOrganizerMongoDB
-  | BCMSTemplateOrganizerFSDB;
-export type BCMSTemplateOrganizerCross = BCMSTemplateOrganizerMongoDB &
-  BCMSTemplateOrganizerFSDB;

@@ -1,6 +1,5 @@
 import * as crypto from 'crypto';
 import * as bcrypt from 'bcrypt';
-import { Types } from 'mongoose';
 import {
   createController,
   createControllerMethod,
@@ -105,18 +104,14 @@ export const BCMSShimUserController = createController<{
               });
             }
           }
-          if (BCMSConfig.database.fs) {
-            user._id = result.user._id;
-          } else {
-            user._id = new Types.ObjectId(result.user._id);
-          }
+          user._id = result.user._id;
           user.password = await bcrypt.hash(
             crypto.randomBytes(64).toString(),
             10,
           );
 
           if (createUser) {
-            user = await BCMSRepo.user.add(user as never);
+            user = await BCMSRepo.user.add(user);
             if (!user) {
               throw errorHandler.occurred(
                 HTTPStatus.INTERNAL_SERVER_ERROR,
@@ -126,7 +121,7 @@ export const BCMSShimUserController = createController<{
             // TODO: Trigger socket event
           }
           const accessToken = jwtManager.create({
-            userId: `${user._id}`,
+            userId: user._id,
             roles: user.roles,
             props: user.customPool,
             issuer: BCMSConfig.jwt.scope,
@@ -139,7 +134,7 @@ export const BCMSShimUserController = createController<{
           }
           return {
             accessToken: jwtEncoder.encode(accessToken),
-            refreshToken: refreshTokenService.create(`${user._id}`),
+            refreshToken: refreshTokenService.create(user._id),
           };
         },
       }),

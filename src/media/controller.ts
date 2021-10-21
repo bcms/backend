@@ -1,10 +1,9 @@
 import * as crypto from 'crypto';
-import sizeOf from 'image-size';
+import imageSize from 'image-size';
 import * as util from 'util';
 import {
   createController,
   createControllerMethod,
-  useFS,
   useStringUtility,
 } from '@becomes/purple-cheetah';
 import {
@@ -30,19 +29,17 @@ import {
   BCMSSocketEventType,
   BCMSUserCustomPool,
 } from '../types';
-import { createJwtAndBodyCheckRouteProtection, BCMSFfmpeg } from '../util';
+import { createJwtAndBodyCheckRouteProtection } from '../util';
 import { BCMSRepo } from '@bcms/repo';
 import { bcmsResCode } from '@bcms/response-code';
 import { BCMSSocketManager } from '@bcms/socket';
 import { BCMSMediaService } from './service';
 import { BCMSFactory } from '@bcms/factory';
-import path = require('path');
 
 interface Setup {
   jwt: JWTManager;
   stringUtil: StringUtility;
 }
-const fs = useFS();
 export const BCMSMediaController = createController<Setup>({
   name: 'Media controller',
   path: '/api/media',
@@ -57,9 +54,11 @@ export const BCMSMediaController = createController<Setup>({
       getAll: createControllerMethod({
         path: '/all',
         type: 'get',
-        preRequestHandler: createJwtProtectionPreRequestHandler<
-          BCMSUserCustomPool
-        >([JWTRoleName.ADMIN, JWTRoleName.DEV], JWTPermissionName.READ),
+        preRequestHandler:
+          createJwtProtectionPreRequestHandler<BCMSUserCustomPool>(
+            [JWTRoleName.ADMIN, JWTRoleName.DEV],
+            JWTPermissionName.READ,
+          ),
         async handler() {
           return {
             items: await BCMSRepo.media.findAll(),
@@ -70,9 +69,11 @@ export const BCMSMediaController = createController<Setup>({
       getAllAggregated: createControllerMethod({
         path: '/all/aggregate',
         type: 'get',
-        preRequestHandler: createJwtProtectionPreRequestHandler<
-          BCMSUserCustomPool
-        >([JWTRoleName.ADMIN, JWTRoleName.DEV], JWTPermissionName.READ),
+        preRequestHandler:
+          createJwtProtectionPreRequestHandler<BCMSUserCustomPool>(
+            [JWTRoleName.ADMIN, JWTRoleName.DEV],
+            JWTPermissionName.READ,
+          ),
         async handler() {
           return {
             items: await BCMSMediaService.aggregateFromRoot(),
@@ -83,9 +84,11 @@ export const BCMSMediaController = createController<Setup>({
       getAllByParentId: createControllerMethod({
         path: '/all/parent/:id',
         type: 'get',
-        preRequestHandler: createJwtProtectionPreRequestHandler<
-          BCMSUserCustomPool
-        >([JWTRoleName.ADMIN, JWTRoleName.DEV], JWTPermissionName.READ),
+        preRequestHandler:
+          createJwtProtectionPreRequestHandler<BCMSUserCustomPool>(
+            [JWTRoleName.ADMIN, JWTRoleName.DEV],
+            JWTPermissionName.READ,
+          ),
         async handler({ request, errorHandler }) {
           const media = await BCMSRepo.media.findById(request.params.id);
           if (!media) {
@@ -103,9 +106,11 @@ export const BCMSMediaController = createController<Setup>({
       getMany: createControllerMethod({
         path: '/many',
         type: 'get',
-        preRequestHandler: createJwtProtectionPreRequestHandler<
-          BCMSUserCustomPool
-        >([JWTRoleName.ADMIN, JWTRoleName.DEV], JWTPermissionName.READ),
+        preRequestHandler:
+          createJwtProtectionPreRequestHandler<BCMSUserCustomPool>(
+            [JWTRoleName.ADMIN, JWTRoleName.DEV],
+            JWTPermissionName.READ,
+          ),
         async handler({ request }) {
           const ids = (request.headers['x-bcms-ids'] as string).split('-');
           return {
@@ -117,9 +122,11 @@ export const BCMSMediaController = createController<Setup>({
       count: createControllerMethod({
         path: '/count',
         type: 'get',
-        preRequestHandler: createJwtProtectionPreRequestHandler<
-          BCMSUserCustomPool
-        >([JWTRoleName.ADMIN, JWTRoleName.DEV], JWTPermissionName.READ),
+        preRequestHandler:
+          createJwtProtectionPreRequestHandler<BCMSUserCustomPool>(
+            [JWTRoleName.ADMIN, JWTRoleName.DEV],
+            JWTPermissionName.READ,
+          ),
         async handler() {
           return {
             count: await BCMSRepo.media.count(),
@@ -130,9 +137,11 @@ export const BCMSMediaController = createController<Setup>({
       getById: createControllerMethod({
         path: '/:id',
         type: 'get',
-        preRequestHandler: createJwtProtectionPreRequestHandler<
-          BCMSUserCustomPool
-        >([JWTRoleName.ADMIN, JWTRoleName.DEV], JWTPermissionName.READ),
+        preRequestHandler:
+          createJwtProtectionPreRequestHandler<BCMSUserCustomPool>(
+            [JWTRoleName.ADMIN, JWTRoleName.DEV],
+            JWTPermissionName.READ,
+          ),
         async handler({ request, errorHandler }) {
           const media = await BCMSRepo.media.findById(request.params.id);
           if (!media) {
@@ -150,9 +159,11 @@ export const BCMSMediaController = createController<Setup>({
       getByIdAggregated: createControllerMethod({
         path: '/:id/aggregate',
         type: 'get',
-        preRequestHandler: createJwtProtectionPreRequestHandler<
-          BCMSUserCustomPool
-        >([JWTRoleName.ADMIN, JWTRoleName.DEV], JWTPermissionName.READ),
+        preRequestHandler:
+          createJwtProtectionPreRequestHandler<BCMSUserCustomPool>(
+            [JWTRoleName.ADMIN, JWTRoleName.DEV],
+            JWTPermissionName.READ,
+          ),
         async handler({ request, errorHandler }) {
           const media = await BCMSRepo.media.findById(request.params.id);
           if (!media) {
@@ -164,7 +175,7 @@ export const BCMSMediaController = createController<Setup>({
           if (media.type !== BCMSMediaType.DIR) {
             return {
               item: {
-                _id: `${media._id}`,
+                _id: media._id,
                 createdAt: media.createdAt,
                 updatedAt: media.updatedAt,
                 isInRoot: media.isInRoot,
@@ -186,9 +197,11 @@ export const BCMSMediaController = createController<Setup>({
       getBinary: createControllerMethod({
         path: '/:id/bin',
         type: 'get',
-        preRequestHandler: createJwtProtectionPreRequestHandler<
-          BCMSUserCustomPool
-        >([JWTRoleName.ADMIN, JWTRoleName.DEV], JWTPermissionName.READ),
+        preRequestHandler:
+          createJwtProtectionPreRequestHandler<BCMSUserCustomPool>(
+            [JWTRoleName.ADMIN, JWTRoleName.DEV],
+            JWTPermissionName.READ,
+          ),
         async handler({ request, errorHandler }) {
           const media = await BCMSRepo.media.findById(request.params.id);
           if (!media) {
@@ -261,9 +274,11 @@ export const BCMSMediaController = createController<Setup>({
       getBinaryForSize: createControllerMethod({
         path: '/:id/bin/:size',
         type: 'get',
-        preRequestHandler: createJwtProtectionPreRequestHandler<
-          BCMSUserCustomPool
-        >([JWTRoleName.ADMIN, JWTRoleName.DEV], JWTPermissionName.READ),
+        preRequestHandler:
+          createJwtProtectionPreRequestHandler<BCMSUserCustomPool>(
+            [JWTRoleName.ADMIN, JWTRoleName.DEV],
+            JWTPermissionName.READ,
+          ),
         async handler({ request, errorHandler }) {
           const media = await BCMSRepo.media.findById(request.params.id);
           if (!media) {
@@ -385,9 +400,11 @@ export const BCMSMediaController = createController<Setup>({
       createFile: createControllerMethod({
         path: '/file',
         type: 'post',
-        preRequestHandler: createJwtProtectionPreRequestHandler<
-          BCMSUserCustomPool
-        >([JWTRoleName.ADMIN, JWTRoleName.DEV], JWTPermissionName.WRITE),
+        preRequestHandler:
+          createJwtProtectionPreRequestHandler<BCMSUserCustomPool>(
+            [JWTRoleName.ADMIN, JWTRoleName.DEV],
+            JWTPermissionName.WRITE,
+          ),
         async handler({ request, errorHandler, accessToken, logger, name }) {
           const parentId = request.query.parentId as string;
           const file = request.file;
@@ -407,24 +424,15 @@ export const BCMSMediaController = createController<Setup>({
               );
             }
           }
-          const fileNameParts = file.originalname.split('.');
-          const fileName =
-            fileNameParts.length > 1
-              ? fileNameParts[fileNameParts.length - 2]
-              : fileNameParts[0];
-          const fileExt =
-            fileNameParts.length > 1
-              ? fileNameParts[fileNameParts.length - 1]
-              : '';
+          const fileInfo = BCMSMediaService.getNameAndExt(file.originalname);
           const media = BCMSFactory.media.create({
             userId: accessToken.payload.userId,
             type: BCMSMediaService.mimetypeToMediaType(file.mimetype),
             mimetype: file.mimetype,
             size: file.size,
-            name:
-              stringUtil.toSlug(fileName) + fileExt
-                ? stringUtil.toSlug(fileName) + '.' + stringUtil.toSlug(fileExt)
-                : '',
+            name: `${stringUtil.toSlug(fileInfo.name)}${
+              fileInfo.ext ? '.' + fileInfo.ext : ''
+            }`,
             isInRoot: !parent,
             hasChildren: false,
             parentId: parentId ? parentId : '',
@@ -436,7 +444,7 @@ export const BCMSMediaController = createController<Setup>({
           if (
             await BCMSRepo.media.methods.findByNameAndParentId(
               media.name,
-              parent ? `${parent._id}` : undefined,
+              parent ? parent._id : undefined,
             )
           ) {
             media.name =
@@ -445,7 +453,7 @@ export const BCMSMediaController = createController<Setup>({
           await BCMSMediaService.storage.save(media, file.buffer);
           if (media.type === BCMSMediaType.IMG) {
             try {
-              const dimensions = await util.promisify(sizeOf)(
+              const dimensions = await util.promisify(imageSize)(
                 await BCMSMediaService.storage.getPath({ media }),
               );
               if (!dimensions) {
@@ -460,7 +468,7 @@ export const BCMSMediaController = createController<Setup>({
               logger.error(name, error);
             }
           }
-          const addedMedia = await BCMSRepo.media.add(media as never);
+          const addedMedia = await BCMSRepo.media.add(media);
           if (!addedMedia) {
             await BCMSMediaService.storage.removeFile(media);
             throw errorHandler.occurred(
@@ -468,21 +476,9 @@ export const BCMSMediaController = createController<Setup>({
               bcmsResCode('mda003'),
             );
           }
-          if (media.type === BCMSMediaType.VID) {
-            try {
-              await BCMSFfmpeg.createVideoThumbnail({ media });
-            } catch (error) {
-              logger.error(name, error);
-            }
-          } else if (media.type === BCMSMediaType.GIF) {
-            try {
-              await BCMSFfmpeg.createGifThumbnail({ media });
-            } catch (error) {
-              logger.error(name, error);
-            }
-          }
+
           await BCMSSocketManager.emit.media({
-            mediaId: `${addedMedia._id}`,
+            mediaId: addedMedia._id,
             type: BCMSSocketEventType.UPDATE,
             userIds: 'all',
             excludeUserId: [accessToken.payload.userId],
@@ -496,13 +492,12 @@ export const BCMSMediaController = createController<Setup>({
       createDir: createControllerMethod({
         path: '/dir',
         type: 'post',
-        preRequestHandler: createJwtAndBodyCheckRouteProtection<
-          BCMSMediaAddDirData
-        >({
-          roleNames: [JWTRoleName.ADMIN, JWTRoleName.USER],
-          permissionName: JWTPermissionName.WRITE,
-          bodySchema: BCMSMediaAddDirDataSchema,
-        }),
+        preRequestHandler:
+          createJwtAndBodyCheckRouteProtection<BCMSMediaAddDirData>({
+            roleNames: [JWTRoleName.ADMIN, JWTRoleName.USER],
+            permissionName: JWTPermissionName.WRITE,
+            bodySchema: BCMSMediaAddDirDataSchema,
+          }),
         async handler({ body, errorHandler, accessToken }) {
           let parent: BCMSMedia | null = null;
           if (body.parentId) {
@@ -521,7 +516,7 @@ export const BCMSMediaController = createController<Setup>({
             mimetype: 'dir',
             name: body.name,
             isInRoot: !parent,
-            parentId: parent ? `${parent._id}` : '',
+            parentId: parent ? parent._id : '',
             hasChildren: true,
             altText: '',
             caption: '',
@@ -531,13 +526,13 @@ export const BCMSMediaController = createController<Setup>({
           if (
             await BCMSRepo.media.methods.findByNameAndParentId(
               media.name,
-              parent ? `${parent._id}` : undefined,
+              parent ? parent._id : undefined,
             )
           ) {
             media.name =
               crypto.randomBytes(6).toString('hex') + '-' + media.name;
           }
-          const addedMedia = await BCMSRepo.media.add(media as never);
+          const addedMedia = await BCMSRepo.media.add(media);
           if (!addedMedia) {
             throw errorHandler.occurred(
               HTTPStatus.INTERNAL_SERVER_ERROR,
@@ -546,7 +541,7 @@ export const BCMSMediaController = createController<Setup>({
           }
           await BCMSMediaService.storage.mkdir(addedMedia);
           await BCMSSocketManager.emit.media({
-            mediaId: `${addedMedia._id}`,
+            mediaId: addedMedia._id,
             type: BCMSSocketEventType.UPDATE,
             userIds: 'all',
             excludeUserId: [accessToken.payload.userId],
@@ -556,17 +551,17 @@ export const BCMSMediaController = createController<Setup>({
           };
         },
       }),
+
       updateFile: createControllerMethod({
         path: '/file',
         type: 'put',
-        preRequestHandler: createJwtAndBodyCheckRouteProtection<
-          BCMSMediaUpdateData
-        >({
-          roleNames: [JWTRoleName.ADMIN, JWTRoleName.USER],
-          permissionName: JWTPermissionName.WRITE,
-          bodySchema: BCMSMediaUpdateDataSchema,
-        }),
-        async handler({ errorHandler, body, accessToken, logger }) {
+        preRequestHandler:
+          createJwtAndBodyCheckRouteProtection<BCMSMediaUpdateData>({
+            roleNames: [JWTRoleName.ADMIN, JWTRoleName.USER],
+            permissionName: JWTPermissionName.WRITE,
+            bodySchema: BCMSMediaUpdateDataSchema,
+          }),
+        async handler({ errorHandler, body, accessToken }) {
           const media = await BCMSRepo.media.findById(body._id);
           if (!media) {
             throw errorHandler.occurred(
@@ -581,78 +576,29 @@ export const BCMSMediaController = createController<Setup>({
               bcmsResCode('mda005'),
             );
           }
-          const pathMedia = await BCMSMediaService.getPath(media);
-          const mediaPathParts = pathMedia.split('/');
-          const basePath = mediaPathParts
-            .slice(0, mediaPathParts.length - 1)
-            .join('');
-
           let changeDetected = false;
-          const fileNameParts = media.name.split('.');
-          const fileName =
-            fileNameParts.length > 1
-              ? fileNameParts[fileNameParts.length - 2]
-              : fileNameParts[0];
-          const fileExt =
-            fileNameParts.length > 1
-              ? fileNameParts[fileNameParts.length - 1]
-              : '';
+          const mediaNameInfo = BCMSMediaService.getNameAndExt(media.name);
 
-          if (typeof body.name === 'string' && body.name !== fileName) {
-            const name =
-              stringUtil.toSlug(body.name) + '.' + stringUtil.toSlug(fileExt);
+          if (
+            typeof body.name === 'string' &&
+            body.name !== mediaNameInfo.name
+          ) {
+            const name = `${stringUtil.toSlug(body.name)}${
+              mediaNameInfo.ext ? '.' + mediaNameInfo.ext : ''
+            }`;
 
-            const mediaWithSameParent = await BCMSRepo.media.methods.findByNameAndParentId(
-              name,
-              media.parentId,
-            );
-            if (mediaWithSameParent) {
+            if (
+              await BCMSRepo.media.methods.findByNameAndParentId(
+                name,
+                media.parentId,
+              )
+            ) {
               throw errorHandler.occurred(
                 HTTPStatus.INTERNAL_SERVER_ERROR,
                 bcmsResCode('mda002', { name }),
               );
             }
 
-            if (media.type === BCMSMediaType.IMG) {
-              try {
-                const mediaThumbnailOld = path.join(
-                  process.cwd(),
-                  'uploads',
-                  basePath,
-                  '300-' + media.name,
-                );
-                const mediaThumbnailNew = path.join(
-                  process.cwd(),
-                  'uploads',
-                  basePath,
-                  '300-' + name,
-                );
-                await fs.rename(mediaThumbnailOld, mediaThumbnailNew);
-              } catch (error) {
-                logger.error(name, error);
-              }
-            } else if (
-              media.type === BCMSMediaType.VID ||
-              media.type === BCMSMediaType.GIF
-            ) {
-              try {
-                const mediaThumbnailOld = path.join(
-                  process.cwd(),
-                  'uploads',
-                  basePath,
-                  'thumbnail-' + fileName + '.png',
-                );
-                const mediaThumbnailNew = path.join(
-                  process.cwd(),
-                  'uploads',
-                  basePath,
-                  'thumbnail-' + body.name + '.png',
-                );
-                await fs.rename(mediaThumbnailOld, mediaThumbnailNew);
-              } catch (error) {
-                logger.error(name, error);
-              }
-            }
             changeDetected = true;
             media.name = name;
           }
@@ -677,7 +623,7 @@ export const BCMSMediaController = createController<Setup>({
             );
           }
           await BCMSMediaService.storage.rename(oldMedia, media);
-          const updateMedia = await BCMSRepo.media.update(media as never);
+          const updateMedia = await BCMSRepo.media.update(media);
           if (!updateMedia) {
             throw errorHandler.occurred(
               HTTPStatus.INTERNAL_SERVER_ERROR,
@@ -685,7 +631,7 @@ export const BCMSMediaController = createController<Setup>({
             );
           }
           await BCMSSocketManager.emit.media({
-            mediaId: `${updateMedia._id}`,
+            mediaId: updateMedia._id,
             type: BCMSSocketEventType.UPDATE,
             userIds: 'all',
             excludeUserId: [accessToken.payload.userId],
@@ -695,35 +641,17 @@ export const BCMSMediaController = createController<Setup>({
           };
         },
       }),
+
       moveFile: createControllerMethod({
         path: '/move',
         type: 'put',
-        preRequestHandler: createJwtAndBodyCheckRouteProtection<
-          BCMSMediaMoveData
-        >({
-          roleNames: [JWTRoleName.ADMIN, JWTRoleName.USER],
-          permissionName: JWTPermissionName.WRITE,
-          bodySchema: BCMSMediaMoveDataSchema,
-        }),
-        async handler({ body, errorHandler, accessToken, logger }) {
-          const moveTo = (await BCMSRepo.media.findById(
-            body.moveTo,
-          )) as BCMSMedia;
-          if (!moveTo) {
-            throw errorHandler.occurred(
-              HTTPStatus.NOT_FOUNT,
-              bcmsResCode('mda001', { id: body.moveTo }),
-            );
-          }
-
-          if (moveTo.type !== BCMSMediaType.DIR) {
-            throw errorHandler.occurred(
-              HTTPStatus.INTERNAL_SERVER_ERROR,
-              bcmsResCode('mda005'),
-            );
-          }
-          const moveToPath = await BCMSMediaService.getPath(moveTo);
-
+        preRequestHandler:
+          createJwtAndBodyCheckRouteProtection<BCMSMediaMoveData>({
+            roleNames: [JWTRoleName.ADMIN, JWTRoleName.USER],
+            permissionName: JWTPermissionName.WRITE,
+            bodySchema: BCMSMediaMoveDataSchema,
+          }),
+        async handler({ body, errorHandler, accessToken }) {
           const media = await BCMSRepo.media.findById(body._id);
           if (!media) {
             throw errorHandler.occurred(
@@ -737,70 +665,22 @@ export const BCMSMediaController = createController<Setup>({
               bcmsResCode('mda005'),
             );
           }
-          const mediaPath = await BCMSMediaService.getPath(media);
-          const mediaPathParts = mediaPath.split('/');
-          const mediaName = mediaPathParts
-            .slice(mediaPathParts.length - 1, mediaPathParts.length)
-            .join('');
-          const mediaNameWithNewPath = moveToPath + '/' + mediaName;
-
-          await BCMSMediaService.storage.move(mediaPath, mediaNameWithNewPath);
-
-          media.parentId = moveTo._id as never;
-          const moveMedia = await BCMSRepo.media.update(media as never);
-
-          const basePath = mediaPathParts
-            .slice(0, mediaPathParts.length - 1)
-            .join('');
-          if (media.type === BCMSMediaType.IMG) {
-            try {
-              const mediaThumbnailOld = path.join(
-                process.cwd(),
-                'uploads',
-                basePath,
-                '300-' + mediaName,
-              );
-              const mediaThumbnailNew = path.join(
-                process.cwd(),
-                'uploads',
-                moveToPath,
-                '300-' + mediaName,
-              );
-              await fs.rename(mediaThumbnailOld, mediaThumbnailNew);
-            } catch (error) {
-              logger.error(mediaName, error);
-            }
-          } else if (
-            media.type === BCMSMediaType.VID ||
-            media.type === BCMSMediaType.GIF
-          ) {
-            try {
-              const fileNameParts = media.name.split('.');
-              const fileName =
-                fileNameParts.length > 1
-                  ? fileNameParts[fileNameParts.length - 2]
-                  : fileNameParts[0];
-
-              const mediaThumbnailOld = path.join(
-                process.cwd(),
-                'uploads',
-                basePath,
-                'thumbnail-' + fileName + '.png',
-              );
-              const mediaThumbnailNew = path.join(
-                process.cwd(),
-                'uploads',
-                moveToPath,
-                'thumbnail-' + fileName + '.png',
-              );
-              await fs.rename(mediaThumbnailOld, mediaThumbnailNew);
-            } catch (error) {
-              logger.error(mediaName, error);
-            }
+          const moveToMedia = await BCMSRepo.media.findById(body.moveTo);
+          if (moveToMedia) {
+            media.isInRoot = false;
+            media.parentId = body.moveTo;
+          } else {
+            media.isInRoot = true;
+            media.parentId = '';
           }
 
+          await BCMSMediaService.storage.move(media, moveToMedia);
+          const moveMedia = await BCMSRepo.media.update(
+            media,
+          );
+
           await BCMSSocketManager.emit.media({
-            mediaId: `${media._id}`,
+            mediaId: media._id,
             type: BCMSSocketEventType.UPDATE,
             userIds: 'all',
             excludeUserId: [accessToken.payload.userId],
@@ -810,12 +690,15 @@ export const BCMSMediaController = createController<Setup>({
           };
         },
       }),
+
       deleteById: createControllerMethod({
         path: '/:id',
         type: 'delete',
-        preRequestHandler: createJwtProtectionPreRequestHandler<
-          BCMSUserCustomPool
-        >([JWTRoleName.ADMIN, JWTRoleName.DEV], JWTPermissionName.DELETE),
+        preRequestHandler:
+          createJwtProtectionPreRequestHandler<BCMSUserCustomPool>(
+            [JWTRoleName.ADMIN, JWTRoleName.DEV],
+            JWTPermissionName.DELETE,
+          ),
         async handler({ request, errorHandler, accessToken }) {
           const media = await BCMSRepo.media.findById(request.params.id);
           if (!media) {
@@ -828,16 +711,16 @@ export const BCMSMediaController = createController<Setup>({
           if (media.type === BCMSMediaType.DIR) {
             deletedChildrenIds = (
               await BCMSMediaService.getChildren(media)
-            ).map((e) => `${e._id}`);
+            ).map((e) => e._id);
             for (let i = 0; i < deletedChildrenIds.length; i++) {
               const childId = deletedChildrenIds[i];
               await BCMSRepo.media.deleteById(childId);
             }
-            await BCMSRepo.media.deleteById(`${media._id}`);
+            await BCMSRepo.media.deleteById(media._id);
             await BCMSMediaService.storage.removeDir(media);
           } else {
             const deleteResult = await BCMSRepo.media.deleteById(
-              `${media._id}`,
+              media._id,
             );
             if (!deleteResult) {
               throw errorHandler.occurred(
@@ -848,7 +731,7 @@ export const BCMSMediaController = createController<Setup>({
             await BCMSMediaService.storage.removeFile(media);
           }
           await BCMSSocketManager.emit.media({
-            mediaId: `${media._id}`,
+            mediaId: media._id,
             type: BCMSSocketEventType.REMOVE,
             userIds: 'all',
             excludeUserId: [accessToken.payload.userId],

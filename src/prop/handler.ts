@@ -25,9 +25,6 @@ import {
   BCMSPropType,
   BCMSPropValueGroupPointerData,
   BCMSSocketEventType,
-  BCMSWidgetCross,
-  BCMSGroupCross,
-  BCMSTemplateCross,
   BCMSPropRichTextData,
 } from '../types';
 
@@ -716,12 +713,12 @@ export const BCMSPropHandler: BCMSPropHandlerType = {
       group.props = filterGroupPointer({
         props: group.props,
       });
-      const updatedGroup = await BCMSRepo.group.update(group as BCMSGroupCross);
+      const updatedGroup = await BCMSRepo.group.update(group);
       if (!updatedGroup) {
         errors.push(Error(`Failed to update group "${group._id}"`));
       } else {
         await BCMSSocketManager.emit.group({
-          groupId: `${group._id}`,
+          groupId: group._id,
           type: BCMSSocketEventType.UPDATE,
           userIds: 'all',
         });
@@ -735,14 +732,12 @@ export const BCMSPropHandler: BCMSPropHandlerType = {
       widget.props = filterGroupPointer({
         props: widget.props,
       });
-      const updatedWidget = await BCMSRepo.widget.update(
-        widget as BCMSWidgetCross,
-      );
+      const updatedWidget = await BCMSRepo.widget.update(widget);
       if (!updatedWidget) {
         errors.push(Error(`Failed to update widget "${widget._id}"`));
       } else {
         await BCMSSocketManager.emit.widget({
-          widgetId: `${widget._id}`,
+          widgetId: widget._id,
           type: BCMSSocketEventType.UPDATE,
           userIds: 'all',
         });
@@ -756,14 +751,12 @@ export const BCMSPropHandler: BCMSPropHandlerType = {
       template.props = filterGroupPointer({
         props: template.props,
       });
-      const updatedTemplate = await BCMSRepo.template.update(
-        template as BCMSTemplateCross,
-      );
+      const updatedTemplate = await BCMSRepo.template.update(template);
       if (!updatedTemplate) {
         errors.push(Error(`Failed to update template "${template._id}"`));
       } else {
         await BCMSSocketManager.emit.template({
-          templateId: `${template._id}`,
+          templateId: template._id,
           type: BCMSSocketEventType.UPDATE,
           userIds: 'all',
         });
@@ -793,12 +786,12 @@ export const BCMSPropHandler: BCMSPropHandlerType = {
       group.props = filterGroupPointer({
         props: group.props,
       });
-      const updatedGroup = await BCMSRepo.group.update(group as BCMSGroupCross);
+      const updatedGroup = await BCMSRepo.group.update(group);
       if (!updatedGroup) {
         errors.push(Error(`Failed to update group "${group._id}"`));
       } else {
         await BCMSSocketManager.emit.group({
-          groupId: `${group._id}`,
+          groupId: group._id,
           type: BCMSSocketEventType.UPDATE,
           userIds: 'all',
         });
@@ -812,14 +805,12 @@ export const BCMSPropHandler: BCMSPropHandlerType = {
       widget.props = filterGroupPointer({
         props: widget.props,
       });
-      const updatedWidget = await BCMSRepo.widget.update(
-        widget as BCMSWidgetCross,
-      );
+      const updatedWidget = await BCMSRepo.widget.update(widget);
       if (!updatedWidget) {
         errors.push(Error(`Failed to update widget "${widget._id}"`));
       } else {
         await BCMSSocketManager.emit.widget({
-          widgetId: `${widget._id}`,
+          widgetId: widget._id,
           type: BCMSSocketEventType.UPDATE,
           userIds: 'all',
         });
@@ -833,14 +824,12 @@ export const BCMSPropHandler: BCMSPropHandlerType = {
       template.props = filterGroupPointer({
         props: template.props,
       });
-      const updatedTemplate = await BCMSRepo.template.update(
-        template as BCMSTemplateCross,
-      );
+      const updatedTemplate = await BCMSRepo.template.update(template);
       if (!updatedTemplate) {
         errors.push(Error(`Failed to update template "${template._id}"`));
       } else {
         await BCMSSocketManager.emit.template({
-          templateId: `${template._id}`,
+          templateId: template._id,
           type: BCMSSocketEventType.UPDATE,
           userIds: 'all',
         });

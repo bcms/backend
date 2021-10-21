@@ -15,7 +15,7 @@ export function createIDCounterInitializeModule(): Module {
               forId: 'orgs',
               name: 'Organizations',
             });
-            await BCMSRepo.idc.add(idc as never);
+            await BCMSRepo.idc.add(idc);
           }
           moduleConfig.next();
         })

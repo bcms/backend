@@ -1,12 +1,11 @@
-import { BCMSConfig } from '@bcms/config';
 import { Types } from 'mongoose';
-import type { BCMSGroup, BCMSGroupFactory } from '../types';
+import type { BCMSGroupFactory } from '../types';
 
 export function createBcmsGroupFactory(): BCMSGroupFactory {
   return {
     create(config) {
-      const group: BCMSGroup = {
-        _id: new Types.ObjectId(),
+      return {
+        _id: `${new Types.ObjectId()}`,
         createdAt: Date.now(),
         updatedAt: Date.now(),
         cid: config.cid,
@@ -15,14 +14,10 @@ export function createBcmsGroupFactory(): BCMSGroupFactory {
         name: config.name,
         props: [],
       };
-      if (BCMSConfig.database.fs) {
-        group._id = `${group._id}` as never;
-      }
-      return group;
     },
     toLite(group) {
       return {
-        _id: `${group._id}`,
+        _id: group._id,
         createdAt: group.createdAt,
         updatedAt: group.updatedAt,
         cid: group.cid,

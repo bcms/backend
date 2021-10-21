@@ -1,22 +1,19 @@
 import type { FSDBRepository } from '@becomes/purple-cheetah-mod-fsdb/types';
 import type { MongoDBCachedRepository } from '@becomes/purple-cheetah-mod-mongodb/types';
-import type {
-  BCMSTemplateOrganizerFSDB,
-  BCMSTemplateOrganizerMongoDB,
-} from './models';
+import type { BCMSTemplateOrganizer } from './models';
 
-export interface BCMSTemplateOrganizerRepositoryMethods<E> {
-  findAllByParentId(parentId: string): Promise<E[]>;
-  findByName(name: string): Promise<E | null>;
-  findByTemplateId(templateId: string): Promise<E | null>;
+export interface BCMSTemplateOrganizerRepositoryMethods {
+  findAllByParentId(parentId: string): Promise<BCMSTemplateOrganizer[]>;
+  findByName(name: string): Promise<BCMSTemplateOrganizer | null>;
+  findByTemplateId(templateId: string): Promise<BCMSTemplateOrganizer | null>;
 }
 
 export type BCMSTemplateOrganizerRepository =
   | MongoDBCachedRepository<
-      BCMSTemplateOrganizerMongoDB,
-      BCMSTemplateOrganizerRepositoryMethods<BCMSTemplateOrganizerMongoDB>
+      BCMSTemplateOrganizer,
+      BCMSTemplateOrganizerRepositoryMethods
     >
   | FSDBRepository<
-      BCMSTemplateOrganizerFSDB,
-      BCMSTemplateOrganizerRepositoryMethods<BCMSTemplateOrganizerFSDB>
+      BCMSTemplateOrganizer,
+      BCMSTemplateOrganizerRepositoryMethods
     >;

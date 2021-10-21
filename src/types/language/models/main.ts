@@ -2,14 +2,11 @@ import {
   FSDBEntity,
   FSDBEntitySchema,
 } from '@becomes/purple-cheetah-mod-fsdb/types';
-import {
-  MongoDBEntity,
-  MongoDBEntitySchema,
-} from '@becomes/purple-cheetah-mod-mongodb/types';
+import { MongoDBEntitySchemaString } from '@becomes/purple-cheetah-mod-mongodb/types';
 import type { ObjectSchema } from '@becomes/purple-cheetah/types';
 import { Schema } from 'mongoose';
 
-export interface BCMSLanguageProps {
+export interface BCMSLanguage extends FSDBEntity {
   userId: string;
   code: string;
   name: string;
@@ -17,7 +14,6 @@ export interface BCMSLanguageProps {
   def: boolean;
 }
 
-export type BCMSLanguageFSDB = FSDBEntity & BCMSLanguageProps;
 export const BCMSLanguageFSDBSchema: ObjectSchema = {
   ...FSDBEntitySchema,
   userId: {
@@ -42,9 +38,8 @@ export const BCMSLanguageFSDBSchema: ObjectSchema = {
   },
 };
 
-export type BCMSLanguageMongoDB = MongoDBEntity & BCMSLanguageProps;
 export const BCMSLanguageMongoDBSchema = new Schema({
-  ...MongoDBEntitySchema,
+  ...MongoDBEntitySchemaString,
   userId: {
     type: String,
     required: true,
@@ -66,6 +61,3 @@ export const BCMSLanguageMongoDBSchema = new Schema({
     required: true,
   },
 });
-
-export type BCMSLanguage = BCMSLanguageFSDB | BCMSLanguageMongoDB;
-export type BCMSLanguageCross = BCMSLanguageFSDB & BCMSLanguageMongoDB;

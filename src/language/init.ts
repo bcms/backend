@@ -17,7 +17,7 @@ export function initLanguage(): Module {
               nativeName: 'English',
               userId: '',
             });
-            const addResult = await BCMSRepo.language.add(lang as never);
+            const addResult = await BCMSRepo.language.add(lang);
             if (!addResult) {
               moduleConfig.next(
                 Error('Failed to add default language to the database.'),

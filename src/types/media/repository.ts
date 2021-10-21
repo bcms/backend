@@ -1,16 +1,16 @@
 import type { FSDBRepository } from '@becomes/purple-cheetah-mod-fsdb/types';
 import type { MongoDBCachedRepository } from '@becomes/purple-cheetah-mod-mongodb/types';
-import type { BCMSMediaFSDB, BCMSMediaMongoDB } from './models';
+import type { BCMSMedia } from './models';
 
-export interface BCMSMediaRepositoryMethods<E> {
-  findAllByIsInRoot(isInRoot: boolean): Promise<E[]>;
-  findByNameAndParentId(name: string, parentId?: string): Promise<E | null>;
-  findAllByParentId(parentId: string): Promise<E[]>;
+export interface BCMSMediaRepositoryMethods {
+  findAllByIsInRoot(isInRoot: boolean): Promise<BCMSMedia[]>;
+  findByNameAndParentId(
+    name: string,
+    parentId?: string,
+  ): Promise<BCMSMedia | null>;
+  findAllByParentId(parentId: string): Promise<BCMSMedia[]>;
 }
 
 export type BCMSMediaRepository =
-  | MongoDBCachedRepository<
-      BCMSMediaMongoDB,
-      BCMSMediaRepositoryMethods<BCMSMediaMongoDB>
-    >
-  | FSDBRepository<BCMSMediaFSDB, BCMSMediaRepositoryMethods<BCMSMediaFSDB>>;
+  | MongoDBCachedRepository<BCMSMedia, BCMSMediaRepositoryMethods>
+  | FSDBRepository<BCMSMedia, BCMSMediaRepositoryMethods>;

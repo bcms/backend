@@ -10,8 +10,6 @@ import {
 } from '@becomes/purple-cheetah/types';
 import {
   BCMSProtectedUser,
-  BCMSUserFSDB,
-  BCMSUserMongoDB,
   BCMSUserCustomPool,
   BCMSUserUpdateDataSchema,
   BCMSUserUpdateData,
@@ -198,11 +196,9 @@ export const BCMSUserController = createController<Setup>({
               bcmsResCode('g003'),
             );
           }
-          const updatedUser = await BCMSRepo.user.update(
-            user as BCMSUserFSDB & BCMSUserMongoDB,
-          );
+          const updatedUser = await BCMSRepo.user.update(user);
           await BCMSSocketManager.emit.user({
-            userId: `${updatedUser._id}`,
+            userId: updatedUser._id,
             type: BCMSSocketEventType.UPDATE,
             userIds: 'all',
             excludeUserId: [accessToken.payload.userId],

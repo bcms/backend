@@ -4,9 +4,8 @@ import { createFSDBRepository } from '@becomes/purple-cheetah-mod-fsdb';
 import { createMongoDBCachedRepository } from '@becomes/purple-cheetah-mod-mongodb';
 import type { Module } from '@becomes/purple-cheetah/types';
 import {
-  BCMSTemplateOrganizerFSDB,
+  BCMSTemplateOrganizer,
   BCMSTemplateOrganizerFSDBSchema,
-  BCMSTemplateOrganizerMongoDB,
   BCMSTemplateOrganizerMongoDBSchema,
   BCMSTemplateOrganizerRepositoryMethods,
 } from '../types';
@@ -25,8 +24,8 @@ export function createBcmsTemplateOrganizerRepository(): Module {
 
       BCMSRepo.templateOrganizer = BCMSConfig.database.fs
         ? createFSDBRepository<
-            BCMSTemplateOrganizerFSDB,
-            BCMSTemplateOrganizerRepositoryMethods<BCMSTemplateOrganizerFSDB>
+            BCMSTemplateOrganizer,
+            BCMSTemplateOrganizerRepositoryMethods
           >({
             name: nm,
             collection,
@@ -48,8 +47,8 @@ export function createBcmsTemplateOrganizerRepository(): Module {
             },
           })
         : createMongoDBCachedRepository<
-            BCMSTemplateOrganizerMongoDB,
-            BCMSTemplateOrganizerRepositoryMethods<BCMSTemplateOrganizerMongoDB>,
+            BCMSTemplateOrganizer,
+            BCMSTemplateOrganizerRepositoryMethods,
             unknown
           >({
             name: nm,
@@ -64,7 +63,7 @@ export function createBcmsTemplateOrganizerRepository(): Module {
                   const items = await mongoDBInterface.find({ parentId });
                   for (let i = 0; i < items.length; i++) {
                     const item = items[i];
-                    cacheHandler.set(`${item._id}`, item);
+                    cacheHandler.set(item._id, item);
                   }
                   latches.parentId[parentId] = true;
                   return items;
@@ -76,7 +75,7 @@ export function createBcmsTemplateOrganizerRepository(): Module {
                   }
                   const item = await mongoDBInterface.findOne({ name });
                   if (item) {
-                    cacheHandler.set(`${item._id}`, item);
+                    cacheHandler.set(item._id, item);
                   }
                   return item;
                 },
@@ -91,7 +90,7 @@ export function createBcmsTemplateOrganizerRepository(): Module {
                     templateIds: templateId,
                   });
                   if (item) {
-                    cacheHandler.set(`${item._id}`, item);
+                    cacheHandler.set(item._id, item);
                   }
                   return item;
                 },

@@ -63,24 +63,24 @@ export const BCMSGroupController = createController<Setup>({
           }
 
           const groups = await BCMSRepo.group.methods.findAllByPropGroupPointer(
-            `${group._id}`,
+            group._id,
           );
           const templates = await BCMSRepo.template.methods.findAllByPropGroupPointer(
-            `${group._id}`,
+            group._id,
           );
           const widgets = await BCMSRepo.widget.methods.findAllByPropGroupPointer(
-            `${group._id}`,
+            group._id,
           );
 
           return {
             groupIds: groups.map((e) => {
-              return { cid: e.cid, _id: `${e._id}` };
+              return { cid: e.cid, _id: e._id };
             }),
             templateIds: templates.map((e) => {
-              return { cid: e.cid, _id: `${e._id}` };
+              return { cid: e.cid, _id: e._id };
             }),
             widgetIds: widgets.map((e) => {
-              return { cid: e.cid, _id: `${e._id}` };
+              return { cid: e.cid, _id: e._id };
             }),
           };
         },
@@ -191,7 +191,7 @@ export const BCMSGroupController = createController<Setup>({
               forId: 'groups',
               name: 'Groups',
             });
-            const addIdcResult = await BCMSRepo.idc.add(groupIdc as never);
+            const addIdcResult = await BCMSRepo.idc.add(groupIdc);
             if (!addIdcResult) {
               throw errorHandler.occurred(
                 HTTPStatus.INTERNAL_SERVER_ERROR,
@@ -212,7 +212,7 @@ export const BCMSGroupController = createController<Setup>({
               bcmsResCode('grp002', { name: group.name }),
             );
           }
-          const addedGroup = await BCMSRepo.group.add(group as never);
+          const addedGroup = await BCMSRepo.group.add(group);
           if (!addedGroup) {
             throw errorHandler.occurred(
               HTTPStatus.INTERNAL_SERVER_ERROR,
@@ -220,7 +220,7 @@ export const BCMSGroupController = createController<Setup>({
             );
           }
           await BCMSSocketManager.emit.group({
-            groupId: `${addedGroup._id}`,
+            groupId: addedGroup._id,
             type: BCMSSocketEventType.UPDATE,
             userIds: 'all',
             excludeUserId: [accessToken.payload.userId],
@@ -299,7 +299,7 @@ export const BCMSGroupController = createController<Setup>({
             {
               group: [
                 {
-                  _id: `${group._id}`,
+                  _id: group._id,
                   label: group.label,
                 },
               ],
@@ -327,7 +327,7 @@ export const BCMSGroupController = createController<Setup>({
               }),
             );
           }
-          const updatedGroup = await BCMSRepo.group.update(group as never);
+          const updatedGroup = await BCMSRepo.group.update(group);
           if (!updatedGroup) {
             throw errorHandler.occurred(
               HTTPStatus.INTERNAL_SERVER_ERROR,
@@ -335,7 +335,7 @@ export const BCMSGroupController = createController<Setup>({
             );
           }
           await BCMSSocketManager.emit.group({
-            groupId: `${updatedGroup._id}`,
+            groupId: updatedGroup._id,
             type: BCMSSocketEventType.UPDATE,
             userIds: 'all',
             excludeUserId: [accessToken.payload.userId],
@@ -370,13 +370,13 @@ export const BCMSGroupController = createController<Setup>({
             );
           }
           const errors = await BCMSPropHandler.removeGroupPointer({
-            groupId: `${group._id}`,
+            groupId: group._id,
           });
           if (errors) {
             logger.error(name, errors);
           }
           await BCMSSocketManager.emit.group({
-            groupId: `${group._id}`,
+            groupId: group._id,
             type: BCMSSocketEventType.REMOVE,
             userIds: 'all',
             excludeUserId: [accessToken.payload.userId],

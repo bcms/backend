@@ -4,9 +4,8 @@ import { createFSDBRepository } from '@becomes/purple-cheetah-mod-fsdb';
 import { createMongoDBCachedRepository } from '@becomes/purple-cheetah-mod-mongodb';
 import type { Module } from '@becomes/purple-cheetah/types';
 import {
-  BCMSUserFSDB,
+  BCMSUser,
   BCMSUserFSDBSchema,
-  BCMSUserMongoDB,
   BCMSUserMongoDBSchema,
   BCMSUserRepositoryMethods,
 } from '../types';
@@ -19,10 +18,7 @@ export function createBcmsUserRepository(): Module {
       const collection = `${BCMSConfig.database.prefix}_users`;
 
       BCMSRepo.user = BCMSConfig.database.fs
-        ? createFSDBRepository<
-            BCMSUserFSDB,
-            BCMSUserRepositoryMethods<BCMSUserFSDB>
-          >({
+        ? createFSDBRepository<BCMSUser, BCMSUserRepositoryMethods>({
             collection,
             name,
             schema: BCMSUserFSDBSchema,
@@ -35,8 +31,8 @@ export function createBcmsUserRepository(): Module {
             },
           })
         : createMongoDBCachedRepository<
-            BCMSUserMongoDB,
-            BCMSUserRepositoryMethods<BCMSUserMongoDB>,
+            BCMSUser,
+            BCMSUserRepositoryMethods,
             undefined
           >({
             name,
@@ -53,7 +49,7 @@ export function createBcmsUserRepository(): Module {
                   }
                   const result = await mongoDBInterface.findOne({ email });
                   if (result) {
-                    cacheHandler.set(`${result._id}`, result);
+                    cacheHandler.set(result._id, result);
                   }
                   return result;
                 },

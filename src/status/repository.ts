@@ -1,15 +1,13 @@
 import { BCMSConfig } from '@bcms/config';
 import { BCMSFactory } from '@bcms/factory';
 import { BCMSRepo } from '@bcms/repo';
-import type { BCMSStatusCross } from '@bcms/types';
 import { useStringUtility } from '@becomes/purple-cheetah';
 import { createFSDBRepository } from '@becomes/purple-cheetah-mod-fsdb';
 import { createMongoDBCachedRepository } from '@becomes/purple-cheetah-mod-mongodb';
 import type { Module } from '@becomes/purple-cheetah/types';
 import {
-  BCMSStatusFSDB,
+  BCMSStatus,
   BCMSStatusFSDBSchema,
-  BCMSStatusMongoDB,
   BCMSStatusMongoDBSchema,
   BCMSStatusRepositoryMethods,
 } from '../types';
@@ -22,10 +20,7 @@ export function createBcmsStatusRepository(): Module {
       const collection = `${BCMSConfig.database.prefix}_statuses`;
 
       BCMSRepo.status = BCMSConfig.database.fs
-        ? createFSDBRepository<
-            BCMSStatusFSDB,
-            BCMSStatusRepositoryMethods<BCMSStatusFSDB>
-          >({
+        ? createFSDBRepository<BCMSStatus, BCMSStatusRepositoryMethods>({
             name,
             collection,
             schema: BCMSStatusFSDBSchema,
@@ -38,8 +33,8 @@ export function createBcmsStatusRepository(): Module {
             },
           })
         : createMongoDBCachedRepository<
-            BCMSStatusMongoDB,
-            BCMSStatusRepositoryMethods<BCMSStatusMongoDB>,
+            BCMSStatus,
+            BCMSStatusRepositoryMethods,
             unknown
           >({
             name,
@@ -54,7 +49,7 @@ export function createBcmsStatusRepository(): Module {
                   }
                   const status = await mongoDBInterface.findOne({ name: nm });
                   if (status) {
-                    cacheHandler.set(`${status._id}`, status);
+                    cacheHandler.set(status._id, status);
                   }
                   return status;
                 },
@@ -71,7 +66,7 @@ export function createBcmsStatusRepository(): Module {
               BCMSFactory.status.create({
                 label: 'Draft',
                 name: stringUtil.toSlugUnderscore('Draft'),
-              }) as BCMSStatusCross,
+              }),
             );
           }
           const activeStatus = await BCMSRepo.status.methods.findByName(
@@ -82,7 +77,7 @@ export function createBcmsStatusRepository(): Module {
               BCMSFactory.status.create({
                 label: 'active',
                 name: stringUtil.toSlugUnderscore('Active'),
-              }) as never,
+              }),
             );
           }
           next();

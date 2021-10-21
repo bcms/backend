@@ -4,13 +4,12 @@ import {
   JWTPermissionName,
   JWTRoleName,
 } from '@becomes/purple-cheetah-mod-jwt/types';
-import { BCMSConfig } from '@bcms/config';
 
 export function createBcmsUserFactory(): BCMSUserFactory {
   return {
     create(config) {
       const user: BCMSUser = {
-        _id: new Types.ObjectId(),
+        _id: `${new Types.ObjectId()}`,
         createdAt: -1,
         updatedAt: -1,
         email: '',
@@ -54,10 +53,6 @@ export function createBcmsUserFactory(): BCMSUserFactory {
           },
         },
       };
-
-      if (BCMSConfig.database.fs) {
-        user._id = `${user._id}` as never;
-      }
       if (config.admin) {
         user.roles[0].name = JWTRoleName.ADMIN;
       }
@@ -76,7 +71,7 @@ export function createBcmsUserFactory(): BCMSUserFactory {
     toProtected(user) {
       return JSON.parse(
         JSON.stringify({
-          _id: `${user._id}`,
+          _id: user._id,
           email: user.email,
           roles: user.roles,
           username: user.username,

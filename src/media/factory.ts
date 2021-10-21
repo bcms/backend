@@ -1,12 +1,11 @@
-import { BCMSConfig } from '@bcms/config';
 import { Types } from 'mongoose';
-import { BCMSMedia, BCMSMediaFactory, BCMSMediaType } from '../types';
+import { BCMSMediaFactory, BCMSMediaType } from '../types';
 
 export function createBcmsMediaFactory(): BCMSMediaFactory {
   return {
     create(data) {
-      const media: BCMSMedia = {
-        _id: new Types.ObjectId(),
+      return {
+        _id: `${new Types.ObjectId()}`,
         createdAt: Date.now(),
         updatedAt: Date.now(),
         hasChildren: data.hasChildren ? data.hasChildren : false,
@@ -22,10 +21,6 @@ export function createBcmsMediaFactory(): BCMSMediaFactory {
         height: data.height ? data.height : -1,
         width: data.width ? data.width : -1,
       };
-      if (BCMSConfig.database.fs) {
-        media._id = `${media._id}` as never;
-      }
-      return media;
     },
   };
 }

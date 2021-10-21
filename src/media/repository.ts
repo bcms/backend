@@ -4,9 +4,8 @@ import { createFSDBRepository } from '@becomes/purple-cheetah-mod-fsdb';
 import { createMongoDBCachedRepository } from '@becomes/purple-cheetah-mod-mongodb';
 import type { Module } from '@becomes/purple-cheetah/types';
 import {
-  BCMSMediaFSDB,
+  BCMSMedia,
   BCMSMediaFSDBSchema,
-  BCMSMediaMongoDB,
   BCMSMediaMongoDBSchema,
   BCMSMediaRepositoryMethods,
 } from '../types';
@@ -19,10 +18,7 @@ export function createBcmsMediaRepository(): Module {
       const collection = `${BCMSConfig.database.prefix}_medias`;
 
       BCMSRepo.media = BCMSConfig.database.fs
-        ? createFSDBRepository<
-            BCMSMediaFSDB,
-            BCMSMediaRepositoryMethods<BCMSMediaFSDB>
-          >({
+        ? createFSDBRepository<BCMSMedia, BCMSMediaRepositoryMethods>({
             name,
             collection,
             schema: BCMSMediaFSDBSchema,
@@ -49,8 +45,8 @@ export function createBcmsMediaRepository(): Module {
             },
           })
         : createMongoDBCachedRepository<
-            BCMSMediaMongoDB,
-            BCMSMediaRepositoryMethods<BCMSMediaMongoDB>,
+            BCMSMedia,
+            BCMSMediaRepositoryMethods,
             undefined
           >({
             name,
@@ -77,7 +73,7 @@ export function createBcmsMediaRepository(): Module {
                   }
                   const media = await mongoDBInterface.find({ isInRoot });
                   media.forEach((m) => {
-                    cacheHandler.set(`${m._id}`, m);
+                    cacheHandler.set(m._id, m);
                   });
                   latches.isInRoot = true;
                   return media;
@@ -95,7 +91,7 @@ export function createBcmsMediaRepository(): Module {
                       name: nm,
                     });
                     if (media) {
-                      cacheHandler.set(`${media._id}`, media);
+                      cacheHandler.set(media._id, media);
                     }
                     return media;
                   } else {
@@ -110,7 +106,7 @@ export function createBcmsMediaRepository(): Module {
                       name: nm,
                     });
                     if (media) {
-                      cacheHandler.set(`${media._id}`, media);
+                      cacheHandler.set(media._id, media);
                     }
                     return media;
                   }
@@ -121,7 +117,7 @@ export function createBcmsMediaRepository(): Module {
                   }
                   const media = await mongoDBInterface.find({ parentId });
                   media.forEach((m) => {
-                    cacheHandler.set(`${m._id}`, m);
+                    cacheHandler.set(m._id, m);
                   });
                   latches.parent[parentId] = true;
                   return media;

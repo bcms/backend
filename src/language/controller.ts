@@ -99,7 +99,7 @@ export const BCMSLanguageController = createController({
               bcmsResCode('lng002', { code: language.code }),
             );
           }
-          const addedLanguage = await BCMSRepo.language.add(language as never);
+          const addedLanguage = await BCMSRepo.language.add(language);
           if (!addedLanguage) {
             throw errorHandler.occurred(
               HTTPStatus.INTERNAL_SERVER_ERROR,
@@ -107,7 +107,7 @@ export const BCMSLanguageController = createController({
             );
           }
           await BCMSSocketManager.emit.language({
-            languageId: `${addedLanguage._id}`,
+            languageId: addedLanguage._id,
             type: BCMSSocketEventType.UPDATE,
             userIds: 'all',
             excludeUserId: [accessToken.payload.userId],
@@ -144,7 +144,7 @@ export const BCMSLanguageController = createController({
             );
           }
           await BCMSSocketManager.emit.language({
-            languageId: `${lang._id}`,
+            languageId: lang._id,
             type: BCMSSocketEventType.REMOVE,
             userIds: 'all',
             excludeUserId: [accessToken.payload.userId],

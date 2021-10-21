@@ -10,6 +10,7 @@ import {
 } from '../types';
 import { useFS } from '@becomes/purple-cheetah';
 import { BCMSRepo } from '@bcms/repo';
+import { BCMSFfmpeg } from '@bcms/util';
 
 let fs: FS;
 
@@ -33,7 +34,7 @@ export const BCMSMediaService: BCMSMediaServiceType = {
       basePath = await BCMSMediaService.getPath(parent);
     }
     const parentAggregate: BCMSMediaAggregate = {
-      _id: typeof parent._id === 'string' ? parent._id : `${parent._id}`,
+      _id: typeof parent._id === 'string' ? parent._id : parent._id,
       createdAt: parent.createdAt,
       updatedAt: parent.updatedAt,
       isInRoot: parent.isInRoot,
@@ -48,7 +49,7 @@ export const BCMSMediaService: BCMSMediaServiceType = {
 
     if (parent.hasChildren) {
       const childMedia = await BCMSRepo.media.methods.findAllByParentId(
-        `${parent._id}`,
+        parent._id,
       );
       parentAggregate.children = [];
       for (let i = 0; i < childMedia.length; i++) {
@@ -62,7 +63,7 @@ export const BCMSMediaService: BCMSMediaServiceType = {
           );
         } else {
           parentAggregate.children.push({
-            _id: typeof child._id === 'string' ? child._id : `${child._id}`,
+            _id: child._id,
             createdAt: child.createdAt,
             updatedAt: child.updatedAt,
             isInRoot: child.isInRoot,
@@ -128,7 +129,7 @@ export const BCMSMediaService: BCMSMediaServiceType = {
   },
   async getChildren(media) {
     const children = await BCMSRepo.media.methods.findAllByParentId(
-      `${media._id}`,
+      media._id,
     );
     const childrenOfChildren: BCMSMedia[] = [];
     for (const i in children) {
@@ -151,6 +152,16 @@ export const BCMSMediaService: BCMSMediaServiceType = {
       }
       return `${await BCMSMediaService.getPath(parent)}/${media.name}`;
     }
+  },
+  getNameAndExt(fullName) {
+    const nameParts = fullName.split('.');
+    return {
+      name:
+        nameParts.length > 1
+          ? nameParts.slice(0, nameParts.length - 1).join('.')
+          : nameParts[0],
+      ext: nameParts.length > 1 ? nameParts[nameParts.length - 1] : '',
+    };
   },
   storage: {
     async getPath({ media, size, thumbnail }) {
@@ -265,7 +276,7 @@ export const BCMSMediaService: BCMSMediaServiceType = {
         );
       }
     },
-    async save(media, binary) {
+    async save(media, binary, logger) {
       const pathToMedia = await BCMSMediaService.getPath(media);
       await fs.save(path.join(process.cwd(), 'uploads', pathToMedia), binary);
       if (media.type === BCMSMediaType.IMG) {
@@ -306,15 +317,81 @@ export const BCMSMediaService: BCMSMediaServiceType = {
             output,
           );
         }
+      } else if (media.type === BCMSMediaType.VID) {
+        try {
+          await BCMSFfmpeg.createVideoThumbnail({ media });
+        } catch (error) {
+          if (logger) {
+            logger.error('save', error);
+          } else {
+            // eslint-disable-next-line no-console
+            console.error('save', error);
+          }
+        }
+      } else if (media.type === BCMSMediaType.GIF) {
+        try {
+          await BCMSFfmpeg.createGifThumbnail({ media });
+        } catch (error) {
+          if (logger) {
+            logger.error('save', error);
+          } else {
+            // eslint-disable-next-line no-console
+            console.error('save', error);
+          }
+        }
       }
     },
     async rename(oldMedia, newMedia) {
-      const pathToOldMedia = await BCMSMediaService.getPath(oldMedia);
-      const pathToNewMedia = await BCMSMediaService.getPath(newMedia);
-      await fs.rename(
-        path.join(process.cwd(), 'uploads', pathToOldMedia),
-        path.join(process.cwd(), 'uploads', pathToNewMedia),
-      );
+      if (oldMedia.name !== newMedia.name) {
+        const pathToOldMedia = await BCMSMediaService.getPath(oldMedia);
+        const pathToNewMedia = await BCMSMediaService.getPath(newMedia);
+        await fs.rename(
+          path.join(process.cwd(), 'uploads', pathToOldMedia),
+          path.join(process.cwd(), 'uploads', pathToNewMedia),
+        );
+        const pathParts = pathToNewMedia.split('/');
+        const basePath = pathParts.slice(0, pathParts.length - 1).join('/');
+        if (newMedia.type === BCMSMediaType.IMG) {
+          await fs.rename(
+            path.join(
+              process.cwd(),
+              'uploads',
+              basePath,
+              `300-${oldMedia.name}`,
+            ),
+            path.join(
+              process.cwd(),
+              'uploads',
+              basePath,
+              `300-${newMedia.name}`,
+            ),
+          );
+        } else if (
+          newMedia.type === BCMSMediaType.VID ||
+          newMedia.type === BCMSMediaType.GIF
+        ) {
+          const oldNameParts = oldMedia.name.split('.');
+          const oldName =
+            oldNameParts.slice(0, oldNameParts.length - 1).join('.') + '.png';
+          const newNameParts = newMedia.name.split('.');
+          const newName =
+            newNameParts.slice(0, newNameParts.length - 1).join('.') + '.png';
+          await fs.rename(
+            path.join(
+              process.cwd(),
+              'uploads',
+              basePath,
+              `thumbnail-${oldName}`,
+            ),
+            path.join(
+              process.cwd(),
+              'uploads',
+              basePath,
+              `thumbnail-${newName}`,
+            ),
+          );
+        }
+      }
     },
     async removeFile(media) {
       const mediaPath = await BCMSMediaService.getPath(media);
@@ -341,7 +418,10 @@ export const BCMSMediaService: BCMSMediaServiceType = {
             ),
           );
         }
-      } else if (media.type === BCMSMediaType.VID) {
+      } else if (
+        media.type === BCMSMediaType.VID ||
+        media.type === BCMSMediaType.GIF
+      ) {
         const pathParts = mediaPath.split('/');
         const dirPath =
           process.cwd() +
@@ -362,11 +442,64 @@ export const BCMSMediaService: BCMSMediaServiceType = {
         ),
       );
     },
-    async move(from, to) {
+    async move(oldMedia, newMedia) {
+      const pathToOldMedia = await BCMSMediaService.getPath(oldMedia);
+      let pathToNewMedia: string;
+      if (newMedia) {
+        pathToNewMedia = await BCMSMediaService.getPath(newMedia);
+      } else {
+        pathToNewMedia = `${oldMedia.name}`;
+      }
       await fseMove(
-        path.join(process.cwd(), 'uploads', from),
-        path.join(process.cwd(), 'uploads', to),
+        path.join(process.cwd(), 'uploads', pathToOldMedia),
+        path.join(process.cwd(), 'uploads', pathToNewMedia),
       );
+      if (oldMedia.type !== BCMSMediaType.DIR) {
+        const pathToOldMediaParts = pathToOldMedia.split('/');
+        const basePathToOldMedia = pathToOldMediaParts
+          .slice(0, pathToOldMediaParts.length - 1)
+          .join('/');
+        const pathToNewMediaParts = pathToNewMedia.split('/');
+        const basePathToNewMedia = pathToNewMediaParts
+          .slice(0, pathToNewMediaParts.length - 1)
+          .join('/');
+        if (oldMedia.type === BCMSMediaType.IMG) {
+          await fseMove(
+            path.join(
+              process.cwd(),
+              'uploads',
+              basePathToOldMedia,
+              `300-${oldMedia.name}`,
+            ),
+            path.join(
+              process.cwd(),
+              'uploads',
+              basePathToNewMedia,
+              `300-${oldMedia.name}`,
+            ),
+          );
+        } else if (
+          oldMedia.type === BCMSMediaType.VID ||
+          oldMedia.type === BCMSMediaType.GIF
+        ) {
+          const mediaInfo = BCMSMediaService.getNameAndExt(oldMedia.name);
+          const name = mediaInfo.name + '.png';
+          await fseMove(
+            path.join(
+              process.cwd(),
+              'uploads',
+              basePathToOldMedia,
+              `thumbnail-${name}`,
+            ),
+            path.join(
+              process.cwd(),
+              'uploads',
+              basePathToNewMedia,
+              `thumbnail-${name}`,
+            ),
+          );
+        }
+      }
     },
   },
 };

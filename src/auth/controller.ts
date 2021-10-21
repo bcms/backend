@@ -60,7 +60,7 @@ export const BCMSAuthController = createController<Setup>({
             );
           }
           const accessToken = jwtManager.create({
-            userId: `${user._id}`,
+            userId: user._id,
             roles: user.roles,
             props: user.customPool,
             issuer: BCMSConfig.jwt.scope,

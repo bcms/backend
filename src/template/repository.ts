@@ -7,9 +7,8 @@ import {
   BCMSPropEntryPointerData,
   BCMSPropGroupPointerData,
   BCMSPropType,
-  BCMSTemplateFSDB,
+  BCMSTemplate,
   BCMSTemplateFSDBSchema,
-  BCMSTemplateMongoDB,
   BCMSTemplateMongoDBSchema,
   BCMSTemplateRepositoryMethods,
 } from '../types';
@@ -22,10 +21,7 @@ export function createBcmsTemplateRepository(): Module {
       const collection = `${BCMSConfig.database.prefix}_templates`;
 
       BCMSRepo.template = BCMSConfig.database.fs
-        ? createFSDBRepository<
-            BCMSTemplateFSDB,
-            BCMSTemplateRepositoryMethods<BCMSTemplateFSDB>
-          >({
+        ? createFSDBRepository<BCMSTemplate, BCMSTemplateRepositoryMethods>({
             name: nm,
             collection,
             schema: BCMSTemplateFSDBSchema,
@@ -66,8 +62,8 @@ export function createBcmsTemplateRepository(): Module {
             },
           })
         : createMongoDBCachedRepository<
-            BCMSTemplateMongoDB,
-            BCMSTemplateRepositoryMethods<BCMSTemplateMongoDB>,
+            BCMSTemplate,
+            BCMSTemplateRepositoryMethods,
             unknown
           >({
             name: nm,
@@ -82,7 +78,7 @@ export function createBcmsTemplateRepository(): Module {
                   }
                   const temp = await mongoDBInterface.findOne({ name });
                   if (temp) {
-                    cacheHandler.set(`${temp._id}`, temp);
+                    cacheHandler.set(temp._id, temp);
                   }
                   return temp;
                 },
@@ -93,28 +89,26 @@ export function createBcmsTemplateRepository(): Module {
                   }
                   const item = await mongoDBInterface.findOne({ cid });
                   if (item) {
-                    cacheHandler.set(`${item._id}`, item);
+                    cacheHandler.set(item._id, item);
                   }
                   return item;
                 },
                 async findAllByCid(cids) {
                   const missingCids: string[] = [];
-                  const output: BCMSTemplateMongoDB[] = cacheHandler.find(
-                    (e) => {
-                      const found = cids.includes(e.cid);
-                      if (!found) {
-                        missingCids.push(e.cid);
-                      }
-                      return found;
-                    },
-                  );
+                  const output = cacheHandler.find((e) => {
+                    const found = cids.includes(e.cid);
+                    if (!found) {
+                      missingCids.push(e.cid);
+                    }
+                    return found;
+                  });
                   if (missingCids.length > 0) {
                     const items = await mongoDBInterface.find({
                       cid: { $in: missingCids },
                     });
                     for (let i = 0; i < items.length; i++) {
                       const item = items[i];
-                      cacheHandler.set(`${item._id}`, item);
+                      cacheHandler.set(item._id, item);
                       output.push(item);
                     }
                   }

@@ -2,10 +2,7 @@ import {
   FSDBEntity,
   FSDBEntitySchema,
 } from '@becomes/purple-cheetah-mod-fsdb/types';
-import {
-  MongoDBEntity,
-  MongoDBEntitySchema,
-} from '@becomes/purple-cheetah-mod-mongodb/types';
+import { MongoDBEntitySchemaString } from '@becomes/purple-cheetah-mod-mongodb/types';
 import type { ObjectSchema } from '@becomes/purple-cheetah/types';
 import { Schema } from 'mongoose';
 
@@ -24,7 +21,7 @@ export enum BCMSMediaType {
   JAVA = 'JAVA',
 }
 
-export interface BCMSMediaProps {
+export interface BCMSMedia extends FSDBEntity {
   userId: string;
   type: BCMSMediaType;
   mimetype: string;
@@ -39,7 +36,6 @@ export interface BCMSMediaProps {
   height: number;
 }
 
-export type BCMSMediaFSDB = FSDBEntity & BCMSMediaProps;
 export const BCMSMediaFSDBSchema: ObjectSchema = {
   ...FSDBEntitySchema,
   userId: {
@@ -88,9 +84,8 @@ export const BCMSMediaFSDBSchema: ObjectSchema = {
   },
 };
 
-export type BCMSMediaMongoDB = MongoDBEntity & BCMSMediaProps;
 export const BCMSMediaMongoDBSchema = new Schema({
-  ...MongoDBEntitySchema,
+  ...MongoDBEntitySchemaString,
   userId: {
     type: String,
     required: true,
@@ -137,6 +132,3 @@ export const BCMSMediaMongoDBSchema = new Schema({
   },
   parentId: String,
 });
-
-export type BCMSMedia = BCMSMediaFSDB | BCMSMediaMongoDB;
-export type BCMSMediaCross = BCMSMediaFSDB & BCMSMediaMongoDB;

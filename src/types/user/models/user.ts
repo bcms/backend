@@ -7,10 +7,7 @@ import {
   JWTRole,
   JWTRoleSchema,
 } from '@becomes/purple-cheetah-mod-jwt/types';
-import {
-  MongoDBEntity,
-  MongoDBEntitySchema,
-} from '@becomes/purple-cheetah-mod-mongodb/types';
+import { MongoDBEntitySchemaString } from '@becomes/purple-cheetah-mod-mongodb/types';
 import type { ObjectSchema } from '@becomes/purple-cheetah/types';
 import { Schema } from 'mongoose';
 import {
@@ -19,7 +16,7 @@ import {
   BCMSUserCustomPoolMongoDBSchema,
 } from './custom-pool';
 
-export interface BCMSUserProps {
+export interface BCMSUser extends FSDBEntity {
   username: string;
   email: string;
   password: string;
@@ -27,10 +24,7 @@ export interface BCMSUserProps {
   customPool: BCMSUserCustomPool;
 }
 
-export interface BCMSProtectedUser {
-  _id: string;
-  createdAt: number;
-  updatedAt: number;
+export interface BCMSProtectedUser extends FSDBEntity {
   username: string;
   email: string;
   roles: JWTRole[];
@@ -41,9 +35,8 @@ export interface JWTProtectionType {
   accessToken: JWT<BCMSUserCustomPool>;
 }
 
-export type BCMSUserMongoDB = MongoDBEntity & BCMSUserProps;
 export const BCMSUserMongoDBSchema = new Schema({
-  ...MongoDBEntitySchema,
+  ...MongoDBEntitySchemaString,
   username: { type: String, required: true },
   email: { type: String, required: true },
   password: { type: String, required: true },
@@ -54,7 +47,6 @@ export const BCMSUserMongoDBSchema = new Schema({
   },
 });
 
-export type BCMSUserFSDB = FSDBEntity & BCMSUserProps;
 export const BCMSUserFSDBSchema: ObjectSchema = {
   ...FSDBEntitySchema,
   username: {
@@ -83,6 +75,3 @@ export const BCMSUserFSDBSchema: ObjectSchema = {
     __child: BCMSUserCustomPoolFSDBSchema,
   },
 };
-
-export type BCMSUser = BCMSUserMongoDB | BCMSUserFSDB;
-export type BCMSUserCross = BCMSUserMongoDB & BCMSUserFSDB;

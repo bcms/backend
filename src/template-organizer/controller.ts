@@ -75,7 +75,9 @@ export const BCMSTemplateOrganizerController = createController<Setup>({
             JWTPermissionName.READ,
           ),
         async handler({ request, errorHandler }) {
-          const tempOrg = await BCMSRepo.templateOrganizer.findById(request.params.id);
+          const tempOrg = await BCMSRepo.templateOrganizer.findById(
+            request.params.id,
+          );
           if (!tempOrg) {
             throw errorHandler.occurred(
               HTTPStatus.NOT_FOUNT,
@@ -104,7 +106,7 @@ export const BCMSTemplateOrganizerController = createController<Setup>({
             parentId: body.parentId,
             templateIds: body.templateIds,
           });
-          const addedOrg = await BCMSRepo.templateOrganizer.add(org as never);
+          const addedOrg = await BCMSRepo.templateOrganizer.add(org);
           if (!addedOrg) {
             throw errorHandler.occurred(
               HTTPStatus.INTERNAL_SERVER_ERROR,
@@ -112,7 +114,7 @@ export const BCMSTemplateOrganizerController = createController<Setup>({
             );
           }
           await BCMSSocketManager.emit.templateOrganizer({
-            templateOrganizerId: `${addedOrg._id}`,
+            templateOrganizerId: addedOrg._id,
             type: BCMSSocketEventType.UPDATE,
             userIds: 'all',
             excludeUserId: [accessToken.payload.userId],
@@ -152,7 +154,9 @@ export const BCMSTemplateOrganizerController = createController<Setup>({
           ) {
             changeDetected = true;
             tempOrg.parentId = body.parentId;
-            const parentOrg = await BCMSRepo.templateOrganizer.findById(body.parentId);
+            const parentOrg = await BCMSRepo.templateOrganizer.findById(
+              body.parentId,
+            );
             if (!parentOrg) {
               throw errorHandler.occurred(
                 HTTPStatus.NOT_FOUNT,
@@ -170,7 +174,9 @@ export const BCMSTemplateOrganizerController = createController<Setup>({
               bcmsResCode('g003'),
             );
           }
-          const updatedTempOrg = await BCMSRepo.templateOrganizer.update(tempOrg as never);
+          const updatedTempOrg = await BCMSRepo.templateOrganizer.update(
+            tempOrg,
+          );
           if (!updatedTempOrg) {
             throw errorHandler.occurred(
               HTTPStatus.INTERNAL_SERVER_ERROR,
@@ -178,7 +184,7 @@ export const BCMSTemplateOrganizerController = createController<Setup>({
             );
           }
           await BCMSSocketManager.emit.templateOrganizer({
-            templateOrganizerId: `${updatedTempOrg._id}`,
+            templateOrganizerId: updatedTempOrg._id,
             type: BCMSSocketEventType.UPDATE,
             userIds: 'all',
             excludeUserId: [accessToken.payload.userId],
@@ -197,14 +203,18 @@ export const BCMSTemplateOrganizerController = createController<Setup>({
             JWTPermissionName.READ,
           ),
         async handler({ request, errorHandler, accessToken }) {
-          const tempOrg = await BCMSRepo.templateOrganizer.findById(request.params.id);
+          const tempOrg = await BCMSRepo.templateOrganizer.findById(
+            request.params.id,
+          );
           if (!tempOrg) {
             throw errorHandler.occurred(
               HTTPStatus.NOT_FOUNT,
               bcmsResCode('tpo001', { id: request.params.id }),
             );
           }
-          const deleteResult = await BCMSRepo.templateOrganizer.deleteById(request.params.id);
+          const deleteResult = await BCMSRepo.templateOrganizer.deleteById(
+            request.params.id,
+          );
           if (!deleteResult) {
             throw errorHandler.occurred(
               HTTPStatus.INTERNAL_SERVER_ERROR,
@@ -212,7 +222,7 @@ export const BCMSTemplateOrganizerController = createController<Setup>({
             );
           }
           await BCMSSocketManager.emit.templateOrganizer({
-            templateOrganizerId: `${tempOrg._id}`,
+            templateOrganizerId: tempOrg._id,
             type: BCMSSocketEventType.REMOVE,
             userIds: 'all',
             excludeUserId: [accessToken.payload.userId],
