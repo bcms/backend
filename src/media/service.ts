@@ -128,9 +128,7 @@ export const BCMSMediaService: BCMSMediaServiceType = {
     }
   },
   async getChildren(media) {
-    const children = await BCMSRepo.media.methods.findAllByParentId(
-      media._id,
-    );
+    const children = await BCMSRepo.media.methods.findAllByParentId(media._id);
     const childrenOfChildren: BCMSMedia[] = [];
     for (const i in children) {
       const child = children[i];
@@ -444,24 +442,35 @@ export const BCMSMediaService: BCMSMediaServiceType = {
     },
     async move(oldMedia, newMedia) {
       const pathToOldMedia = await BCMSMediaService.getPath(oldMedia);
+      const pathToOldMediaParts = pathToOldMedia.split('/');
+      const fullNameMedia = pathToOldMediaParts
+        .slice(pathToOldMediaParts.length - 1, pathToOldMediaParts.length)
+        .join('');
+      const namePartsMedia = await BCMSMediaService.getNameAndExt(
+        fullNameMedia,
+      );
       let pathToNewMedia: string;
+      let mediaNameWithNewPath: string;
+      let pathForThumbnailVideo: string;
+      let pathForThumbnailImage: string;
       if (newMedia) {
         pathToNewMedia = await BCMSMediaService.getPath(newMedia);
+        mediaNameWithNewPath = `${pathToNewMedia}/${oldMedia.name}`;
+        pathForThumbnailVideo = `${pathToNewMedia}/thumbnail-${namePartsMedia.name}.png`;
+        pathForThumbnailImage = `${pathToNewMedia}/300-${oldMedia.name}`;
       } else {
-        pathToNewMedia = `${oldMedia.name}`;
+        mediaNameWithNewPath = `${oldMedia.name}`;
+        mediaNameWithNewPath = `${oldMedia.name}`;
+        pathForThumbnailVideo = `thumbnail-${namePartsMedia.name}.png`;
+        pathForThumbnailImage = `300-${oldMedia.name}`;
       }
       await fseMove(
         path.join(process.cwd(), 'uploads', pathToOldMedia),
-        path.join(process.cwd(), 'uploads', pathToNewMedia),
+        path.join(process.cwd(), 'uploads', mediaNameWithNewPath),
       );
       if (oldMedia.type !== BCMSMediaType.DIR) {
-        const pathToOldMediaParts = pathToOldMedia.split('/');
         const basePathToOldMedia = pathToOldMediaParts
           .slice(0, pathToOldMediaParts.length - 1)
-          .join('/');
-        const pathToNewMediaParts = pathToNewMedia.split('/');
-        const basePathToNewMedia = pathToNewMediaParts
-          .slice(0, pathToNewMediaParts.length - 1)
           .join('/');
         if (oldMedia.type === BCMSMediaType.IMG) {
           await fseMove(
@@ -471,12 +480,7 @@ export const BCMSMediaService: BCMSMediaServiceType = {
               basePathToOldMedia,
               `300-${oldMedia.name}`,
             ),
-            path.join(
-              process.cwd(),
-              'uploads',
-              basePathToNewMedia,
-              `300-${oldMedia.name}`,
-            ),
+            path.join(process.cwd(), 'uploads', pathForThumbnailImage),
           );
         } else if (
           oldMedia.type === BCMSMediaType.VID ||
@@ -491,12 +495,7 @@ export const BCMSMediaService: BCMSMediaServiceType = {
               basePathToOldMedia,
               `thumbnail-${name}`,
             ),
-            path.join(
-              process.cwd(),
-              'uploads',
-              basePathToNewMedia,
-              `thumbnail-${name}`,
-            ),
+            path.join(process.cwd(), 'uploads', pathForThumbnailVideo),
           );
         }
       }

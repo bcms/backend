@@ -666,6 +666,8 @@ export const BCMSMediaController = createController<Setup>({
             );
           }
           const moveToMedia = await BCMSRepo.media.findById(body.moveTo);
+
+          await BCMSMediaService.storage.move(media, moveToMedia);
           if (moveToMedia) {
             media.isInRoot = false;
             media.parentId = body.moveTo;
@@ -673,11 +675,7 @@ export const BCMSMediaController = createController<Setup>({
             media.isInRoot = true;
             media.parentId = '';
           }
-
-          await BCMSMediaService.storage.move(media, moveToMedia);
-          const moveMedia = await BCMSRepo.media.update(
-            media,
-          );
+          const moveMedia = await BCMSRepo.media.update(media);
 
           await BCMSSocketManager.emit.media({
             mediaId: media._id,
@@ -719,9 +717,7 @@ export const BCMSMediaController = createController<Setup>({
             await BCMSRepo.media.deleteById(media._id);
             await BCMSMediaService.storage.removeDir(media);
           } else {
-            const deleteResult = await BCMSRepo.media.deleteById(
-              media._id,
-            );
+            const deleteResult = await BCMSRepo.media.deleteById(media._id);
             if (!deleteResult) {
               throw errorHandler.occurred(
                 HTTPStatus.INTERNAL_SERVER_ERROR,
