@@ -32,7 +32,7 @@ export function createBcmsEventModule(): Module {
             for (let i = 0; i < eventNames.length; i++) {
               const eventName = eventNames[i];
               if (eventName.endsWith('.js') || eventName.endsWith('.ts')) {
-                const eventFn: { default: () => BCMSEvent } = await import(
+                const eventFn: { default: () => Promise<BCMSEvent> } = await import(
                   path.join(eventsPath, eventName)
                 );
                 const checkFn = objectUtil.compareWithSchema(
@@ -49,7 +49,7 @@ export function createBcmsEventModule(): Module {
                   moduleConfig.next(Error(checkFn.message));
                   return;
                 }
-                const event = eventFn.default();
+                const event = await eventFn.default();
                 const checkObject = objectUtil.compareWithSchema(
                   event,
                   BCMSEventSchema,
