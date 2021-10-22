@@ -643,6 +643,7 @@ export const BCMSMediaController = createController<Setup>({
           };
         },
       }),
+
       duplicateFile: createControllerMethod({
         path: '/duplicate',
         type: 'post',
@@ -729,6 +730,7 @@ export const BCMSMediaController = createController<Setup>({
           };
         },
       }),
+
       moveFile: createControllerMethod({
         path: '/move',
         type: 'put',

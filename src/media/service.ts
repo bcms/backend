@@ -1,6 +1,7 @@
 import * as sharp from 'sharp';
 import * as path from 'path';
-import { move as fseMove, readFile as fseRead } from 'fs-extra';
+import { copyFile } from 'fs/promises';
+import { move as fseMove } from 'fs-extra';
 import type { FS, Module } from '@becomes/purple-cheetah/types';
 import {
   BCMSMedia,
@@ -11,6 +12,7 @@ import {
 import { useFS } from '@becomes/purple-cheetah';
 import { BCMSRepo } from '@bcms/repo';
 import { BCMSFfmpeg } from '@bcms/util';
+
 let fs: FS;
 
 export const BCMSMimeTypes: {
@@ -277,82 +279,143 @@ export const BCMSMediaService: BCMSMediaServiceType = {
     async duplicate(oldMedia, newMedia) {
       const pathToOldMedia = await BCMSMediaService.getPath(oldMedia);
       const pathToNewMedia = await BCMSMediaService.getPath(newMedia);
-      const bufferMedia = await fseRead(
+      await copyFile(
         path.join(process.cwd(), 'uploads', pathToOldMedia),
-      );
-
-      await fs.save(
         path.join(process.cwd(), 'uploads', pathToNewMedia),
-        bufferMedia,
       );
-
-      const pathToOldMediaParts = pathToOldMedia.split('/');
-      const fullNameMedia = pathToOldMediaParts
-        .slice(pathToOldMediaParts.length - 1, pathToOldMediaParts.length)
-        .join('');
-      const basePathImage = pathToOldMediaParts
-        .slice(0, pathToOldMediaParts.length - 1)
-        .join('/');
-        const pathToNewMediaParts = pathToNewMedia.split('/');
-        const basePathImageNew = pathToNewMediaParts
-        .slice(0, pathToOldMediaParts.length - 1)
-        .join('/');
-      if (newMedia.type === BCMSMediaType.IMG) {
-        const bufferImage = await fseRead(
+      if (oldMedia.type === BCMSMediaType.IMG) {
+        const oldBaseParts = pathToOldMedia.split('/');
+        const oldBasePath = oldBaseParts
+          .slice(0, oldBaseParts.length - 1)
+          .join('/');
+        const newBaseParts = pathToNewMedia.split('/');
+        const newBasePath = newBaseParts
+          .slice(0, newBaseParts.length - 1)
+          .join('/');
+        await copyFile(
           path.join(
             process.cwd(),
             'uploads',
-            basePathImage,
-            `300-${fullNameMedia}`,
+            oldBasePath,
+            `300-${oldMedia.name}`,
+          ),
+          path.join(
+            process.cwd(),
+            'uploads',
+            newBasePath,
+            `300-${newMedia.name}`,
           ),
         );
-        console.log(pathToNewMedia, fullNameMedia, bufferImage);
-        await fs.save(
-          path.join(process.cwd(), 'uploads', basePathImageNew, `300-${fullNameMedia}`),
-          bufferImage,
+      } else if (
+        oldMedia.type === BCMSMediaType.VID ||
+        oldMedia.type === BCMSMediaType.GIF
+      ) {
+        const oldBaseParts = pathToOldMedia.split('/');
+        const oldBasePath = oldBaseParts
+          .slice(0, oldBaseParts.length - 1)
+          .join('/');
+        const newBaseParts = pathToNewMedia.split('/');
+        const newBasePath = newBaseParts
+          .slice(0, newBaseParts.length - 1)
+          .join('/');
+        const oldMediaInfo = BCMSMediaService.getNameAndExt(oldMedia.name);
+        const newMediaInfo = BCMSMediaService.getNameAndExt(newMedia.name);
+        await copyFile(
+          path.join(
+            process.cwd(),
+            'uploads',
+            oldBasePath,
+            `thumbnail-${oldMediaInfo.name}.png`,
+          ),
+          path.join(
+            process.cwd(),
+            'uploads',
+            newBasePath,
+            `thumbnail-${newMediaInfo.name}.png`,
+          ),
         );
       }
-      // else if (
-      //   newMedia.type === BCMSMediaType.VID ||
-      //   newMedia.type === BCMSMediaType.GIF
-      // ) {
-      //  console.log( path.join(
-      //     process.cwd(),
-      //     'uploads',
-      //     basePath,
-      //     `thumbnail-${nameParts.name}.png`,
-      //   ),)
-      //   const bufferVideo = await fseRead(
-      //     path.join(
-      //       process.cwd(),
-      //       'uploads',
-      //       basePath,
-      //       `thumbnail-${nameParts.name}.png`,
-      //     ),
-      //   );
-      //   console.log( path.join(
-      //     process.cwd(),
-      //     'uploads',
-      //     basePathNew,
-      //     `thumbnail-${nameParts.name}.png`,
-
-      // ))
-      //   await fs.save(
-      //     path.join(
-      //       process.cwd(),
-      //       'uploads',
-      //       basePathNew,
-      //       `thumbnail-${nameParts.name}.png`,
-      //     ),
-      //     bufferVideo,
-      //   );
-      // }
-      // const oldMediaPath = await BCMSMediaService.getPath(oldMedia);
-      // const oldMediaBuffer = await fseRead(
-      //   path.join(process.cwd(), 'uploads', oldMediaPath),
-      // );
-      // BCMSMediaService.storage.save(newMedia, oldMediaBuffer);
     },
+
+    // async duplicate(oldMedia, newMedia) {
+    //   const pathToOldMedia = await BCMSMediaService.getPath(oldMedia);
+    //   const pathToNewMedia = await BCMSMediaService.getPath(newMedia);
+    //   const bufferMedia = await fseRead(
+    //     path.join(process.cwd(), 'uploads', pathToOldMedia),
+    //   );
+
+    //   await fs.save(
+    //     path.join(process.cwd(), 'uploads', pathToNewMedia),
+    //     bufferMedia,
+    //   );
+
+    //   const pathToOldMediaParts = pathToOldMedia.split('/');
+    //   const fullNameMedia = pathToOldMediaParts
+    //     .slice(pathToOldMediaParts.length - 1, pathToOldMediaParts.length)
+    //     .join('');
+    //   const basePathImage = pathToOldMediaParts
+    //     .slice(0, pathToOldMediaParts.length - 1)
+    //     .join('/');
+    //     const pathToNewMediaParts = pathToNewMedia.split('/');
+    //     const basePathImageNew = pathToNewMediaParts
+    //     .slice(0, pathToOldMediaParts.length - 1)
+    //     .join('/');
+    //   if (newMedia.type === BCMSMediaType.IMG) {
+    //     const bufferImage = await fseRead(
+    //       path.join(
+    //         process.cwd(),
+    //         'uploads',
+    //         basePathImage,
+    //         `300-${fullNameMedia}`,
+    //       ),
+    //     );
+    //     console.log(pathToNewMedia, fullNameMedia, bufferImage);
+    //     await fs.save(
+    //       path.join(process.cwd(), 'uploads', basePathImageNew, `300-${fullNameMedia}`),
+    //       bufferImage,
+    //     );
+    //   }
+    //   // else if (
+    //   //   newMedia.type === BCMSMediaType.VID ||
+    //   //   newMedia.type === BCMSMediaType.GIF
+    //   // ) {
+    //   //  console.log( path.join(
+    //   //     process.cwd(),
+    //   //     'uploads',
+    //   //     basePath,
+    //   //     `thumbnail-${nameParts.name}.png`,
+    //   //   ),)
+    //   //   const bufferVideo = await fseRead(
+    //   //     path.join(
+    //   //       process.cwd(),
+    //   //       'uploads',
+    //   //       basePath,
+    //   //       `thumbnail-${nameParts.name}.png`,
+    //   //     ),
+    //   //   );
+    //   //   console.log( path.join(
+    //   //     process.cwd(),
+    //   //     'uploads',
+    //   //     basePathNew,
+    //   //     `thumbnail-${nameParts.name}.png`,
+
+    //   // ))
+    //   //   await fs.save(
+    //   //     path.join(
+    //   //       process.cwd(),
+    //   //       'uploads',
+    //   //       basePathNew,
+    //   //       `thumbnail-${nameParts.name}.png`,
+    //   //     ),
+    //   //     bufferVideo,
+    //   //   );
+    //   // }
+    //   // const oldMediaPath = await BCMSMediaService.getPath(oldMedia);
+    //   // const oldMediaBuffer = await fseRead(
+    //   //   path.join(process.cwd(), 'uploads', oldMediaPath),
+    //   // );
+    //   // BCMSMediaService.storage.save(newMedia, oldMediaBuffer);
+    // },
 
     async save(media, binary, logger) {
       const pathToMedia = await BCMSMediaService.getPath(media);
