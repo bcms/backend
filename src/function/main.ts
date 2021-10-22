@@ -29,7 +29,7 @@ export function createBcmsFunctionModule(): Module {
             for (let i = 0; i < fnNames.length; i++) {
               const fnName = fnNames[i];
               if (fnName.endsWith('.js') || fnName.endsWith('.ts')) {
-                const fnImport: { default: () => BCMSFunction<unknown> } =
+                const fnImport: { default: () => Promise<BCMSFunction<unknown>> } =
                   await import(path.join(fnsPath, fnName));
                 const checkFn = objectUtil.compareWithSchema(
                   { fn: fnImport.default },
@@ -45,7 +45,7 @@ export function createBcmsFunctionModule(): Module {
                   moduleConfig.next(Error(checkFn.message));
                   return;
                 }
-                const fn = fnImport.default();
+                const fn = await fnImport.default();
                 const checkObject = objectUtil.compareWithSchema(
                   fn,
                   BCMSFunctionSchema,

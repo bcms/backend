@@ -1,8 +1,8 @@
 import type { BCMSFunction } from '../types';
 
 export function createBcmsFunction<Payload>(
-  fn: () => BCMSFunction<Payload>,
-): () => BCMSFunction<Payload> {
+  fn: () => Promise<BCMSFunction<Payload>>,
+): () => Promise<BCMSFunction<Payload>> {
   return fn;
   // const objectUtil = useObjectUtility();
   // const checkModel = objectUtil.compareWithSchema(
