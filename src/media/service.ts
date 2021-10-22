@@ -1,6 +1,6 @@
 import * as sharp from 'sharp';
 import * as path from 'path';
-import { move as fseMove } from 'fs-extra';
+import { move as fseMove, readFile as fseRead } from 'fs-extra';
 import type { FS, Module } from '@becomes/purple-cheetah/types';
 import {
   BCMSMedia,
@@ -11,7 +11,6 @@ import {
 import { useFS } from '@becomes/purple-cheetah';
 import { BCMSRepo } from '@bcms/repo';
 import { BCMSFfmpeg } from '@bcms/util';
-
 let fs: FS;
 
 export const BCMSMimeTypes: {
@@ -274,6 +273,15 @@ export const BCMSMediaService: BCMSMediaServiceType = {
         );
       }
     },
+
+    async duplicate(oldMedia, newMedia) {
+      const oldMediaPath = await BCMSMediaService.getPath(oldMedia);
+      const oldMediaBuffer = await fseRead(
+        path.join(process.cwd(), 'uploads', oldMediaPath),
+      );
+      BCMSMediaService.storage.save(newMedia, oldMediaBuffer);
+    },
+
     async save(media, binary, logger) {
       const pathToMedia = await BCMSMediaService.getPath(media);
       await fs.save(path.join(process.cwd(), 'uploads', pathToMedia), binary);

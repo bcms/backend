@@ -25,5 +25,6 @@ export interface BCMSMediaService {
     removeFile(media: BCMSMedia): Promise<void>;
     removeDir(media: BCMSMedia): Promise<void>;
     move(oldMedia: BCMSMedia, newMedia?: BCMSMedia | null): Promise<void>;
+    duplicate(oldMedia: BCMSMedia, newMedia: BCMSMedia): Promise<void>;
   };
 }
