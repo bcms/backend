@@ -699,53 +699,29 @@ export const BCMSMediaController = createController<Setup>({
             height: oldMedia.height,
             width: oldMedia.width,
           });
-          if (
-            await BCMSRepo.media.methods.findByNameAndParentId(
-              oldMedia.name,
-              body.duplicateTo,
-            )
-          ) {
-            newMedia.name = 'copyof' + '-' + newMedia.name;
-            if (
-              await BCMSRepo.media.methods.findByNameAndParentId(
-                newMedia.name,
-                body.duplicateTo,
-              )
-            ) {
-              newMedia.name =
-                'copyof' + '-2-' + newMedia.name.split('-').slice(1).join('-'); //copyof-2-test.jpg
+          
+          // Check if media with name exists, and if does,
+          // prefix `copyof-{n}-{medianame}`
+          {
+            let loop = true;
+            let depth = 0;
+            let newName = newMedia.name;
+            while (loop) {
               if (
                 await BCMSRepo.media.methods.findByNameAndParentId(
-                  newMedia.name,
+                  newName,
                   body.duplicateTo,
                 )
               ) {
-                newMedia.name =
-                  'copyof' +
-                  '-3-' +
-                  newMedia.name.split('-').slice(2).join('-'); //copyof-3-test.jpg
+                depth++; // 2
+              } else {
+                loop = false;
               }
+              newName = `copyof-${depth > 0 ? `${depth}-` : ''}${
+                newMedia.name
+              }`;
             }
-          }
-          async function getFilePrefix(
-            name: string,
-            duplicateTo: string,
-          ): Promise<string> {
-            let i = 0;
-            if (
-              await BCMSRepo.media.methods.findByNameAndParentId(
-                name,
-                duplicateTo,
-              )
-            ) {
-              i++;
-              return getFilePrefix(name, duplicateTo);
-            }
-            
-            return (newMedia.name =
-              'copyof' +
-              `-${i}-` +
-              newMedia.name.split('-').slice(i).join('-'));
+            newMedia.name = newName;
           }
 
           await BCMSMediaService.storage.duplicate(oldMedia, newMedia);
