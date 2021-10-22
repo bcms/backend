@@ -31,10 +31,12 @@ export function createBcmsEventModule(): Module {
             const eventNames = await fs.readdir(eventsPath);
             for (let i = 0; i < eventNames.length; i++) {
               const eventName = eventNames[i];
-              if (eventName.endsWith('.js') || eventName.endsWith('.ts')) {
-                const eventFn: { default: () => Promise<BCMSEvent> } = await import(
-                  path.join(eventsPath, eventName)
-                );
+              if (
+                eventName.endsWith('.js') ||
+                (!eventName.endsWith('.d.ts') && eventName.endsWith('.ts'))
+              ) {
+                const eventFn: { default: () => Promise<BCMSEvent> } =
+                  await import(path.join(eventsPath, eventName));
                 const checkFn = objectUtil.compareWithSchema(
                   { fn: eventFn.default },
                   {

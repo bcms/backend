@@ -28,9 +28,13 @@ export function createBcmsFunctionModule(): Module {
             const fnNames = await fs.readdir(fnsPath);
             for (let i = 0; i < fnNames.length; i++) {
               const fnName = fnNames[i];
-              if (fnName.endsWith('.js') || fnName.endsWith('.ts')) {
-                const fnImport: { default: () => Promise<BCMSFunction<unknown>> } =
-                  await import(path.join(fnsPath, fnName));
+              if (
+                fnName.endsWith('.js') ||
+                (!fnName.endsWith('.d.ts') && fnName.endsWith('.ts'))
+              ) {
+                const fnImport: {
+                  default: () => Promise<BCMSFunction<unknown>>;
+                } = await import(path.join(fnsPath, fnName));
                 const checkFn = objectUtil.compareWithSchema(
                   { fn: fnImport.default },
                   {
