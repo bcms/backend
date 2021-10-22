@@ -22,7 +22,6 @@ import { createMongoDB } from '@becomes/purple-cheetah-mod-mongodb';
 
 import type { BCMSBackend, BCMSUserCustomPool } from './types';
 import { BCMSConfig } from './config';
-import { BCMSSwaggerController, BCMSSwaggerMiddleware } from './swagger';
 import { BCMSCypressController } from './cypress';
 import {
   BCMSShimHealthController,
@@ -259,9 +258,7 @@ async function initialize() {
     throw Error('No database configuration detected.');
   }
   if (ShimConfig.local) {
-    middleware.push(BCMSSwaggerMiddleware);
     middleware.push(createRequestLoggerMiddleware());
-    controllers.push(BCMSSwaggerController);
     controllers.push(BCMSCypressController);
   }
   modules.push(createBcmsApiKeySecurity());
