@@ -705,11 +705,49 @@ export const BCMSMediaController = createController<Setup>({
               body.duplicateTo,
             )
           ) {
-            throw errorHandler.occurred(
-              HTTPStatus.INTERNAL_SERVER_ERROR,
-              bcmsResCode('mda002', { name: oldMedia.name }),
-            );
+            newMedia.name = 'copyof' + '-' + newMedia.name;
+            if (
+              await BCMSRepo.media.methods.findByNameAndParentId(
+                newMedia.name,
+                body.duplicateTo,
+              )
+            ) {
+              newMedia.name =
+                'copyof' + '-2-' + newMedia.name.split('-').slice(1).join('-'); //copyof-2-test.jpg
+              if (
+                await BCMSRepo.media.methods.findByNameAndParentId(
+                  newMedia.name,
+                  body.duplicateTo,
+                )
+              ) {
+                newMedia.name =
+                  'copyof' +
+                  '-3-' +
+                  newMedia.name.split('-').slice(2).join('-'); //copyof-3-test.jpg
+              }
+            }
           }
+          async function getFilePrefix(
+            name: string,
+            duplicateTo: string,
+          ): Promise<string> {
+            let i = 0;
+            if (
+              await BCMSRepo.media.methods.findByNameAndParentId(
+                name,
+                duplicateTo,
+              )
+            ) {
+              i++;
+              return getFilePrefix(name, duplicateTo);
+            }
+            
+            return (newMedia.name =
+              'copyof' +
+              `-${i}-` +
+              newMedia.name.split('-').slice(i).join('-'));
+          }
+
           await BCMSMediaService.storage.duplicate(oldMedia, newMedia);
           const duplicateMedia = await BCMSRepo.media.add(newMedia);
           if (!duplicateMedia) {
