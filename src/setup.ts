@@ -11,13 +11,16 @@ async function init() {
     base: process.cwd(),
   });
   if (await fs.exist('custom-package.json', true)) {
-    const json = JSON.parse((await fs.read('custom-package.json')).toString());
-    delete json.devDependencies;
-    await fs.save(
-      'custom-packages/package.json',
-      JSON.stringify(json, null, '  '),
+    const customPackageJson = JSON.parse(
+      (await fs.read('custom-package.json')).toString(),
     );
-    await BCMSChildProcess.spawn('npm', ['--prefix', 'custom-packages', 'i']);
+    const packageJson = JSON.parse((await fs.read('package.json')).toString());
+    for (const depName in customPackageJson.dependencies) {
+      packageJson.dependencies[depName] =
+        customPackageJson.dependencies[depName];
+    }
+    await fs.save('package.json', JSON.stringify(packageJson, null, '  '));
+    await BCMSChildProcess.spawn('npm', ['i']);
   }
 }
 
