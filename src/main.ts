@@ -21,9 +21,7 @@ import { createFSDB } from '@becomes/purple-cheetah-mod-fsdb';
 import { createMongoDB } from '@becomes/purple-cheetah-mod-mongodb';
 
 import type { BCMSBackend, BCMSUserCustomPool } from './types';
-import { BCMSConfig, loadBcmsConfig } from './config';
-import { loadBcmsResponseCodes } from './response-code';
-import { BCMSSwaggerController, BCMSSwaggerMiddleware } from './swagger';
+import { BCMSConfig } from './config';
 import { BCMSCypressController } from './cypress';
 import {
   BCMSShimHealthController,
@@ -75,16 +73,18 @@ import { BCMSUiAssetMiddleware } from './ui-middleware';
 import { createBcmsIdCounterRepository } from './id-counter';
 import { createBcmsFactories } from './factory';
 import { BCMSAuthController } from './auth';
+import { bcmsSetup } from './setup';
 
 const backend: BCMSBackend = {
   app: undefined as never,
 };
 
 async function initialize() {
-  await loadBcmsConfig();
-  await loadBcmsResponseCodes();
+  // await loadBcmsConfig();
+  // await loadBcmsResponseCodes();
 
   const modules: Module[] = [
+    bcmsSetup(),
     createBcmsFactories(),
     createBcmsShimService(),
     createJwt({
@@ -258,9 +258,7 @@ async function initialize() {
     throw Error('No database configuration detected.');
   }
   if (ShimConfig.local) {
-    middleware.push(BCMSSwaggerMiddleware);
     middleware.push(createRequestLoggerMiddleware());
-    controllers.push(BCMSSwaggerController);
     controllers.push(BCMSCypressController);
   }
   modules.push(createBcmsApiKeySecurity());

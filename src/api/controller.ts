@@ -128,7 +128,7 @@ export const BCMSApiKeyController = createController<Setup>({
                 access: data.access,
               }),
             );
-            const key = await BCMSRepo.apiKey.add(rewriteResult.key as never);
+            const key = await BCMSRepo.apiKey.add(rewriteResult.key);
             if (!key) {
               throw errorHandler.occurred(
                 HTTPStatus.INTERNAL_SERVER_ERROR,
@@ -136,7 +136,7 @@ export const BCMSApiKeyController = createController<Setup>({
               );
             }
             await BCMSSocketManager.emit.apiKey({
-              apiKeyId: `${key._id}`,
+              apiKeyId: key._id,
               type: BCMSSocketEventType.UPDATE,
               userIds: 'all',
               excludeUserId: [accessToken.payload.userId],
@@ -201,7 +201,7 @@ export const BCMSApiKeyController = createController<Setup>({
               bcmsResCode('g003'),
             );
           }
-          const updatedKey = await BCMSRepo.apiKey.update(key as never);
+          const updatedKey = await BCMSRepo.apiKey.update(key);
           if (!updatedKey) {
             throw errorHandler.occurred(
               HTTPStatus.INTERNAL_SERVER_ERROR,
@@ -209,7 +209,7 @@ export const BCMSApiKeyController = createController<Setup>({
             );
           }
           await BCMSSocketManager.emit.apiKey({
-            apiKeyId: `${updatedKey._id}`,
+            apiKeyId: updatedKey._id,
             type: BCMSSocketEventType.UPDATE,
             userIds: 'all',
             excludeUserId: [accessToken.payload.userId],
@@ -241,7 +241,7 @@ export const BCMSApiKeyController = createController<Setup>({
             );
           }
           await BCMSSocketManager.emit.apiKey({
-            apiKeyId: `${key._id}`,
+            apiKeyId: key._id,
             type: BCMSSocketEventType.REMOVE,
             userIds: 'all',
             excludeUserId: [accessToken.payload.userId],

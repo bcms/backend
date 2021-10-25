@@ -62,12 +62,12 @@ export const BCMSWidgetController = createController<Setup>({
             );
           }
           const entries = await BCMSRepo.entry.methods.findAllByWidgetId(
-            `${widget._id}`,
+            widget._id,
           );
 
           return {
             entryIds: entries.map((e) => {
-              return { _id: `${e._id}`, cid: e.cid, tid: e.templateId };
+              return { _id: e._id, cid: e.cid, tid: e.templateId };
             }),
           };
         },
@@ -170,7 +170,7 @@ export const BCMSWidgetController = createController<Setup>({
               forId: 'widgets',
               name: 'Widgets',
             });
-            const addIdcResult = await BCMSRepo.idc.add(widgetIdc as never);
+            const addIdcResult = await BCMSRepo.idc.add(widgetIdc);
             if (!addIdcResult) {
               throw errorHandler.occurred(
                 HTTPStatus.INTERNAL_SERVER_ERROR,
@@ -194,7 +194,7 @@ export const BCMSWidgetController = createController<Setup>({
               bcmsResCode('wid002', { name: widget.name }),
             );
           }
-          const addedWidget = await BCMSRepo.widget.add(widget as never);
+          const addedWidget = await BCMSRepo.widget.add(widget);
           if (!addedWidget) {
             throw errorHandler.occurred(
               HTTPStatus.INTERNAL_SERVER_ERROR,
@@ -202,7 +202,7 @@ export const BCMSWidgetController = createController<Setup>({
             );
           }
           await BCMSSocketManager.emit.widget({
-            widgetId: `${addedWidget._id}`,
+            widgetId: addedWidget._id,
             type: BCMSSocketEventType.UPDATE,
             userIds: 'all',
             excludeUserId: [accessToken.payload.userId],
@@ -321,7 +321,7 @@ export const BCMSWidgetController = createController<Setup>({
               }),
             );
           }
-          const updatedWidget = await BCMSRepo.widget.update(widget as never);
+          const updatedWidget = await BCMSRepo.widget.update(widget);
           if (!updatedWidget) {
             throw errorHandler.occurred(
               HTTPStatus.INTERNAL_SERVER_ERROR,
@@ -329,7 +329,7 @@ export const BCMSWidgetController = createController<Setup>({
             );
           }
           await BCMSSocketManager.emit.widget({
-            widgetId: `${updatedWidget._id}`,
+            widgetId: updatedWidget._id,
             type: BCMSSocketEventType.UPDATE,
             userIds: 'all',
             excludeUserId: [accessToken.payload.userId],
@@ -365,7 +365,7 @@ export const BCMSWidgetController = createController<Setup>({
             );
           }
           await BCMSSocketManager.emit.widget({
-            widgetId: `${widget._id}`,
+            widgetId: widget._id,
             type: BCMSSocketEventType.REMOVE,
             userIds: 'all',
             excludeUserId: [accessToken.payload.userId],

@@ -4,9 +4,8 @@ import { createFSDBRepository } from '@becomes/purple-cheetah-mod-fsdb';
 import { createMongoDBCachedRepository } from '@becomes/purple-cheetah-mod-mongodb';
 import type { Module } from '@becomes/purple-cheetah/types';
 import {
+  BCMSApiKey,
   BCMSApiKeyAccessFSDBSchema,
-  BCMSApiKeyFSDB,
-  BCMSApiKeyMongoDB,
   BCMSApiKeyMongoDBSchema,
 } from '../types';
 
@@ -18,16 +17,12 @@ export function createBcmsApiKeyRepository(): Module {
       const collection = `${BCMSConfig.database.prefix}_api_keys`;
 
       BCMSRepo.apiKey = BCMSConfig.database.fs
-        ? createFSDBRepository<BCMSApiKeyFSDB, undefined>({
+        ? createFSDBRepository<BCMSApiKey, void>({
             name,
             collection,
             schema: BCMSApiKeyAccessFSDBSchema,
           })
-        : createMongoDBCachedRepository<
-            BCMSApiKeyMongoDB,
-            undefined,
-            undefined
-          >({
+        : createMongoDBCachedRepository<BCMSApiKey, void, void>({
             name,
             collection,
             schema: BCMSApiKeyMongoDBSchema,
@@ -36,24 +31,4 @@ export function createBcmsApiKeyRepository(): Module {
       next();
     },
   };
-  // if (!apiKeyRepo) {
-  //   if (bcmsConfig.database.fs) {
-  //     apiKeyRepo = createFSDBRepository<BCMSApiKeyFSDB, undefined>({
-  //       name,
-  //       collection,
-  //       schema: BCMSApiKeyAccessFSDBSchema,
-  //     });
-  //   } else {
-  //     apiKeyRepo = createMongoDBCachedRepository<
-  //       BCMSApiKeyMongoDB,
-  //       undefined,
-  //       undefined
-  //     >({
-  //       name,
-  //       collection,
-  //       schema: BCMSApiKeyMongoDBSchema,
-  //     });
-  //   }
-  // }
-  // return apiKeyRepo;
 }

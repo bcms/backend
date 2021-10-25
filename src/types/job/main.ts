@@ -40,8 +40,9 @@ export interface BCMSJob {
 }
 export const BCMSJobSchema: ObjectSchema = {
   cron: {
-    __type: 'string',
+    __type: 'object',
     __required: true,
+    __child: BCMSJobCronSchema,
   },
   handler: {
     __type: 'function',

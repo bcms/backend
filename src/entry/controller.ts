@@ -46,10 +46,7 @@ export const BCMSEntryController = createController<Setup>({
       objectUtil: useObjectUtility(),
     };
   },
-  methods({
-    entryParser,
-    objectUtil,
-  }) {
+  methods({ entryParser, objectUtil }) {
     return {
       getManyLiteById: createControllerMethod({
         path: '/many/lite',
@@ -164,11 +161,11 @@ export const BCMSEntryController = createController<Setup>({
           const entry =
             request.params.eid.length === 24
               ? await BCMSRepo.entry.methods.findByTemplateIdAndId(
-                  `${template._id}`,
+                  template._id,
                   request.params.eid,
                 )
               : await BCMSRepo.entry.methods.findByTemplateIdAndCid(
-                  `${template._id}`,
+                  template._id,
                   request.params.eid,
                 );
           if (!entry) {
@@ -310,7 +307,7 @@ export const BCMSEntryController = createController<Setup>({
               forId: 'entries',
               name: 'Entries',
             });
-            const addIdcResult = await BCMSRepo.idc.add(entryIdc as never);
+            const addIdcResult = await BCMSRepo.idc.add(entryIdc);
             if (!addIdcResult) {
               throw errorHandler.occurred(
                 HTTPStatus.INTERNAL_SERVER_ERROR,
@@ -321,13 +318,15 @@ export const BCMSEntryController = createController<Setup>({
           }
           const entry = BCMSFactory.entry.create({
             cid: idc.toString(16),
-            templateId: `${template._id}`,
-            userId: token ? token.payload.userId : `key_${key?._id}`,
-            status: status ? `${status._id}` : undefined,
+            templateId: template._id,
+            userId: token
+              ? token.payload.userId
+              : `key_${key ? key._id : 'unknown'}`,
+            status: status ? status._id : undefined,
             meta: meta,
             content: body.content,
           });
-          const addedEntry = await BCMSRepo.entry.add(entry as never);
+          const addedEntry = await BCMSRepo.entry.add(entry);
           if (!addedEntry) {
             throw errorHandler.occurred(
               HTTPStatus.INTERNAL_SERVER_ERROR,
@@ -335,7 +334,7 @@ export const BCMSEntryController = createController<Setup>({
             );
           }
           await BCMSSocketManager.emit.entry({
-            entryId: `${addedEntry._id}`,
+            entryId: addedEntry._id,
             templateId: addedEntry.templateId,
             type: BCMSSocketEventType.UPDATE,
             userIds: 'all',
@@ -418,10 +417,10 @@ export const BCMSEntryController = createController<Setup>({
             }
             meta.push(langMeta);
           }
-          entry.status = status ? `${status._id}` : '';
+          entry.status = status ? status._id : '';
           entry.meta = meta;
           entry.content = body.content;
-          const updatedEntry = await BCMSRepo.entry.update(entry as never);
+          const updatedEntry = await BCMSRepo.entry.update(entry);
           if (!updatedEntry) {
             throw errorHandler.occurred(
               HTTPStatus.INTERNAL_SERVER_ERROR,
@@ -429,7 +428,7 @@ export const BCMSEntryController = createController<Setup>({
             );
           }
           await BCMSSocketManager.emit.entry({
-            entryId: `${updatedEntry._id}`,
+            entryId: updatedEntry._id,
             templateId: updatedEntry.templateId,
             type: BCMSSocketEventType.UPDATE,
             userIds: 'all',
@@ -465,7 +464,7 @@ export const BCMSEntryController = createController<Setup>({
             );
           }
           await BCMSSocketManager.emit.entry({
-            entryId: `${entry._id}`,
+            entryId: entry._id,
             templateId: entry.templateId,
             type: BCMSSocketEventType.REMOVE,
             userIds: 'all',

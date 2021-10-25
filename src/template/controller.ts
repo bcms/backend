@@ -133,7 +133,7 @@ export const BCMSTemplateController = createController<Setup>({
               forId: 'templates',
               name: 'Templates',
             });
-            const addIdcResult = await BCMSRepo.idc.add(templateIdc as never);
+            const addIdcResult = await BCMSRepo.idc.add(templateIdc);
             if (!addIdcResult) {
               throw errorHandler.occurred(
                 HTTPStatus.INTERNAL_SERVER_ERROR,
@@ -158,7 +158,7 @@ export const BCMSTemplateController = createController<Setup>({
               bcmsResCode('tmp002', { name: template.name }),
             );
           }
-          const addedTemplate = await BCMSRepo.template.add(template as never);
+          const addedTemplate = await BCMSRepo.template.add(template);
           if (!addedTemplate) {
             throw errorHandler.occurred(
               HTTPStatus.INTERNAL_SERVER_ERROR,
@@ -166,7 +166,7 @@ export const BCMSTemplateController = createController<Setup>({
             );
           }
           await BCMSSocketManager.emit.template({
-            templateId: `${addedTemplate._id}`,
+            templateId: addedTemplate._id,
             type: BCMSSocketEventType.UPDATE,
             userIds: 'all',
             excludeUserId: [accessToken.payload.userId],
@@ -309,7 +309,7 @@ export const BCMSTemplateController = createController<Setup>({
             );
           }
           const updatedTemplate = await BCMSRepo.template.update(
-            template as never,
+            template,
           );
           if (!updatedTemplate) {
             throw errorHandler.occurred(
@@ -318,7 +318,7 @@ export const BCMSTemplateController = createController<Setup>({
             );
           }
           await BCMSSocketManager.emit.template({
-            templateId: `${updatedTemplate._id}`,
+            templateId: updatedTemplate._id,
             type: BCMSSocketEventType.UPDATE,
             userIds: 'all',
             excludeUserId: [accessToken.payload.userId],
@@ -365,7 +365,7 @@ export const BCMSTemplateController = createController<Setup>({
           const updateKeys: BCMSApiKey[] = [];
           for (let i = 0; i < keys.length; i++) {
             const key = keys[i];
-            if (key.access.templates.find((e) => e._id === `${template._id}`)) {
+            if (key.access.templates.find((e) => e._id === template._id)) {
               key.access.templates = key.access.templates.filter(
                 (e) => e._id !== template._id,
               );
@@ -374,15 +374,15 @@ export const BCMSTemplateController = createController<Setup>({
           }
           for (let i = 0; i < updateKeys.length; i++) {
             const key = updateKeys[i];
-            await BCMSRepo.apiKey.update(key as never);
+            await BCMSRepo.apiKey.update(key);
             await BCMSSocketManager.emit.apiKey({
-              apiKeyId: `${key._id}`,
+              apiKeyId: key._id,
               type: BCMSSocketEventType.UPDATE,
               userIds: 'all',
             });
           }
           await BCMSSocketManager.emit.template({
-            templateId: `${template._id}`,
+            templateId: template._id,
             type: BCMSSocketEventType.REMOVE,
             userIds: 'all',
             excludeUserId: [accessToken.payload.userId],

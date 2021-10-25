@@ -2,15 +2,12 @@ import {
   FSDBEntity,
   FSDBEntitySchema,
 } from '@becomes/purple-cheetah-mod-fsdb/types';
-import {
-  MongoDBEntity,
-  MongoDBEntitySchema,
-} from '@becomes/purple-cheetah-mod-mongodb/types';
+import { MongoDBEntitySchemaString } from '@becomes/purple-cheetah-mod-mongodb/types';
 import type { ObjectSchema } from '@becomes/purple-cheetah/types';
 import { Schema } from 'mongoose';
 import type { BCMSProp } from '../../prop';
 
-export interface BCMSTemplateProps {
+export interface BCMSTemplate extends FSDBEntity {
   cid: string;
   name: string;
   label: string;
@@ -20,7 +17,6 @@ export interface BCMSTemplateProps {
   props: BCMSProp[];
 }
 
-export type BCMSTemplateFSDB = FSDBEntity & BCMSTemplateProps;
 export const BCMSTemplateFSDBSchema: ObjectSchema = {
   ...FSDBEntitySchema,
   cid: {
@@ -49,9 +45,8 @@ export const BCMSTemplateFSDBSchema: ObjectSchema = {
   },
 };
 
-export type BCMSTemplateMongoDB = MongoDBEntity & BCMSTemplateProps;
 export const BCMSTemplateMongoDBSchema = new Schema({
-  ...MongoDBEntitySchema,
+  ...MongoDBEntitySchemaString,
   cid: {
     type: String,
     required: true,
@@ -81,6 +76,3 @@ export const BCMSTemplateMongoDBSchema = new Schema({
     required: true,
   },
 });
-
-export type BCMSTemplate = BCMSTemplateFSDB | BCMSTemplateMongoDB;
-export type BCMSTemplateCross = BCMSTemplateFSDB & BCMSTemplateMongoDB;

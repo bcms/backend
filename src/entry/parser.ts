@@ -26,7 +26,7 @@ export function createBcmsEntryParser(): Module {
             status = await BCMSRepo.status.findById(entry.status);
           }
           const entryParsed: BCMSEntryParsed = {
-            _id: `${entry._id}`,
+            _id: entry._id,
             createdAt: entry.createdAt,
             updatedAt: entry.updatedAt,
             templateId: entry.templateId,
@@ -48,7 +48,7 @@ export function createBcmsEntryParser(): Module {
                 values: meta.props,
                 maxDepth,
                 depth: 0,
-                level: `${entry._id}`,
+                level: entry._id,
                 onlyLng: lang.code,
               });
             } else {
@@ -57,7 +57,7 @@ export function createBcmsEntryParser(): Module {
                 values: [],
                 maxDepth,
                 depth: 0,
-                level: `${entry._id}`,
+                level: entry._id,
                 onlyLng: lang.code,
               });
             }

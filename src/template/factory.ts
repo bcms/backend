@@ -1,13 +1,12 @@
 import { v4 as uuidv4 } from 'uuid';
 import { Types } from 'mongoose';
-import { BCMSPropType, BCMSTemplate, BCMSTemplateFactory } from '../types';
-import { BCMSConfig } from '@bcms/config';
+import { BCMSPropType, BCMSTemplateFactory } from '../types';
 
 export function createBcmsTemplateFactory(): BCMSTemplateFactory {
   return {
     create(data) {
-      const temp: BCMSTemplate = {
-        _id: new Types.ObjectId(),
+      return {
+        _id: `${new Types.ObjectId()}`,
         createdAt: Date.now(),
         updatedAt: Date.now(),
         cid: data.cid ? data.cid : '',
@@ -39,10 +38,6 @@ export function createBcmsTemplateFactory(): BCMSTemplateFactory {
               },
             ],
       };
-      if (BCMSConfig.database.fs) {
-        temp._id = `${temp._id}` as never;
-      }
-      return temp;
     },
   };
 }

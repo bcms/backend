@@ -22,3 +22,5 @@ mda011:
   msg: Missing "act" query.
 mda012:
   msg: Unauthorized.
+mda013:
+  msg: Failed to set dimensions on image.

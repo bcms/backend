@@ -4,9 +4,8 @@ import { createFSDBRepository } from '@becomes/purple-cheetah-mod-fsdb';
 import { createMongoDBRepository } from '@becomes/purple-cheetah-mod-mongodb';
 import type { Module } from '@becomes/purple-cheetah/types';
 import {
-  BCMSIdCounterFSDB,
+  BCMSIdCounter,
   BCMSIdCounterFSDBSchema,
-  BCMSIdCounterMongoDB,
   BCMSIdCounterMongoDBSchema,
   BCMSIdCounterRepositoryMethods,
 } from '../types';
@@ -19,10 +18,7 @@ export function createBcmsIdCounterRepository(): Module {
       const collection = `${BCMSConfig.database.prefix}_id_counters`;
 
       BCMSRepo.idc = BCMSConfig.database.fs
-        ? createFSDBRepository<
-            BCMSIdCounterFSDB,
-            BCMSIdCounterRepositoryMethods<BCMSIdCounterFSDB>
-          >({
+        ? createFSDBRepository<BCMSIdCounter, BCMSIdCounterRepositoryMethods>({
             name: nm,
             collection,
             schema: BCMSIdCounterFSDBSchema,
@@ -45,8 +41,8 @@ export function createBcmsIdCounterRepository(): Module {
             },
           })
         : createMongoDBRepository<
-            BCMSIdCounterMongoDB,
-            BCMSIdCounterRepositoryMethods<BCMSIdCounterMongoDB>
+            BCMSIdCounter,
+            BCMSIdCounterRepositoryMethods
           >({
             name: nm,
             collection,

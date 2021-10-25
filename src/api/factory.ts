@@ -1,4 +1,3 @@
-import { BCMSConfig } from '@bcms/config';
 import * as crypto from 'crypto';
 import { Types } from 'mongoose';
 import { useBcmsFunctionManger } from '../function';
@@ -7,8 +6,8 @@ import type { BCMSApiKey, BCMSApiKeyFactory } from '../types';
 export function createBcmsApiKeyFactory(): BCMSApiKeyFactory {
   return {
     create(data) {
-      const apiKey: BCMSApiKey = {
-        _id: new Types.ObjectId(),
+      return {
+        _id: `${new Types.ObjectId()}`,
         createdAt: Date.now(),
         updatedAt: Date.now(),
         access: data.access,
@@ -18,10 +17,6 @@ export function createBcmsApiKeyFactory(): BCMSApiKeyFactory {
         secret: crypto.randomBytes(32).toString('hex'),
         userId: data.userId,
       };
-      if (BCMSConfig.database.fs) {
-        apiKey._id = `${apiKey._id}` as never;
-      }
-      return apiKey;
     },
     rewriteKey(key) {
       const functionManager = useBcmsFunctionManger();

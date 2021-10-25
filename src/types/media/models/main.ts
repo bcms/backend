@@ -2,10 +2,7 @@ import {
   FSDBEntity,
   FSDBEntitySchema,
 } from '@becomes/purple-cheetah-mod-fsdb/types';
-import {
-  MongoDBEntity,
-  MongoDBEntitySchema,
-} from '@becomes/purple-cheetah-mod-mongodb/types';
+import { MongoDBEntitySchemaString } from '@becomes/purple-cheetah-mod-mongodb/types';
 import type { ObjectSchema } from '@becomes/purple-cheetah/types';
 import { Schema } from 'mongoose';
 
@@ -24,7 +21,7 @@ export enum BCMSMediaType {
   JAVA = 'JAVA',
 }
 
-export interface BCMSMediaProps {
+export interface BCMSMedia extends FSDBEntity {
   userId: string;
   type: BCMSMediaType;
   mimetype: string;
@@ -33,9 +30,12 @@ export interface BCMSMediaProps {
   isInRoot: boolean;
   hasChildren: boolean;
   parentId: string;
+  altText: string;
+  caption: string;
+  width: number;
+  height: number;
 }
 
-export type BCMSMediaFSDB = FSDBEntity & BCMSMediaProps;
 export const BCMSMediaFSDBSchema: ObjectSchema = {
   ...FSDBEntitySchema,
   userId: {
@@ -66,11 +66,26 @@ export const BCMSMediaFSDBSchema: ObjectSchema = {
     __type: 'string',
     __required: true,
   },
+  altText: {
+    __type: 'string',
+    __required: true,
+  },
+  caption: {
+    __type: 'string',
+    __required: true,
+  },
+  width: {
+    __type: 'number',
+    __required: true,
+  },
+  height: {
+    __type: 'number',
+    __required: true,
+  },
 };
 
-export type BCMSMediaMongoDB = MongoDBEntity & BCMSMediaProps;
 export const BCMSMediaMongoDBSchema = new Schema({
-  ...MongoDBEntitySchema,
+  ...MongoDBEntitySchemaString,
   userId: {
     type: String,
     required: true,
@@ -99,8 +114,21 @@ export const BCMSMediaMongoDBSchema = new Schema({
     type: Boolean,
     required: true,
   },
+  altText: {
+    type: String,
+    required: true,
+  },
+  caption: {
+    type: String,
+    required: true,
+  },
+  width: {
+    type: Number,
+    required: true,
+  },
+  height: {
+    type: Number,
+    required: true,
+  },
   parentId: String,
 });
-
-export type BCMSMedia = BCMSMediaFSDB | BCMSMediaMongoDB;
-export type BCMSMediaCross = BCMSMediaFSDB & BCMSMediaMongoDB;

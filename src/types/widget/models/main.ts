@@ -2,15 +2,12 @@ import {
   FSDBEntity,
   FSDBEntitySchema,
 } from '@becomes/purple-cheetah-mod-fsdb/types';
-import {
-  MongoDBEntity,
-  MongoDBEntitySchema,
-} from '@becomes/purple-cheetah-mod-mongodb/types';
+import { MongoDBEntitySchemaString } from '@becomes/purple-cheetah-mod-mongodb/types';
 import type { ObjectSchema } from '@becomes/purple-cheetah/types';
 import { Schema } from 'mongoose';
 import type { BCMSProp } from '../../prop';
 
-export interface BCMSWidgetProps {
+export interface BCMSWidget extends FSDBEntity {
   cid: string;
   name: string;
   label: string;
@@ -21,7 +18,6 @@ export interface BCMSWidgetProps {
   props: BCMSProp[];
 }
 
-export type BCMSWidgetFSDB = FSDBEntity & BCMSWidgetProps;
 export const BCMSWidgetFSDBSchema: ObjectSchema = {
   ...FSDBEntitySchema,
   cid: {
@@ -54,9 +50,8 @@ export const BCMSWidgetFSDBSchema: ObjectSchema = {
   },
 };
 
-export type BCMSWidgetMongoDB = MongoDBEntity & BCMSWidgetProps;
 export const BCMSWidgetMongoDBSchema = new Schema({
-  ...MongoDBEntitySchema,
+  ...MongoDBEntitySchemaString,
   cid: {
     type: String,
     required: true,
@@ -87,6 +82,3 @@ export const BCMSWidgetMongoDBSchema = new Schema({
   },
   props: { type: [Object], required: true },
 });
-
-export type BCMSWidget = BCMSWidgetFSDB | BCMSWidgetMongoDB;
-export type BCMSWidgetCross = BCMSWidgetFSDB & BCMSWidgetMongoDB;

@@ -7,9 +7,8 @@ import {
   BCMSPropEntryPointerData,
   BCMSPropGroupPointerData,
   BCMSPropType,
-  BCMSWidgetFSDB,
+  BCMSWidget,
   BCMSWidgetFSDBSchema,
-  BCMSWidgetMongoDB,
   BCMSWidgetMongoDBSchema,
   BCMSWidgetRepositoryMethods,
 } from '../types';
@@ -22,10 +21,7 @@ export function createBcmsWidgetRepository(): Module {
       const collection = `${BCMSConfig.database.prefix}_widgets`;
 
       BCMSRepo.widget = BCMSConfig.database.fs
-        ? createFSDBRepository<
-            BCMSWidgetFSDB,
-            BCMSWidgetRepositoryMethods<BCMSWidgetFSDB>
-          >({
+        ? createFSDBRepository<BCMSWidget, BCMSWidgetRepositoryMethods>({
             name: nm,
             collection,
             schema: BCMSWidgetFSDBSchema,
@@ -66,8 +62,8 @@ export function createBcmsWidgetRepository(): Module {
             },
           })
         : createMongoDBCachedRepository<
-            BCMSWidgetMongoDB,
-            BCMSWidgetRepositoryMethods<BCMSWidgetMongoDB>,
+            BCMSWidget,
+            BCMSWidgetRepositoryMethods,
             unknown
           >({
             name: nm,
@@ -82,7 +78,7 @@ export function createBcmsWidgetRepository(): Module {
                   }
                   const widget = await mongoDBInterface.findOne({ name });
                   if (widget) {
-                    cacheHandler.set(`${widget._id}`, widget);
+                    cacheHandler.set(widget._id, widget);
                   }
                   return widget;
                 },
@@ -93,13 +89,13 @@ export function createBcmsWidgetRepository(): Module {
                   }
                   const widget = await mongoDBInterface.findOne({ cid });
                   if (widget) {
-                    cacheHandler.set(`${widget._id}`, widget);
+                    cacheHandler.set(widget._id, widget);
                   }
                   return widget;
                 },
                 async findAllByCid(cids) {
                   const missingCids: string[] = [];
-                  const output: BCMSWidgetMongoDB[] = cacheHandler.find((e) => {
+                  const output = cacheHandler.find((e) => {
                     const found = cids.includes(e.cid);
                     if (!found) {
                       missingCids.push(e.cid);
@@ -112,7 +108,7 @@ export function createBcmsWidgetRepository(): Module {
                     });
                     for (let i = 0; i < items.length; i++) {
                       const item = items[i];
-                      cacheHandler.set(`${item._id}`, item);
+                      cacheHandler.set(item._id, item);
                       output.push(item);
                     }
                   }

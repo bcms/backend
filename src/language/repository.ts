@@ -4,9 +4,8 @@ import { createFSDBRepository } from '@becomes/purple-cheetah-mod-fsdb';
 import { createMongoDBCachedRepository } from '@becomes/purple-cheetah-mod-mongodb';
 import type { Module } from '@becomes/purple-cheetah/types';
 import {
-  BCMSLanguageFSDB,
+  BCMSLanguage,
   BCMSLanguageFSDBSchema,
-  BCMSLanguageMongoDB,
   BCMSLanguageMongoDBSchema,
   BCMSLanguageRepositoryMethods,
 } from '../types';
@@ -19,10 +18,7 @@ export function createBcmsLanguageRepository(): Module {
       const collection = `${BCMSConfig.database.prefix}_languages`;
 
       BCMSRepo.language = BCMSConfig.database.fs
-        ? createFSDBRepository<
-            BCMSLanguageFSDB,
-            BCMSLanguageRepositoryMethods<BCMSLanguageFSDB>
-          >({
+        ? createFSDBRepository<BCMSLanguage, BCMSLanguageRepositoryMethods>({
             name,
             collection,
             schema: BCMSLanguageFSDBSchema,
@@ -38,8 +34,8 @@ export function createBcmsLanguageRepository(): Module {
             },
           })
         : createMongoDBCachedRepository<
-            BCMSLanguageMongoDB,
-            BCMSLanguageRepositoryMethods<BCMSLanguageMongoDB>,
+            BCMSLanguage,
+            BCMSLanguageRepositoryMethods,
             undefined
           >({
             name,
@@ -54,7 +50,7 @@ export function createBcmsLanguageRepository(): Module {
                   }
                   const lang = await mongoDBInterface.findOne({ code });
                   if (lang) {
-                    cacheHandler.set(`${lang._id}`, lang);
+                    cacheHandler.set(lang._id, lang);
                   }
                   return lang;
                 },
@@ -65,7 +61,7 @@ export function createBcmsLanguageRepository(): Module {
                   }
                   const lang = await mongoDBInterface.findOne({ def: true });
                   if (lang) {
-                    cacheHandler.set(`${lang._id}`, lang);
+                    cacheHandler.set(lang._id, lang);
                   }
                   return lang;
                 },

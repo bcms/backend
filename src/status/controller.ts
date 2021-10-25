@@ -115,7 +115,7 @@ export const BCMSStatusController = createController<Setup>({
               bcmsResCode('sts002', { name: status.name }),
             );
           }
-          const addedStatus = await BCMSRepo.status.add(status as never);
+          const addedStatus = await BCMSRepo.status.add(status);
           if (!addedStatus) {
             throw errorHandler.occurred(
               HTTPStatus.INTERNAL_SERVER_ERROR,
@@ -123,7 +123,7 @@ export const BCMSStatusController = createController<Setup>({
             );
           }
           await BCMSSocketManager.emit.status({
-            statusId: `${addedStatus._id}`,
+            statusId: addedStatus._id,
             type: BCMSSocketEventType.UPDATE,
             userIds: 'all',
             excludeUserId: [accessToken.payload.userId],
@@ -181,7 +181,7 @@ export const BCMSStatusController = createController<Setup>({
               bcmsResCode('g003'),
             );
           }
-          const updatedStatus = await BCMSRepo.status.update(status as never);
+          const updatedStatus = await BCMSRepo.status.update(status);
           if (!updatedStatus) {
             throw errorHandler.occurred(
               HTTPStatus.INTERNAL_SERVER_ERROR,
@@ -189,7 +189,7 @@ export const BCMSStatusController = createController<Setup>({
             );
           }
           await BCMSSocketManager.emit.status({
-            statusId: `${updatedStatus._id}`,
+            statusId: updatedStatus._id,
             type: BCMSSocketEventType.UPDATE,
             userIds: 'all',
             excludeUserId: [accessToken.payload.userId],
@@ -227,7 +227,7 @@ export const BCMSStatusController = createController<Setup>({
             );
           }
           await BCMSSocketManager.emit.status({
-            statusId: `${status._id}`,
+            statusId: status._id,
             type: BCMSSocketEventType.REMOVE,
             userIds: 'all',
             excludeUserId: [accessToken.payload.userId],

@@ -2,7 +2,7 @@ import {
   FSDBEntity,
   FSDBEntitySchema,
 } from '@becomes/purple-cheetah-mod-fsdb/types';
-import type { MongoDBEntity } from '@becomes/purple-cheetah-mod-mongodb/types';
+import { MongoDBEntitySchemaString } from '@becomes/purple-cheetah-mod-mongodb/types';
 import type { ObjectSchema } from '@becomes/purple-cheetah/types';
 import { Schema } from 'mongoose';
 import {
@@ -11,7 +11,7 @@ import {
   BCMSApiKeyAccessMongoDBSchema,
 } from './access';
 
-export interface BCMSApiKeyProps {
+export interface BCMSApiKey extends FSDBEntity {
   userId: string;
   name: string;
   desc: string;
@@ -20,7 +20,6 @@ export interface BCMSApiKeyProps {
   access: BCMSApiKeyAccess;
 }
 
-export type BCMSApiKeyFSDB = FSDBEntity & BCMSApiKeyProps;
 export const BCMSApiKeyFSDBSchema: ObjectSchema = {
   ...FSDBEntitySchema,
   userId: {
@@ -50,8 +49,8 @@ export const BCMSApiKeyFSDBSchema: ObjectSchema = {
   },
 };
 
-export type BCMSApiKeyMongoDB = MongoDBEntity & BCMSApiKeyProps;
 export const BCMSApiKeyMongoDBSchema = new Schema({
+  ...MongoDBEntitySchemaString,
   userId: {
     type: String,
     required: true,
@@ -74,6 +73,3 @@ export const BCMSApiKeyMongoDBSchema = new Schema({
     required: true,
   },
 });
-
-export type BCMSApiKey = BCMSApiKeyFSDB | BCMSApiKeyMongoDB;
-export type BCMSApiKeyCross = BCMSApiKeyFSDB & BCMSApiKeyMongoDB;

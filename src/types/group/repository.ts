@@ -1,18 +1,15 @@
 import type { FSDBRepository } from '@becomes/purple-cheetah-mod-fsdb/types';
 import type { MongoDBCachedRepository } from '@becomes/purple-cheetah-mod-mongodb/types';
-import type { BCMSGroupFSDB, BCMSGroupMongoDB } from './models';
+import type { BCMSGroup } from './models';
 
-export interface BCMSGroupRepositoryMethods<E> {
-  findByName(name: string): Promise<E | null>;
-  findByCid(cid: string): Promise<E | null>;
-  findAllByCid(cids: string[]): Promise<E[]>;
-  findAllByPropGroupPointer(groupId: string): Promise<E[]>;
-  findAllByPropEntryPointer(templateId: string): Promise<E[]>;
+export interface BCMSGroupRepositoryMethods {
+  findByName(name: string): Promise<BCMSGroup | null>;
+  findByCid(cid: string): Promise<BCMSGroup | null>;
+  findAllByCid(cids: string[]): Promise<BCMSGroup[]>;
+  findAllByPropGroupPointer(groupId: string): Promise<BCMSGroup[]>;
+  findAllByPropEntryPointer(templateId: string): Promise<BCMSGroup[]>;
 }
 
 export type BCMSGroupRepository =
-  | MongoDBCachedRepository<
-      BCMSGroupMongoDB,
-      BCMSGroupRepositoryMethods<BCMSGroupMongoDB>
-    >
-  | FSDBRepository<BCMSGroupFSDB, BCMSGroupRepositoryMethods<BCMSGroupFSDB>>;
+  | MongoDBCachedRepository<BCMSGroup, BCMSGroupRepositoryMethods>
+  | FSDBRepository<BCMSGroup, BCMSGroupRepositoryMethods>;
