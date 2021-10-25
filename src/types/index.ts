@@ -19,6 +19,7 @@ export * from './template-organizer';
 export * from './user';
 export * from './util';
 export * from './widget';
+export * from './color';
 
 export * from './config';
 export * from './factory';

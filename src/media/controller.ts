@@ -713,7 +713,7 @@ export const BCMSMediaController = createController<Setup>({
                   body.duplicateTo,
                 )
               ) {
-                depth++; // 2
+                depth++;
               } else {
                 loop = false;
               }

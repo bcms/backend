@@ -1,5 +1,6 @@
 import type { Module } from '@becomes/purple-cheetah/types';
 import { createBcmsApiKeyFactory } from './api';
+import { createBcmsColorFactory } from './color';
 import { createBcmsEntryFactory } from './entry';
 import { createBcmsGroupFactory } from './group';
 import { createBcmsIdCounterFactory } from './id-counter';
@@ -26,6 +27,7 @@ export const BCMSFactory: BCMSFactoryType = {
   user: undefined as never,
   widget: undefined as never,
   prop: undefined as never,
+  color: undefined as never,
 };
 
 export function createBcmsFactories(): Module {
@@ -44,7 +46,7 @@ export function createBcmsFactories(): Module {
       BCMSFactory.user = createBcmsUserFactory();
       BCMSFactory.widget = createBcmsWidgetFactory();
       BCMSFactory.prop = createBcmsPropFactory();
-
+      BCMSFactory.color = createBcmsColorFactory();
       next();
     },
   };
