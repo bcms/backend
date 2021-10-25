@@ -4,6 +4,8 @@ import type { BCMSColor } from './models';
 
 export interface BCMSColorRepositoryMethods {
   findByName(name: string): Promise<BCMSColor | null>;
+  findByCid(cid: string): Promise<BCMSColor | null>;
+  findAllByCid(cids: string[]): Promise<BCMSColor[]>;
 }
 
 export type BCMSColorRepository =

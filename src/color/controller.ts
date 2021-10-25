@@ -6,12 +6,14 @@ import {
   BCMSColorCreateData,
   BCMSColorCreateDataSchema,
   BCMSSocketEventType,
+  BCMSUserCustomPool,
 } from '@bcms/types';
 import {
   createController,
   createControllerMethod,
   useStringUtility,
 } from '@becomes/purple-cheetah';
+import { createJwtProtectionPreRequestHandler } from '@becomes/purple-cheetah-mod-jwt';
 
 import {
   JWTPermissionName,
@@ -34,6 +36,66 @@ export const BCMSColorController = createController<Setup>({
   },
   methods({ stringUtil }) {
     return {
+      getAll: createControllerMethod({
+        path: '/all',
+        type: 'get',
+        preRequestHandler:
+          createJwtProtectionPreRequestHandler<BCMSUserCustomPool>(
+            [JWTRoleName.ADMIN, JWTRoleName.USER],
+            JWTPermissionName.READ,
+          ),
+        async handler() {
+          return {
+            items: await BCMSRepo.color.findAll(),
+          };
+        },
+      }),
+      getMany: createControllerMethod({
+        path: '/many',
+        type: 'get',
+        preRequestHandler:
+          createJwtProtectionPreRequestHandler<BCMSUserCustomPool>(
+            [JWTRoleName.ADMIN, JWTRoleName.USER],
+            JWTPermissionName.READ,
+          ),
+        async handler({ request }) {
+          const ids = (request.headers['x-bcms-ids'] as string).split('-');
+          if (ids[0] && ids[0].length === 24) {
+            return {
+              items: await BCMSRepo.color.findAllById(ids),
+            };
+          } else {
+            return {
+              items: await BCMSRepo.color.methods.findAllByCid(ids),
+            };
+          }
+        },
+      }),
+      getById: createControllerMethod({
+        path: '/:id',
+        type: 'get',
+        preRequestHandler:
+          createJwtProtectionPreRequestHandler<BCMSUserCustomPool>(
+            [JWTRoleName.ADMIN, JWTRoleName.USER],
+            JWTPermissionName.READ,
+          ),
+        async handler({ request, errorHandler }) {
+          const id = request.params.id;
+          const color =
+            id.length === 24
+              ? await BCMSRepo.color.findById(id)
+              : await BCMSRepo.color.methods.findByCid(id);
+          if (!color) {
+            throw errorHandler.occurred(
+              HTTPStatus.NOT_FOUNT,
+              bcmsResCode('col001', { id }),
+            );
+          }
+          return {
+            item: color,
+          };
+        },
+      }),
       create: createControllerMethod({
         type: 'post',
         preRequestHandler:
