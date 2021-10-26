@@ -5,6 +5,8 @@ import { BCMSSocketManager } from '@bcms/socket';
 import {
   BCMSColorCreateData,
   BCMSColorCreateDataSchema,
+  BCMSColorUpdateData,
+  BCMSColorUpdateDataSchema,
   BCMSSocketEventType,
   BCMSUserCustomPool,
 } from '@bcms/types';
@@ -201,10 +203,72 @@ export const BCMSColorController = createController<Setup>({
           };
         },
       }),
-      // update: createControllerMethod({
-      //   type: 'put',
-
-      // })
+      update: createControllerMethod({
+        type: 'put',
+        preRequestHandler:
+          createJwtAndBodyCheckRouteProtection<BCMSColorUpdateData>({
+            roleNames: [JWTRoleName.ADMIN, JWTRoleName.USER],
+            permissionName: JWTPermissionName.WRITE,
+            bodySchema: BCMSColorUpdateDataSchema,
+          }),
+        async handler({ errorHandler, body, accessToken }) {
+          const color = await BCMSRepo.color.findById(body._id);
+          if (!color) {
+            throw errorHandler.occurred(
+              HTTPStatus.NOT_FOUNT,
+              bcmsResCode('col001', { id: body._id }),
+            );
+          }
+          let changeDetected = false;
+          if (typeof body.label !== 'undefined' && body.label !== color.label) {
+            const name = stringUtil.toSlugUnderscore(body.label);
+            if (color.name !== name) {
+              if (await BCMSRepo.color.methods.findByName(name)) {
+                throw errorHandler.occurred(
+                  HTTPStatus.FORBIDDEN,
+                  bcmsResCode('col002', { name: color.name }),
+                );
+              }
+            }
+            changeDetected = true;
+            color.label = body.label;
+            color.name = name;
+          }
+          if (typeof body.value === 'string' && body.value !== color.value) {
+            const checkHex = /^#[0-9A-Fa-f]{6}/g;
+            if (!(await body.value.match(checkHex))) {
+              throw errorHandler.occurred(
+                HTTPStatus.BAD_REQUEST,
+                bcmsResCode('col010'),
+              );
+            }
+            changeDetected = true;
+            color.value = body.value;
+          }
+          if (!changeDetected) {
+            throw errorHandler.occurred(
+              HTTPStatus.FORBIDDEN,
+              bcmsResCode('g003'),
+            );
+          }
+          const updatedColor = await BCMSRepo.color.update(color);
+          if (!updatedColor) {
+            throw errorHandler.occurred(
+              HTTPStatus.INTERNAL_SERVER_ERROR,
+              bcmsResCode('col005'),
+            );
+          }
+          await BCMSSocketManager.emit.color({
+            colorId: updatedColor._id,
+            type: BCMSSocketEventType.UPDATE,
+            userIds: 'all',
+            excludeUserId: [accessToken.payload.userId],
+          });
+          return {
+            item: updatedColor,
+          };
+        },
+      }),
       delete: createControllerMethod({
         path: '/:id',
         type: 'delete',
@@ -221,7 +285,9 @@ export const BCMSColorController = createController<Setup>({
               bcmsResCode('col001', { id: request.params.id }),
             );
           }
-          const deleteResult = await BCMSRepo.color.deleteById(request.params.id);
+          const deleteResult = await BCMSRepo.color.deleteById(
+            request.params.id,
+          );
           if (!deleteResult) {
             throw errorHandler.occurred(
               HTTPStatus.INTERNAL_SERVER_ERROR,
