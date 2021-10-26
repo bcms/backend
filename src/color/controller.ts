@@ -190,14 +190,52 @@ export const BCMSColorController = createController<Setup>({
               bcmsResCode('grp003'),
             );
           }
-          await BCMSSocketManager.emit.group({
-            groupId: addedColor._id,
+          await BCMSSocketManager.emit.color({
+            colorId: addedColor._id,
             type: BCMSSocketEventType.UPDATE,
             userIds: 'all',
             excludeUserId: [accessToken.payload.userId],
           });
           return {
             item: addedColor,
+          };
+        },
+      }),
+      // update: createControllerMethod({
+      //   type: 'put',
+
+      // })
+      delete: createControllerMethod({
+        path: '/:id',
+        type: 'delete',
+        preRequestHandler:
+          createJwtProtectionPreRequestHandler<BCMSUserCustomPool>(
+            [JWTRoleName.ADMIN],
+            JWTPermissionName.DELETE,
+          ),
+        async handler({ request, errorHandler, accessToken }) {
+          const color = await BCMSRepo.color.findById(request.params.id);
+          if (!color) {
+            throw errorHandler.occurred(
+              HTTPStatus.NOT_FOUNT,
+              bcmsResCode('col001', { id: request.params.id }),
+            );
+          }
+          const deleteResult = await BCMSRepo.color.deleteById(request.params.id);
+          if (!deleteResult) {
+            throw errorHandler.occurred(
+              HTTPStatus.INTERNAL_SERVER_ERROR,
+              bcmsResCode('col006'),
+            );
+          }
+          await BCMSSocketManager.emit.color({
+            colorId: color._id,
+            type: BCMSSocketEventType.REMOVE,
+            userIds: 'all',
+            excludeUserId: [accessToken.payload.userId],
+          });
+          return {
+            message: 'Success.',
           };
         },
       }),
