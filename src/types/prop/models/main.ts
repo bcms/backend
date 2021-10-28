@@ -1,5 +1,8 @@
 import type {
+  BCMSPropColorPickerData,
+  BCMSPropColorPickerDataParsed,
   BCMSPropRichTextData,
+  BCMSPropValueColorPickerData,
   BCMSPropValueRichTextData,
 } from '@bcms/types';
 import type { ObjectSchema } from '@becomes/purple-cheetah/types';
@@ -32,6 +35,7 @@ export enum BCMSPropType {
   ENTRY_POINTER = 'ENTRY_POINTER',
   WIDGET = 'WIDGET',
 
+  COLOR_PICKER = 'COLOR_PICKER',
   RICH_TEXT = 'RICH_TEXT',
 }
 
@@ -81,8 +85,8 @@ export type BCMSPropData =
   | BCMSPropGroupPointerData
   | BCMSPropMediaData[]
   | BCMSPropWidgetData
-  | BCMSPropRichTextData[];
-
+  | BCMSPropRichTextData[]
+  | BCMSPropColorPickerData[];
 export interface BCMSPropParsed {
   [name: string]: BCMSPropDataParsed;
 }
@@ -99,6 +103,8 @@ export type BCMSPropDataParsed =
   | BCMSPropGroupPointerDataParsed
   | BCMSPropGroupPointerDataParsed[]
   | BCMSPropWidgetDataParsed
+  | BCMSPropColorPickerDataParsed
+  | BCMSPropColorPickerDataParsed[]
   | BCMSPropMediaDataParsed
   | BCMSPropMediaDataParsed[]
   | {
@@ -123,4 +129,5 @@ export type BCMSPropValueData =
   | BCMSPropValueGroupPointerData
   | BCMSPropMediaData[]
   | BCMSPropValueWidgetData
-  | BCMSPropValueRichTextData[];
+  | BCMSPropValueRichTextData[]
+  | BCMSPropValueColorPickerData;

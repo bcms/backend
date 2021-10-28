@@ -7,3 +7,4 @@ export * from './main';
 export * from './media';
 export * from './rich-text';
 export * from './widget';
+export * from './color-picker';

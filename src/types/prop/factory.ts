@@ -1,4 +1,4 @@
-import type { BCMSProp, BCMSPropType } from "./models";
+import type { BCMSProp, BCMSPropType } from './models';
 
 export interface BCMSPropFactory {
   create(type: BCMSPropType, array?: boolean): BCMSProp | null;
@@ -11,4 +11,5 @@ export interface BCMSPropFactory {
   groupPointer(array?: boolean): BCMSProp;
   entryPointer(array?: boolean): BCMSProp;
   richText(array?: boolean): BCMSProp;
+  colorPicker(array?: boolean): BCMSProp;
 }

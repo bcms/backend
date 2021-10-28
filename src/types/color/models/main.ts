@@ -20,7 +20,7 @@ export interface BCMSColor extends FSDBEntity {
   source: BCMSColorSource;
 }
 
-export const BCMSColorFSDBShema: ObjectSchema = {
+export const BCMSColorFSDBSchema: ObjectSchema = {
   ...FSDBEntitySchema,
   cid: {
     __type: 'string',

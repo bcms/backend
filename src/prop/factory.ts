@@ -32,6 +32,9 @@ export function createBcmsPropFactory(): BCMSPropFactory {
         case BCMSPropType.RICH_TEXT: {
           return self.richText(array);
         }
+        case BCMSPropType.COLOR_PICKER: {
+          return self.colorPicker(array);
+        }
         default: {
           return null;
         }
@@ -145,6 +148,17 @@ export function createBcmsPropFactory(): BCMSPropFactory {
         array: array ? array : false,
         required: true,
         type: BCMSPropType.RICH_TEXT,
+        defaultData: [],
+      };
+    },
+    colorPicker(array) {
+      return {
+        id: uuidv4(),
+        name: '',
+        label: '',
+        array: array ? array : false,
+        required: true,
+        type: BCMSPropType.COLOR_PICKER,
         defaultData: [],
       };
     },

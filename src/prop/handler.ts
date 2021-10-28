@@ -26,6 +26,7 @@ import {
   BCMSPropValueGroupPointerData,
   BCMSSocketEventType,
   BCMSPropRichTextData,
+  BCMSPropColorPickerData,
 } from '../types';
 
 let objectUtil: ObjectUtility;
@@ -250,6 +251,66 @@ export const BCMSPropHandler: BCMSPropHandlerType = {
             }
           }
           break;
+        case BCMSPropType.COLOR_PICKER:
+          {
+            const checkData = objectUtil.compareWithSchema(
+              {
+                data: value.data,
+              },
+              {
+                data: {
+                  __type: 'array',
+                  __required: true,
+                  __child: {
+                    __type: 'string',
+                  },
+                },
+              },
+              `${level}.${prop.name}`,
+            );
+            if (checkData instanceof ObjectUtilityError) {
+              return Error(`[${level}.${prop.name}] -> ` + checkData.message);
+            }
+            const propData = prop.defaultData as BCMSPropColorPickerData[];
+            const valueData = value.data as string[];
+            for (let l = 0; l < propData.length; l++) {
+              const selectColor = propData[l];
+              for (let j = 0; j < valueData.length; j++) {
+                const colorId = valueData[j];
+
+                if (colorId) {
+                  const color = await BCMSRepo.color.findById(colorId);
+                  if (!color) {
+                    return Error(
+                      `[${level}.${prop.name}.${j}] -> ` +
+                        `Color with ID ${colorId} does not exist.`,
+                    );
+                  }
+                  if (!propData[l].allowCustom) {
+                    for (let c = 0; c < selectColor.selected.length; c++) {
+                      const oneColorSelect = await BCMSRepo.color.findById(
+                        selectColor.selected[c],
+                      );
+                      if (!oneColorSelect) {
+                        return Error(
+                          `[${level}.${prop.name}.${j}] -> ` +
+                            `Color with ID ${selectColor.selected[c]} does not exist.`,
+                        );
+                      }
+                      if (!oneColorSelect._id.match(colorId)) {
+                        return Error(
+                          `[${level}.${prop.name}.${j}] -> ` +
+                            `Color with ID ${colorId} does not belong` +
+                            ` to select color.`,
+                        );
+                      }
+                    }
+                  }
+                }
+              }
+            }
+          }
+          break;
         case BCMSPropType.RICH_TEXT:
           {
             const checkData = objectUtil.compareWithSchema(
@@ -427,6 +488,56 @@ export const BCMSPropHandler: BCMSPropHandlerType = {
             entryIds: [],
             templateId: changeData.templateId,
           };
+        } else if (prop.type === BCMSPropType.COLOR_PICKER) {
+          const changeData = change.add
+            .defaultData as BCMSPropColorPickerData[];
+          for (let c = 0; c < changeData.length; c++) {
+            const selectColor = changeData[c];
+            if (!selectColor.options || !selectColor.selected) {
+              return Error(`Color does not set.`);
+            }
+            if (selectColor.allowCustom) {
+              for (let b = 0; b < selectColor.selected.length; b++) {
+                const color = await BCMSRepo.color.findById(
+                  selectColor.selected[b],
+                );
+                if (!color) {
+                  return Error(`Selected color does not exist.`);
+                }
+                (prop.defaultData as BCMSPropColorPickerData[]).push(
+                  selectColor,
+                );
+              }
+            } else {
+              const color = [];
+              for (let b = 0; b < selectColor.options.length; b++) {
+                const optionColor = await BCMSRepo.color.findById(
+                  selectColor.options[b],
+                );
+                if (!optionColor) {
+                  return Error(`Option color does not exist.`);
+                }
+                for (let s = 0; s < selectColor.selected.length; s++) {
+                  const selectedColor = await BCMSRepo.color.findById(
+                    selectColor.selected[s],
+                  );
+                  if (!selectedColor) {
+                    return Error(`Option color does not exist.`);
+                  }
+                  if (await optionColor._id.match(selectedColor._id)) {
+                    color.push(optionColor._id);
+                  }
+                }
+              }
+              if (!color?.length) {
+                return Error(
+                  'Cannot set color because it does not exist in the options',
+                );
+              }
+              selectColor.selected = color;
+              (prop.defaultData as BCMSPropColorPickerData[]).push(selectColor);
+            }
+          }
         } else if (prop.type === BCMSPropType.RICH_TEXT) {
           if (change.add.defaultData) {
             prop.defaultData = [];
@@ -460,6 +571,51 @@ export const BCMSPropHandler: BCMSPropHandlerType = {
           if (update.enumItems) {
             (propBuffer.defaultData as BCMSPropEnumData).items =
               update.enumItems;
+          }
+          if (update.colorData) {
+            const changeColor =
+              propBuffer.defaultData as BCMSPropColorPickerData[];
+            for (let c = 0; c < update.colorData.length; c++) {
+              const allColorSelected = [];
+
+              const optionColors = update.colorData[c].options;
+              const selectColors = update.colorData[c].selected;
+
+              for (let o = 0; o < optionColors.length; o++) {
+                const optionColor = optionColors[o];
+                const optionColorExist = await BCMSRepo.color.findById(
+                  optionColor,
+                );
+                if (!optionColorExist) {
+                  return Error(`Option color does not exist.`);
+                }
+                for (let s = 0; s < selectColors.length; s++) {
+                  const selectColor = selectColors[s];
+                  const selectColorExist = await BCMSRepo.color.findById(
+                    selectColor,
+                  );
+                  if (!selectColorExist) {
+                    return Error(`Select color does not exist.`);
+                  }
+                  if (!update.colorData[c].allowCustom) {
+                    if (await optionColor.match(selectColor)) {
+                      allColorSelected.push(selectColor);
+                    }
+                  }
+                }
+              }
+              if (!update.colorData[c].allowCustom) {
+                if (!allColorSelected?.length) {
+                  return Error(
+                    'Cannot set color because it does not exist in the options',
+                  );
+                } else {
+                  selectColors.splice(0, selectColors.length);
+                  update.colorData[c].selected = allColorSelected;
+                }
+              }
+              changeColor.splice(0, changeColor.length, update.colorData[c]);
+            }
           }
           if (update.move) {
             if (update.move > 0 && propToUpdateIndex < props.length - 1) {

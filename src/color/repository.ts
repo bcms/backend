@@ -2,7 +2,7 @@ import { BCMSConfig } from '@bcms/config';
 import { BCMSRepo } from '@bcms/repo';
 import {
   BCMSColor,
-  BCMSColorFSDBShema,
+  BCMSColorFSDBSchema,
   BCMSColorMongoDBSchema,
   BCMSColorRepositoryMethods,
 } from '@bcms/types';
@@ -21,7 +21,7 @@ export function createBcmsColorRepository(): Module {
         ? createFSDBRepository<BCMSColor, BCMSColorRepositoryMethods>({
             name,
             collection,
-            schema: BCMSColorFSDBShema,
+            schema: BCMSColorFSDBSchema,
             methods({ repo }) {
               return {
                 async findByName(nm) {

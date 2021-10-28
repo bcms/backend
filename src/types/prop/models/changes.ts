@@ -1,3 +1,4 @@
+import type { BCMSPropColorPickerData } from '@bcms/types';
 import type { ObjectSchema } from '@becomes/purple-cheetah/types';
 import type { BCMSPropData, BCMSPropType } from './main';
 
@@ -16,6 +17,7 @@ export interface BCMSPropChangeUpdate {
   move: number;
   required: boolean;
   enumItems?: string[];
+  colorData?: BCMSPropColorPickerData[];
 }
 
 export interface BCMSPropChange {
