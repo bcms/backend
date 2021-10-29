@@ -1,6 +1,4 @@
-import { BCMSColorFSDBSchema } from '@bcms/types';
 import type { ObjectSchema } from '@becomes/purple-cheetah/types';
-import type { BCMSPropDataParsed } from './main';
 
 export interface BCMSPropColorPickerData {
   allowCustom: boolean;
@@ -8,21 +6,18 @@ export interface BCMSPropColorPickerData {
   selected: string[];
 }
 
-export interface BCMSPropColorPickerDataParsed {
-  [key: string]: BCMSPropDataParsed;
-}
+export type BCMSPropColorPickerDataParsed = string[];
 
 export const BCMSPropColorPickerDataSchema: ObjectSchema = {
   allowCustom: {
-    __type: 'string',
+    __type: 'boolean',
     __required: true,
   },
-  option: {
+  options: {
     __type: 'array',
     __required: true,
     __child: {
       __type: 'string',
-      __content: BCMSColorFSDBSchema,
     },
   },
   selected: {

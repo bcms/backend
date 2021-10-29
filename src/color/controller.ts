@@ -170,8 +170,7 @@ export const BCMSColorController = createController<Setup>({
               'The value of the color origin is not entered',
             );
           }
-          // TODO: 6 or 8
-          const checkHex = /^#[0-9A-Fa-f]{6}/g;
+          const checkHex = /^#[0-9A-Fa-f]{6}(?:[0-9A-Fa-f]{2})?$/g;
           if (!body.value.match(checkHex)) {
             throw errorHandler.occurred(
               HTTPStatus.BAD_REQUEST,
@@ -232,8 +231,7 @@ export const BCMSColorController = createController<Setup>({
             color.name = stringUtil.toSlugUnderscore(body.label);
           }
           if (typeof body.value === 'string' && body.value !== color.value) {
-            // TODO: REgex 8
-            const checkHex = /^#[0-9A-Fa-f]{6}/g;
+            const checkHex = /^#[0-9A-Fa-f]{6}(?:[0-9A-Fa-f]{2})?$/g;
             if (!body.value.match(checkHex)) {
               throw errorHandler.occurred(
                 HTTPStatus.BAD_REQUEST,

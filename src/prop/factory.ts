@@ -159,7 +159,11 @@ export function createBcmsPropFactory(): BCMSPropFactory {
         array: array ? array : false,
         required: true,
         type: BCMSPropType.COLOR_PICKER,
-        defaultData: [],
+        defaultData: {
+          allowCustom: false,
+          options: [],
+          selected: [],
+        },
       };
     },
   };
