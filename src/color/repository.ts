@@ -15,7 +15,7 @@ export function createBcmsColorRepository(): Module {
     name: 'Create color repository',
     initialize({ next }) {
       const name = 'Color repository';
-      const collection = `${BCMSConfig.database.prefix}_color`;
+      const collection = `${BCMSConfig.database.prefix}_colors`;
 
       BCMSRepo.color = BCMSConfig.database.fs
         ? createFSDBRepository<BCMSColor, BCMSColorRepositoryMethods>({

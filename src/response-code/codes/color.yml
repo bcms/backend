@@ -15,6 +15,6 @@ col007:
 col008:
   msg: Failed to update Entries after Color update. %msg%
 col009:
-  msg: Property with name "%name%" is reserved and cannot me modified.
+  msg: Property with name "%name%" is reserved and cannot be modified.
 col010:
-  msg: Invalid Hex color
+  msg: Color value does not have valid format, HEX value expected.

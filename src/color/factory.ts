@@ -15,7 +15,7 @@ export function createBcmsColorFactory(): BCMSColorFactory {
         value: data.value ? data.value : '',
         userId: data.userId ? data.userId : '',
         source: data.source
-          ? data.source
+          ?  {id: data.source.id, type: data.source.type}
           : {
               id: uuidv4(),
               type: 'template',

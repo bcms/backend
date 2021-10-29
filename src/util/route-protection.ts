@@ -13,16 +13,19 @@ import {
   ObjectSchema,
   ObjectUtilityError,
 } from '@becomes/purple-cheetah/types';
-import type { BCMSApiKey, BCMSUserCustomPool } from '../types';
+import type {
+  BCMSApiKey,
+  BCMSJWTAndBodyCheckerRouteProtectionResult,
+  BCMSUserCustomPool,
+} from '../types';
 
 export function createJwtAndBodyCheckRouteProtection<Body>(config: {
   roleNames: JWTRoleName[];
   permissionName: JWTPermissionName;
   bodySchema: ObjectSchema;
-}): ControllerMethodPreRequestHandler<{
-  accessToken: JWT<BCMSUserCustomPool>;
-  body: Body;
-}> {
+}): ControllerMethodPreRequestHandler<
+  BCMSJWTAndBodyCheckerRouteProtectionResult<Body>
+> {
   const jwt = useJwt();
   const objectUtil = useObjectUtility();
 

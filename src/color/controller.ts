@@ -3,10 +3,12 @@ import { BCMSRepo } from '@bcms/repo';
 import { bcmsResCode } from '@bcms/response-code';
 import { BCMSSocketManager } from '@bcms/socket';
 import {
+  BCMSColor,
   BCMSColorCreateData,
   BCMSColorCreateDataSchema,
   BCMSColorUpdateData,
   BCMSColorUpdateDataSchema,
+  BCMSJWTAndBodyCheckerRouteProtectionResult,
   BCMSSocketEventType,
   BCMSUserCustomPool,
 } from '@bcms/types';
@@ -19,6 +21,7 @@ import { createJwtProtectionPreRequestHandler } from '@becomes/purple-cheetah-mo
 
 import {
   JWTPermissionName,
+  JWTPreRequestHandlerResult,
   JWTRoleName,
 } from '@becomes/purple-cheetah-mod-jwt/types';
 import { HTTPStatus, StringUtility } from '@becomes/purple-cheetah/types';
@@ -38,28 +41,32 @@ export const BCMSColorController = createController<Setup>({
   },
   methods({ stringUtil }) {
     return {
-      getAll: createControllerMethod({
+      getAll: createControllerMethod<
+        JWTPreRequestHandlerResult<BCMSUserCustomPool>,
+        { items: BCMSColor[] }
+      >({
         path: '/all',
         type: 'get',
-        preRequestHandler:
-          createJwtProtectionPreRequestHandler<BCMSUserCustomPool>(
-            [JWTRoleName.ADMIN, JWTRoleName.USER],
-            JWTPermissionName.READ,
-          ),
+        preRequestHandler: createJwtProtectionPreRequestHandler(
+          [JWTRoleName.ADMIN, JWTRoleName.USER],
+          JWTPermissionName.READ,
+        ),
         async handler() {
           return {
             items: await BCMSRepo.color.findAll(),
           };
         },
       }),
-      getMany: createControllerMethod({
+      getMany: createControllerMethod<
+        JWTPreRequestHandlerResult<BCMSUserCustomPool>,
+        { items: BCMSColor[] }
+      >({
         path: '/many',
         type: 'get',
-        preRequestHandler:
-          createJwtProtectionPreRequestHandler<BCMSUserCustomPool>(
-            [JWTRoleName.ADMIN, JWTRoleName.USER],
-            JWTPermissionName.READ,
-          ),
+        preRequestHandler: createJwtProtectionPreRequestHandler(
+          [JWTRoleName.ADMIN, JWTRoleName.USER],
+          JWTPermissionName.READ,
+        ),
         async handler({ request }) {
           const ids = (request.headers['x-bcms-ids'] as string).split('-');
           if (ids[0] && ids[0].length === 24) {
@@ -73,14 +80,16 @@ export const BCMSColorController = createController<Setup>({
           }
         },
       }),
-      getById: createControllerMethod({
+      getById: createControllerMethod<
+        JWTPreRequestHandlerResult<BCMSUserCustomPool>,
+        { item: BCMSColor }
+      >({
         path: '/:id',
         type: 'get',
-        preRequestHandler:
-          createJwtProtectionPreRequestHandler<BCMSUserCustomPool>(
-            [JWTRoleName.ADMIN, JWTRoleName.USER],
-            JWTPermissionName.READ,
-          ),
+        preRequestHandler: createJwtProtectionPreRequestHandler(
+          [JWTRoleName.ADMIN, JWTRoleName.USER],
+          JWTPermissionName.READ,
+        ),
         async handler({ request, errorHandler }) {
           const id = request.params.id;
           const color =
@@ -98,14 +107,16 @@ export const BCMSColorController = createController<Setup>({
           };
         },
       }),
-      create: createControllerMethod({
+      create: createControllerMethod<
+        BCMSJWTAndBodyCheckerRouteProtectionResult<BCMSColorCreateData>,
+        { item: BCMSColor }
+      >({
         type: 'post',
-        preRequestHandler:
-          createJwtAndBodyCheckRouteProtection<BCMSColorCreateData>({
-            roleNames: [JWTRoleName.ADMIN],
-            permissionName: JWTPermissionName.WRITE,
-            bodySchema: BCMSColorCreateDataSchema,
-          }),
+        preRequestHandler: createJwtAndBodyCheckRouteProtection({
+          roleNames: [JWTRoleName.ADMIN],
+          permissionName: JWTPermissionName.WRITE,
+          bodySchema: BCMSColorCreateDataSchema,
+        }),
         async handler({ errorHandler, body, accessToken }) {
           let idc = await BCMSRepo.idc.methods.findAndIncByForId('color');
           if (!idc) {
@@ -129,7 +140,7 @@ export const BCMSColorController = createController<Setup>({
               'The value of the color origin is not entered',
             );
           }
-          if (body.source.type.match('group')) {
+          if (body.source.type === 'group') {
             const group = await BCMSRepo.group.findById(body.source.id);
             if (!group) {
               throw errorHandler.occurred(
@@ -137,7 +148,7 @@ export const BCMSColorController = createController<Setup>({
                 bcmsResCode('grp001', { id: body.source.id }),
               );
             }
-          } else if (body.source.type.match('widget')) {
+          } else if (body.source.type === 'widget') {
             const widget = await BCMSRepo.widget.findById(body.source.id);
             if (!widget) {
               throw errorHandler.occurred(
@@ -145,7 +156,7 @@ export const BCMSColorController = createController<Setup>({
                 bcmsResCode('wid001', { id: body.source.id }),
               );
             }
-          } else if (body.source.type.match('template')) {
+          } else if (body.source.type === 'template') {
             const template = await BCMSRepo.template.findById(body.source.id);
             if (!template) {
               throw errorHandler.occurred(
@@ -159,9 +170,9 @@ export const BCMSColorController = createController<Setup>({
               'The value of the color origin is not entered',
             );
           }
-
+          // TODO: 6 or 8
           const checkHex = /^#[0-9A-Fa-f]{6}/g;
-          if (!(await body.value.match(checkHex))) {
+          if (!body.value.match(checkHex)) {
             throw errorHandler.occurred(
               HTTPStatus.BAD_REQUEST,
               bcmsResCode('col010'),
@@ -178,13 +189,6 @@ export const BCMSColorController = createController<Setup>({
               type: body.source.type,
             },
           });
-
-          if (await BCMSRepo.color.methods.findByName(color.name)) {
-            throw errorHandler.occurred(
-              HTTPStatus.FORBIDDEN,
-              bcmsResCode('col002', { name: color.name }),
-            );
-          }
           const addedColor = await BCMSRepo.color.add(color);
           if (!addedColor) {
             throw errorHandler.occurred(
@@ -203,14 +207,16 @@ export const BCMSColorController = createController<Setup>({
           };
         },
       }),
-      update: createControllerMethod({
+      update: createControllerMethod<
+        BCMSJWTAndBodyCheckerRouteProtectionResult<BCMSColorUpdateData>,
+        { item: BCMSColor }
+      >({
         type: 'put',
-        preRequestHandler:
-          createJwtAndBodyCheckRouteProtection<BCMSColorUpdateData>({
-            roleNames: [JWTRoleName.ADMIN, JWTRoleName.USER],
-            permissionName: JWTPermissionName.WRITE,
-            bodySchema: BCMSColorUpdateDataSchema,
-          }),
+        preRequestHandler: createJwtAndBodyCheckRouteProtection({
+          roleNames: [JWTRoleName.ADMIN, JWTRoleName.USER],
+          permissionName: JWTPermissionName.WRITE,
+          bodySchema: BCMSColorUpdateDataSchema,
+        }),
         async handler({ errorHandler, body, accessToken }) {
           const color = await BCMSRepo.color.findById(body._id);
           if (!color) {
@@ -220,23 +226,15 @@ export const BCMSColorController = createController<Setup>({
             );
           }
           let changeDetected = false;
-          if (typeof body.label !== 'undefined' && body.label !== color.label) {
-            const name = stringUtil.toSlugUnderscore(body.label);
-            if (color.name !== name) {
-              if (await BCMSRepo.color.methods.findByName(name)) {
-                throw errorHandler.occurred(
-                  HTTPStatus.FORBIDDEN,
-                  bcmsResCode('col002', { name: color.name }),
-                );
-              }
-            }
+          if (typeof body.label === 'string' && body.label !== color.label) {
             changeDetected = true;
             color.label = body.label;
-            color.name = name;
+            color.name = stringUtil.toSlugUnderscore(body.label);
           }
           if (typeof body.value === 'string' && body.value !== color.value) {
+            // TODO: REgex 8
             const checkHex = /^#[0-9A-Fa-f]{6}/g;
-            if (!(await body.value.match(checkHex))) {
+            if (!body.value.match(checkHex)) {
               throw errorHandler.occurred(
                 HTTPStatus.BAD_REQUEST,
                 bcmsResCode('col010'),
@@ -269,14 +267,16 @@ export const BCMSColorController = createController<Setup>({
           };
         },
       }),
-      delete: createControllerMethod({
+      delete: createControllerMethod<
+        JWTPreRequestHandlerResult<BCMSUserCustomPool>,
+        { message: 'Success.' }
+      >({
         path: '/:id',
         type: 'delete',
-        preRequestHandler:
-          createJwtProtectionPreRequestHandler<BCMSUserCustomPool>(
-            [JWTRoleName.ADMIN],
-            JWTPermissionName.DELETE,
-          ),
+        preRequestHandler: createJwtProtectionPreRequestHandler(
+          [JWTRoleName.ADMIN],
+          JWTPermissionName.DELETE,
+        ),
         async handler({ request, errorHandler, accessToken }) {
           const color = await BCMSRepo.color.findById(request.params.id);
           if (!color) {

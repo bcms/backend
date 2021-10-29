@@ -15,6 +15,10 @@ export const BCMSColorCreateDataSchema: ObjectSchema = {
     __type: 'string',
     __required: true,
   },
+  value: {
+    __type: 'string',
+    __required: true,
+  },
   source: {
     __type: 'object',
     __required: true,
