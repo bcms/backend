@@ -11,6 +11,7 @@ import type {
   BCMSTemplateOrganizerFactory,
   BCMSUserFactory,
   BCMSWidgetFactory,
+  BCMSColorFactory,
 } from '.';
 
 export interface BCMSFactory {
@@ -26,4 +27,5 @@ export interface BCMSFactory {
   user: BCMSUserFactory;
   widget: BCMSWidgetFactory;
   prop: BCMSPropFactory;
+  color: BCMSColorFactory;
 }

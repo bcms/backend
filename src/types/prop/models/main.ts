@@ -1,4 +1,5 @@
 import type {
+  BCMSPropColorPickerData,
   BCMSPropRichTextData,
   BCMSPropValueRichTextData,
 } from '@bcms/types';
@@ -32,6 +33,7 @@ export enum BCMSPropType {
   ENTRY_POINTER = 'ENTRY_POINTER',
   WIDGET = 'WIDGET',
 
+  COLOR_PICKER = 'COLOR_PICKER',
   RICH_TEXT = 'RICH_TEXT',
 }
 
@@ -81,8 +83,8 @@ export type BCMSPropData =
   | BCMSPropGroupPointerData
   | BCMSPropMediaData[]
   | BCMSPropWidgetData
-  | BCMSPropRichTextData[];
-
+  | BCMSPropRichTextData[]
+  | BCMSPropColorPickerData;
 export interface BCMSPropParsed {
   [name: string]: BCMSPropDataParsed;
 }

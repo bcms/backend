@@ -10,6 +10,7 @@ export enum BCMSSocketEventName {
   TEMPLATE_ORGANIZER = 'TEMPLATE_ORGANIZER',
   USER = 'USER',
   WIDGET = 'WIDGET',
+  COLOR = 'COLOR',
 }
 
 // eslint-disable-next-line no-shadow
@@ -126,6 +127,16 @@ export interface BCMSSocketWidgetEvent {
    * Widget ID.
    */
   w: string;
+  /**
+   * Event type.
+   */
+  t: BCMSSocketEventType;
+}
+export interface BCMSSocketColorEvent {
+  /**
+   * Color ID.
+   */
+  c: string;
   /**
    * Event type.
    */
