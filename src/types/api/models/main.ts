@@ -35,7 +35,7 @@ export const BCMSApiKeyFSDBSchema: ObjectSchema = {
     __required: true,
   },
   blocked: {
-    __type: 'string',
+    __type: 'boolean',
     __required: true,
   },
   secret: {

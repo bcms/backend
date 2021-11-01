@@ -7,6 +7,7 @@ import { createBcmsApiKeySecurityPreRequestHandler } from '../security';
 import { createJwtProtectionPreRequestHandler } from '@becomes/purple-cheetah-mod-jwt';
 import {
   JWTPermissionName,
+  JWTPreRequestHandlerResult,
   JWTRoleName,
 } from '@becomes/purple-cheetah-mod-jwt/types';
 import {
@@ -21,6 +22,7 @@ import {
   BCMSApiKeyUpdateDataSchema,
   BCMSSocketEventType,
   BCMSUserCustomPool,
+  BCMSApiKey,
 } from '../types';
 import { bcmsResCode } from '@bcms/response-code';
 import { BCMSFactory } from '@bcms/factory';
@@ -96,13 +98,15 @@ export const BCMSApiKeyController = createController<Setup>({
         },
       }),
 
-      create: createControllerMethod({
+      create: createControllerMethod<
+        JWTPreRequestHandlerResult<BCMSUserCustomPool>,
+        { item: BCMSApiKey }
+      >({
         type: 'post',
-        preRequestHandler:
-          createJwtProtectionPreRequestHandler<BCMSUserCustomPool>(
-            [JWTRoleName.ADMIN],
-            JWTPermissionName.WRITE,
-          ),
+        preRequestHandler: createJwtProtectionPreRequestHandler(
+          [JWTRoleName.ADMIN],
+          JWTPermissionName.WRITE,
+        ),
         async handler({ request, errorHandler, accessToken }) {
           {
             const data: BCMSApiKeyAddData = request.body;
@@ -141,7 +145,7 @@ export const BCMSApiKeyController = createController<Setup>({
               userIds: 'all',
               excludeUserId: [accessToken.payload.userId],
             });
-            return key;
+            return { item: key };
           }
         },
       }),
@@ -248,7 +252,7 @@ export const BCMSApiKeyController = createController<Setup>({
           });
           return {
             message: 'Success.',
-          }
+          };
         },
       }),
     };

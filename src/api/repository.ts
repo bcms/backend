@@ -5,7 +5,7 @@ import { createMongoDBCachedRepository } from '@becomes/purple-cheetah-mod-mongo
 import type { Module } from '@becomes/purple-cheetah/types';
 import {
   BCMSApiKey,
-  BCMSApiKeyAccessFSDBSchema,
+  BCMSApiKeyFSDBSchema,
   BCMSApiKeyMongoDBSchema,
 } from '../types';
 
@@ -20,7 +20,7 @@ export function createBcmsApiKeyRepository(): Module {
         ? createFSDBRepository<BCMSApiKey, void>({
             name,
             collection,
-            schema: BCMSApiKeyAccessFSDBSchema,
+            schema: BCMSApiKeyFSDBSchema,
           })
         : createMongoDBCachedRepository<BCMSApiKey, void, void>({
             name,
