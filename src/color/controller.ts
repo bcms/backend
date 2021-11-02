@@ -80,6 +80,22 @@ export const BCMSColorController = createController<Setup>({
           }
         },
       }),
+      count: createControllerMethod<
+        JWTPreRequestHandlerResult<BCMSUserCustomPool>,
+        { count: number }
+      >({
+        path: '/count',
+        type: 'get',
+        preRequestHandler: createJwtProtectionPreRequestHandler(
+          [JWTRoleName.ADMIN, JWTRoleName.USER],
+          JWTPermissionName.READ,
+        ),
+        async handler() {
+          return {
+            count: await BCMSRepo.color.count(),
+          };
+        },
+      }),
       getById: createControllerMethod<
         JWTPreRequestHandlerResult<BCMSUserCustomPool>,
         { item: BCMSColor }
