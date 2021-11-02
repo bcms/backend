@@ -52,40 +52,46 @@ export const BCMSApiKeyController = createController<Setup>({
         },
       }),
 
-      count: createControllerMethod({
+      count: createControllerMethod<
+        JWTPreRequestHandlerResult<BCMSUserCustomPool>,
+        { count: number }
+      >({
         path: '/count',
         type: 'get',
-        preRequestHandler:
-          createJwtProtectionPreRequestHandler<BCMSUserCustomPool>(
-            [JWTRoleName.ADMIN],
-            JWTPermissionName.READ,
-          ),
+        preRequestHandler: createJwtProtectionPreRequestHandler(
+          [JWTRoleName.ADMIN],
+          JWTPermissionName.READ,
+        ),
         async handler() {
-          return await BCMSRepo.apiKey.count();
+          return { count: await BCMSRepo.apiKey.count() };
         },
       }),
 
-      getAll: createControllerMethod({
+      getAll: createControllerMethod<
+        JWTPreRequestHandlerResult<BCMSUserCustomPool>,
+        { items: BCMSApiKey[] }
+      >({
         path: '/all',
         type: 'get',
-        preRequestHandler:
-          createJwtProtectionPreRequestHandler<BCMSUserCustomPool>(
-            [JWTRoleName.ADMIN],
-            JWTPermissionName.READ,
-          ),
+        preRequestHandler: createJwtProtectionPreRequestHandler(
+          [JWTRoleName.ADMIN],
+          JWTPermissionName.READ,
+        ),
         async handler() {
-          return await BCMSRepo.apiKey.findAll();
+          return { items: await BCMSRepo.apiKey.findAll() };
         },
       }),
 
-      getById: createControllerMethod({
+      getById: createControllerMethod<
+        JWTPreRequestHandlerResult<BCMSUserCustomPool>,
+        { item: BCMSApiKey }
+      >({
         path: '/:id',
         type: 'get',
-        preRequestHandler:
-          createJwtProtectionPreRequestHandler<BCMSUserCustomPool>(
-            [JWTRoleName.ADMIN],
-            JWTPermissionName.READ,
-          ),
+        preRequestHandler: createJwtProtectionPreRequestHandler(
+          [JWTRoleName.ADMIN],
+          JWTPermissionName.READ,
+        ),
         async handler({ request, errorHandler }) {
           const key = await BCMSRepo.apiKey.findById(request.params.id);
           if (!key) {
@@ -94,7 +100,7 @@ export const BCMSApiKeyController = createController<Setup>({
               bcmsResCode('ak001', { id: request.params.id }),
             );
           }
-          return key;
+          return { item: key };
         },
       }),
 
@@ -150,13 +156,15 @@ export const BCMSApiKeyController = createController<Setup>({
         },
       }),
 
-      update: createControllerMethod({
+      update: createControllerMethod<
+        JWTPreRequestHandlerResult<BCMSUserCustomPool>,
+        { item: BCMSApiKey }
+      >({
         type: 'put',
-        preRequestHandler:
-          createJwtProtectionPreRequestHandler<BCMSUserCustomPool>(
-            [JWTRoleName.ADMIN],
-            JWTPermissionName.WRITE,
-          ),
+        preRequestHandler: createJwtProtectionPreRequestHandler(
+          [JWTRoleName.ADMIN],
+          JWTPermissionName.WRITE,
+        ),
         async handler({ request, errorHandler, accessToken }) {
           const data: BCMSApiKeyUpdateData = request.body;
           {
@@ -218,18 +226,20 @@ export const BCMSApiKeyController = createController<Setup>({
             userIds: 'all',
             excludeUserId: [accessToken.payload.userId],
           });
-          return updatedKey;
+          return { item: updatedKey };
         },
       }),
 
-      delete: createControllerMethod({
+      delete: createControllerMethod<
+        JWTPreRequestHandlerResult<BCMSUserCustomPool>,
+        { message: 'Success.' }
+      >({
         path: '/:id',
         type: 'delete',
-        preRequestHandler:
-          createJwtProtectionPreRequestHandler<BCMSUserCustomPool>(
-            [JWTRoleName.ADMIN],
-            JWTPermissionName.DELETE,
-          ),
+        preRequestHandler: createJwtProtectionPreRequestHandler(
+          [JWTRoleName.ADMIN],
+          JWTPermissionName.DELETE,
+        ),
         async handler({ request, errorHandler, accessToken }) {
           const key = await BCMSRepo.apiKey.findById(request.params.id);
           if (!key) {
