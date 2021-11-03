@@ -24,6 +24,7 @@ import {
   BCMSGroup,
   BCMSSocketEventType,
   BCMSJWTAndBodyCheckerRouteProtectionResult,
+  BCMSGroupLite,
 } from '../types';
 import { createJwtAndBodyCheckRouteProtection } from '../util';
 
@@ -105,14 +106,16 @@ export const BCMSGroupController = createController<Setup>({
         },
       }),
 
-      getAllLite: createControllerMethod({
+      getAllLite: createControllerMethod<
+        JWTPreRequestHandlerResult<BCMSUserCustomPool>,
+        { items: BCMSGroupLite[] }
+      >({
         path: '/all/lite',
         type: 'get',
-        preRequestHandler:
-          createJwtProtectionPreRequestHandler<BCMSUserCustomPool>(
-            [JWTRoleName.ADMIN, JWTRoleName.USER],
-            JWTPermissionName.READ,
-          ),
+        preRequestHandler: createJwtProtectionPreRequestHandler(
+          [JWTRoleName.ADMIN, JWTRoleName.USER],
+          JWTPermissionName.READ,
+        ),
         async handler() {
           return {
             items: (await BCMSRepo.group.findAll()).map((e) =>
