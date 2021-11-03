@@ -11,6 +11,7 @@ import {
 import { createJwtProtectionPreRequestHandler } from '@becomes/purple-cheetah-mod-jwt';
 import {
   JWTPermissionName,
+  JWTPreRequestHandlerResult,
   JWTRoleName,
 } from '@becomes/purple-cheetah-mod-jwt/types';
 import { HTTPStatus, StringUtility } from '@becomes/purple-cheetah/types';
@@ -22,6 +23,7 @@ import {
   BCMSGroupUpdateDataSchema,
   BCMSGroup,
   BCMSSocketEventType,
+  BCMSJWTAndBodyCheckerRouteProtectionResult,
 } from '../types';
 import { createJwtAndBodyCheckRouteProtection } from '../util';
 
@@ -65,12 +67,12 @@ export const BCMSGroupController = createController<Setup>({
           const groups = await BCMSRepo.group.methods.findAllByPropGroupPointer(
             group._id,
           );
-          const templates = await BCMSRepo.template.methods.findAllByPropGroupPointer(
-            group._id,
-          );
-          const widgets = await BCMSRepo.widget.methods.findAllByPropGroupPointer(
-            group._id,
-          );
+          const templates =
+            await BCMSRepo.template.methods.findAllByPropGroupPointer(
+              group._id,
+            );
+          const widgets =
+            await BCMSRepo.widget.methods.findAllByPropGroupPointer(group._id);
 
           return {
             groupIds: groups.map((e) => {
@@ -86,14 +88,16 @@ export const BCMSGroupController = createController<Setup>({
         },
       }),
 
-      getAll: createControllerMethod({
+      getAll: createControllerMethod<
+        JWTPreRequestHandlerResult<BCMSUserCustomPool>,
+        { items: BCMSGroup[] }
+      >({
         path: '/all',
         type: 'get',
-        preRequestHandler:
-          createJwtProtectionPreRequestHandler<BCMSUserCustomPool>(
-            [JWTRoleName.ADMIN, JWTRoleName.USER],
-            JWTPermissionName.READ,
-          ),
+        preRequestHandler: createJwtProtectionPreRequestHandler(
+          [JWTRoleName.ADMIN, JWTRoleName.USER],
+          JWTPermissionName.READ,
+        ),
         async handler() {
           return {
             items: await BCMSRepo.group.findAll(),
@@ -118,14 +122,16 @@ export const BCMSGroupController = createController<Setup>({
         },
       }),
 
-      getMany: createControllerMethod({
+      getMany: createControllerMethod<
+        JWTPreRequestHandlerResult<BCMSUserCustomPool>,
+        { items: BCMSGroup[] }
+      >({
         path: '/many',
         type: 'get',
-        preRequestHandler:
-          createJwtProtectionPreRequestHandler<BCMSUserCustomPool>(
-            [JWTRoleName.ADMIN, JWTRoleName.USER],
-            JWTPermissionName.READ,
-          ),
+        preRequestHandler: createJwtProtectionPreRequestHandler(
+          [JWTRoleName.ADMIN, JWTRoleName.USER],
+          JWTPermissionName.READ,
+        ),
         async handler({ request }) {
           const ids = (request.headers['x-bcms-ids'] as string).split('-');
           if (ids[0] && ids[0].length === 24) {
@@ -140,14 +146,16 @@ export const BCMSGroupController = createController<Setup>({
         },
       }),
 
-      count: createControllerMethod({
+      count: createControllerMethod<
+        JWTPreRequestHandlerResult<BCMSUserCustomPool>,
+        { count: number }
+      >({
         path: '/count',
         type: 'get',
-        preRequestHandler:
-          createJwtProtectionPreRequestHandler<BCMSUserCustomPool>(
-            [JWTRoleName.ADMIN, JWTRoleName.USER],
-            JWTPermissionName.READ,
-          ),
+        preRequestHandler: createJwtProtectionPreRequestHandler(
+          [JWTRoleName.ADMIN, JWTRoleName.USER],
+          JWTPermissionName.READ,
+        ),
         async handler() {
           return {
             count: await BCMSRepo.group.count(),
@@ -155,14 +163,16 @@ export const BCMSGroupController = createController<Setup>({
         },
       }),
 
-      getById: createControllerMethod({
+      getById: createControllerMethod<
+        JWTPreRequestHandlerResult<BCMSUserCustomPool>,
+        { item: BCMSGroup }
+      >({
         path: '/:id',
         type: 'get',
-        preRequestHandler:
-          createJwtProtectionPreRequestHandler<BCMSUserCustomPool>(
-            [JWTRoleName.ADMIN, JWTRoleName.USER],
-            JWTPermissionName.READ,
-          ),
+        preRequestHandler: createJwtProtectionPreRequestHandler(
+          [JWTRoleName.ADMIN, JWTRoleName.USER],
+          JWTPermissionName.READ,
+        ),
         async handler({ request, errorHandler }) {
           const group = await BCMSRepo.group.findById(request.params.id);
           if (!group) {
@@ -175,14 +185,16 @@ export const BCMSGroupController = createController<Setup>({
         },
       }),
 
-      create: createControllerMethod({
+      create: createControllerMethod<
+        BCMSJWTAndBodyCheckerRouteProtectionResult<BCMSGroupAddData>,
+        { item: BCMSGroup }
+      >({
         type: 'post',
-        preRequestHandler:
-          createJwtAndBodyCheckRouteProtection<BCMSGroupAddData>({
-            roleNames: [JWTRoleName.ADMIN],
-            permissionName: JWTPermissionName.WRITE,
-            bodySchema: BCMSGroupAddDataSchema,
-          }),
+        preRequestHandler: createJwtAndBodyCheckRouteProtection({
+          roleNames: [JWTRoleName.ADMIN],
+          permissionName: JWTPermissionName.WRITE,
+          bodySchema: BCMSGroupAddDataSchema,
+        }),
         async handler({ errorHandler, body, accessToken }) {
           let idc = await BCMSRepo.idc.methods.findAndIncByForId('groups');
           if (!idc) {
@@ -231,14 +243,16 @@ export const BCMSGroupController = createController<Setup>({
         },
       }),
 
-      update: createControllerMethod({
+      update: createControllerMethod<
+        BCMSJWTAndBodyCheckerRouteProtectionResult<BCMSGroupUpdateData>,
+        { item: BCMSGroup }
+      >({
         type: 'put',
-        preRequestHandler:
-          createJwtAndBodyCheckRouteProtection<BCMSGroupUpdateData>({
-            roleNames: [JWTRoleName.ADMIN, JWTRoleName.USER],
-            permissionName: JWTPermissionName.WRITE,
-            bodySchema: BCMSGroupUpdateDataSchema,
-          }),
+        preRequestHandler: createJwtAndBodyCheckRouteProtection({
+          roleNames: [JWTRoleName.ADMIN, JWTRoleName.USER],
+          permissionName: JWTPermissionName.WRITE,
+          bodySchema: BCMSGroupUpdateDataSchema,
+        }),
         async handler({ errorHandler, body, accessToken }) {
           const group = await BCMSRepo.group.findById(body._id);
           if (!group) {
@@ -346,14 +360,16 @@ export const BCMSGroupController = createController<Setup>({
         },
       }),
 
-      delete: createControllerMethod({
+      delete: createControllerMethod<
+        JWTPreRequestHandlerResult<BCMSUserCustomPool>,
+        { message: 'Success.' }
+      >({
         path: '/:id',
         type: 'delete',
-        preRequestHandler:
-          createJwtProtectionPreRequestHandler<BCMSUserCustomPool>(
-            [JWTRoleName.ADMIN],
-            JWTPermissionName.DELETE,
-          ),
+        preRequestHandler: createJwtProtectionPreRequestHandler(
+          [JWTRoleName.ADMIN],
+          JWTPermissionName.DELETE,
+        ),
         async handler({ request, errorHandler, logger, name, accessToken }) {
           const group = await BCMSRepo.group.findById(request.params.id);
           if (!group) {
@@ -362,7 +378,9 @@ export const BCMSGroupController = createController<Setup>({
               bcmsResCode('grp001', { id: request.params.id }),
             );
           }
-          const deleteResult = await BCMSRepo.group.deleteById(request.params.id);
+          const deleteResult = await BCMSRepo.group.deleteById(
+            request.params.id,
+          );
           if (!deleteResult) {
             throw errorHandler.occurred(
               HTTPStatus.INTERNAL_SERVER_ERROR,
