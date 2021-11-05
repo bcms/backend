@@ -6,12 +6,15 @@ import {
 import { createJwtProtectionPreRequestHandler } from '@becomes/purple-cheetah-mod-jwt';
 import {
   JWTPermissionName,
+  JWTPreRequestHandlerResult,
   JWTRoleName,
 } from '@becomes/purple-cheetah-mod-jwt/types';
 import { HTTPStatus, StringUtility } from '@becomes/purple-cheetah/types';
 import { createJwtAndBodyCheckRouteProtection } from '../util';
 import {
+  BCMSJWTAndBodyCheckerRouteProtectionResult,
   BCMSSocketEventType,
+  BCMSStatus,
   BCMSStatusCreateData,
   BCMSStatusCreateDataSchema,
   BCMSStatusUpdateData,
@@ -37,14 +40,16 @@ export const BCMSStatusController = createController<Setup>({
   },
   methods({ stringUtil }) {
     return {
-      getAll: createControllerMethod({
+      getAll: createControllerMethod<
+        JWTPreRequestHandlerResult<BCMSUserCustomPool>,
+        { items: BCMSStatus[] }
+      >({
         path: '/all',
         type: 'get',
-        preRequestHandler:
-          createJwtProtectionPreRequestHandler<BCMSUserCustomPool>(
-            [JWTRoleName.ADMIN, JWTRoleName.USER],
-            JWTPermissionName.READ,
-          ),
+        preRequestHandler: createJwtProtectionPreRequestHandler(
+          [JWTRoleName.ADMIN, JWTRoleName.USER],
+          JWTPermissionName.READ,
+        ),
         async handler() {
           return {
             items: await BCMSRepo.status.findAll(),
@@ -52,14 +57,16 @@ export const BCMSStatusController = createController<Setup>({
         },
       }),
 
-      count: createControllerMethod({
+      count: createControllerMethod<
+        JWTPreRequestHandlerResult<BCMSUserCustomPool>,
+        { count: number }
+      >({
         path: '/count',
         type: 'get',
-        preRequestHandler:
-          createJwtProtectionPreRequestHandler<BCMSUserCustomPool>(
-            [JWTRoleName.ADMIN, JWTRoleName.USER],
-            JWTPermissionName.READ,
-          ),
+        preRequestHandler: createJwtProtectionPreRequestHandler(
+          [JWTRoleName.ADMIN, JWTRoleName.USER],
+          JWTPermissionName.READ,
+        ),
         async handler() {
           return {
             count: await BCMSRepo.status.count(),
@@ -67,7 +74,10 @@ export const BCMSStatusController = createController<Setup>({
         },
       }),
 
-      getById: createControllerMethod({
+      getById: createControllerMethod<
+        JWTPreRequestHandlerResult<BCMSUserCustomPool>,
+        { item: BCMSStatus }
+      >({
         path: '/:id',
         type: 'get',
         preRequestHandler:
@@ -92,14 +102,16 @@ export const BCMSStatusController = createController<Setup>({
         },
       }),
 
-      create: createControllerMethod({
+      create: createControllerMethod<
+        BCMSJWTAndBodyCheckerRouteProtectionResult<BCMSStatusCreateData>,
+        { item: BCMSStatus }
+      >({
         type: 'post',
-        preRequestHandler:
-          createJwtAndBodyCheckRouteProtection<BCMSStatusCreateData>({
-            roleNames: [JWTRoleName.ADMIN],
-            permissionName: JWTPermissionName.READ,
-            bodySchema: BCMSStatusCreateDataSchema,
-          }),
+        preRequestHandler: createJwtAndBodyCheckRouteProtection({
+          roleNames: [JWTRoleName.ADMIN],
+          permissionName: JWTPermissionName.READ,
+          bodySchema: BCMSStatusCreateDataSchema,
+        }),
         async handler({ body, errorHandler, accessToken }) {
           const status = BCMSFactory.status.create({
             label: body.label,
@@ -134,14 +146,16 @@ export const BCMSStatusController = createController<Setup>({
         },
       }),
 
-      update: createControllerMethod({
+      update: createControllerMethod<
+        BCMSJWTAndBodyCheckerRouteProtectionResult<BCMSStatusUpdateData>,
+        { item: BCMSStatus }
+      >({
         type: 'put',
-        preRequestHandler:
-          createJwtAndBodyCheckRouteProtection<BCMSStatusUpdateData>({
-            roleNames: [JWTRoleName.ADMIN],
-            permissionName: JWTPermissionName.READ,
-            bodySchema: BCMSStatusUpdateDataSchema,
-          }),
+        preRequestHandler: createJwtAndBodyCheckRouteProtection({
+          roleNames: [JWTRoleName.ADMIN],
+          permissionName: JWTPermissionName.READ,
+          bodySchema: BCMSStatusUpdateDataSchema,
+        }),
         async handler({ body, errorHandler, accessToken }) {
           const id = body._id;
           const status = await BCMSRepo.status.findById(id);
@@ -158,9 +172,8 @@ export const BCMSStatusController = createController<Setup>({
             changeDetected = true;
             const newName = stringUtil.toSlugUnderscore(body.label);
             if (status.name !== newName) {
-              const statusWithSameName = await BCMSRepo.status.methods.findByName(
-                newName,
-              );
+              const statusWithSameName =
+                await BCMSRepo.status.methods.findByName(newName);
               if (statusWithSameName) {
                 throw errorHandler.occurred(
                   HTTPStatus.FORBIDDEN,
@@ -200,7 +213,10 @@ export const BCMSStatusController = createController<Setup>({
         },
       }),
 
-      deleteById: createControllerMethod({
+      deleteById: createControllerMethod<
+        JWTPreRequestHandlerResult<BCMSUserCustomPool>,
+        { message: 'Success.' }
+      >({
         path: '/:id',
         type: 'delete',
         preRequestHandler:
