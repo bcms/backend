@@ -6,11 +6,13 @@ import {
 import { createJwtProtectionPreRequestHandler } from '@becomes/purple-cheetah-mod-jwt';
 import {
   JWTPermissionName,
+  JWTPreRequestHandlerResult,
   JWTRoleName,
 } from '@becomes/purple-cheetah-mod-jwt/types';
 import { HTTPStatus, StringUtility } from '@becomes/purple-cheetah/types';
 import { createJwtAndBodyCheckRouteProtection } from '../util';
 import {
+  BCMSJWTAndBodyCheckerRouteProtectionResult,
   BCMSSocketEventType,
   BCMSUserCustomPool,
   BCMSWidget,
@@ -73,14 +75,16 @@ export const BCMSWidgetController = createController<Setup>({
         },
       }),
 
-      getAll: createControllerMethod({
+      getAll: createControllerMethod<
+        JWTPreRequestHandlerResult<BCMSUserCustomPool>,
+        { items: BCMSWidget[] }
+      >({
         path: '/all',
         type: 'get',
-        preRequestHandler:
-          createJwtProtectionPreRequestHandler<BCMSUserCustomPool>(
-            [JWTRoleName.ADMIN, JWTRoleName.USER],
-            JWTPermissionName.READ,
-          ),
+        preRequestHandler: createJwtProtectionPreRequestHandler(
+          [JWTRoleName.ADMIN, JWTRoleName.USER],
+          JWTPermissionName.READ,
+        ),
         async handler() {
           return {
             items: await BCMSRepo.widget.findAll(),
@@ -88,14 +92,16 @@ export const BCMSWidgetController = createController<Setup>({
         },
       }),
 
-      getMany: createControllerMethod({
+      getMany: createControllerMethod<
+        JWTPreRequestHandlerResult<BCMSUserCustomPool>,
+        { items: BCMSWidget[] }
+      >({
         path: '/many',
         type: 'get',
-        preRequestHandler:
-          createJwtProtectionPreRequestHandler<BCMSUserCustomPool>(
-            [JWTRoleName.ADMIN, JWTRoleName.USER],
-            JWTPermissionName.READ,
-          ),
+        preRequestHandler: createJwtProtectionPreRequestHandler(
+          [JWTRoleName.ADMIN, JWTRoleName.USER],
+          JWTPermissionName.READ,
+        ),
         async handler({ request }) {
           const ids = (request.headers['x-bcms-ids'] as string).split('-');
           if (ids[0] && ids[0].length === 24) {
@@ -110,14 +116,16 @@ export const BCMSWidgetController = createController<Setup>({
         },
       }),
 
-      count: createControllerMethod({
+      count: createControllerMethod<
+        JWTPreRequestHandlerResult<BCMSUserCustomPool>,
+        { count: number }
+      >({
         path: '/count',
         type: 'get',
-        preRequestHandler:
-          createJwtProtectionPreRequestHandler<BCMSUserCustomPool>(
-            [JWTRoleName.ADMIN, JWTRoleName.USER],
-            JWTPermissionName.READ,
-          ),
+        preRequestHandler: createJwtProtectionPreRequestHandler(
+          [JWTRoleName.ADMIN, JWTRoleName.USER],
+          JWTPermissionName.READ,
+        ),
         async handler() {
           return {
             count: await BCMSRepo.widget.count(),
@@ -125,14 +133,16 @@ export const BCMSWidgetController = createController<Setup>({
         },
       }),
 
-      getById: createControllerMethod({
+      getById: createControllerMethod<
+        JWTPreRequestHandlerResult<BCMSUserCustomPool>,
+        { item: BCMSWidget }
+      >({
         path: '/:id',
         type: 'get',
-        preRequestHandler:
-          createJwtProtectionPreRequestHandler<BCMSUserCustomPool>(
-            [JWTRoleName.ADMIN, JWTRoleName.USER],
-            JWTPermissionName.READ,
-          ),
+        preRequestHandler: createJwtProtectionPreRequestHandler(
+          [JWTRoleName.ADMIN, JWTRoleName.USER],
+          JWTPermissionName.READ,
+        ),
         async handler({ request, errorHandler }) {
           const id = request.params.id;
           let widget: BCMSWidget | null = null;
@@ -154,14 +164,16 @@ export const BCMSWidgetController = createController<Setup>({
         },
       }),
 
-      create: createControllerMethod({
+      create: createControllerMethod<
+        BCMSJWTAndBodyCheckerRouteProtectionResult<BCMSWidgetCreateData>,
+        { item: BCMSWidget }
+      >({
         type: 'post',
-        preRequestHandler:
-          createJwtAndBodyCheckRouteProtection<BCMSWidgetCreateData>({
-            roleNames: [JWTRoleName.ADMIN],
-            permissionName: JWTPermissionName.WRITE,
-            bodySchema: BCMSWidgetCreateDataSchema,
-          }),
+        preRequestHandler: createJwtAndBodyCheckRouteProtection({
+          roleNames: [JWTRoleName.ADMIN],
+          permissionName: JWTPermissionName.WRITE,
+          bodySchema: BCMSWidgetCreateDataSchema,
+        }),
         async handler({ body, errorHandler, accessToken }) {
           let idc = await BCMSRepo.idc.methods.findAndIncByForId('widgets');
           if (!idc) {
@@ -213,14 +225,16 @@ export const BCMSWidgetController = createController<Setup>({
         },
       }),
 
-      update: createControllerMethod({
+      update: createControllerMethod<
+        BCMSJWTAndBodyCheckerRouteProtectionResult<BCMSWidgetUpdateData>,
+        { item: BCMSWidget }
+      >({
         type: 'put',
-        preRequestHandler:
-          createJwtAndBodyCheckRouteProtection<BCMSWidgetUpdateData>({
-            roleNames: [JWTRoleName.ADMIN],
-            permissionName: JWTPermissionName.WRITE,
-            bodySchema: BCMSWidgetUpdateDataSchema,
-          }),
+        preRequestHandler: createJwtAndBodyCheckRouteProtection({
+          roleNames: [JWTRoleName.ADMIN],
+          permissionName: JWTPermissionName.WRITE,
+          bodySchema: BCMSWidgetUpdateDataSchema,
+        }),
         async handler({ body, errorHandler, accessToken }) {
           const id = body._id;
           const widget = await BCMSRepo.widget.findById(id);
@@ -340,14 +354,16 @@ export const BCMSWidgetController = createController<Setup>({
         },
       }),
 
-      deleteById: createControllerMethod({
+      deleteById: createControllerMethod<
+        JWTPreRequestHandlerResult<BCMSUserCustomPool>,
+        { message: 'Success.' }
+      >({
         path: '/:id',
         type: 'delete',
-        preRequestHandler:
-          createJwtProtectionPreRequestHandler<BCMSUserCustomPool>(
-            [JWTRoleName.ADMIN],
-            JWTPermissionName.DELETE,
-          ),
+        preRequestHandler: createJwtProtectionPreRequestHandler(
+          [JWTRoleName.ADMIN],
+          JWTPermissionName.DELETE,
+        ),
         async handler({ request, errorHandler, accessToken }) {
           const id = request.params.id;
           const widget = await BCMSRepo.widget.findById(id);
