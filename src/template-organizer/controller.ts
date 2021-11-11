@@ -10,11 +10,14 @@ import {
 import { createJwtProtectionPreRequestHandler } from '@becomes/purple-cheetah-mod-jwt';
 import {
   JWTPermissionName,
+  JWTPreRequestHandlerResult,
   JWTRoleName,
 } from '@becomes/purple-cheetah-mod-jwt/types';
 import { HTTPStatus, StringUtility } from '@becomes/purple-cheetah/types';
 import {
+  BCMSJWTAndBodyCheckerRouteProtectionResult,
   BCMSSocketEventType,
+  BCMSTemplateOrganizer,
   BCMSTemplateOrganizerCreateData,
   BCMSTemplateOrganizerCreateDataSchema,
   BCMSTemplateOrganizerUpdateData,
@@ -37,28 +40,32 @@ export const BCMSTemplateOrganizerController = createController<Setup>({
   },
   methods({ stringUtil }) {
     return {
-      getAll: createControllerMethod({
+      getAll: createControllerMethod<
+        JWTPreRequestHandlerResult<BCMSUserCustomPool>,
+        { items: BCMSTemplateOrganizer[] }
+      >({
         path: '/all',
         type: 'get',
-        preRequestHandler:
-          createJwtProtectionPreRequestHandler<BCMSUserCustomPool>(
-            [JWTRoleName.ADMIN, JWTRoleName.USER],
-            JWTPermissionName.READ,
-          ),
+        preRequestHandler: createJwtProtectionPreRequestHandler(
+          [JWTRoleName.ADMIN, JWTRoleName.USER],
+          JWTPermissionName.READ,
+        ),
         async handler() {
           return {
             items: await BCMSRepo.templateOrganizer.findAll(),
           };
         },
       }),
-      getMany: createControllerMethod({
+      getMany: createControllerMethod<
+        JWTPreRequestHandlerResult<BCMSUserCustomPool>,
+        { items: BCMSTemplateOrganizer[] }
+      >({
         path: '/many',
         type: 'get',
-        preRequestHandler:
-          createJwtProtectionPreRequestHandler<BCMSUserCustomPool>(
-            [JWTRoleName.ADMIN, JWTRoleName.USER],
-            JWTPermissionName.READ,
-          ),
+        preRequestHandler: createJwtProtectionPreRequestHandler(
+          [JWTRoleName.ADMIN, JWTRoleName.USER],
+          JWTPermissionName.READ,
+        ),
         async handler({ request }) {
           const ids = (request.headers['x-bcms-ids'] as string).split('-');
           return {
@@ -66,14 +73,16 @@ export const BCMSTemplateOrganizerController = createController<Setup>({
           };
         },
       }),
-      getById: createControllerMethod({
+      getById: createControllerMethod<
+        JWTPreRequestHandlerResult<BCMSUserCustomPool>,
+        { item: BCMSTemplateOrganizer }
+      >({
         path: '/:id',
         type: 'get',
-        preRequestHandler:
-          createJwtProtectionPreRequestHandler<BCMSUserCustomPool>(
-            [JWTRoleName.ADMIN, JWTRoleName.USER],
-            JWTPermissionName.READ,
-          ),
+        preRequestHandler: createJwtProtectionPreRequestHandler(
+          [JWTRoleName.ADMIN, JWTRoleName.USER],
+          JWTPermissionName.READ,
+        ),
         async handler({ request, errorHandler }) {
           const tempOrg = await BCMSRepo.templateOrganizer.findById(
             request.params.id,
@@ -89,16 +98,16 @@ export const BCMSTemplateOrganizerController = createController<Setup>({
           };
         },
       }),
-      create: createControllerMethod({
+      create: createControllerMethod<
+        BCMSJWTAndBodyCheckerRouteProtectionResult<BCMSTemplateOrganizerCreateData>,
+        { item: BCMSTemplateOrganizer }
+      >({
         type: 'post',
-        preRequestHandler:
-          createJwtAndBodyCheckRouteProtection<BCMSTemplateOrganizerCreateData>(
-            {
-              bodySchema: BCMSTemplateOrganizerCreateDataSchema,
-              permissionName: JWTPermissionName.WRITE,
-              roleNames: [JWTRoleName.ADMIN],
-            },
-          ),
+        preRequestHandler: createJwtAndBodyCheckRouteProtection({
+          bodySchema: BCMSTemplateOrganizerCreateDataSchema,
+          permissionName: JWTPermissionName.WRITE,
+          roleNames: [JWTRoleName.ADMIN],
+        }),
         async handler({ errorHandler, body, accessToken }) {
           const org = BCMSFactory.templateOrganizer.create({
             label: body.label,
@@ -124,16 +133,16 @@ export const BCMSTemplateOrganizerController = createController<Setup>({
           };
         },
       }),
-      update: createControllerMethod({
+      update: createControllerMethod<
+        BCMSJWTAndBodyCheckerRouteProtectionResult<BCMSTemplateOrganizerUpdateData>,
+        { item: BCMSTemplateOrganizer }
+      >({
         type: 'put',
-        preRequestHandler:
-          createJwtAndBodyCheckRouteProtection<BCMSTemplateOrganizerUpdateData>(
-            {
-              bodySchema: BCMSTemplateOrganizerUpdateDataSchema,
-              permissionName: JWTPermissionName.WRITE,
-              roleNames: [JWTRoleName.ADMIN],
-            },
-          ),
+        preRequestHandler: createJwtAndBodyCheckRouteProtection({
+          bodySchema: BCMSTemplateOrganizerUpdateDataSchema,
+          permissionName: JWTPermissionName.WRITE,
+          roleNames: [JWTRoleName.ADMIN],
+        }),
         async handler({ errorHandler, body, accessToken }) {
           const tempOrg = await BCMSRepo.templateOrganizer.findById(body._id);
           if (!tempOrg) {
@@ -194,14 +203,16 @@ export const BCMSTemplateOrganizerController = createController<Setup>({
           };
         },
       }),
-      deleteById: createControllerMethod({
+      deleteById: createControllerMethod<
+        JWTPreRequestHandlerResult<BCMSUserCustomPool>,
+        { message: 'Success.' }
+      >({
         path: '/:id',
         type: 'delete',
-        preRequestHandler:
-          createJwtProtectionPreRequestHandler<BCMSUserCustomPool>(
-            [JWTRoleName.ADMIN, JWTRoleName.USER],
-            JWTPermissionName.READ,
-          ),
+        preRequestHandler: createJwtProtectionPreRequestHandler(
+          [JWTRoleName.ADMIN, JWTRoleName.USER],
+          JWTPermissionName.READ,
+        ),
         async handler({ request, errorHandler, accessToken }) {
           const tempOrg = await BCMSRepo.templateOrganizer.findById(
             request.params.id,
