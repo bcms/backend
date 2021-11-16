@@ -8,6 +8,7 @@ import { createBcmsLanguageFactory } from './language';
 import { createBcmsMediaFactory } from './media';
 import { createBcmsPropFactory } from './prop';
 import { createBcmsStatusFactory } from './status';
+import { createBcmsTagFactory } from './tag';
 import { createBcmsTemplateFactory } from './template';
 import { createBcmsTemplateOrganizerFactory } from './template-organizer';
 import type { BCMSFactory as BCMSFactoryType } from './types';
@@ -28,6 +29,7 @@ export const BCMSFactory: BCMSFactoryType = {
   widget: undefined as never,
   prop: undefined as never,
   color: undefined as never,
+  tag: undefined as never,
 };
 
 export function createBcmsFactories(): Module {
@@ -47,6 +49,7 @@ export function createBcmsFactories(): Module {
       BCMSFactory.widget = createBcmsWidgetFactory();
       BCMSFactory.prop = createBcmsPropFactory();
       BCMSFactory.color = createBcmsColorFactory();
+      BCMSFactory.tag = createBcmsTagFactory();
       next();
     },
   };

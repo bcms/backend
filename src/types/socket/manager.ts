@@ -102,5 +102,14 @@ export interface BCMSSocketManager {
       userIds: string[] | 'all';
       excludeUserId?: string[];
     }): Promise<void>;
+    tag(data: {
+      type: BCMSSocketEventType;
+      tagId: string;
+      /**
+       * Who will receive this event.
+       */
+      userIds: string[] | 'all';
+      excludeUserId?: string[];
+    }): Promise<void>;
   };
 }
