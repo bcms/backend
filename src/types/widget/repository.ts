@@ -8,6 +8,7 @@ export interface BCMSWidgetRepositoryMethods {
   findAllByCid(cids: string[]): Promise<BCMSWidget[]>;
   findAllByPropGroupPointer(groupId: string): Promise<BCMSWidget[]>;
   findAllByPropEntryPointer(templateId: string): Promise<BCMSWidget[]>;
+  findAllByPropTag(tagId: string): Promise<BCMSWidget[]>;
 }
 
 export type BCMSWidgetRepository =

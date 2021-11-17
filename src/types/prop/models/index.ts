@@ -9,3 +9,4 @@ export * from './rich-text';
 export * from './widget';
 export * from './tag';
 export * from './color-picker';
+export * from './tag';

@@ -6,6 +6,7 @@ import type { Module } from '@becomes/purple-cheetah/types';
 import {
   BCMSPropEntryPointerData,
   BCMSPropGroupPointerData,
+  BCMSPropTagData,
   BCMSPropType,
   BCMSWidget,
   BCMSWidgetFSDBSchema,
@@ -55,6 +56,16 @@ export function createBcmsWidgetRepository(): Module {
                           p.type === BCMSPropType.ENTRY_POINTER &&
                           (p.defaultData as BCMSPropEntryPointerData)
                             .templateId === templateId,
+                      ),
+                  );
+                },
+                async findAllByPropTag(tagId) {
+                  return await repo.findAllBy(
+                    (e) =>
+                      !!e.props.find(
+                        (p) =>
+                          p.type === BCMSPropType.TAG &&
+                          (p.defaultData as BCMSPropTagData).includes(tagId),
                       ),
                   );
                 },
@@ -124,6 +135,12 @@ export function createBcmsWidgetRepository(): Module {
                   return await mongoDBInterface.find({
                     'props.type': BCMSPropType.ENTRY_POINTER,
                     'props.defaultData.templateId': templateId,
+                  });
+                },
+                async findAllByPropTag(tagId) {
+                  return await mongoDBInterface.find({
+                    'props.type': BCMSPropType.TAG,
+                    'props.defaultData': { $in: tagId },
                   });
                 },
               };

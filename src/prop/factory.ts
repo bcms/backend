@@ -35,6 +35,9 @@ export function createBcmsPropFactory(): BCMSPropFactory {
         case BCMSPropType.COLOR_PICKER: {
           return self.colorPicker(array);
         }
+        case BCMSPropType.TAG: {
+          return self.tag(array);
+        }
         default: {
           return null;
         }
@@ -164,6 +167,17 @@ export function createBcmsPropFactory(): BCMSPropFactory {
           options: [],
           selected: [],
         },
+      };
+    },
+    tag(array) {
+      return {
+        id: uuidv4(),
+        name: '',
+        label: '',
+        array: array ? array : false,
+        required: true,
+        type: BCMSPropType.TAG,
+        defaultData: [],
       };
     },
   };

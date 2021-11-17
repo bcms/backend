@@ -28,6 +28,7 @@ import {
   BCMSPropRichTextData,
   BCMSPropColorPickerData,
   BCMSPropValueColorPickerData,
+  BCMSPropTagData,
 } from '../types';
 
 let objectUtil: ObjectUtility;
@@ -333,6 +334,28 @@ export const BCMSPropHandler: BCMSPropHandlerType = {
             }
           }
           break;
+        case BCMSPropType.TAG:
+          {
+            const checkData = objectUtil.compareWithSchema(
+              {
+                data: value.data,
+              },
+              {
+                data: {
+                  __type: 'array',
+                  __required: true,
+                  __child: {
+                    __type: 'string',
+                  },
+                },
+              },
+              `${level}.${prop.name}`,
+            );
+            if (checkData instanceof ObjectUtilityError) {
+              return Error(`[${level}.${prop.name}] -> ` + checkData.message);
+            }
+          }
+          break;
         default: {
           return Error(
             `[${level}.${prop.name}] -> Unknown prop type "${prop.type}"`,
@@ -438,6 +461,24 @@ export const BCMSPropHandler: BCMSPropHandlerType = {
         ) {
           if (change.add.defaultData) {
             prop.defaultData = change.add.defaultData;
+          }
+        } else if (prop.type === BCMSPropType.TAG) {
+          const changeData = change.add.defaultData as string[];
+          if (!changeData) {
+            return Error(
+              `[${level}.change.${i}.add.defaultData] -> Missing prop.`,
+            );
+          }
+          for (let j = 0; j < changeData.length; j++) {
+            const tag = await BCMSRepo.tag.findById(changeData[j]);
+            if (!tag) {
+              return Error(
+                `[${level}.change.${i}.add.defaultData] ->` +
+                  ` Tag with ID "${changeData[j]}" does not exist.`,
+              );
+            }
+
+            (prop.defaultData as BCMSPropTagData).push(changeData[j]);
           }
         } else if (prop.type === BCMSPropType.GROUP_POINTER) {
           const changeData = change.add.defaultData as BCMSPropGroupPointerData;
@@ -973,6 +1014,72 @@ export const BCMSPropHandler: BCMSPropHandlerType = {
     for (let i = 0; i < templates.length; i++) {
       const template = templates[i];
       template.props = filterGroupPointer({
+        props: template.props,
+      });
+      const updatedTemplate = await BCMSRepo.template.update(template);
+      if (!updatedTemplate) {
+        errors.push(Error(`Failed to update template "${template._id}"`));
+      } else {
+        await BCMSSocketManager.emit.template({
+          templateId: template._id,
+          type: BCMSSocketEventType.UPDATE,
+          userIds: 'all',
+        });
+      }
+    }
+    if (errors.length > 0) {
+      return errors;
+    }
+  },
+  async removeTag({ tagId }) {
+    function filterTag(data: { props: BCMSProp[] }) {
+      for (let i = 0; i < data.props.length; i++) {
+        const prop = data.props[i];
+        prop.defaultData = Object.values(
+          prop.defaultData as BCMSPropTagData,
+        ).filter((e) => e.indexOf(tagId));
+      }
+      return data.props;
+    }
+    const errors: Error[] = [];
+    const groups = await BCMSRepo.group.methods.findAllByPropTag(tagId);
+    for (let i = 0; i < groups.length; i++) {
+      const group = groups[i];
+      group.props = filterTag({
+        props: group.props,
+      });
+      const updatedGroup = await BCMSRepo.group.update(group);
+      if (!updatedGroup) {
+        errors.push(Error(`Failed to update group "${group._id}"`));
+      } else {
+        await BCMSSocketManager.emit.group({
+          groupId: group._id,
+          type: BCMSSocketEventType.UPDATE,
+          userIds: 'all',
+        });
+      }
+    }
+    const widgets = await BCMSRepo.widget.methods.findAllByPropTag(tagId);
+    for (let i = 0; i < widgets.length; i++) {
+      const widget = widgets[i];
+      widget.props = filterTag({
+        props: widget.props,
+      });
+      const updatedWidget = await BCMSRepo.widget.update(widget);
+      if (!updatedWidget) {
+        errors.push(Error(`Failed to update widget "${widget._id}"`));
+      } else {
+        await BCMSSocketManager.emit.widget({
+          widgetId: widget._id,
+          type: BCMSSocketEventType.UPDATE,
+          userIds: 'all',
+        });
+      }
+    }
+    const templates = await BCMSRepo.template.methods.findAllByPropTag(tagId);
+    for (let i = 0; i < templates.length; i++) {
+      const template = templates[i];
+      template.props = filterTag({
         props: template.props,
       });
       const updatedTemplate = await BCMSRepo.template.update(template);

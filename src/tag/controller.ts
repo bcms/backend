@@ -1,4 +1,5 @@
 import { BCMSFactory } from '@bcms/factory';
+import { BCMSPropHandler } from '@bcms/prop';
 import { BCMSRepo } from '@bcms/repo';
 import { bcmsResCode } from '@bcms/response-code';
 import { BCMSSocketManager } from '@bcms/socket';
@@ -226,7 +227,7 @@ export const BCMSTagController = createController({
           [JWTRoleName.ADMIN],
           JWTPermissionName.DELETE,
         ),
-        async handler({ request, errorHandler, accessToken }) {
+        async handler({ request, errorHandler, accessToken, logger, name }) {
           const tag = await BCMSRepo.tag.findById(request.params.id);
           if (!tag) {
             throw errorHandler.occurred(
@@ -240,6 +241,12 @@ export const BCMSTagController = createController({
               HTTPStatus.INTERNAL_SERVER_ERROR,
               bcmsResCode('tag006'),
             );
+          }
+          const errors = await BCMSPropHandler.removeTag({
+            tagId: tag._id,
+          });
+          if (errors) {
+            logger.error(name, errors);
           }
           await BCMSSocketManager.emit.tag({
             tagId: tag._id,
