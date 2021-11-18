@@ -12,4 +12,5 @@ export interface BCMSPropFactory {
   entryPointer(array?: boolean): BCMSProp;
   richText(array?: boolean): BCMSProp;
   colorPicker(array?: boolean): BCMSProp;
+  tag(array?: boolean): BCMSProp;
 }

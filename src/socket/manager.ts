@@ -11,6 +11,7 @@ import {
   BCMSSocketManager as BCMSSocketManagerType,
   BCMSSocketMediaEvent,
   BCMSSocketStatusEvent,
+  BCMSSocketTagEvent,
   BCMSSocketTemplateEvent,
   BCMSSocketTemplateOrganizerEvent,
   BCMSSocketUserEvent,
@@ -166,6 +167,17 @@ export const BCMSSocketManager: BCMSSocketManagerType = {
         BCMSSocketEventName.COLOR,
         {
           c: data.colorId,
+          t: data.type,
+        },
+        data.userIds,
+      );
+    },
+    async tag(data) {
+      await emit<BCMSSocketTagEvent>(
+        soc,
+        BCMSSocketEventName.TAG,
+        {
+          tg: data.tagId,
           t: data.type,
         },
         data.userIds,

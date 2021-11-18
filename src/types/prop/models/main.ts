@@ -35,6 +35,7 @@ export enum BCMSPropType {
 
   COLOR_PICKER = 'COLOR_PICKER',
   RICH_TEXT = 'RICH_TEXT',
+  TAG = 'TAG',
 }
 
 export interface BCMSProp {

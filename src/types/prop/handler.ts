@@ -55,5 +55,12 @@ export interface BCMSPropHandler {
    * other templates, groups and widgets and updated in the
    * database.
    */
-   removeEntryPointer(data: { templateId: string }): Promise<void | Error[]>;
+  removeEntryPointer(data: { templateId: string }): Promise<void | Error[]>;
+  /**
+   * Have in mind that this method has side effects.
+   * All props pointing to specified tag will be removed from
+   * other templates, groups and widgets and updated in the
+   * database.
+   */
+  removeTag(data: { tagId: string }): Promise<void | Error[]>;
 }

@@ -8,6 +8,7 @@ export interface BCMSGroupRepositoryMethods {
   findAllByCid(cids: string[]): Promise<BCMSGroup[]>;
   findAllByPropGroupPointer(groupId: string): Promise<BCMSGroup[]>;
   findAllByPropEntryPointer(templateId: string): Promise<BCMSGroup[]>;
+  findAllByPropTag(tagId: string): Promise<BCMSGroup[]>;
 }
 
 export type BCMSGroupRepository =

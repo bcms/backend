@@ -8,6 +8,7 @@ import {
   BCMSGroupRepositoryMethods,
   BCMSPropEntryPointerData,
   BCMSPropGroupPointerData,
+  BCMSPropTagData,
   BCMSPropType,
 } from '../types';
 import { BCMSRepo } from '@bcms/repo';
@@ -49,6 +50,16 @@ export function createBcmsGroupRepository(): Module {
                           p.type === BCMSPropType.ENTRY_POINTER &&
                           (p.defaultData as BCMSPropEntryPointerData)
                             .templateId === templateId,
+                      ),
+                  );
+                },
+                async findAllByPropTag(tagId) {
+                  return await repo.findAllBy(
+                    (e) =>
+                      !!e.props.find(
+                        (p) =>
+                          p.type === BCMSPropType.TAG &&
+                          (p.defaultData as BCMSPropTagData).includes(tagId),
                       ),
                   );
                 },
@@ -115,15 +126,24 @@ export function createBcmsGroupRepository(): Module {
                   return output;
                 },
                 async findAllByPropGroupPointer(groupId) {
+                  // TODO: Try to implement caching
                   return await mongoDBInterface.find({
                     'props.type': BCMSPropType.GROUP_POINTER,
                     'props.defaultData._id': groupId,
                   });
                 },
                 async findAllByPropEntryPointer(templateId) {
+                  // TODO: Try to implement caching
                   return await mongoDBInterface.find({
                     'props.type': BCMSPropType.ENTRY_POINTER,
                     'props.defaultData.templateId': templateId,
+                  });
+                },
+                async findAllByPropTag(tagId) {
+                  // TODO: Try to implement caching
+                  return await mongoDBInterface.find({
+                    'props.type': BCMSPropType.TAG,
+                    'props.defaultData': tagId,
                   });
                 },
               };

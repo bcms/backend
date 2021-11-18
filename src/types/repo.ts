@@ -10,7 +10,8 @@ import type {
   BCMSTemplateRepository,
   BCMSUserRepository,
   BCMSWidgetRepository,
-  BCMSColorRepository
+  BCMSColorRepository,
+  BCMSTagRepository,
 } from '.';
 
 export interface BCMSRepo {
@@ -26,4 +27,5 @@ export interface BCMSRepo {
   user: BCMSUserRepository;
   widget: BCMSWidgetRepository;
   color: BCMSColorRepository;
+  tag: BCMSTagRepository;
 }
