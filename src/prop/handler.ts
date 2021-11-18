@@ -721,6 +721,11 @@ export const BCMSPropHandler: BCMSPropHandlerType = {
                   (parsed[prop.name] as BCMSPropMediaDataParsed) = {
                     src: await BCMSMediaService.getPath(media),
                     _id: singleValueData,
+                    alt_text: media.altText,
+                    caption: media.caption,
+                    height: media.height,
+                    width: media.width,
+                    name: media.name,
                   };
                 }
               }
@@ -732,6 +737,11 @@ export const BCMSPropHandler: BCMSPropHandlerType = {
                 (parsed[prop.name] as BCMSPropMediaDataParsed) = {
                   src: await BCMSMediaService.getPath(media),
                   _id: valueData[0],
+                  alt_text: media.altText,
+                  caption: media.caption,
+                  height: media.height,
+                  width: media.width,
+                  name: media.name,
                 };
               }
             }
