@@ -1045,9 +1045,9 @@ export const BCMSPropHandler: BCMSPropHandlerType = {
     function filterTag(data: { props: BCMSProp[] }) {
       for (let i = 0; i < data.props.length; i++) {
         const prop = data.props[i];
-        prop.defaultData = Object.values(
-          prop.defaultData as BCMSPropTagData,
-        ).filter((e) => e.indexOf(tagId));
+        data.props[i].defaultData = (prop.defaultData as BCMSPropTagData).filter(
+          (e) => e !== tagId,
+        );
       }
       return data.props;
     }
