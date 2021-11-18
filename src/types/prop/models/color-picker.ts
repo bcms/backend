@@ -6,7 +6,7 @@ export interface BCMSPropColorPickerData {
   selected: string[];
 }
 
-export type BCMSPropColorPickerDataParsed = string[];
+export type BCMSPropColorPickerDataParsed = string[] | string;
 
 export const BCMSPropColorPickerDataSchema: ObjectSchema = {
   allowCustom: {

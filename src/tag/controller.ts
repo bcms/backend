@@ -30,7 +30,7 @@ import { HTTPStatus } from '@becomes/purple-cheetah/types';
 
 export const BCMSTagController = createController({
   name: 'Tag controller',
-  path: 'api/tag',
+  path: '/api/tag',
   methods() {
     return {
       getAll: createControllerMethod<

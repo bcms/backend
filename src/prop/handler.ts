@@ -703,7 +703,8 @@ export const BCMSPropHandler: BCMSPropHandlerType = {
           prop.type === BCMSPropType.STRING ||
           prop.type === BCMSPropType.NUMBER ||
           prop.type === BCMSPropType.BOOLEAN ||
-          prop.type === BCMSPropType.DATE
+          prop.type === BCMSPropType.DATE ||
+          prop.type === BCMSPropType.TAG
         ) {
           if (prop.array) {
             parsed[prop.name] = value.data as string[];
@@ -1045,9 +1046,9 @@ export const BCMSPropHandler: BCMSPropHandlerType = {
     function filterTag(data: { props: BCMSProp[] }) {
       for (let i = 0; i < data.props.length; i++) {
         const prop = data.props[i];
-        data.props[i].defaultData = (prop.defaultData as BCMSPropTagData).filter(
-          (e) => e !== tagId,
-        );
+        data.props[i].defaultData = (
+          prop.defaultData as BCMSPropTagData
+        ).filter((e) => e !== tagId);
       }
       return data.props;
     }
