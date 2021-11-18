@@ -9,6 +9,7 @@ export function createBcmsTagFactory(): BCMSTagFactory {
         createdAt: Date.now(),
         updatedAt: Date.now(),
         value: data.value ? data.value : '',
+        cid: data.cid ? data.cid : '',
       };
     },
   };

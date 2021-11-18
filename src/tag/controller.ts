@@ -61,9 +61,15 @@ export const BCMSTagController = createController({
         ),
         async handler({ request }) {
           const ids = (request.headers['x-bcms-ids'] as string).split('-');
-          return {
-            items: await BCMSRepo.tag.findAllById(ids),
-          };
+          if (ids[0] && ids[0].length === 24) {
+            return {
+              items: await BCMSRepo.tag.findAllById(ids),
+            };
+          } else {
+            return {
+              items: await BCMSRepo.tag.methods.findAllByCid(ids),
+            };
+          }
         },
       }),
       getById: createControllerMethod<
@@ -78,7 +84,10 @@ export const BCMSTagController = createController({
         ),
         async handler({ request, errorHandler }) {
           const id = request.params.id;
-          const tag = await BCMSRepo.tag.findById(id);
+          const tag =
+            id.length === 24
+              ? await BCMSRepo.tag.findById(id)
+              : await BCMSRepo.tag.methods.findByCid(id);
           if (!tag) {
             throw errorHandler.occurred(
               HTTPStatus.NOT_FOUNT,
@@ -125,6 +134,22 @@ export const BCMSTagController = createController({
           bodySchema: BCMSTagCreateDataSchema,
         }),
         async handler({ errorHandler, body, accessToken }) {
+          let idc = await BCMSRepo.idc.methods.findAndIncByForId('tag');
+          if (!idc) {
+            const tagIdc = BCMSFactory.idc.create({
+              count: 2,
+              forId: 'tag',
+              name: 'Tag',
+            });
+            const addIdcResult = await BCMSRepo.idc.add(tagIdc);
+            if (!addIdcResult) {
+              throw errorHandler.occurred(
+                HTTPStatus.INTERNAL_SERVER_ERROR,
+                'Failed to add IDC to the database.',
+              );
+            }
+            idc = 1;
+          }
           if (body.value === '') {
             throw errorHandler.occurred(
               HTTPStatus.BAD_REQUEST,
@@ -138,7 +163,10 @@ export const BCMSTagController = createController({
               bcmsResCode('tag002', { value: body.value }),
             );
           }
-          const tag = BCMSFactory.tag.create({ value: body.value });
+          const tag = BCMSFactory.tag.create({
+            cid: idc.toString(16),
+            value: body.value,
+          });
           const addedTag = await BCMSRepo.tag.add(tag);
           if (!addedTag) {
             throw errorHandler.occurred(

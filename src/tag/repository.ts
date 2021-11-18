@@ -27,6 +27,12 @@ export function createBcmsTagRepository(): Module {
                 async findByValue(vl) {
                   return await repo.findBy((e) => e.value === vl);
                 },
+                async findByCid(cid) {
+                  return await repo.findBy((e) => e.cid === cid);
+                },
+                async findAllByCid(cids) {
+                  return await repo.findAllBy((e) => cids.includes(e.cid));
+                },
               };
             },
           })
@@ -50,6 +56,38 @@ export function createBcmsTagRepository(): Module {
                     cacheHandler.set(tag._id, tag);
                   }
                   return tag;
+                },
+                async findByCid(cid) {
+                  const cacheHit = cacheHandler.findOne((e) => e.cid === cid);
+                  if (cacheHit) {
+                    return cacheHit;
+                  }
+                  const item = await mongoDBInterface.findOne({ cid });
+                  if (item) {
+                    cacheHandler.set(item._id, item);
+                  }
+                  return item;
+                },
+                async findAllByCid(cids) {
+                  const missingCids: string[] = [];
+                  const output = cacheHandler.find((e) => {
+                    const found = cids.includes(e.cid);
+                    if (!found) {
+                      missingCids.push(e.cid);
+                    }
+                    return found;
+                  });
+                  if (missingCids.length > 0) {
+                    const items = await mongoDBInterface.find({
+                      cid: { $in: missingCids },
+                    });
+                    for (let i = 0; i < items.length; i++) {
+                      const item = items[i];
+                      cacheHandler.set(item._id, item);
+                      output.push(item);
+                    }
+                  }
+                  return output;
                 },
               };
             },
