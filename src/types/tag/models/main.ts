@@ -9,6 +9,7 @@ import { Schema } from 'mongoose';
 export interface BCMSTag extends FSDBEntity {
   /** Unique */
   value: string;
+  cid: string;
 }
 
 export const BCMSTagFSDBSchema: ObjectSchema = {
@@ -17,10 +18,18 @@ export const BCMSTagFSDBSchema: ObjectSchema = {
     __type: 'string',
     __required: true,
   },
+  cid: {
+    __type: 'string',
+    __required: true,
+  },
 };
 export const BCMSTagMongoDBSchema = new Schema({
   ...MongoDBEntitySchemaString,
   value: {
+    type: String,
+    required: true,
+  },
+  cid: {
     type: String,
     required: true,
   },

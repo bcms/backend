@@ -4,6 +4,8 @@ import type { BCMSTag } from './models';
 
 export interface BCMSTagRepositoryMethods {
   findByValue(value: string): Promise<BCMSTag | null>;
+  findByCid(cid: string): Promise<BCMSTag | null>;
+  findAllByCid(cids: string[]): Promise<BCMSTag[]>;
 }
 
 export type BCMSTagRepository =
