@@ -129,7 +129,7 @@ export const BCMSTagController = createController({
       >({
         type: 'post',
         preRequestHandler: createJwtAndBodyCheckRouteProtection({
-          roleNames: [JWTRoleName.ADMIN],
+          roleNames: [JWTRoleName.ADMIN, JWTRoleName.USER],
           permissionName: JWTPermissionName.WRITE,
           bodySchema: BCMSTagCreateDataSchema,
         }),
@@ -202,18 +202,18 @@ export const BCMSTagController = createController({
               bcmsResCode('tag009'),
             );
           }
-          const existTag = await BCMSRepo.tag.methods.findByValue(body.value);
-          if (existTag) {
-            throw errorHandler.occurred(
-              HTTPStatus.BAD_REQUEST,
-              bcmsResCode('tag002', { value: body.value }),
-            );
-          }
           const tag = await BCMSRepo.tag.findById(body._id);
           if (!tag) {
             throw errorHandler.occurred(
               HTTPStatus.NOT_FOUNT,
               bcmsResCode('tag001', { id: body._id }),
+            );
+          }
+          const existTag = await BCMSRepo.tag.methods.findByValue(body.value);
+          if (existTag) {
+            throw errorHandler.occurred(
+              HTTPStatus.BAD_REQUEST,
+              bcmsResCode('tag002', { value: body.value }),
             );
           }
           let changeDetected = false;
@@ -252,7 +252,7 @@ export const BCMSTagController = createController({
         path: '/:id',
         type: 'delete',
         preRequestHandler: createJwtProtectionPreRequestHandler(
-          [JWTRoleName.ADMIN],
+          [JWTRoleName.ADMIN, JWTRoleName.USER],
           JWTPermissionName.DELETE,
         ),
         async handler({ request, errorHandler, accessToken, logger, name }) {
