@@ -126,21 +126,24 @@ export function createBcmsGroupRepository(): Module {
                   return output;
                 },
                 async findAllByPropGroupPointer(groupId) {
+                  // TODO: Try to implement caching
                   return await mongoDBInterface.find({
                     'props.type': BCMSPropType.GROUP_POINTER,
                     'props.defaultData._id': groupId,
                   });
                 },
                 async findAllByPropEntryPointer(templateId) {
+                  // TODO: Try to implement caching
                   return await mongoDBInterface.find({
                     'props.type': BCMSPropType.ENTRY_POINTER,
                     'props.defaultData.templateId': templateId,
                   });
                 },
                 async findAllByPropTag(tagId) {
+                  // TODO: Try to implement caching
                   return await mongoDBInterface.find({
                     'props.type': BCMSPropType.TAG,
-                    'props.defaultData': { $in: tagId },
+                    'props.defaultData': tagId,
                   });
                 },
               };
