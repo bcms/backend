@@ -747,7 +747,7 @@ export const BCMSPropHandler: BCMSPropHandlerType = {
               }
             }
           } else {
-            if (typeof valueData[0] === 'object') {
+            if (typeof valueData[0] === 'string') {
               const media = await BCMSRepo.media.findById(valueData[0]);
               if (media) {
                 (parsed[prop.name] as BCMSPropMediaDataParsed) = {
