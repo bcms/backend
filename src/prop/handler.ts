@@ -480,6 +480,21 @@ export const BCMSPropHandler: BCMSPropHandlerType = {
 
             (prop.defaultData as BCMSPropTagData).push(changeData[j]);
           }
+        } else if (prop.type === BCMSPropType.MEDIA) {
+          const changeData = change.add.defaultData as BCMSPropMediaData[];
+          if (!changeData[0]) {
+            return Error(
+              `[${level}.change.${i}.add.defaultData] -> Missing prop.`,
+            );
+          }
+          const media = await BCMSRepo.media.findById(changeData[0]);
+          if (!media) {
+            return Error(
+              `[${level}.change.${i}.add.defaultData] ->` +
+                ` Media with ID "${changeData}" does not exist.`,
+            );
+          }
+          (prop.defaultData as BCMSPropMediaData[]).push(media._id);
         } else if (prop.type === BCMSPropType.GROUP_POINTER) {
           const changeData = change.add.defaultData as BCMSPropGroupPointerData;
           if (!changeData || !changeData._id) {
