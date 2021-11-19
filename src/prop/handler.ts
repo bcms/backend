@@ -752,6 +752,22 @@ export const BCMSPropHandler: BCMSPropHandlerType = {
             items: (prop.defaultData as BCMSPropEnumData).items,
             selected: (value.data as string[])[0],
           };
+        } else if (prop.type === BCMSPropType.COLOR_PICKER) {
+          const valueData = value.data as BCMSPropValueColorPickerData;
+          if (prop.array) {
+            parsed[prop.name] = [];
+            for (let j = 0; j < valueData.length; j++) {
+              const color = await BCMSRepo.color.findById(valueData[j]);
+              if (color) {
+                (parsed[prop.name] as BCMSPropDataParsed[]).push(color.value);
+              }
+            }
+          } else {
+            const color = await BCMSRepo.color.findById(valueData[0]);
+            if (color) {
+              (parsed[prop.name] as BCMSPropDataParsed) = color.value;
+            }
+          }
         } else if (prop.type === BCMSPropType.GROUP_POINTER) {
           const data = prop.defaultData as BCMSPropGroupPointerData;
           const valueData = value.data as BCMSPropValueGroupPointerData;
