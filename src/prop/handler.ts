@@ -480,6 +480,23 @@ export const BCMSPropHandler: BCMSPropHandlerType = {
 
             (prop.defaultData as BCMSPropTagData).push(changeData[j]);
           }
+        } else if (prop.type === BCMSPropType.ENUMERATION) {
+          const changeData = change.add.defaultData as BCMSPropEnumData;
+          if (!changeData.items[0]) {
+            return Error(
+              `[${level}.change.${i}.add.defaultData] -> Missing prop.`,
+            );
+          }
+          if(changeData.selected){
+          if(!changeData.items.includes(changeData.selected)){
+            return Error(
+              `[${level}.change.${i}.add.defaultData] -> Select enum do not exist in items.`,
+            );
+          }}
+          (prop.defaultData as BCMSPropEnumData) = {
+            items: changeData.items,
+            selected: changeData.selected,
+          };
         } else if (prop.type === BCMSPropType.MEDIA) {
           const changeData = change.add.defaultData as BCMSPropMediaData[];
           if (!changeData[0]) {
