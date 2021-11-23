@@ -29,6 +29,8 @@ import {
   BCMSPropColorPickerData,
   BCMSPropValueColorPickerData,
   BCMSPropTagData,
+  BCMSPropWidgetData,
+  BCMSPropValueWidgetData,
 } from '../types';
 
 let objectUtil: ObjectUtility;
@@ -175,6 +177,37 @@ export const BCMSPropHandler: BCMSPropHandlerType = {
             );
             if (checkData instanceof ObjectUtilityError) {
               return Error(`[${level}.${prop.name}] -> ` + checkData.message);
+            }
+          }
+          break;
+        case BCMSPropType.WIDGET:
+          {
+            const propData = prop.defaultData as BCMSPropWidgetData;
+            const valueData = value.data as BCMSPropValueWidgetData;
+            if (propData._id !== valueData._id) {
+              return Error(
+                `[${level}.${prop.name}._id] -> ` +
+                  'Prop and value widget IDs do not match.',
+              );
+            }
+            const widget = await BCMSRepo.widget.findById(propData._id);
+            if (!widget) {
+              return Error(
+                `[${level}.${prop.name}._id] -> ` +
+                  `Widget with ID ${propData._id} does not exist.`,
+              );
+            }
+            for (let j = 0; j < valueData.props.length; j++) {
+              const item = valueData.props[j];
+              const widgetCheckPropValuesResult =
+                await BCMSPropHandler.checkPropValues({
+                  level: `${level}.${prop.name}.props.${j}`,
+                  props: widget.props,
+                  values: [item],
+                });
+              if (widgetCheckPropValuesResult instanceof Error) {
+                return widgetCheckPropValuesResult;
+              }
             }
           }
           break;
@@ -487,12 +520,13 @@ export const BCMSPropHandler: BCMSPropHandlerType = {
               `[${level}.change.${i}.add.defaultData] -> Missing prop.`,
             );
           }
-          if(changeData.selected){
-          if(!changeData.items.includes(changeData.selected)){
-            return Error(
-              `[${level}.change.${i}.add.defaultData] -> Select enum do not exist in items.`,
-            );
-          }}
+          if (changeData.selected) {
+            if (!changeData.items.includes(changeData.selected)) {
+              return Error(
+                `[${level}.change.${i}.add.defaultData] -> Select enum do not exist in items.`,
+              );
+            }
+          }
           (prop.defaultData as BCMSPropEnumData) = {
             items: changeData.items,
             selected: changeData.selected,
@@ -527,6 +561,23 @@ export const BCMSPropHandler: BCMSPropHandlerType = {
             );
           }
           (prop.defaultData as BCMSPropGroupPointerData) = {
+            _id: changeData._id,
+          };
+        } else if (prop.type === BCMSPropType.WIDGET) {
+          const changeData = change.add.defaultData as BCMSPropWidgetData;
+          if (!changeData || !changeData._id) {
+            return Error(
+              `[${level}.change.${i}.add.defaultData] -> Missing prop "_id".`,
+            );
+          }
+          const widget = await BCMSRepo.widget.findById(changeData._id);
+          if (!widget) {
+            return Error(
+              `[${level}.change.${i}.add.defaultData._id] ->` +
+                ` Widget with ID "${changeData._id}" does not exist.`,
+            );
+          }
+          (prop.defaultData as BCMSPropWidgetData) = {
             _id: changeData._id,
           };
         } else if (prop.type === BCMSPropType.ENTRY_POINTER) {
@@ -798,6 +849,35 @@ export const BCMSPropHandler: BCMSPropHandlerType = {
             const color = await BCMSRepo.color.findById(valueData[0]);
             if (color) {
               (parsed[prop.name] as BCMSPropDataParsed) = color.value;
+            }
+          }
+        } else if (prop.type === BCMSPropType.WIDGET) {
+          const data = prop.defaultData as BCMSPropWidgetData;
+          const valueData = value.data as BCMSPropValueWidgetData;
+          const widget = await BCMSRepo.widget.findById(data._id);
+          if (widget) {
+            if (prop.array) {
+              parsed[prop.name] = [];
+              for (let j = 0; j < valueData.props.length; j++) {
+                const valueDataItem = valueData.props[j];
+                (parsed[prop.name] as BCMSPropDataParsed[]).push(
+                  await BCMSPropHandler.parse({
+                    maxDepth,
+                    meta: widget.props,
+                    values: [valueDataItem],
+                    depth,
+                    level: `${level}.${prop.name}.${j}`,
+                  }),
+                );
+              }
+            } else {
+              parsed[prop.name] = await BCMSPropHandler.parse({
+                maxDepth,
+                meta: widget.props,
+                values: [valueData.props[0]],
+                depth,
+                level: `${level}.${prop.name}`,
+              });
             }
           }
         } else if (prop.type === BCMSPropType.GROUP_POINTER) {
