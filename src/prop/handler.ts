@@ -31,6 +31,7 @@ import {
   BCMSPropTagData,
   BCMSPropWidgetData,
   BCMSPropValueWidgetData,
+  BCMSPropDateData,
 } from '../types';
 
 let objectUtil: ObjectUtility;
@@ -125,7 +126,7 @@ export const BCMSPropHandler: BCMSPropHandlerType = {
                   __type: 'array',
                   __required: true,
                   __child: {
-                    __type: 'number',
+                    __type: 'string',
                   },
                 },
               },
@@ -495,7 +496,20 @@ export const BCMSPropHandler: BCMSPropHandlerType = {
           if (change.add.defaultData) {
             prop.defaultData = change.add.defaultData;
           }
-        } else if (prop.type === BCMSPropType.TAG) {
+        }
+        else if(prop.type === BCMSPropType.DATE){
+          const changeData = change.add.defaultData as number[]
+          console.log(changeData)
+          if (!changeData) {
+            return Error(
+              `[${level}.change.${i}.add.defaultData] -> Missing prop.`,
+            );
+          }
+          for (let j = 0; j < changeData.length; j++) {
+            (prop.defaultData as BCMSPropDateData).push(changeData[j]);
+          }
+        }
+        else if (prop.type === BCMSPropType.TAG) {
           const changeData = change.add.defaultData as string[];
           if (!changeData) {
             return Error(
