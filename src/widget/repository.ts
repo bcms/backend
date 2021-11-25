@@ -6,6 +6,7 @@ import type { Module } from '@becomes/purple-cheetah/types';
 import {
   BCMSPropEntryPointerData,
   BCMSPropGroupPointerData,
+  BCMSPropMediaData,
   BCMSPropTagData,
   BCMSPropType,
   BCMSWidget,
@@ -66,6 +67,18 @@ export function createBcmsWidgetRepository(): Module {
                         (p) =>
                           p.type === BCMSPropType.TAG &&
                           (p.defaultData as BCMSPropTagData).includes(tagId),
+                      ),
+                  );
+                },
+                async findAllByPropMedia(mediaId) {
+                  return await repo.findAllBy(
+                    (e) =>
+                      !!e.props.find(
+                        (p) =>
+                          p.type === BCMSPropType.MEDIA &&
+                          (p.defaultData as BCMSPropMediaData[]).includes(
+                            mediaId,
+                          ),
                       ),
                   );
                 },
@@ -144,6 +157,13 @@ export function createBcmsWidgetRepository(): Module {
                     // TODO: Try to implement caching
                     'props.type': BCMSPropType.TAG,
                     'props.defaultData': tagId,
+                  });
+                },
+                async findAllByPropMedia(mediaId) {
+                  return await mongoDBInterface.find({
+                    // TODO: Try to implement caching
+                    'props.type': BCMSPropType.MEDIA,
+                    'props.defaultData': mediaId,
                   });
                 },
               };

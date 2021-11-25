@@ -8,6 +8,7 @@ import {
   BCMSGroupRepositoryMethods,
   BCMSPropEntryPointerData,
   BCMSPropGroupPointerData,
+  BCMSPropMediaData,
   BCMSPropTagData,
   BCMSPropType,
 } from '../types';
@@ -60,6 +61,18 @@ export function createBcmsGroupRepository(): Module {
                         (p) =>
                           p.type === BCMSPropType.TAG &&
                           (p.defaultData as BCMSPropTagData).includes(tagId),
+                      ),
+                  );
+                },
+                async findAllByPropMedia(mediaId) {
+                  return await repo.findAllBy(
+                    (e) =>
+                      !!e.props.find(
+                        (p) =>
+                          p.type === BCMSPropType.MEDIA &&
+                          (p.defaultData as BCMSPropMediaData[]).includes(
+                            mediaId,
+                          ),
                       ),
                   );
                 },
@@ -144,6 +157,13 @@ export function createBcmsGroupRepository(): Module {
                   return await mongoDBInterface.find({
                     'props.type': BCMSPropType.TAG,
                     'props.defaultData': tagId,
+                  });
+                },
+                async findAllByPropMedia(mediaId) {
+                  // TODO: Try to implement caching
+                  return await mongoDBInterface.find({
+                    'props.type': BCMSPropType.MEDIA,
+                    'props.defaultData': mediaId,
                   });
                 },
               };
