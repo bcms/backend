@@ -9,6 +9,7 @@ import {
   BCMSPropMediaData,
   BCMSPropTagData,
   BCMSPropType,
+  BCMSPropWidgetData,
   BCMSTemplate,
   BCMSTemplateFSDBSchema,
   BCMSTemplateMongoDBSchema,
@@ -79,6 +80,17 @@ export function createBcmsTemplateRepository(): Module {
                           (p.defaultData as BCMSPropMediaData[]).includes(
                             mediaId,
                           ),
+                      ),
+                  );
+                },
+                async findAllByPropWidget(widgetId) {
+                  return await repo.findAllBy(
+                    (e) =>
+                      !!e.props.find(
+                        (p) =>
+                          p.type === BCMSPropType.WIDGET &&
+                          (p.defaultData as BCMSPropWidgetData)._id ===
+                            widgetId,
                       ),
                   );
                 },
@@ -164,6 +176,13 @@ export function createBcmsTemplateRepository(): Module {
                   return await mongoDBInterface.find({
                     'props.type': BCMSPropType.MEDIA,
                     'props.defaultData': mediaId,
+                  });
+                },
+                async findAllByPropWidget(widgetId) {
+                  // TODO: Try to implement caching
+                  return await mongoDBInterface.find({
+                    'props.type': BCMSPropType.WIDGET,
+                    'props.defaultData': widgetId,
                   });
                 },
               };

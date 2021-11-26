@@ -70,4 +70,11 @@ export interface BCMSPropHandler {
    * database.
    */
   removeMedia(data: { mediaId: string }): Promise<void | Error[]>;
+  /**
+   * Have in mind that this method has side effects.
+   * All props pointing to specified widget will be removed from
+   * other templates, groups and widgets and updated in the
+   * database.
+   */
+  removeWidget(data: { widgetId: string }): Promise<void | Error[]>;
 }

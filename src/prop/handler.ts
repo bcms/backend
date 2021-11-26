@@ -1312,6 +1312,74 @@ export const BCMSPropHandler: BCMSPropHandlerType = {
       }
     }
   },
+  async removeWidget({ widgetId }) {
+    function filterWidget(data: { props: BCMSProp[] }) {
+      return data.props.filter(
+        (prop) =>
+          !(
+            prop.type === BCMSPropType.WIDGET &&
+            (prop.defaultData as BCMSPropWidgetData)._id === widgetId
+          ),
+      );
+    }
+    const errors: Error[] = [];
+    const groups = await BCMSRepo.group.methods.findAllByPropWidget(widgetId);
+    for (let i = 0; i < groups.length; i++) {
+      const group = groups[i];
+      group.props = filterWidget({
+        props: group.props,
+      });
+      const updatedGroup = await BCMSRepo.group.update(group);
+      if (!updatedGroup) {
+        errors.push(Error(`Failed to update group "${group._id}"`));
+      } else {
+        await BCMSSocketManager.emit.group({
+          groupId: group._id,
+          type: BCMSSocketEventType.UPDATE,
+          userIds: 'all',
+        });
+      }
+    }
+    const widgets = await BCMSRepo.widget.methods.findAllByPropWidget(widgetId);
+    for (let i = 0; i < widgets.length; i++) {
+      const widget = widgets[i];
+      widget.props = filterWidget({
+        props: widget.props,
+      });
+      const updatedWidget = await BCMSRepo.widget.update(widget);
+      if (!updatedWidget) {
+        errors.push(Error(`Failed to update widget "${widget._id}"`));
+      } else {
+        await BCMSSocketManager.emit.widget({
+          widgetId: widget._id,
+          type: BCMSSocketEventType.UPDATE,
+          userIds: 'all',
+        });
+      }
+    }
+    const templates = await BCMSRepo.template.methods.findAllByPropWidget(
+      widgetId,
+    );
+    for (let i = 0; i < templates.length; i++) {
+      const template = templates[i];
+      template.props = filterWidget({
+        props: template.props,
+      });
+      const updatedTemplate = await BCMSRepo.template.update(template);
+      if (!updatedTemplate) {
+        errors.push(Error(`Failed to update template "${template._id}"`));
+      } else {
+        await BCMSSocketManager.emit.template({
+          templateId: template._id,
+          type: BCMSSocketEventType.UPDATE,
+          userIds: 'all',
+        });
+      }
+    }
+    if (errors.length > 0) {
+      return errors;
+    }
+  },
 };
 
 export function createBcmsPropHandler(): Module {
