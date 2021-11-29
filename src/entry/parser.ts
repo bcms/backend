@@ -1,10 +1,15 @@
 import { BCMSPropHandler } from '@bcms/prop';
 import { BCMSRepo } from '@bcms/repo';
+import { BCMSHtml } from '@bcms/util';
 import type { Module } from '@becomes/purple-cheetah/types';
-import type {
+import {
   BCMSEntryParsed,
   BCMSEntryParser,
   BCMSStatus,
+  BCMSEntryContentNodeType,
+  BCMSEntryContentParsedItem,
+  BCMSEntryContentNodeHeadingAttr,
+  BCMSPropValueWidgetData,
 } from '../types';
 
 let parser: BCMSEntryParser;
@@ -18,7 +23,7 @@ export function createBcmsEntryParser(): Module {
     name: 'Entry parser',
     initialize(moduleConfig) {
       parser = {
-        async parse({ entry, maxDepth, depth, level }) {
+        async parse({ entry, maxDepth, depth, level, justLng }) {
           if (!level) {
             level = 'entry';
           }
@@ -37,6 +42,7 @@ export function createBcmsEntryParser(): Module {
             userId: entry.userId,
             status: status ? status.name : '',
             meta: {},
+            content: {},
           };
           const langs = await BCMSRepo.language.findAll();
           const temp = await BCMSRepo.template.findById(entry.templateId);
@@ -45,6 +51,7 @@ export function createBcmsEntryParser(): Module {
           }
           for (let i = 0; i < langs.length; i++) {
             const lang = langs[i];
+
             const meta = entry.meta.find((e) => e.lng === lang.code);
             if (meta) {
               entryParsed.meta[lang.code] = await BCMSPropHandler.parse({
@@ -65,113 +72,60 @@ export function createBcmsEntryParser(): Module {
                 onlyLng: lang.code,
               });
             }
+
+            const content = entry.content.find((e) => e.lng === lang.code);
+            if (content) {
+              entryParsed.content[lang.code] = await parser.parseContent({
+                nodes: content.nodes,
+                maxDepth,
+                depth,
+                justLng,
+                level,
+              });
+            } else {
+              entryParsed.content[lang.code] = [];
+            }
           }
           return entryParsed;
+        },
+        async parseContent({ nodes, maxDepth, justLng, level }) {
+          const output: BCMSEntryContentParsedItem[] = [];
+          for (let i = 0; i < nodes.length; i++) {
+            const node = nodes[i];
+            if (node.type === BCMSEntryContentNodeType.widget) {
+              const attrs = node.attrs as BCMSPropValueWidgetData;
+              const widget = await BCMSRepo.widget.findById(attrs._id);
+              if (widget) {
+                output.push({
+                  type: node.type,
+                  value: await BCMSPropHandler.parse({
+                    meta: widget.props,
+                    values: attrs.props,
+                    maxDepth,
+                    depth: 0,
+                    level,
+                    onlyLng: justLng,
+                  }),
+                });
+              }
+            } else {
+              output.push({
+                type: node.type,
+                attrs:
+                  node.type === BCMSEntryContentNodeType.heading
+                    ? {
+                        level: (node.attrs as BCMSEntryContentNodeHeadingAttr)
+                          .level,
+                      }
+                    : undefined,
+                value: BCMSHtml.nodeToHtml({ node }),
+              });
+            }
+          }
+          return output;
         },
       };
       moduleConfig.next();
     },
   };
 }
-
-// TODO: Do not forget to remove
-// {
-//   const entryTemplate: BCMSTemplate = {
-//     _id: 'asdf',
-//     cid: '1a',
-//     createdAt: 0,
-//     updatedAt: 0,
-//     desc: 'asdf',
-//     label: 'Test template',
-//     name: 'test_template',
-//     singleEntry: false,
-//     userId: 'asdf',
-//     props: [
-//       {
-//         id: '1',
-//         array: false,
-//         label: 'Title',
-//         name: 'title',
-//         required: true,
-//         type: BCMSPropType.STRING,
-//         defaultData: [''],
-//       },
-//       {
-//         id: '2',
-//         array: false,
-//         label: 'Slug',
-//         name: 'slug',
-//         required: true,
-//         type: BCMSPropType.STRING,
-//         defaultData: [''],
-//       },
-//       {
-//         id: '3',
-//         array: true,
-//         label: 'My string',
-//         name: 'my_string',
-//         required: true,
-//         type: BCMSPropType.STRING,
-//         defaultData: [''],
-//       },
-//       {
-//         id: '4',
-//         array: false,
-//         label: 'My number',
-//         name: 'my_number',
-//         required: true,
-//         type: BCMSPropType.NUMBER,
-//         defaultData: [0],
-//       },
-//     ],
-//   };
-//   const entry: BCMSEntry = {
-//     _id: 'asdf',
-//     cid: '1as',
-//     createdAt: 0,
-//     updatedAt: 0,
-//     templateId: 'asdf',
-//     userId: 'asdf',
-//     status: 'DRAFT',
-//     content: [],
-//     meta: [
-//       {
-//         lng: 'en',
-//         props: [
-//           {
-//             id: '1',
-//             data: ['My title'],
-//           },
-//           {
-//             id: '2',
-//             data: ['my-slug'],
-//           },
-//           {
-//             id: '3',
-//             data: ['My string'],
-//           },
-//           {
-//             id: '4',
-//             data: [4],
-//           },
-//         ],
-//       },
-//     ],
-//   };
-//   const entryParsed: BCMSEntryParsed = {
-//     _id: 'asdf',
-//     createdAt: 0,
-//     updatedAt: 0,
-//     status: 'DRAFT',
-//     templateId: 'asdf',
-//     userId: 'asdf',
-//     meta: {
-//       en: {
-//         title: 'My title',
-//         slug: 'my-slug',
-//         my_string: ['My string'],
-//         my_number: 4,
-//       },
-//     },
-//   };
-// }
