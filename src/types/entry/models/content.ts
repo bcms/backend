@@ -1,6 +1,6 @@
 import type { ObjectSchema } from '@becomes/purple-cheetah/types';
 import { Schema } from 'mongoose';
-import type { BCMSPropValueWidgetData } from '../../prop';
+import type { BCMSPropValueWidgetData, BCMSPropParsed } from '../../prop';
 
 export interface BCMSEntryContent {
   lng: string;
@@ -74,4 +74,16 @@ export enum BCMSEntryContentNodeMarkerType {
   underline = 'underline',
   stripe = 'stripe',
   link = 'link',
+}
+
+export interface BCMSEntryContentParsedItem {
+  type: BCMSEntryContentNodeType;
+  attrs?: {
+    level?: number;
+  };
+  value: string | BCMSPropParsed;
+}
+
+export interface BCMSEntryContentParsed {
+  [lng: string]: BCMSEntryContentParsedItem[];
 }

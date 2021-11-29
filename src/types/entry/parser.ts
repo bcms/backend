@@ -1,4 +1,9 @@
-import type { BCMSEntry, BCMSEntryParsed } from './models';
+import type {
+  BCMSEntry,
+  BCMSEntryParsed,
+  BCMSEntryContentParsedItem,
+  BCMSEntryContentNode,
+} from './models';
 
 export interface BCMSEntryParser {
   parse(data: {
@@ -8,4 +13,11 @@ export interface BCMSEntryParser {
     depth?: number;
     maxDepth: number;
   }): Promise<BCMSEntryParsed | null>;
+  parseContent(data: {
+    nodes: BCMSEntryContentNode[];
+    level?: string;
+    justLng?: string;
+    depth?: number;
+    maxDepth: number;
+  }): Promise<BCMSEntryContentParsedItem[]>;
 }
