@@ -1186,10 +1186,11 @@ export const BCMSPropHandler: BCMSPropHandlerType = {
     function filterTag(data: { props: BCMSProp[] }) {
       for (let i = 0; i < data.props.length; i++) {
         const prop = data.props[i];
-        data.props[i].defaultData = Object.values(
-          prop.defaultData as BCMSPropTagData,
+        if(prop.type === BCMSPropType.TAG){
+        data.props[i].defaultData = (
+          prop.defaultData as BCMSPropTagData
         ).filter((e) => e !== tagId);
-      }
+      }}
       return data.props;
     }
     const errors: Error[] = [];
@@ -1252,10 +1253,11 @@ export const BCMSPropHandler: BCMSPropHandlerType = {
     function filterMedia(data: { props: BCMSProp[] }) {
       for (let i = 0; i < data.props.length; i++) {
         const prop = data.props[i];
-        data.props[i].defaultData = Object.values(
-          prop.defaultData as BCMSPropMediaData[],
+        if(prop.type === BCMSPropType.MEDIA){
+        data.props[i].defaultData = (
+          prop.defaultData as BCMSPropMediaData[]
         ).filter((e) => e !== mediaId);
-      }
+      }}
       return data.props;
     }
 
