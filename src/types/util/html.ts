@@ -1,5 +1,5 @@
-import type { BCMSEntryContentNode } from "..";
+import type { BCMSEntryContentNode } from '..';
 
 export interface BCMSHtml {
-  nodeToHtml(data: {node: BCMSEntryContentNode}): string;
+  nodeToHtml(data: { node: BCMSEntryContentNode }): string;
 }
