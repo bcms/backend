@@ -2,6 +2,7 @@ import { BCMSFactory } from '@bcms/factory';
 import { BCMSMediaService } from '@bcms/media';
 import { BCMSRepo } from '@bcms/repo';
 import { BCMSSocketManager } from '@bcms/socket';
+import { BCMSHtml } from '@bcms/util';
 import { useObjectUtility, useStringUtility } from '@becomes/purple-cheetah';
 import {
   Module,
@@ -32,6 +33,9 @@ import {
   BCMSPropWidgetData,
   BCMSPropValueWidgetData,
   BCMSPropDateData,
+  BCMSPropValueRichTextData,
+  BCMSEntryContentNodeType,
+  BCMSEntryContentNodeHeadingAttr,
 } from '../types';
 
 let objectUtil: ObjectUtility;
@@ -1031,6 +1035,46 @@ export const BCMSPropHandler: BCMSPropHandlerType = {
               }
             }
           }
+        } else if (prop.type === BCMSPropType.RICH_TEXT) {
+          const data = prop.defaultData as BCMSPropRichTextData[];
+          const valueData = value.data as BCMSPropValueRichTextData[];
+          let items: BCMSPropValueRichTextData[] = [];
+          if (valueData) {
+            items = valueData;
+          } else {
+            items = data;
+          }
+          if (prop.array) {
+            parsed[prop.name] = items.map((item) => {
+              return item.nodes.map((node) => {
+                return {
+                  type: node.type,
+                  attrs:
+                    node.type === BCMSEntryContentNodeType.heading
+                      ? {
+                          level: (node.attrs as BCMSEntryContentNodeHeadingAttr)
+                            .level,
+                        }
+                      : undefined,
+                  value: BCMSHtml.nodeToHtml({ node }),
+                };
+              });
+            });
+          } else {
+            parsed[prop.name] = items[0].nodes.map((node) => {
+              return {
+                type: node.type,
+                attrs:
+                  node.type === BCMSEntryContentNodeType.heading
+                    ? {
+                        level: (node.attrs as BCMSEntryContentNodeHeadingAttr)
+                          .level,
+                      }
+                    : undefined,
+                value: BCMSHtml.nodeToHtml({ node }),
+              };
+            });
+          }
         }
       }
     }
@@ -1186,11 +1230,12 @@ export const BCMSPropHandler: BCMSPropHandlerType = {
     function filterTag(data: { props: BCMSProp[] }) {
       for (let i = 0; i < data.props.length; i++) {
         const prop = data.props[i];
-        if(prop.type === BCMSPropType.TAG){
-        data.props[i].defaultData = (
-          prop.defaultData as BCMSPropTagData
-        ).filter((e) => e !== tagId);
-      }}
+        if (prop.type === BCMSPropType.TAG) {
+          data.props[i].defaultData = (
+            prop.defaultData as BCMSPropTagData
+          ).filter((e) => e !== tagId);
+        }
+      }
       return data.props;
     }
     const errors: Error[] = [];
@@ -1253,11 +1298,12 @@ export const BCMSPropHandler: BCMSPropHandlerType = {
     function filterMedia(data: { props: BCMSProp[] }) {
       for (let i = 0; i < data.props.length; i++) {
         const prop = data.props[i];
-        if(prop.type === BCMSPropType.MEDIA){
-        data.props[i].defaultData = (
-          prop.defaultData as BCMSPropMediaData[]
-        ).filter((e) => e !== mediaId);
-      }}
+        if (prop.type === BCMSPropType.MEDIA) {
+          data.props[i].defaultData = (
+            prop.defaultData as BCMSPropMediaData[]
+          ).filter((e) => e !== mediaId);
+        }
+      }
       return data.props;
     }
 
