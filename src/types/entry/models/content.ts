@@ -72,7 +72,7 @@ export enum BCMSEntryContentNodeMarkerType {
   bold = 'bold',
   italic = 'italic',
   underline = 'underline',
-  stripe = 'stripe',
+  strike = 'strike',
   link = 'link',
 }
 
