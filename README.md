@@ -2,9 +2,9 @@
 
 This is a repository for the BCMS Backend project which is a core module of the [BCMS](https://github.com/becomesco/cms) . It provides REST API for the [BCMS UI](https://github.com/becomesco/cms-ui) securely. This API is currently accessible in 3 ways:
 
-- Using [BCMS SDK](https://github.com/becomesco/cms-sdk) in conjunction with a VueJS framework - It provides a lot of features in addition to automated security and API calls. Some of them are client side caching, error handling, type system and many more.
-- Using [BCMS Client](https://github.com/becomesco/cms-client)
-- Using HTTP requests (REST) - List of endpoints can be seen in [BCMS API docs](https://thebcms.com/api/v1/docs).
+- Using [BCMS SDK](https://github.com/becomesco/cms-sdk/tree/next) - It provides a lot of features in addition to automated security and Abstracted REST API calls. Some of them are client side caching, error handling, type system and many more.
+- Using [BCMS Client](https://github.com/becomesco/cms-client) - Is subset of BCMS SDK features more oriented for use in websites, in secure or not secure environment.
+- Using HTTP requests (REST API) - List of endpoints can be seen in [BCMS API docs](https://rest-apis.thebcms.com/bcms-backend/3-0-0).
 
 ## For Developers
 
