@@ -21,7 +21,8 @@
     "create:image": "node tools.js --create-image",
     "generate-doc": "typedoc",
     "lint": "eslint . --ext .ts",
-    "build:plugins": "tsc -p tsconfig.plugins.json"
+    "build:plugins": "tsc -p tsconfig.plugins.json",
+    "type": "nodemon -L -r tsconfig-paths/register src/util/test.ts"
   },
   "dependencies": {
     "@becomes/purple-cheetah": "^3.1.6",

@@ -26,6 +26,7 @@ import { bcmsResCode } from '@bcms/response-code';
 import { BCMSFactory } from '@bcms/factory';
 import { BCMSSocketManager } from '@bcms/socket';
 import { BCMSPropHandler } from '@bcms/prop';
+import { BCMSTypeConverter } from '@bcms/util/type-converter';
 
 interface Setup {
   stringUtil: StringUtility;
@@ -157,7 +158,7 @@ export const BCMSWidgetController = createController<Setup>({
               bcmsResCode('wid001', { id }),
             );
           }
-
+          await BCMSTypeConverter.typescript({target:widget as BCMSWidget, type: 'widget', skip: []});
           return {
             item: widget,
           };
