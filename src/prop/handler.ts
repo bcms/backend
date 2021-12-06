@@ -547,20 +547,20 @@ export const BCMSPropHandler: BCMSPropHandlerType = {
             selected: changeData.selected,
           };
         } else if (prop.type === BCMSPropType.MEDIA) {
-          const changeData = change.add.defaultData as BCMSPropMediaData[];
-          if (!changeData[0]) {
-            return Error(
-              `[${level}.change.${i}.add.defaultData] -> Missing prop.`,
-            );
+          const defaultData = change.add.defaultData as BCMSPropMediaData[];
+          if (defaultData && defaultData.length > 0) {
+            for (let j = 0; j < defaultData.length; j++) {
+              const data = defaultData[j];
+              const media = await BCMSRepo.media.findById(data);
+              if (!media) {
+                return Error(
+                  `[${level}.change.${i}.add.defaultData] ->` +
+                    ` Media with ID "${data}" does not exist.`,
+                );
+              }
+              (prop.defaultData as BCMSPropMediaData[]).push(media._id);
+            }
           }
-          const media = await BCMSRepo.media.findById(changeData[0]);
-          if (!media) {
-            return Error(
-              `[${level}.change.${i}.add.defaultData] ->` +
-                ` Media with ID "${changeData}" does not exist.`,
-            );
-          }
-          (prop.defaultData as BCMSPropMediaData[]).push(media._id);
         } else if (prop.type === BCMSPropType.GROUP_POINTER) {
           const changeData = change.add.defaultData as BCMSPropGroupPointerData;
           if (!changeData || !changeData._id) {

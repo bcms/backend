@@ -76,6 +76,7 @@ import { BCMSAuthController } from './auth';
 import { bcmsSetup } from './setup';
 import { BCMSColorController, createBcmsColorRepository } from './color';
 import { BCMSTagController, createBcmsTagRepository } from './tag';
+import { createTest } from './util/test';
 
 const backend: BCMSBackend = {
   app: undefined as never,
@@ -224,6 +225,7 @@ async function initialize() {
         }`,
       }),
     );
+    modules.push(createTest())
   } else if (BCMSConfig.database.mongodb) {
     if (BCMSConfig.database.mongodb.selfHosted) {
       modules.push(
