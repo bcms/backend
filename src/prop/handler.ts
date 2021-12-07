@@ -36,6 +36,7 @@ import {
   BCMSPropValueRichTextData,
   BCMSEntryContentNodeType,
   BCMSEntryContentNodeHeadingAttr,
+  BCMSEntryContentParsedItem,
 } from '../types';
 
 let objectUtil: ObjectUtility;
@@ -1058,8 +1059,23 @@ export const BCMSPropHandler: BCMSPropHandlerType = {
                       : undefined,
                   value: BCMSHtml.nodeToHtml({ node }),
                 };
-              });
+              }) as BCMSEntryContentParsedItem[];
             });
+            // parsed[prop.name] = items.map((item) => {
+            //   return item.nodes.map((node) => {
+            //     return {
+            //       type: node.type,
+            //       attrs:
+            //         node.type === BCMSEntryContentNodeType.heading
+            //           ? {
+            //               level: (node.attrs as BCMSEntryContentNodeHeadingAttr)
+            //                 .level,
+            //             }
+            //           : undefined,
+            //       value: BCMSHtml.nodeToHtml({ node }),
+            //     };
+            //   });
+            // });
           } else {
             parsed[prop.name] = items[0].nodes.map((node) => {
               return {

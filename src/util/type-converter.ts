@@ -21,6 +21,9 @@ export class BCMSTypeConverter {
     if (!skip) {
       skip = [];
     }
+    const bcmsImports: {
+      [name: string]: boolean;
+    } = {};
     let interfaceNameType = '';
     switch (type) {
       case 'group':
@@ -39,7 +42,6 @@ export class BCMSTypeConverter {
     const interfaceName = toCamelCase(name) + interfaceNameType;
     let textInterface = '';
     const allText: string[] = [];
-    let containsMediaProp = false;
     let skipAdd = false;
     for (let i = 0; i < props.length; i++) {
       skipAdd = false;
@@ -58,69 +60,60 @@ export class BCMSTypeConverter {
       } else if (prop.type === BCMSPropType.DATE) {
         propType = 'number[]';
       } else if (prop.type === BCMSPropType.ENUMERATION) {
-        const textInEnum: string[] = [];
-        let textEnum = '';
         const enumName = `${toCamelCase(prop.name)}Enum`;
-        textInEnum.push(
-          `${(prop.defaultData as BCMSPropEnumData).items
-            .map((e) => `${e}='${e}',`)
-            .join('\n')}`,
-        );
-        textEnum += [
-          `// eslint-disable-next-line no-shadow 
-export enum ${enumName} {`,
-          ...textInEnum,
-          '}',
+        const enumContent = [
+          `export type ${enumName} = `,
+          (prop.defaultData as BCMSPropEnumData).items
+            .map((e) => `  | '${e}'`)
+            .join('\n'),
         ].join('\n');
         output.push({
           outputFile: `enum/${prop.name}.ts`,
-          content: textEnum,
+          content: enumContent,
         });
         textInterface += `import type { ${enumName} } from '../enum/${prop.name}';\n`;
-        propType = `${enumName}`;
-      } 
-   else if (prop.type === BCMSPropType.ENTRY_POINTER) {
-    const entryName = `${toCamelCase(prop.name)}Entry`;
+        bcmsImports['BCMSPropEnum'] = true;
+        propType = `BCMSPropEnum<${enumName}>`;
+      } else if (prop.type === BCMSPropType.ENTRY_POINTER) {
+        const entryName = `${toCamelCase(prop.name)}Entry`;
 
-
-    textInterface += `import type { ${entryName} } from '../entry/${prop.name}';\n`;
-    propType = `${entryName}`;
-   }
-      else if (prop.type === BCMSPropType.GROUP_POINTER) {
+        textInterface += `import type { ${entryName} } from '../entry/${prop.name}';\n`;
+        propType = `${entryName}`;
+      } else if (prop.type === BCMSPropType.GROUP_POINTER) {
         const groupId = (prop.defaultData as BCMSPropGroupPointerData)._id;
         const group = await BCMSRepo.group.findById(groupId);
-        console.log(skip)
         if (group) {
-          if(skip.map((s) => s ===(`.../group/${group.name}.ts`))){
-            skipAdd = false
           const groupInterfaceName = `${toCamelCase(group.name)}Group`;
-          skip.push(`../group/${group.name}.ts`);
-          output.push(
-            ...(await this.typescript({
-              target: group,
-              type: 'group',
-              skip: skip,
-            })),
+          if (!skip.includes(`../group/${group.name}.ts`)) {
+            skip.push(`../group/${group.name}.ts`);
+            output.push(
+              ...(await this.typescript({
+                target: group,
+                type: 'group',
+                skip: skip,
+              })),
             );
             textInterface += `import type { ${groupInterfaceName} } from '../group/${group.name}';\n`;
-            propType = `${groupInterfaceName}${prop.array ? '[]' : ''}`;
-            console.log("skip:",skip)
-        } }else {
-          console.log('ok')
+          }
+          propType = `${groupInterfaceName}${prop.array ? '[]' : ''}`;
+        } else {
           skipAdd = true;
         }
       } else if (prop.type === BCMSPropType.RICH_TEXT) {
         propType = 'string';
       } else if (prop.type === BCMSPropType.MEDIA) {
-        containsMediaProp = true;
+        bcmsImports['BCMSMediaParsed'] = true;
         propType = 'BCMSMediaParsed';
       }
       if (!skipAdd) {
         allText.push(`  ${prop.name}: ${propType};`);
       }
     }
-    if (containsMediaProp) {
-      textInterface += `import type { BCMSMediaParsed } from '@becomes/cms-client/types';\n\n`;
+    const bcmsImportKeys = Object.keys(bcmsImports);
+    if (bcmsImportKeys.length > 0) {
+      textInterface += `import type { ${bcmsImportKeys.join(
+        ', ',
+      )} } from '@becomes/cms-client/types';\n\n`;
     }
     textInterface += [
       '/**',
