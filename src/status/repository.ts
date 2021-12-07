@@ -75,7 +75,7 @@ export function createBcmsStatusRepository(): Module {
           if (!activeStatus) {
             await BCMSRepo.status.add(
               BCMSFactory.status.create({
-                label: 'active',
+                label: 'Active',
                 name: stringUtil.toSlugUnderscore('Active'),
               }),
             );
