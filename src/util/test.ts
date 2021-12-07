@@ -21,7 +21,7 @@ async function start() {
   });
   const template = await BCMSRepo.template.findById('61a4c16ef0c20535d0231fdf');
   if (!template) {
-    throw Error('Missing template.');
+    return;
   }
   const result = await BCMSTypeConverter.typescript({
     target: template,
