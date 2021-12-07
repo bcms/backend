@@ -1,5 +1,6 @@
 import {
   BCMSGroup,
+  BCMSPropEntryPointerData,
   BCMSPropEnumData,
   BCMSPropGroupPointerData,
   BCMSPropType,
@@ -34,7 +35,7 @@ export class BCMSTypeConverter {
         break;
       case 'widget':
         interfaceNameType = 'Widget';
-    }
+    } 
     const output: BCMSTypeConverterResultItem[] = [];
     const name = target.name;
     const props = target.props;
@@ -52,13 +53,13 @@ export class BCMSTypeConverter {
         prop.type === BCMSPropType.NUMBER ||
         prop.type === BCMSPropType.BOOLEAN
       ) {
-        propType = `${prop.type.toLowerCase()}${prop.array ? '[]' : ''}`;
+        propType = `${prop.type.toLowerCase()}`;
       } else if (prop.type === BCMSPropType.COLOR_PICKER) {
-        propType = `string${prop.array ? '[]' : ''}`;
+        propType = `string`;
       } else if (prop.type === BCMSPropType.TAG) {
-        propType = 'string[]';
+        propType = 'string';
       } else if (prop.type === BCMSPropType.DATE) {
-        propType = 'number[]';
+        propType = 'number';
       } else if (prop.type === BCMSPropType.ENUMERATION) {
         const enumName = `${toCamelCase(prop.name)}Enum`;
         const enumContent = [
@@ -75,10 +76,56 @@ export class BCMSTypeConverter {
         bcmsImports['BCMSPropEnum'] = true;
         propType = `BCMSPropEnum<${enumName}>`;
       } else if (prop.type === BCMSPropType.ENTRY_POINTER) {
+        let entryContent = '';
         const entryName = `${toCamelCase(prop.name)}Entry`;
+        const templateId = (prop.defaultData as BCMSPropEntryPointerData)
+          .templateId;
+        const template = await BCMSRepo.template.findById(templateId);
+        let templateName = '';
+        if (template) {
+          const entry = await BCMSRepo.entry.methods.findAllByTemplateId(
+            template._id,
+          );
+          templateName = `${toCamelCase(template.name)}Template`;
+          if (!skip.includes(`../template/${template.name}.ts`)) {
+            skip.push(`../template/${template.name}.ts`);
+            output.push(
+              ...(await this.typescript({
+                target: template,
+                type: 'template',
+                skip: skip,
+              })),
+            );
+            entryContent += `import type { ${templateName} } from '../template/${template.name}';\n`;
+          }
+          
+          let lng = '';
+          for (let j = 0; j < entry.length; j++) {
+            let oneMetaLng = '';
+            let oneContentLng = '';
+            for (let k = 0; k < entry[j].meta.length; k++) {
+              const item = entry[j].meta[k].lng;
+              oneMetaLng += ` ${item}: ${templateName}; `;
+              oneContentLng += ` ${item}: BCMSEntryContentParsed; `;
+            }
+            lng += `meta: {${oneMetaLng}}, \n  content: {${oneContentLng}}`;
+          }
+          entryContent += [
+            `import type { BCMSEntryContentParsed } from '@becomes/cms-client/types';\n\n`,
+            `export interface ${entryName} {`,
+            `  id: string,\n  createdAt: number,\n  cid: string, \n  templateId: string, `,
+            `  userId: string, \n  status?: string, \n  ${lng}\n}`,
+          ].join('\n');
+          output.push({
+            outputFile: `entry/${prop.name}.ts`,
+            content: entryContent,
+          });
 
-        textInterface += `import type { ${entryName} } from '../entry/${prop.name}';\n`;
-        propType = `${entryName}`;
+          textInterface += `import type { ${entryName} } from '../entry/${prop.name}';\n`;
+          propType = `${entryName}`;
+        } else {
+          skipAdd = true;
+        }
       } else if (prop.type === BCMSPropType.GROUP_POINTER) {
         const groupId = (prop.defaultData as BCMSPropGroupPointerData)._id;
         const group = await BCMSRepo.group.findById(groupId);
@@ -95,18 +142,19 @@ export class BCMSTypeConverter {
             );
             textInterface += `import type { ${groupInterfaceName} } from '../group/${group.name}';\n`;
           }
-          propType = `${groupInterfaceName}${prop.array ? '[]' : ''}`;
+          propType = `${groupInterfaceName}`;
         } else {
           skipAdd = true;
         }
       } else if (prop.type === BCMSPropType.RICH_TEXT) {
-        propType = 'string';
+        bcmsImports['BCMSPropRichTextDataParsed'] = true;
+        propType = 'BCMSPropRichTextDataParsed';
       } else if (prop.type === BCMSPropType.MEDIA) {
         bcmsImports['BCMSMediaParsed'] = true;
         propType = 'BCMSMediaParsed';
       }
       if (!skipAdd) {
-        allText.push(`  ${prop.name}: ${propType};`);
+        allText.push(`  ${prop.name}: ${propType}${prop.array ? '[]' : ''};`);
       }
     }
     const bcmsImportKeys = Object.keys(bcmsImports);
@@ -128,140 +176,7 @@ export class BCMSTypeConverter {
       outputFile: `${type}/${name}.ts`,
       content: textInterface,
     });
-    //     else if (type === 'group') {
-    //       //   let groupFile;
-
-    //       //  const p = await fs.stat('../group')
-    //       //  if(p.isFile())
-    //       //    {
-    //       //     groupFile = '../group';
-    //       //   } else {
-    //       const groupFile = await fs.mkdir(path.join(__dirname, 'group'), {
-    //         recursive: true,
-    //       });
-    //       // }
-    //       const name = (target as BCMSGroup).name;
-    //       const props = (target as BCMSGroup).props;
-    //       const desc = (target as BCMSGroup).desc;
-    //       let label = (target as BCMSGroup).label;
-    //       label = changeLabel(label);
-    //       const nameInterface = label + 'Group';
-    //       let textInterface = '';
-    //       const allText = [];
-    //       let typeProp = '';
-    //       for (let i = 0; i < props.length; i++) {
-    //         const prop = props[i];
-    //         typeProp = prop.type.toLowerCase();
-    //         const nameProp = prop.name.toLowerCase();
-    //         if (typeProp === 'media') {
-    //           typeProp = 'BCMSMediaParser';
-    //         }
-    //         if (typeProp === 'rich_text') {
-    //           typeProp = 'string';
-    //         }
-    //         allText.push(`\n${nameProp}:${typeProp}`);
-    //       }
-    //       textInterface = `${
-    //         typeProp === 'media'
-    //           ? `import type { BCMSMediaParsed } from '@becomes/cms-client/types'`
-    //           : ``
-    //       }
-    // /**
-    //   * ${desc}
-    //   */
-    // export interface ${nameInterface} {${allText}\n} `;
-
-    //       await fs.writeFile(`${groupFile}/${name}.ts`, textInterface);
-    //       group = {
-    //         outputFile: `group/${name}.ts`,
-    //         content: textInterface,
-    //       };
-    //     } else if (type === 'template') {
-    //       let templateFile;
-    //       // const p = await fs.stat('../widget')
-    //       // if(p.isFile())
-    //       //   {
-    //       //    widgetFile = '../widget';
-    //       //  } else {
-    //       try {
-    //         await fs.access('/template');
-    //         templateFile = '/template';
-    //       } catch {
-    //         templateFile = await fs.mkdir(path.join(__dirname, 'template'), {
-    //           recursive: true,
-    //         });
-    //       }
-    //       // }
-    //       const name = (target as BCMSWidget).name;
-    //       const props = (target as BCMSWidget).props;
-    //       const desc = (target as BCMSWidget).desc;
-    //       let label = (target as BCMSWidget).label;
-    //       label = changeLabel(label);
-    //       const nameInterface = label + 'Template';
-    //       let textInterface = '';
-    //       const allText = [];
-    //       let propType = '';
-    //       let propTypeGroup = '';
-    //       let propGroupName = '';
-    //       let typeProp = '';
-
-    //       let typeName = '';
-    //       for (let i = 0; i < props.length; i++) {
-    //         const prop = props[i];
-    //         typeProp = prop.type.toLowerCase();
-    //         const nameProp = prop.name.toLowerCase();
-
-    //         if (typeProp === 'group_pointer') {
-    //           propTypeGroup = 'group_pointer';
-    //           const groupId = (prop.defaultData as BCMSPropGroupPointerData)._id;
-    //           const groupPointer = await BCMSRepo.group.findById(groupId);
-    //           typeProp = `${changeLabel(
-    //             groupPointer ? groupPointer.label : '',
-    //           )}Group`;
-    //           propGroupName = typeProp;
-    //           typeName = groupPointer?.name as string;
-    //           this.typescript({
-    //             target: groupPointer as BCMSGroup,
-    //             type: 'group',
-    //             skip: [],
-    //           });
-    //         }
-    //         if (typeProp === 'rich_text') {
-    //           typeProp = 'string';
-    //         }
-    //         if (typeProp === 'media') {
-    //           propType = 'media';
-    //           typeProp = 'BCMSMediaParsed';
-    //         }
-    //         allText.push(`\n${nameProp}:${typeProp}`);
-    //       }
-    //       textInterface = `${
-    //         propType === 'media'
-    //           ? `import type { BCMSMediaParsed } from '@becomes/cms-client/types'`
-    //           : ``
-    //       }
-    //     ${
-    //       (console.log(propType),
-    //       propTypeGroup === 'group_pointer'
-    //         ? `
-    // import type {${propGroupName}} from '../group/${typeName}'`
-    //         : ``)
-    //     }
-
-    //   /**
-    //   * ${desc}
-    //   */
-    // export interface ${nameInterface} {${allText}\n} `;
-    //       await fs.writeFile(`${templateFile}/${name}.ts`, textInterface);
-
-    //       template = {
-    //         outputFile: `${templateFile}/${name}.ts`,
-    //         content: textInterface,
-    //       };
-    //     }
     return output;
-    // console.log(group, widget, template);
-    // return [widget, group];
   }
 }
 function toCamelCase(nameEncoded: string) {
@@ -270,11 +185,3 @@ function toCamelCase(nameEncoded: string) {
     .map((e) => e.substring(0, 1).toUpperCase() + e.substring(1))
     .join('');
 }
-// function changeLabel(label: string) {
-//   return label
-//     .replace(
-//       /(^\w|\s\w)(\S*)/g,
-//       (_, m1, m2) => m1.toUpperCase() + m2.toLowerCase(),
-//     )
-//     .replace(/\s/g, '');
-// }

@@ -26,7 +26,6 @@ import { bcmsResCode } from '@bcms/response-code';
 import { BCMSFactory } from '@bcms/factory';
 import { BCMSSocketManager } from '@bcms/socket';
 import { BCMSPropHandler } from '@bcms/prop';
-import { BCMSTypeConverter } from '@bcms/util/type-converter';
 
 interface Setup {
   stringUtil: StringUtility;

@@ -509,7 +509,7 @@ export const BCMSPropHandler: BCMSPropHandlerType = {
             );
           }
           for (let j = 0; j < changeData.length; j++) {
-            (prop.defaultData as BCMSPropDateData).push(changeData[j]);
+            (prop.defaultData as BCMSPropDateData[]).push(changeData[j]);
           }
         } else if (prop.type === BCMSPropType.TAG) {
           const changeData = change.add.defaultData as string[];
