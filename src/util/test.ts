@@ -3,6 +3,7 @@ import { BCMSTypeConverter } from './type-converter';
 import type { BCMSWidget } from '@bcms/types';
 import type { Module } from '@becomes/purple-cheetah/types';
 import { useFS } from '@becomes/purple-cheetah';
+import { BCMSRepo } from '@bcms/repo';
 
 const group1 = {
   _id: '1234',
@@ -101,10 +102,11 @@ async function start() {
   const fs = useFS({
     base: path.join(process.cwd(), '_test'),
   });
-
+const template = await BCMSRepo.template.findById('61a4c16ef0c20535d0231fdf')
+if(!template){return ''}
   const result = await BCMSTypeConverter.typescript({
-    target: widget1,
-    type: 'widget',
+    target: template,
+    type: 'template',
   });
   console.log(result);
   for (let i = 0; i < result.length; i++) {

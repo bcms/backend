@@ -123,7 +123,6 @@ export const BCMSTemplateController = createController<Setup>({
               bcmsResCode('tmp001', { id }),
             );
           }
-          await BCMSTypeConverter.typescript({target:template as BCMSTemplate, type: 'template', skip: []});
           return {
             item: template,
           };

@@ -1,5 +1,6 @@
 import {
   BCMSGroup,
+  BCMSPropEnumData,
   BCMSPropGroupPointerData,
   BCMSPropType,
   BCMSTemplate,
@@ -20,11 +21,22 @@ export class BCMSTypeConverter {
     if (!skip) {
       skip = [];
     }
+    let interfaceNameType = '';
+    switch (type) {
+      case 'group':
+        interfaceNameType = 'Group';
+        break;
+      case 'template':
+        interfaceNameType = 'Template';
+        break;
+      case 'widget':
+        interfaceNameType = 'Widget';
+    }
     const output: BCMSTypeConverterResultItem[] = [];
-    const name = (target as BCMSWidget).name;
-    const props = (target as BCMSWidget).props;
-    const desc = (target as BCMSWidget).desc;
-    const interfaceName = toCamelCase(name) + 'Widget';
+    const name = target.name;
+    const props = target.props;
+    const desc = target.desc;
+    const interfaceName = toCamelCase(name) + interfaceNameType;
     let textInterface = '';
     const allText: string[] = [];
     let containsMediaProp = false;
@@ -38,11 +50,49 @@ export class BCMSTypeConverter {
         prop.type === BCMSPropType.NUMBER ||
         prop.type === BCMSPropType.BOOLEAN
       ) {
-        propType = prop.type.toLowerCase();
-      } else if (prop.type === BCMSPropType.GROUP_POINTER) {
+        propType = `${prop.type.toLowerCase()}${prop.array ? '[]' : ''}`;
+      } else if (prop.type === BCMSPropType.COLOR_PICKER) {
+        propType = `string${prop.array ? '[]' : ''}`;
+      } else if (prop.type === BCMSPropType.TAG) {
+        propType = 'string[]';
+      } else if (prop.type === BCMSPropType.DATE) {
+        propType = 'number[]';
+      } else if (prop.type === BCMSPropType.ENUMERATION) {
+        const textInEnum: string[] = [];
+        let textEnum = '';
+        const enumName = `${toCamelCase(prop.name)}Enum`;
+        textInEnum.push(
+          `${(prop.defaultData as BCMSPropEnumData).items
+            .map((e) => `${e}='${e}',`)
+            .join('\n')}`,
+        );
+        textEnum += [
+          `// eslint-disable-next-line no-shadow 
+export enum ${enumName} {`,
+          ...textInEnum,
+          '}',
+        ].join('\n');
+        output.push({
+          outputFile: `enum/${prop.name}.ts`,
+          content: textEnum,
+        });
+        textInterface += `import type { ${enumName} } from '../enum/${prop.name}';\n`;
+        propType = `${enumName}`;
+      } 
+   else if (prop.type === BCMSPropType.ENTRY_POINTER) {
+    const entryName = `${toCamelCase(prop.name)}Entry`;
+
+
+    textInterface += `import type { ${entryName} } from '../entry/${prop.name}';\n`;
+    propType = `${entryName}`;
+   }
+      else if (prop.type === BCMSPropType.GROUP_POINTER) {
         const groupId = (prop.defaultData as BCMSPropGroupPointerData)._id;
         const group = await BCMSRepo.group.findById(groupId);
+        console.log(skip)
         if (group) {
+          if(skip.map((s) => s ===(`.../group/${group.name}.ts`))){
+            skipAdd = false
           const groupInterfaceName = `${toCamelCase(group.name)}Group`;
           skip.push(`../group/${group.name}.ts`);
           output.push(
@@ -51,20 +101,22 @@ export class BCMSTypeConverter {
               type: 'group',
               skip: skip,
             })),
-          );
-          textInterface += `import type { ${groupInterfaceName} } from '../group/${group.name}';\n`;
-          propType = groupInterfaceName;
-        } else {
+            );
+            textInterface += `import type { ${groupInterfaceName} } from '../group/${group.name}';\n`;
+            propType = `${groupInterfaceName}${prop.array ? '[]' : ''}`;
+            console.log("skip:",skip)
+        } }else {
+          console.log('ok')
           skipAdd = true;
         }
       } else if (prop.type === BCMSPropType.RICH_TEXT) {
         propType = 'string';
       } else if (prop.type === BCMSPropType.MEDIA) {
         containsMediaProp = true;
-        propType = 'BCMSMediaParser';
+        propType = 'BCMSMediaParsed';
       }
       if (!skipAdd) {
-        allText.push(`  ${prop.name}: ${propType}${prop.array ? '[]' : ''};`);
+        allText.push(`  ${prop.name}: ${propType};`);
       }
     }
     if (containsMediaProp) {

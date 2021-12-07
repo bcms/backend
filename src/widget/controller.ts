@@ -158,7 +158,6 @@ export const BCMSWidgetController = createController<Setup>({
               bcmsResCode('wid001', { id }),
             );
           }
-          await BCMSTypeConverter.typescript({target:widget as BCMSWidget, type: 'widget', skip: []});
           return {
             item: widget,
           };
