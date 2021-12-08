@@ -28,12 +28,8 @@ import {
   BCMSEntryUpdateDataSchema,
   BCMSSocketEventType,
   BCMSUserCustomPool,
-  BCMSTypeConverterResultItem,
 } from '../types';
-import {
-  createJwtApiProtectionPreRequestHandler,
-  BCMSTypeConverter,
-} from '../util';
+import { createJwtApiProtectionPreRequestHandler } from '../util';
 import { useBcmsEntryParser } from './parser';
 
 interface Setup {
@@ -141,44 +137,6 @@ export const BCMSEntryController = createController<Setup>({
           return {
             count: BCMSRepo.entry.methods.countByTemplateId(request.params.tid),
           };
-        },
-      }),
-      typeConverter: createControllerMethod<
-        unknown,
-        { items: BCMSTypeConverterResultItem[] }
-      >({
-        path: '/type-convert/:tid/:id/:type',
-        type: 'get',
-        preRequestHandler: createJwtProtectionPreRequestHandler(
-          [JWTRoleName.ADMIN, JWTRoleName.USER],
-          JWTPermissionName.READ,
-        ),
-        async handler({ errorHandler, request }) {
-          const template =
-            request.params.tid.length === 24
-              ? await BCMSRepo.template.findById(request.params.tid)
-              : await BCMSRepo.template.methods.findByCid(request.params.tid);
-          if (!template) {
-            throw errorHandler.occurred(
-              HTTPStatus.NOT_FOUNT,
-              bcmsResCode('tmp001', { id: request.params.tid }),
-            );
-          }
-          if (request.params.type === 'typescript') {
-            return {
-              items: await BCMSTypeConverter.typescript([
-                {
-                  name: template.name,
-                  type: 'entry',
-                  props: template.props,
-                },
-              ]),
-            };
-          } else {
-            return {
-              items: [],
-            };
-          }
         },
       }),
       getById: createControllerMethod({
