@@ -23,7 +23,7 @@ import { HTTPStatus } from '@becomes/purple-cheetah/types';
 
 export const BCMSTypeConverterController = createController({
   name: 'Type converter controller',
-  path: '/api/type-convert',
+  path: '/api/type-converter',
   methods() {
     return {
       getAll: createControllerMethod<
