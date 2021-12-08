@@ -2,6 +2,7 @@ import { BCMSFactory } from '@bcms/factory';
 import { BCMSMediaService } from '@bcms/media';
 import { BCMSRepo } from '@bcms/repo';
 import { BCMSSocketManager } from '@bcms/socket';
+import { BCMSHtml } from '@bcms/util';
 import { useObjectUtility, useStringUtility } from '@becomes/purple-cheetah';
 import {
   Module,
@@ -29,6 +30,13 @@ import {
   BCMSPropColorPickerData,
   BCMSPropValueColorPickerData,
   BCMSPropTagData,
+  BCMSPropWidgetData,
+  BCMSPropValueWidgetData,
+  BCMSPropDateData,
+  BCMSPropValueRichTextData,
+  BCMSEntryContentNodeType,
+  BCMSEntryContentNodeHeadingAttr,
+  BCMSEntryContentParsedItem,
 } from '../types';
 
 let objectUtil: ObjectUtility;
@@ -123,7 +131,7 @@ export const BCMSPropHandler: BCMSPropHandlerType = {
                   __type: 'array',
                   __required: true,
                   __child: {
-                    __type: 'number',
+                    __type: 'string',
                   },
                 },
               },
@@ -175,6 +183,37 @@ export const BCMSPropHandler: BCMSPropHandlerType = {
             );
             if (checkData instanceof ObjectUtilityError) {
               return Error(`[${level}.${prop.name}] -> ` + checkData.message);
+            }
+          }
+          break;
+        case BCMSPropType.WIDGET:
+          {
+            const propData = prop.defaultData as BCMSPropWidgetData;
+            const valueData = value.data as BCMSPropValueWidgetData;
+            if (propData._id !== valueData._id) {
+              return Error(
+                `[${level}.${prop.name}._id] -> ` +
+                  'Prop and value widget IDs do not match.',
+              );
+            }
+            const widget = await BCMSRepo.widget.findById(propData._id);
+            if (!widget) {
+              return Error(
+                `[${level}.${prop.name}._id] -> ` +
+                  `Widget with ID ${propData._id} does not exist.`,
+              );
+            }
+            for (let j = 0; j < valueData.props.length; j++) {
+              const item = valueData.props[j];
+              const widgetCheckPropValuesResult =
+                await BCMSPropHandler.checkPropValues({
+                  level: `${level}.${prop.name}.props.${j}`,
+                  props: widget.props,
+                  values: [item],
+                });
+              if (widgetCheckPropValuesResult instanceof Error) {
+                return widgetCheckPropValuesResult;
+              }
             }
           }
           break;
@@ -462,6 +501,16 @@ export const BCMSPropHandler: BCMSPropHandlerType = {
           if (change.add.defaultData) {
             prop.defaultData = change.add.defaultData;
           }
+        } else if (prop.type === BCMSPropType.DATE) {
+          const changeData = change.add.defaultData as number[];
+          if (!changeData) {
+            return Error(
+              `[${level}.change.${i}.add.defaultData] -> Missing prop.`,
+            );
+          }
+          for (let j = 0; j < changeData.length; j++) {
+            (prop.defaultData as BCMSPropDateData[]).push(changeData[j]);
+          }
         } else if (prop.type === BCMSPropType.TAG) {
           const changeData = change.add.defaultData as string[];
           if (!changeData) {
@@ -480,6 +529,41 @@ export const BCMSPropHandler: BCMSPropHandlerType = {
 
             (prop.defaultData as BCMSPropTagData).push(changeData[j]);
           }
+        } else if (prop.type === BCMSPropType.ENUMERATION) {
+          const changeData = change.add.defaultData as BCMSPropEnumData;
+          if (!changeData.items[0]) {
+            return Error(
+              `[${level}.change.${i}.add.defaultData] -> Missing prop.`,
+            );
+          }
+          if (changeData.selected) {
+            if (!changeData.items.includes(changeData.selected)) {
+              return Error(
+                `[${level}.change.${i}.add.defaultData] -> Select enum do not exist in items.`,
+              );
+            }
+          }
+          (prop.defaultData as BCMSPropEnumData) = {
+            items: changeData.items,
+            selected: changeData.selected,
+          };
+        } else if (prop.type === BCMSPropType.MEDIA) {
+          const defaultData = change.add.defaultData as BCMSPropMediaData[];
+          if (defaultData && defaultData.length > 0) {
+            for (let j = 0; j < defaultData.length; j++) {
+              const data = defaultData[j];
+              if (data) {
+                const media = await BCMSRepo.media.findById(data);
+                if (!media) {
+                  return Error(
+                    `[${level}.change.${i}.add.defaultData] ->` +
+                      ` Media with ID "${data}" does not exist.`,
+                  );
+                }
+                (prop.defaultData as BCMSPropMediaData[]).push(media._id);
+              }
+            }
+          }
         } else if (prop.type === BCMSPropType.GROUP_POINTER) {
           const changeData = change.add.defaultData as BCMSPropGroupPointerData;
           if (!changeData || !changeData._id) {
@@ -495,6 +579,23 @@ export const BCMSPropHandler: BCMSPropHandlerType = {
             );
           }
           (prop.defaultData as BCMSPropGroupPointerData) = {
+            _id: changeData._id,
+          };
+        } else if (prop.type === BCMSPropType.WIDGET) {
+          const changeData = change.add.defaultData as BCMSPropWidgetData;
+          if (!changeData || !changeData._id) {
+            return Error(
+              `[${level}.change.${i}.add.defaultData] -> Missing prop "_id".`,
+            );
+          }
+          const widget = await BCMSRepo.widget.findById(changeData._id);
+          if (!widget) {
+            return Error(
+              `[${level}.change.${i}.add.defaultData._id] ->` +
+                ` Widget with ID "${changeData._id}" does not exist.`,
+            );
+          }
+          (prop.defaultData as BCMSPropWidgetData) = {
             _id: changeData._id,
           };
         } else if (prop.type === BCMSPropType.ENTRY_POINTER) {
@@ -732,7 +833,7 @@ export const BCMSPropHandler: BCMSPropHandlerType = {
               }
             }
           } else {
-            if (typeof valueData[0] === 'object') {
+            if (typeof valueData[0] === 'string') {
               const media = await BCMSRepo.media.findById(valueData[0]);
               if (media) {
                 (parsed[prop.name] as BCMSPropMediaDataParsed) = {
@@ -752,6 +853,51 @@ export const BCMSPropHandler: BCMSPropHandlerType = {
             items: (prop.defaultData as BCMSPropEnumData).items,
             selected: (value.data as string[])[0],
           };
+        } else if (prop.type === BCMSPropType.COLOR_PICKER) {
+          const valueData = value.data as BCMSPropValueColorPickerData;
+          if (prop.array) {
+            parsed[prop.name] = [];
+            for (let j = 0; j < valueData.length; j++) {
+              const color = await BCMSRepo.color.findById(valueData[j]);
+              if (color) {
+                (parsed[prop.name] as BCMSPropDataParsed[]).push(color.value);
+              }
+            }
+          } else {
+            const color = await BCMSRepo.color.findById(valueData[0]);
+            if (color) {
+              (parsed[prop.name] as BCMSPropDataParsed) = color.value;
+            }
+          }
+        } else if (prop.type === BCMSPropType.WIDGET) {
+          const data = prop.defaultData as BCMSPropWidgetData;
+          const valueData = value.data as BCMSPropValueWidgetData;
+          const widget = await BCMSRepo.widget.findById(data._id);
+          if (widget) {
+            if (prop.array) {
+              parsed[prop.name] = [];
+              for (let j = 0; j < valueData.props.length; j++) {
+                const valueDataItem = valueData.props[j];
+                (parsed[prop.name] as BCMSPropDataParsed[]).push(
+                  await BCMSPropHandler.parse({
+                    maxDepth,
+                    meta: widget.props,
+                    values: [valueDataItem],
+                    depth,
+                    level: `${level}.${prop.name}.${j}`,
+                  }),
+                );
+              }
+            } else {
+              parsed[prop.name] = await BCMSPropHandler.parse({
+                maxDepth,
+                meta: widget.props,
+                values: [valueData.props[0]],
+                depth,
+                level: `${level}.${prop.name}`,
+              });
+            }
+          }
         } else if (prop.type === BCMSPropType.GROUP_POINTER) {
           const data = prop.defaultData as BCMSPropGroupPointerData;
           const valueData = value.data as BCMSPropValueGroupPointerData;
@@ -892,6 +1038,61 @@ export const BCMSPropHandler: BCMSPropHandlerType = {
               }
             }
           }
+        } else if (prop.type === BCMSPropType.RICH_TEXT) {
+          const data = prop.defaultData as BCMSPropRichTextData[];
+          const valueData = value.data as BCMSPropValueRichTextData[];
+          let items: BCMSPropValueRichTextData[] = [];
+          if (valueData) {
+            items = valueData;
+          } else {
+            items = data;
+          }
+          if (prop.array) {
+            parsed[prop.name] = items.map((item) => {
+              return item.nodes.map((node) => {
+                return {
+                  type: node.type,
+                  attrs:
+                    node.type === BCMSEntryContentNodeType.heading
+                      ? {
+                          level: (node.attrs as BCMSEntryContentNodeHeadingAttr)
+                            .level,
+                        }
+                      : undefined,
+                  value: BCMSHtml.nodeToHtml({ node }),
+                };
+              }) as BCMSEntryContentParsedItem[];
+            });
+            // parsed[prop.name] = items.map((item) => {
+            //   return item.nodes.map((node) => {
+            //     return {
+            //       type: node.type,
+            //       attrs:
+            //         node.type === BCMSEntryContentNodeType.heading
+            //           ? {
+            //               level: (node.attrs as BCMSEntryContentNodeHeadingAttr)
+            //                 .level,
+            //             }
+            //           : undefined,
+            //       value: BCMSHtml.nodeToHtml({ node }),
+            //     };
+            //   });
+            // });
+          } else {
+            parsed[prop.name] = items[0].nodes.map((node) => {
+              return {
+                type: node.type,
+                attrs:
+                  node.type === BCMSEntryContentNodeType.heading
+                    ? {
+                        level: (node.attrs as BCMSEntryContentNodeHeadingAttr)
+                          .level,
+                      }
+                    : undefined,
+                value: BCMSHtml.nodeToHtml({ node }),
+              };
+            });
+          }
         }
       }
     }
@@ -916,6 +1117,7 @@ export const BCMSPropHandler: BCMSPropHandlerType = {
       group.props = filterGroupPointer({
         props: group.props,
       });
+
       const updatedGroup = await BCMSRepo.group.update(group);
       if (!updatedGroup) {
         errors.push(Error(`Failed to update group "${group._id}"`));
@@ -1046,9 +1248,11 @@ export const BCMSPropHandler: BCMSPropHandlerType = {
     function filterTag(data: { props: BCMSProp[] }) {
       for (let i = 0; i < data.props.length; i++) {
         const prop = data.props[i];
-        data.props[i].defaultData = (
-          prop.defaultData as BCMSPropTagData
-        ).filter((e) => e !== tagId);
+        if (prop.type === BCMSPropType.TAG) {
+          data.props[i].defaultData = (
+            prop.defaultData as BCMSPropTagData
+          ).filter((e) => e !== tagId);
+        }
       }
       return data.props;
     }
@@ -1091,6 +1295,140 @@ export const BCMSPropHandler: BCMSPropHandlerType = {
     for (let i = 0; i < templates.length; i++) {
       const template = templates[i];
       template.props = filterTag({
+        props: template.props,
+      });
+      const updatedTemplate = await BCMSRepo.template.update(template);
+      if (!updatedTemplate) {
+        errors.push(Error(`Failed to update template "${template._id}"`));
+      } else {
+        await BCMSSocketManager.emit.template({
+          templateId: template._id,
+          type: BCMSSocketEventType.UPDATE,
+          userIds: 'all',
+        });
+      }
+    }
+    if (errors.length > 0) {
+      return errors;
+    }
+  },
+  async removeMedia({ mediaId }) {
+    function filterMedia(data: { props: BCMSProp[] }) {
+      for (let i = 0; i < data.props.length; i++) {
+        const prop = data.props[i];
+        if (prop.type === BCMSPropType.MEDIA) {
+          data.props[i].defaultData = (
+            prop.defaultData as BCMSPropMediaData[]
+          ).filter((e) => e !== mediaId);
+        }
+      }
+      return data.props;
+    }
+
+    const errors: Error[] = [];
+    const groups = await BCMSRepo.group.methods.findAllByPropMedia(mediaId);
+    for (let i = 0; i < groups.length; i++) {
+      const group = groups[i];
+      group.props = filterMedia({ props: group.props });
+      const updatedGroup = await BCMSRepo.group.update(group);
+      if (!updatedGroup) {
+        errors.push(Error(`Failed to update group "${group._id}"`));
+      } else {
+        await BCMSSocketManager.emit.group({
+          groupId: group._id,
+          type: BCMSSocketEventType.UPDATE,
+          userIds: 'all',
+        });
+      }
+    }
+    const widgets = await BCMSRepo.widget.methods.findAllByPropMedia(mediaId);
+    for (let i = 0; i < widgets.length; i++) {
+      const widget = widgets[i];
+      widget.props = filterMedia({
+        props: widget.props,
+      });
+      const updatedWidget = await BCMSRepo.widget.update(widget);
+      if (!updatedWidget) {
+        errors.push(Error(`Failed to update widget "${widget._id}"`));
+      } else {
+        await BCMSSocketManager.emit.widget({
+          widgetId: widget._id,
+          type: BCMSSocketEventType.UPDATE,
+          userIds: 'all',
+        });
+      }
+    }
+    const templates = await BCMSRepo.template.methods.findAllByPropMedia(
+      mediaId,
+    );
+    for (let i = 0; i < templates.length; i++) {
+      const template = templates[i];
+      template.props = filterMedia({
+        props: template.props,
+      });
+      const updatedTemplate = await BCMSRepo.template.update(template);
+      if (!updatedTemplate) {
+        errors.push(Error(`Failed to update template "${template._id}"`));
+      } else {
+        await BCMSSocketManager.emit.template({
+          templateId: template._id,
+          type: BCMSSocketEventType.UPDATE,
+          userIds: 'all',
+        });
+      }
+    }
+  },
+  async removeWidget({ widgetId }) {
+    function filterWidget(data: { props: BCMSProp[] }) {
+      return data.props.filter(
+        (prop) =>
+          !(
+            prop.type === BCMSPropType.WIDGET &&
+            (prop.defaultData as BCMSPropWidgetData)._id === widgetId
+          ),
+      );
+    }
+    const errors: Error[] = [];
+    const groups = await BCMSRepo.group.methods.findAllByPropWidget(widgetId);
+    for (let i = 0; i < groups.length; i++) {
+      const group = groups[i];
+      group.props = filterWidget({
+        props: group.props,
+      });
+      const updatedGroup = await BCMSRepo.group.update(group);
+      if (!updatedGroup) {
+        errors.push(Error(`Failed to update group "${group._id}"`));
+      } else {
+        await BCMSSocketManager.emit.group({
+          groupId: group._id,
+          type: BCMSSocketEventType.UPDATE,
+          userIds: 'all',
+        });
+      }
+    }
+    const widgets = await BCMSRepo.widget.methods.findAllByPropWidget(widgetId);
+    for (let i = 0; i < widgets.length; i++) {
+      const widget = widgets[i];
+      widget.props = filterWidget({
+        props: widget.props,
+      });
+      const updatedWidget = await BCMSRepo.widget.update(widget);
+      if (!updatedWidget) {
+        errors.push(Error(`Failed to update widget "${widget._id}"`));
+      } else {
+        await BCMSSocketManager.emit.widget({
+          widgetId: widget._id,
+          type: BCMSSocketEventType.UPDATE,
+          userIds: 'all',
+        });
+      }
+    }
+    const templates = await BCMSRepo.template.methods.findAllByPropWidget(
+      widgetId,
+    );
+    for (let i = 0; i < templates.length; i++) {
+      const template = templates[i];
+      template.props = filterWidget({
         props: template.props,
       });
       const updatedTemplate = await BCMSRepo.template.update(template);

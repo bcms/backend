@@ -1,6 +1,7 @@
 import type {
   BCMSPropColorPickerData,
   BCMSPropRichTextData,
+  BCMSPropRichTextDataParsed,
   BCMSPropValueRichTextData,
 } from '@bcms/types';
 import type { ObjectSchema } from '@becomes/purple-cheetah/types';
@@ -104,10 +105,7 @@ export type BCMSPropDataParsed =
   | BCMSPropWidgetDataParsed
   | BCMSPropMediaDataParsed
   | BCMSPropMediaDataParsed[]
-  | {
-      type: BCMSPropType;
-      value: BCMSPropDataParsed;
-    };
+  | BCMSPropRichTextDataParsed
 
 export interface BCMSPropValue {
   /**

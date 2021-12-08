@@ -40,6 +40,7 @@ import { bcmsResCode } from '@bcms/response-code';
 import { BCMSSocketManager } from '@bcms/socket';
 import { BCMSMediaService } from './service';
 import { BCMSFactory } from '@bcms/factory';
+import { BCMSPropHandler } from '@bcms/prop';
 
 interface Setup {
   jwt: JWTManager;
@@ -831,7 +832,7 @@ export const BCMSMediaController = createController<Setup>({
           [JWTRoleName.ADMIN, JWTRoleName.DEV],
           JWTPermissionName.DELETE,
         ),
-        async handler({ request, errorHandler, accessToken }) {
+        async handler({ request, errorHandler, accessToken, logger, name }) {
           const media = await BCMSRepo.media.findById(request.params.id);
           if (!media) {
             throw errorHandler.occurred(
@@ -859,6 +860,12 @@ export const BCMSMediaController = createController<Setup>({
               );
             }
             await BCMSMediaService.storage.removeFile(media);
+          }
+          const errors = await BCMSPropHandler.removeMedia({
+            mediaId: media._id,
+          });
+          if (errors) {
+            logger.error(name, errors);
           }
           await BCMSSocketManager.emit.media({
             mediaId: media._id,

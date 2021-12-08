@@ -76,6 +76,7 @@ import { BCMSAuthController } from './auth';
 import { bcmsSetup } from './setup';
 import { BCMSColorController, createBcmsColorRepository } from './color';
 import { BCMSTagController, createBcmsTagRepository } from './tag';
+import { BCMSTypeConverterController } from './type-converter';
 
 const backend: BCMSBackend = {
   app: undefined as never,
@@ -215,6 +216,7 @@ async function initialize() {
     BCMSTemplateOrganizerController,
     BCMSColorController,
     BCMSTagController,
+    BCMSTypeConverterController,
   ];
   if (BCMSConfig.database.fs) {
     modules.push(

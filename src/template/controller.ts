@@ -21,12 +21,14 @@ import {
   BCMSSocketEventType,
   BCMSTemplate,
   BCMSJWTAndBodyCheckerRouteProtectionResult,
+  BCMSTypeConverterResultItem,
 } from '../types';
 import { BCMSRepo } from '@bcms/repo';
 import { bcmsResCode } from '@bcms/response-code';
 import { BCMSFactory } from '@bcms/factory';
 import { BCMSSocketManager } from '@bcms/socket';
 import { BCMSPropHandler } from '@bcms/prop';
+import { BCMSTypeConverter } from '@bcms/util/type-converter';
 
 interface Setup {
   stringUtil: StringUtility;
@@ -97,6 +99,41 @@ export const BCMSTemplateController = createController<Setup>({
           return {
             count: await BCMSRepo.template.count(),
           };
+        },
+      }),
+      typeConverter: createControllerMethod<
+        JWTPreRequestHandlerResult<BCMSUserCustomPool>,
+        { items: BCMSTypeConverterResultItem[] }
+      >({
+        path: '/type-convert/:id/:type',
+        type: 'get',
+        preRequestHandler: createJwtProtectionPreRequestHandler(
+          [JWTRoleName.ADMIN, JWTRoleName.USER],
+          JWTPermissionName.READ,
+        ),
+        async handler({ errorHandler, request }) {
+          const template = await BCMSRepo.template.findById(request.params.id);
+          if (!template) {
+            throw errorHandler.occurred(
+              HTTPStatus.NOT_FOUNT,
+              bcmsResCode('tmp001', { id: request.params.id }),
+            );
+          }
+          if (request.params.type === 'typescript') {
+            return {
+              items: await BCMSTypeConverter.typescript([
+                {
+                  name: template.name,
+                  type: 'template',
+                  props: template.props,
+                },
+              ]),
+            };
+          } else {
+            return {
+              items: [],
+            };
+          }
         },
       }),
 

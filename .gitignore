@@ -13,6 +13,7 @@
 /dockerfile-local/dist
 /local-dev-dist
 /public
+/_test
 
 # Logs
 /log
