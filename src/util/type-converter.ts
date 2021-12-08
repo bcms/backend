@@ -1,182 +1,250 @@
 import {
-  BCMSGroup,
+  BCMSProp,
   BCMSPropEntryPointerData,
   BCMSPropEnumData,
   BCMSPropGroupPointerData,
   BCMSPropType,
-  BCMSTemplate,
   BCMSTypeConverterResultItem,
-  BCMSWidget,
 } from '@bcms/types';
 import { BCMSRepo } from '@bcms/repo';
-export class BCMSTypeConverter {
-  static async typescript({
-    target,
-    type,
-    skip,
-  }: {
-    target: BCMSGroup | BCMSWidget | BCMSTemplate;
-    type: 'group' | 'template' | 'widget';
-    skip?: string[];
-  }): Promise<BCMSTypeConverterResultItem[]> {
-    if (!skip) {
-      skip = [];
+
+interface BCMSTypeConverterPropsResult {
+  props: Array<{
+    name: string;
+    type: string;
+  }>;
+  imports: BCMSImports;
+}
+interface ImportMetadata {
+  name: string;
+  type: 'entry' | 'group' | 'widget' | 'enum';
+  props?: BCMSProp[];
+  enumItems?: string[];
+}
+class BCMSImports {
+  state: {
+    [path: string]: {
+      [name: string]: {
+        metadata?: ImportMetadata;
+      };
+    };
+  } = {};
+  set(name: string, path: string, metadata?: ImportMetadata) {
+    if (!this.state[path]) {
+      this.state[path] = {};
     }
-    const bcmsImports: {
+    this.state[path][name] = {
+      metadata,
+    };
+  }
+  addMetadata(name: string, path: string, metadata: ImportMetadata) {
+    this.state[path][name].metadata = metadata;
+  }
+  fromImports(imports: BCMSImports) {
+    for (const path in imports.state) {
+      for (const name in imports.state[path]) {
+        this.set(name, path, imports.state[path][name].metadata);
+      }
+    }
+  }
+  flatten(): string[] {
+    const output: string[] = [];
+    for (const path in this.state) {
+      const names = Object.keys(this.state[path]);
+      output.push(
+        `import type { ${
+          names.length > 1
+            ? '\n' + names.map((e) => '  ' + e).join(',\n') + '\n'
+            : names.join(', ') + ' '
+        }} from '${path}';`,
+      );
+    }
+    return output;
+  }
+}
+
+export class BCMSTypeConverter {
+  static async bcmsPropTypeToTypescriptType(
+    prop: BCMSProp,
+  ): Promise<{ type: string; imports: BCMSImports }> {
+    let output = '';
+    const imports = new BCMSImports();
+    if (
+      prop.type === BCMSPropType.BOOLEAN ||
+      prop.type === BCMSPropType.STRING ||
+      prop.type === BCMSPropType.NUMBER
+    ) {
+      output = prop.type.toLowerCase();
+    } else if (prop.type === BCMSPropType.COLOR_PICKER) {
+      output = 'string';
+    } else if (prop.type === BCMSPropType.DATE) {
+      output = 'number';
+    } else if (prop.type === BCMSPropType.ENUMERATION) {
+      const data = prop.defaultData as BCMSPropEnumData;
+      output = toCamelCase(prop.name) + 'Enum';
+      const path = `../enum/${prop.name}`;
+      imports.set(output, path);
+      imports.addMetadata(output, path, {
+        name: prop.name,
+        type: 'enum',
+        enumItems: data.items,
+      });
+    } else if (prop.type === BCMSPropType.GROUP_POINTER) {
+      const data = prop.defaultData as BCMSPropGroupPointerData;
+      const group = await BCMSRepo.group.findById(data._id);
+      if (group) {
+        output = toCamelCase(group.name) + 'Group';
+        const path = `../group/${group.name}`;
+        imports.set(output, path);
+        imports.addMetadata(output, path, {
+          name: group.name,
+          type: 'group',
+          props: group.props,
+        });
+      }
+    } else if (prop.type === BCMSPropType.MEDIA) {
+      output = 'BCMSMediaParsed';
+      imports.set(output, '@becomes/cms-client/types');
+    } else if (prop.type === BCMSPropType.RICH_TEXT) {
+      output = 'BCMSRichTextParsed';
+      imports.set(output, '@becomes/cms-client/types');
+    } else if (prop.type === BCMSPropType.TAG) {
+      output = 'string';
+    } else if (prop.type === BCMSPropType.ENTRY_POINTER) {
+      const data = prop.defaultData as BCMSPropEntryPointerData;
+      const template = await BCMSRepo.template.findById(data.templateId);
+      if (template) {
+        output = toCamelCase(template.name) + 'Entry';
+        const path = `../entry/${template.name}`;
+        imports.set(output, path);
+        imports.addMetadata(output, path, {
+          name: template.name,
+          type: 'entry',
+          props: template.props,
+        });
+      }
+    }
+    return { type: prop.array ? output + '[]' : output, imports };
+  }
+  static async toTypescriptProps({
+    props,
+  }: {
+    props: BCMSProp[];
+  }): Promise<BCMSTypeConverterPropsResult> {
+    const output: BCMSTypeConverterPropsResult = {
+      imports: new BCMSImports(),
+      props: [],
+    };
+    for (let i = 0; i < props.length; i++) {
+      const prop = props[i];
+      const typeResult = await this.bcmsPropTypeToTypescriptType(prop);
+      output.imports.fromImports(typeResult.imports);
+      output.props.push({
+        name: prop.name,
+        type: typeResult.type,
+      });
+    }
+    return output;
+  }
+  static async typescript(
+    data: Array<{
+      name: string;
+      type: 'entry' | 'group' | 'widget' | 'enum';
+      props?: BCMSProp[];
+      enumItems?: string[];
+    }>,
+  ): Promise<BCMSTypeConverterResultItem[]> {
+    const output: {
+      [outputFile: string]: string;
+    } = {};
+    let loop = true;
+    const parsedItems: {
       [name: string]: boolean;
     } = {};
-    let interfaceNameType = '';
-    switch (type) {
-      case 'group':
-        interfaceNameType = 'Group';
-        break;
-      case 'template':
-        interfaceNameType = 'Template';
-        break;
-      case 'widget':
-        interfaceNameType = 'Widget';
-    } 
-    const output: BCMSTypeConverterResultItem[] = [];
-    const name = target.name;
-    const props = target.props;
-    const desc = target.desc;
-    const interfaceName = toCamelCase(name) + interfaceNameType;
-    let textInterface = '';
-    const allText: string[] = [];
-    let skipAdd = false;
-    for (let i = 0; i < props.length; i++) {
-      skipAdd = false;
-      const prop = props[i];
-      let propType = '';
-      if (
-        prop.type === BCMSPropType.STRING ||
-        prop.type === BCMSPropType.NUMBER ||
-        prop.type === BCMSPropType.BOOLEAN
-      ) {
-        propType = `${prop.type.toLowerCase()}`;
-      } else if (prop.type === BCMSPropType.COLOR_PICKER) {
-        propType = `string`;
-      } else if (prop.type === BCMSPropType.TAG) {
-        propType = 'string';
-      } else if (prop.type === BCMSPropType.DATE) {
-        propType = 'number';
-      } else if (prop.type === BCMSPropType.ENUMERATION) {
-        const enumName = `${toCamelCase(prop.name)}Enum`;
-        const enumContent = [
-          `export type ${enumName} = `,
-          (prop.defaultData as BCMSPropEnumData).items
-            .map((e) => `  | '${e}'`)
-            .join('\n'),
-        ].join('\n');
-        output.push({
-          outputFile: `enum/${prop.name}.ts`,
-          content: enumContent,
-        });
-        textInterface += `import type { ${enumName} } from '../enum/${prop.name}';\n`;
-        bcmsImports['BCMSPropEnum'] = true;
-        propType = `BCMSPropEnum<${enumName}>`;
-      } else if (prop.type === BCMSPropType.ENTRY_POINTER) {
-        let entryContent = '';
-        const entryName = `${toCamelCase(prop.name)}Entry`;
-        const templateId = (prop.defaultData as BCMSPropEntryPointerData)
-          .templateId;
-        const template = await BCMSRepo.template.findById(templateId);
-        let templateName = '';
-        if (template) {
-          const entry = await BCMSRepo.entry.methods.findAllByTemplateId(
-            template._id,
-          );
-          templateName = `${toCamelCase(template.name)}Template`;
-          if (!skip.includes(`../template/${template.name}.ts`)) {
-            skip.push(`../template/${template.name}.ts`);
-            output.push(
-              ...(await this.typescript({
-                target: template,
-                type: 'template',
-                skip: skip,
-              })),
-            );
-            entryContent += `import type { ${templateName} } from '../template/${template.name}';\n`;
-          }
-          
-          let lng = '';
-          for (let j = 0; j < entry.length; j++) {
-            let oneMetaLng = '';
-            let oneContentLng = '';
-            for (let k = 0; k < entry[j].meta.length; k++) {
-              const item = entry[j].meta[k].lng;
-              oneMetaLng += ` ${item}: ${templateName}; `;
-              oneContentLng += ` ${item}: BCMSEntryContentParsed; `;
-            }
-            lng += `meta: {${oneMetaLng}}, \n  content: {${oneContentLng}}`;
-          }
-          entryContent += [
-            `import type { BCMSEntryContentParsed } from '@becomes/cms-client/types';\n\n`,
-            `export interface ${entryName} {`,
-            `  id: string,\n  createdAt: number,\n  cid: string, \n  templateId: string, `,
-            `  userId: string, \n  status?: string, \n  ${lng}\n}`,
+    while (loop) {
+      const target = data.pop();
+      if (!target) {
+        loop = false;
+      } else {
+        if (target.type === 'enum' && target.enumItems) {
+          output[`enum/${target.name}.ts`] = [
+            `export type ${toCamelCase(target.name)}Enum =`,
+            ...target.enumItems.map((e) => `  | '${e}'`),
           ].join('\n');
-          output.push({
-            outputFile: `entry/${prop.name}.ts`,
-            content: entryContent,
-          });
-
-          textInterface += `import type { ${entryName} } from '../entry/${prop.name}';\n`;
-          propType = `${entryName}`;
-        } else {
-          skipAdd = true;
-        }
-      } else if (prop.type === BCMSPropType.GROUP_POINTER) {
-        const groupId = (prop.defaultData as BCMSPropGroupPointerData)._id;
-        const group = await BCMSRepo.group.findById(groupId);
-        if (group) {
-          const groupInterfaceName = `${toCamelCase(group.name)}Group`;
-          if (!skip.includes(`../group/${group.name}.ts`)) {
-            skip.push(`../group/${group.name}.ts`);
-            output.push(
-              ...(await this.typescript({
-                target: group,
-                type: 'group',
-                skip: skip,
-              })),
+        } else if (target.props) {
+          const props = target.props;
+          const result = await this.toTypescriptProps({ props });
+          const interfaceName = toCamelCase(target.name + '_' + target.type);
+          let typescriptProps: string[] = [];
+          let additional: string[] = [''];
+          if (target.type === 'entry') {
+            const languages = await BCMSRepo.language.findAll();
+            typescriptProps = [
+              '  id: string;',
+              '  createdAt: number;',
+              '  updatedAt: number;',
+              '  cid: string;',
+              '  templateId: string;',
+              '  userId: string;',
+              '  status?: string;',
+              '  meta: {',
+              ...languages.map(
+                (lng) => `    ${lng.code}: ${interfaceName}Meta;`,
+              ),
+              '  }',
+              '  content: {',
+              ...languages.map(
+                (lng) => `    ${lng.code}: BCMSEntryContentParsed;`,
+              ),
+              '  }',
+            ];
+            result.imports.set(
+              'BCMSEntryContentParsed',
+              '@becomes/cms-client/types',
             );
-            textInterface += `import type { ${groupInterfaceName} } from '../group/${group.name}';\n`;
+            additional = [
+              '',
+              `export interface ${interfaceName}Meta {`,
+              ...result.props.map((prop) => `  ${prop.name}: ${prop.type};`),
+              '}',
+              '',
+            ];
+          } else {
+            typescriptProps = result.props.map(
+              (prop) => `  ${prop.name}: ${prop.type};`,
+            );
           }
-          propType = `${groupInterfaceName}`;
-        } else {
-          skipAdd = true;
-        }
-      } else if (prop.type === BCMSPropType.RICH_TEXT) {
-        bcmsImports['BCMSPropRichTextDataParsed'] = true;
-        propType = 'BCMSPropRichTextDataParsed';
-      } else if (prop.type === BCMSPropType.MEDIA) {
-        bcmsImports['BCMSMediaParsed'] = true;
-        propType = 'BCMSMediaParsed';
-      }
-      if (!skipAdd) {
-        allText.push(`  ${prop.name}: ${propType}${prop.array ? '[]' : ''};`);
-      }
-    }
-    const bcmsImportKeys = Object.keys(bcmsImports);
-    if (bcmsImportKeys.length > 0) {
-      textInterface += `import type { ${bcmsImportKeys.join(
-        ', ',
-      )} } from '@becomes/cms-client/types';\n\n`;
-    }
-    textInterface += [
-      '/**',
-      ...desc.split('\n').map((e) => '* ' + e),
-      '*/',
-      `export interface ${interfaceName} {`,
-      ...allText,
-      '}',
-    ].join('\n');
+          output[`${target.type}/${target.name}.ts`] = [
+            ...result.imports.flatten(),
+            ...additional,
+            `export ${
+              target.type === 'enum' ? 'type' : 'interface'
+            } ${toCamelCase(target.name + '_' + target.type)} {`,
+            ...typescriptProps,
+            '}',
+          ].join('\n');
 
-    output.push({
-      outputFile: `${type}/${name}.ts`,
-      content: textInterface,
+          const importsState = result.imports.state;
+          for (const path in importsState) {
+            if (!path.startsWith('@becomes')) {
+              for (const name in importsState[path]) {
+                const metadata = importsState[path][name].metadata;
+                if (metadata && !parsedItems[name]) {
+                  data.push(metadata);
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+
+    return Object.keys(output).map((outputFile) => {
+      return {
+        outputFile,
+        content: output[outputFile],
+      };
     });
-    return output;
   }
 }
 function toCamelCase(nameEncoded: string) {

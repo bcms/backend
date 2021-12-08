@@ -19,15 +19,17 @@ async function start() {
   const fs = useFS({
     base: path.join(process.cwd(), '_test'),
   });
-  const template = await BCMSRepo.template.findById('61a4c16ef0c20535d0231fdf');
+  const template = await BCMSRepo.template.findById('61b06bc6b1e2aabb5b44ddc7');
   if (!template) {
     return;
   }
-  const result = await BCMSTypeConverter.typescript({
-    target: template,
-    type: 'template',
-  });
-  console.log(result);
+  const result = await BCMSTypeConverter.typescript([
+    {
+      name: template.name,
+      type: 'entry',
+      props: template.props,
+    },
+  ]);
   for (let i = 0; i < result.length; i++) {
     const item = result[i];
     await fs.save(item.outputFile, item.content);

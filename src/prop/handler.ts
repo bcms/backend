@@ -552,14 +552,16 @@ export const BCMSPropHandler: BCMSPropHandlerType = {
           if (defaultData && defaultData.length > 0) {
             for (let j = 0; j < defaultData.length; j++) {
               const data = defaultData[j];
-              const media = await BCMSRepo.media.findById(data);
-              if (!media) {
-                return Error(
-                  `[${level}.change.${i}.add.defaultData] ->` +
-                    ` Media with ID "${data}" does not exist.`,
-                );
+              if (data) {
+                const media = await BCMSRepo.media.findById(data);
+                if (!media) {
+                  return Error(
+                    `[${level}.change.${i}.add.defaultData] ->` +
+                      ` Media with ID "${data}" does not exist.`,
+                  );
+                }
+                (prop.defaultData as BCMSPropMediaData[]).push(media._id);
               }
-              (prop.defaultData as BCMSPropMediaData[]).push(media._id);
             }
           }
         } else if (prop.type === BCMSPropType.GROUP_POINTER) {
