@@ -3,7 +3,6 @@ import { BCMSPropHandler } from '@bcms/prop';
 import { BCMSRepo } from '@bcms/repo';
 import { bcmsResCode } from '@bcms/response-code';
 import { BCMSSocketManager } from '@bcms/socket';
-import { BCMSTypeConverter } from '@bcms/util/type-converter';
 import {
   createController,
   createControllerMethod,
@@ -26,7 +25,6 @@ import {
   BCMSSocketEventType,
   BCMSJWTAndBodyCheckerRouteProtectionResult,
   BCMSGroupLite,
-  BCMSTypeConverterResultItem,
 } from '../types';
 import { createJwtAndBodyCheckRouteProtection } from '../util';
 
@@ -165,42 +163,6 @@ export const BCMSGroupController = createController<Setup>({
           return {
             count: await BCMSRepo.group.count(),
           };
-        },
-      }),
-
-      typeConverter: createControllerMethod<
-        JWTPreRequestHandlerResult<BCMSUserCustomPool>,
-        { items: BCMSTypeConverterResultItem[] }
-      >({
-        path: '/type-convert/:id/:type',
-        type: 'get',
-        preRequestHandler: createJwtProtectionPreRequestHandler(
-          [JWTRoleName.ADMIN, JWTRoleName.USER],
-          JWTPermissionName.READ,
-        ),
-        async handler({ errorHandler, request }) {
-          const group = await BCMSRepo.group.findById(request.params.id);
-          if (!group) {
-            throw errorHandler.occurred(
-              HTTPStatus.NOT_FOUNT,
-              bcmsResCode('grp001', { id: request.params.id }),
-            );
-          }
-          if (request.params.type === 'typescript') {
-            return {
-              items: await BCMSTypeConverter.typescript([
-                {
-                  name: group.name,
-                  type: 'group',
-                  props: group.props,
-                },
-              ]),
-            };
-          } else {
-            return {
-              items: [],
-            };
-          }
         },
       }),
 

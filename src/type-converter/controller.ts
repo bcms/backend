@@ -1,8 +1,12 @@
 import { BCMSRepo } from '@bcms/repo';
+import { bcmsResCode } from '@bcms/response-code';
 import type {
+  BCMSGroup,
+  BCMSTemplate,
   BCMSTypeConverterResultItem,
   BCMSTypeConverterTarget,
   BCMSUserCustomPool,
+  BCMSWidget,
 } from '@bcms/types';
 import { BCMSTypeConverter } from '@bcms/util/type-converter';
 import {
@@ -15,6 +19,7 @@ import {
   JWTPreRequestHandlerResult,
   JWTRoleName,
 } from '@becomes/purple-cheetah-mod-jwt/types';
+import { HTTPStatus } from '@becomes/purple-cheetah/types';
 
 export const BCMSTypeConverterController = createController({
   name: 'Type converter controller',
@@ -25,6 +30,7 @@ export const BCMSTypeConverterController = createController({
         JWTPreRequestHandlerResult<BCMSUserCustomPool>,
         { items: BCMSTypeConverterResultItem[] }
       >({
+        path: '/all',
         type: 'get',
         preRequestHandler: createJwtProtectionPreRequestHandler(
           [JWTRoleName.ADMIN, JWTRoleName.USER],
@@ -65,6 +71,65 @@ export const BCMSTypeConverterController = createController({
                   props: e.props,
                 } as BCMSTypeConverterTarget;
               }),
+            ]),
+          };
+        },
+      }),
+      get: createControllerMethod<
+        JWTPreRequestHandlerResult<BCMSUserCustomPool>,
+        { items: BCMSTypeConverterResultItem[] }
+      >({
+        path: '/:itemId/:itemType/:languageType',
+        type: 'get',
+        preRequestHandler: createJwtProtectionPreRequestHandler(
+          [JWTRoleName.ADMIN, JWTRoleName.USER],
+          JWTPermissionName.READ,
+        ),
+        async handler({ request, errorHandler }) {
+          const allowedTypes = ['template', 'group', 'widget', 'entry'];
+          if (!allowedTypes.includes(request.params.itemType)) {
+            throw errorHandler.occurred(
+              HTTPStatus.BAD_REQUEST,
+              bcmsResCode('tc001', { itemType: request.params.itemType }),
+            );
+          }
+          let item: BCMSGroup | BCMSTemplate | BCMSWidget | null = null;
+          switch (request.params.itemType) {
+            case 'entry':
+              {
+                item = await BCMSRepo.template.findById(request.params.itemId);
+              }
+              break;
+            case 'group':
+              {
+                item = await BCMSRepo.group.findById(request.params.itemId);
+              }
+              break;
+            case 'widget':
+              {
+                item = await BCMSRepo.widget.findById(request.params.itemId);
+              }
+              break;
+            case 'template':
+              {
+                item = await BCMSRepo.template.findById(request.params.itemId);
+              }
+              break;
+          }
+          if (!item) {
+            throw errorHandler.occurred(
+              HTTPStatus.NOT_FOUNT,
+              bcmsResCode('tc002', { itemId: request.params.itemId }),
+            );
+          }
+
+          return {
+            items: await BCMSTypeConverter.typescript([
+              {
+                name: item.name,
+                type: 'entry',
+                props: item.props,
+              },
             ]),
           };
         },
