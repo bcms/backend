@@ -188,10 +188,13 @@ export const BCMSGroupController = createController<Setup>({
           }
           if (request.params.type === 'typescript') {
             return {
-              items: await BCMSTypeConverter.typescript({
-                target: group,
-                type: 'group',
-              }),
+              items: await BCMSTypeConverter.typescript([
+                {
+                  name: group.name,
+                  type: 'group',
+                  props: group.props,
+                },
+              ]),
             };
           } else {
             return {

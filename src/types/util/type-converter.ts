@@ -38,7 +38,7 @@ export interface BCMSTypeConverterPropsResult {
 
 export interface BCMSTypeConverterTarget {
   name: string;
-  nameSuffix?: string;
-  desc: string;
-  props: BCMSProp[];
+  type: 'entry' | 'group' | 'widget' | 'enum' | 'template';
+  props?: BCMSProp[];
+  enumItems?: string[];
 }

@@ -121,10 +121,13 @@ export const BCMSTemplateController = createController<Setup>({
           }
           if (request.params.type === 'typescript') {
             return {
-              items: await BCMSTypeConverter.typescript({
-                target: template,
-                type: 'template',
-              }),
+              items: await BCMSTypeConverter.typescript([
+                {
+                  name: template.name,
+                  type: 'template',
+                  props: template.props,
+                },
+              ]),
             };
           } else {
             return {

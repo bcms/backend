@@ -154,10 +154,13 @@ export const BCMSWidgetController = createController<Setup>({
           }
           if (request.params.type === 'typescript') {
             return {
-              items: await BCMSTypeConverter.typescript({
-                target: widget,
-                type: 'widget',
-              }),
+              items: await BCMSTypeConverter.typescript([
+                {
+                  name: widget.name,
+                  type: 'widget',
+                  props: widget.props,
+                },
+              ]),
             };
           } else {
             return {

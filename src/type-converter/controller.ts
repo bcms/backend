@@ -1,6 +1,7 @@
 import { BCMSRepo } from '@bcms/repo';
 import type {
   BCMSTypeConverterResultItem,
+  BCMSTypeConverterTarget,
   BCMSUserCustomPool,
 } from '@bcms/types';
 import { BCMSTypeConverter } from '@bcms/util/type-converter';
@@ -30,39 +31,41 @@ export const BCMSTypeConverterController = createController({
           JWTPermissionName.READ,
         ),
         async handler() {
-          const typeConverted: BCMSTypeConverterResultItem[] = [];
           const templates = await BCMSRepo.template.findAll();
-          for (let i = 0; i < templates.length; i++) {
-            const template = templates[i];
-            typeConverted.push(
-              ...(await BCMSTypeConverter.typescript({
-                target: template,
-                type: 'template',
-              })),
-            );
-          }
           const groups = await BCMSRepo.group.findAll();
-          for (let i = 0; i < groups.length; i++) {
-            const group = groups[i];
-            typeConverted.push(
-              ...(await BCMSTypeConverter.typescript({
-                target: group,
-                type: 'group',
-              })),
-            );
-          }
           const widgets = await BCMSRepo.widget.findAll();
-          for (let i = 0; i < widgets.length; i++) {
-            const widget = widgets[i];
-            typeConverted.push(
-              ...(await BCMSTypeConverter.typescript({
-                target: widget,
-                type: 'widget',
-              })),
-            );
-          }
+
           return {
-            items: typeConverted,
+            items: await BCMSTypeConverter.typescript([
+              ...templates.map((e) => {
+                return {
+                  name: e.name,
+                  type: 'template',
+                  props: e.props,
+                } as BCMSTypeConverterTarget;
+              }),
+              ...templates.map((e) => {
+                return {
+                  name: e.name,
+                  type: 'entry',
+                  props: e.props,
+                } as BCMSTypeConverterTarget;
+              }),
+              ...groups.map((e) => {
+                return {
+                  name: e.name,
+                  type: 'group',
+                  props: e.props,
+                } as BCMSTypeConverterTarget;
+              }),
+              ...widgets.map((e) => {
+                return {
+                  name: e.name,
+                  type: 'widget',
+                  props: e.props,
+                } as BCMSTypeConverterTarget;
+              }),
+            ]),
           };
         },
       }),

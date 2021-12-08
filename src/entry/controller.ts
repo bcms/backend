@@ -28,8 +28,12 @@ import {
   BCMSEntryUpdateDataSchema,
   BCMSSocketEventType,
   BCMSUserCustomPool,
+  BCMSTypeConverterResultItem,
 } from '../types';
-import { createJwtApiProtectionPreRequestHandler } from '../util';
+import {
+  createJwtApiProtectionPreRequestHandler,
+  BCMSTypeConverter,
+} from '../util';
 import { useBcmsEntryParser } from './parser';
 
 interface Setup {
@@ -139,59 +143,44 @@ export const BCMSEntryController = createController<Setup>({
           };
         },
       }),
-      //TODO: Add entry in type parser
-
-      // typeConverter: createControllerMethod<
-      //   unknown,
-      //   { items: BCMSTypeConverterResultItem[] }
-      // >({
-      //   path: '/type-convert/:tid/:id/:type',
-      //   type: 'get',
-      //   preRequestHandler: createJwtProtectionPreRequestHandler(
-      //     [JWTRoleName.ADMIN, JWTRoleName.USER],
-      //     JWTPermissionName.READ,
-      //   ),
-      //   async handler({ errorHandler, request }) {
-      //     const template =
-      //       request.params.tid.length === 24
-      //         ? await BCMSRepo.template.findById(request.params.tid)
-      //         : await BCMSRepo.template.methods.findByCid(request.params.tid);
-      //     if (!template) {
-      //       throw errorHandler.occurred(
-      //         HTTPStatus.NOT_FOUNT,
-      //         bcmsResCode('tmp001', { id: request.params.tid }),
-      //       );
-      //     }
-      //     const entry =
-      //       request.params._id.length === 24
-      //         ? await BCMSRepo.entry.methods.findByTemplateIdAndId(
-      //             template._id,
-      //             request.params._id,
-      //           )
-      //         : await BCMSRepo.entry.methods.findByTemplateIdAndCid(
-      //             template._id,
-      //             request.params._id,
-      //           );
-      //     if (!entry) {
-      //       throw errorHandler.occurred(
-      //         HTTPStatus.NOT_FOUNT,
-      //         bcmsResCode('etr001', { id: request.params._id }),
-      //       );
-      //     }
-      //     if (request.params.type === 'typescript') {
-      //       return {
-      //         items: await BCMSTypeConverter.typescript({
-      //           target: entry,
-      //           type: 'entry',
-      //         }),
-      //       };
-      //     } else {
-      //       return {
-      //         items: [],
-      //       };
-      //     }
-      //   },
-      // }),
+      typeConverter: createControllerMethod<
+        unknown,
+        { items: BCMSTypeConverterResultItem[] }
+      >({
+        path: '/type-convert/:tid/:id/:type',
+        type: 'get',
+        preRequestHandler: createJwtProtectionPreRequestHandler(
+          [JWTRoleName.ADMIN, JWTRoleName.USER],
+          JWTPermissionName.READ,
+        ),
+        async handler({ errorHandler, request }) {
+          const template =
+            request.params.tid.length === 24
+              ? await BCMSRepo.template.findById(request.params.tid)
+              : await BCMSRepo.template.methods.findByCid(request.params.tid);
+          if (!template) {
+            throw errorHandler.occurred(
+              HTTPStatus.NOT_FOUNT,
+              bcmsResCode('tmp001', { id: request.params.tid }),
+            );
+          }
+          if (request.params.type === 'typescript') {
+            return {
+              items: await BCMSTypeConverter.typescript([
+                {
+                  name: template.name,
+                  type: 'entry',
+                  props: template.props,
+                },
+              ]),
+            };
+          } else {
+            return {
+              items: [],
+            };
+          }
+        },
+      }),
       getById: createControllerMethod({
         path: '/:tid/:eid',
         type: 'get',

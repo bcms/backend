@@ -5,6 +5,7 @@ import {
   BCMSPropGroupPointerData,
   BCMSPropType,
   BCMSTypeConverterResultItem,
+  BCMSTypeConverterTarget,
 } from '@bcms/types';
 import { BCMSRepo } from '@bcms/repo';
 
@@ -147,12 +148,7 @@ export class BCMSTypeConverter {
     return output;
   }
   static async typescript(
-    data: Array<{
-      name: string;
-      type: 'entry' | 'group' | 'widget' | 'enum';
-      props?: BCMSProp[];
-      enumItems?: string[];
-    }>,
+    data: BCMSTypeConverterTarget[],
   ): Promise<BCMSTypeConverterResultItem[]> {
     const output: {
       [outputFile: string]: string;
