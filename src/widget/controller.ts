@@ -14,6 +14,7 @@ import { createJwtAndBodyCheckRouteProtection } from '../util';
 import {
   BCMSJWTAndBodyCheckerRouteProtectionResult,
   BCMSSocketEventType,
+  BCMSTypeConverterResultItem,
   BCMSUserCustomPool,
   BCMSWidget,
   BCMSWidgetCreateData,
@@ -26,6 +27,7 @@ import { bcmsResCode } from '@bcms/response-code';
 import { BCMSFactory } from '@bcms/factory';
 import { BCMSSocketManager } from '@bcms/socket';
 import { BCMSPropHandler } from '@bcms/prop';
+import { BCMSTypeConverter } from '@bcms/util/type-converter';
 
 interface Setup {
   stringUtil: StringUtility;
@@ -132,7 +134,38 @@ export const BCMSWidgetController = createController<Setup>({
           };
         },
       }),
-
+      typeConverter: createControllerMethod<
+        JWTPreRequestHandlerResult<BCMSUserCustomPool>,
+        { items: BCMSTypeConverterResultItem[] }
+      >({
+        path: '/type-convert/:id/:type',
+        type: 'get',
+        preRequestHandler: createJwtProtectionPreRequestHandler(
+          [JWTRoleName.ADMIN, JWTRoleName.USER],
+          JWTPermissionName.READ,
+        ),
+        async handler({ errorHandler, request }) {
+          const widget = await BCMSRepo.widget.findById(request.params.id);
+          if (!widget) {
+            throw errorHandler.occurred(
+              HTTPStatus.NOT_FOUNT,
+              bcmsResCode('wid001', { id: request.params.id }),
+            );
+          }
+          if (request.params.type === 'typescript') {
+            return {
+              items: await BCMSTypeConverter.typescript({
+                target: widget,
+                type: 'widget',
+              }),
+            };
+          } else {
+            return {
+              items: [],
+            };
+          }
+        },
+      }),
       getById: createControllerMethod<
         JWTPreRequestHandlerResult<BCMSUserCustomPool>,
         { item: BCMSWidget }
