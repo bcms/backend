@@ -37,6 +37,7 @@ import {
   BCMSEntryContentNodeType,
   BCMSEntryContentNodeHeadingAttr,
   BCMSEntryContentParsedItem,
+  BCMSPropChangeTransform,
 } from '../types';
 
 let objectUtil: ObjectUtility;
@@ -781,6 +782,149 @@ export const BCMSPropHandler: BCMSPropHandlerType = {
           } else {
             props[propToUpdateIndex] = propBuffer;
           }
+        }
+      } else if (typeof change.transform === 'object') {
+        const transform = change.transform as BCMSPropChangeTransform;
+        const prop = props.find((p) => p.id === transform.from);
+        const type = transform.to;
+        if (prop?.defaultData) {
+          if (type === BCMSPropType.STRING) {
+            if (
+              prop.type === BCMSPropType.NUMBER ||
+              prop.type === BCMSPropType.BOOLEAN
+            ) {
+              prop.type = BCMSPropType.STRING;
+              const stringArray: string[] = [];
+              for (let j = 0; j < (prop.defaultData as []).length; j++) {
+                const defaultData = (prop.defaultData as [])[j];
+                stringArray.push(`${defaultData}`);
+              }
+              prop.defaultData = stringArray;
+            } else if (prop.type === BCMSPropType.DATE) {
+              prop.type = BCMSPropType.STRING;
+              const stringArray: string[] = [];
+              for (let j = 0; j < (prop.defaultData as number[]).length; j++) {
+                const defaultData = (prop.defaultData as number[])[j];
+                const date = new Date(defaultData).toLocaleDateString();
+                stringArray.push(`${date}`);
+              }
+              prop.defaultData = stringArray;
+            } else if (prop.type === BCMSPropType.ENUMERATION) {
+              const selectEnum = (prop.defaultData as BCMSPropEnumData)
+                .selected;
+              if (selectEnum) {
+                prop.type = BCMSPropType.STRING;
+                prop.defaultData = [`${selectEnum}`];
+              }
+            } else if (prop.type === BCMSPropType.MEDIA) {
+              prop.type = BCMSPropType.STRING;
+              const mediaPath: string[] = [];
+              for (
+                let j = 0;
+                j < (prop.defaultData as BCMSPropMediaData[]).length;
+                j++
+              ) {
+                const mediaId = (prop.defaultData as BCMSPropMediaData[])[j];
+                const media = await BCMSRepo.media.findById(mediaId);
+                let path;
+                if (media) {
+                  path = await BCMSMediaService.getPath(media);
+                }
+                mediaPath.push(`${path}`);
+              }
+              prop.defaultData = mediaPath;
+            }
+            // else if (prop.type === BCMSPropType.RICH_TEXT) {
+            //   prop.type = BCMSPropType.STRING;
+
+            //   for (
+            //     let j = 0;
+            //     j < (prop.defaultData as BCMSPropMediaData[]).length;
+            //     j++
+            //   ) {
+            //     const mediaId = (prop.defaultData as BCMSPropMediaData[])[j];
+            //     const media = await BCMSRepo.media.findById(mediaId);
+            //     let path;
+            //     if (media) {
+            //       path = BCMSMediaService.getPath(media);
+            //     }
+            //     mediaPath.push(`"${path}"`);
+            //   }
+            //   prop.defaultData = mediaPath;
+            // }
+          }
+          // else if (type === BCMSPropType.RICH_TEXT) {
+          //   if (prop.type === BCMSPropType.STRING){
+          //     prop.type = BCMSPropType.RICH_TEXT;
+          //     for (let j = 0; j < (prop.defaultData as []).length; j++) {
+          //       const defaultData = (prop.defaultData as [])[j];
+
+          //     }
+          //   }
+
+          // }
+          else if (type === BCMSPropType.NUMBER) {
+            if (
+              prop.type === BCMSPropType.STRING ||
+              prop.type === BCMSPropType.BOOLEAN
+            ) {
+              prop.type = BCMSPropType.NUMBER;
+              const numbers: number[] = [];
+              for (let j = 0; j < (prop.defaultData as []).length; j++) {
+                const defaultData = (prop.defaultData as [])[j];
+                let data = Number(defaultData);
+                if (isNaN(data)) {
+                  data = 0;
+                }
+                numbers.push(data);
+              }
+              prop.defaultData = numbers;
+            }
+          } else if (type === BCMSPropType.BOOLEAN) {
+            const boolean: boolean[] = [];
+            if (prop.type === BCMSPropType.STRING) {
+              prop.type = BCMSPropType.BOOLEAN;
+              for (let j = 0; j < (prop.defaultData as []).length; j++) {
+                const defaultData = (prop.defaultData as [])[j];
+                let booleanItem: boolean;
+                if ((defaultData as string).toUpperCase() === 'TRUE') {
+                  booleanItem = true;
+                } else {
+                  booleanItem = false;
+                }
+                boolean.push(booleanItem);
+              }
+            } else if (prop.type === BCMSPropType.NUMBER) {
+              prop.type = BCMSPropType.BOOLEAN;
+              for (let j = 0; j < (prop.defaultData as []).length; j++) {
+                const defaultData = (prop.defaultData as [])[j];
+                let booleanItem: boolean;
+                if (defaultData > 0) {
+                  booleanItem = true;
+                } else {
+                  booleanItem = false;
+                }
+                boolean.push(booleanItem);
+              }
+            }
+            prop.defaultData = boolean;
+          } else if (type === BCMSPropType.DATE) {
+            const dates: number[] = [];
+            if (prop.type === BCMSPropType.STRING) {
+              prop.type = BCMSPropType.DATE;
+              for (let j = 0; j < (prop.defaultData as []).length; j++) {
+                const defaultData = (prop.defaultData as [])[j];
+                let date = Date.parse(defaultData);
+                if (isNaN(date)) {
+                  date = 0;
+                }
+                dates.push(date);
+              }
+            }
+            prop.defaultData = dates;
+          }
+        } else {
+          return Error(`Default data is undefinited`);
         }
       } else {
         return Error(`(${level}) --> changes[${i}] in of unknown type.`);

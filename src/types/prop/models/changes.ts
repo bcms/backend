@@ -20,12 +20,16 @@ export interface BCMSPropChangeUpdate {
   enumItems?: string[];
   colorData?: BCMSPropColorPickerData;
 }
-
+export interface BCMSPropChangeTransform {
+  from: string;
+  to: BCMSPropType
+}
 export interface BCMSPropChange {
   add?: BCMSPropChangeAdd;
   /** ID of the property which will be removed. */
   remove?: string;
   update?: BCMSPropChangeUpdate;
+  transform?: BCMSPropChangeTransform
 }
 
 export const BCMSPropChangeSchema: ObjectSchema = {
