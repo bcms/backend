@@ -38,6 +38,7 @@ import {
   BCMSEntryContentNodeHeadingAttr,
   BCMSEntryContentParsedItem,
   BCMSPropChangeTransform,
+  BCMSEntryContentNode,
 } from '../types';
 
 let objectUtil: ObjectUtility;
@@ -793,21 +794,27 @@ export const BCMSPropHandler: BCMSPropHandlerType = {
               prop.type === BCMSPropType.NUMBER ||
               prop.type === BCMSPropType.BOOLEAN
             ) {
-              prop.type = BCMSPropType.STRING;
               const stringArray: string[] = [];
-              for (let j = 0; j < (prop.defaultData as []).length; j++) {
-                const defaultData = (prop.defaultData as [])[j];
+              for (
+                let j = 0;
+                j < (prop.defaultData as Array<number | boolean>).length;
+                j++
+              ) {
+                const defaultData = (
+                  prop.defaultData as Array<number | boolean>
+                )[j];
                 stringArray.push(`${defaultData}`);
               }
+              prop.type = BCMSPropType.STRING;
               prop.defaultData = stringArray;
             } else if (prop.type === BCMSPropType.DATE) {
-              prop.type = BCMSPropType.STRING;
               const stringArray: string[] = [];
               for (let j = 0; j < (prop.defaultData as number[]).length; j++) {
                 const defaultData = (prop.defaultData as number[])[j];
                 const date = new Date(defaultData).toLocaleDateString();
                 stringArray.push(`${date}`);
               }
+              prop.type = BCMSPropType.STRING;
               prop.defaultData = stringArray;
             } else if (prop.type === BCMSPropType.ENUMERATION) {
               const selectEnum = (prop.defaultData as BCMSPropEnumData)
@@ -817,7 +824,6 @@ export const BCMSPropHandler: BCMSPropHandlerType = {
                 prop.defaultData = [`${selectEnum}`];
               }
             } else if (prop.type === BCMSPropType.MEDIA) {
-              prop.type = BCMSPropType.STRING;
               const mediaPath: string[] = [];
               for (
                 let j = 0;
@@ -826,68 +832,114 @@ export const BCMSPropHandler: BCMSPropHandlerType = {
               ) {
                 const mediaId = (prop.defaultData as BCMSPropMediaData[])[j];
                 const media = await BCMSRepo.media.findById(mediaId);
-                let path;
+
                 if (media) {
-                  path = await BCMSMediaService.getPath(media);
+                  const path = await BCMSMediaService.getPath(media);
+                  mediaPath.push(`${path}`);
                 }
-                mediaPath.push(`${path}`);
               }
+              prop.type = BCMSPropType.STRING;
               prop.defaultData = mediaPath;
+            } else if (prop.type === BCMSPropType.RICH_TEXT) {
+              let output = '';
+              const ConvertInString = {
+                nodeToText(node: BCMSEntryContentNode) {
+                  if (
+                    node.type === BCMSEntryContentNodeType.text &&
+                    node.text
+                  ) {
+                    output = `${node.text}\n`;
+                  } else if (
+                    node.type === BCMSEntryContentNodeType.paragraph &&
+                    node.content
+                  ) {
+                    output = `${node.content.map((childNode) =>
+                      ConvertInString.nodeToText(childNode),
+                    )}`;
+                  } else if (
+                    node.type === BCMSEntryContentNodeType.heading &&
+                    node.content
+                  ) {
+                    output = `${node.content.map((childNode) =>
+                      ConvertInString.nodeToText(childNode),
+                    )}`;
+                  } else if (
+                    node.type === BCMSEntryContentNodeType.bulletList &&
+                    node.content
+                  ) {
+                    output = `${node.content.map((childNode) =>
+                      ConvertInString.nodeToText(childNode),
+                    )}`;
+                  } else if (
+                    node.type === BCMSEntryContentNodeType.listItem &&
+                    node.content
+                  ) {
+                    output = `${node.content.map((childNode) =>
+                      ConvertInString.nodeToText(childNode),
+                    )}`;
+                  } else if (
+                    node.type === BCMSEntryContentNodeType.orderedList &&
+                    node.content
+                  ) {
+                    output = `${node.content.map((childNode) =>
+                      ConvertInString.nodeToText(childNode),
+                    )}`;
+                  } else if (
+                    node.type === BCMSEntryContentNodeType.codeBlock &&
+                    node.content
+                  ) {
+                    output = `${node.content.map((childNode) =>
+                      ConvertInString.nodeToText(childNode),
+                    )}`;
+                  }
+                  return output;
+                },
+              };
+              const rich_texts = prop.defaultData as BCMSPropRichTextData[];
+              let allText = '';
+              const text: string[] = [];
+              for (let j = 0; j < rich_texts.length; j++) {
+                const nodes = rich_texts[j].nodes;
+                for (let k = 0; k < nodes.length; k++) {
+                  const node = nodes[k];
+                  allText += ConvertInString.nodeToText(node);
+                }
+              }
+              text.push(allText);
+              prop.type = BCMSPropType.STRING;
+              prop.array = false;
+              prop.defaultData = text;
             }
-            // else if (prop.type === BCMSPropType.RICH_TEXT) {
-            //   prop.type = BCMSPropType.STRING;
-
-            //   for (
-            //     let j = 0;
-            //     j < (prop.defaultData as BCMSPropMediaData[]).length;
-            //     j++
-            //   ) {
-            //     const mediaId = (prop.defaultData as BCMSPropMediaData[])[j];
-            //     const media = await BCMSRepo.media.findById(mediaId);
-            //     let path;
-            //     if (media) {
-            //       path = BCMSMediaService.getPath(media);
-            //     }
-            //     mediaPath.push(`"${path}"`);
-            //   }
-            //   prop.defaultData = mediaPath;
-            // }
-          }
-          // else if (type === BCMSPropType.RICH_TEXT) {
-          //   if (prop.type === BCMSPropType.STRING){
-          //     prop.type = BCMSPropType.RICH_TEXT;
-          //     for (let j = 0; j < (prop.defaultData as []).length; j++) {
-          //       const defaultData = (prop.defaultData as [])[j];
-
-          //     }
-          //   }
-
-          // }
-          else if (type === BCMSPropType.NUMBER) {
+          } else if (type === BCMSPropType.NUMBER) {
             if (
               prop.type === BCMSPropType.STRING ||
               prop.type === BCMSPropType.BOOLEAN
             ) {
-              prop.type = BCMSPropType.NUMBER;
               const numbers: number[] = [];
-              for (let j = 0; j < (prop.defaultData as []).length; j++) {
-                const defaultData = (prop.defaultData as [])[j];
+              for (
+                let j = 0;
+                j < (prop.defaultData as Array<string | boolean>).length;
+                j++
+              ) {
+                const defaultData = (
+                  prop.defaultData as Array<string | boolean>
+                )[j];
                 let data = Number(defaultData);
                 if (isNaN(data)) {
                   data = 0;
                 }
                 numbers.push(data);
               }
+              prop.type = BCMSPropType.NUMBER;
               prop.defaultData = numbers;
             }
           } else if (type === BCMSPropType.BOOLEAN) {
             const boolean: boolean[] = [];
             if (prop.type === BCMSPropType.STRING) {
-              prop.type = BCMSPropType.BOOLEAN;
-              for (let j = 0; j < (prop.defaultData as []).length; j++) {
-                const defaultData = (prop.defaultData as [])[j];
+              for (let j = 0; j < (prop.defaultData as string[]).length; j++) {
+                const defaultData = (prop.defaultData as string[])[j];
                 let booleanItem: boolean;
-                if ((defaultData as string).toUpperCase() === 'TRUE') {
+                if (defaultData.toLocaleLowerCase() === 'true') {
                   booleanItem = true;
                 } else {
                   booleanItem = false;
@@ -896,8 +948,8 @@ export const BCMSPropHandler: BCMSPropHandlerType = {
               }
             } else if (prop.type === BCMSPropType.NUMBER) {
               prop.type = BCMSPropType.BOOLEAN;
-              for (let j = 0; j < (prop.defaultData as []).length; j++) {
-                const defaultData = (prop.defaultData as [])[j];
+              for (let j = 0; j < (prop.defaultData as number[]).length; j++) {
+                const defaultData = (prop.defaultData as number[])[j];
                 let booleanItem: boolean;
                 if (defaultData > 0) {
                   booleanItem = true;
@@ -907,13 +959,13 @@ export const BCMSPropHandler: BCMSPropHandlerType = {
                 boolean.push(booleanItem);
               }
             }
+            prop.type = BCMSPropType.BOOLEAN;
             prop.defaultData = boolean;
           } else if (type === BCMSPropType.DATE) {
             const dates: number[] = [];
             if (prop.type === BCMSPropType.STRING) {
-              prop.type = BCMSPropType.DATE;
-              for (let j = 0; j < (prop.defaultData as []).length; j++) {
-                const defaultData = (prop.defaultData as [])[j];
+              for (let j = 0; j < (prop.defaultData as string[]).length; j++) {
+                const defaultData = (prop.defaultData as string[])[j];
                 let date = Date.parse(defaultData);
                 if (isNaN(date)) {
                   date = 0;
@@ -921,7 +973,28 @@ export const BCMSPropHandler: BCMSPropHandlerType = {
                 dates.push(date);
               }
             }
+            prop.type = BCMSPropType.DATE;
             prop.defaultData = dates;
+          } else if (type === BCMSPropType.RICH_TEXT) {
+            const rich_text: BCMSPropRichTextData = { nodes: [] };
+            if (prop.type === BCMSPropType.STRING) {
+              const node = {
+                type: BCMSEntryContentNodeType.paragraph,
+                content: [],
+              } as BCMSEntryContentNode;
+              for (let j = 0; j < (prop.defaultData as string[]).length; j++) {
+                const defaultData = (prop.defaultData as string[])[j];
+                const content = {
+                  type: BCMSEntryContentNodeType.text,
+                  text: defaultData,
+                } as BCMSEntryContentNode;
+                node.content?.push(content);
+              }
+              rich_text.nodes.push(node);
+            }
+            (prop.defaultData as string[]).length = 0;
+            (prop.defaultData as BCMSPropRichTextData[]).push(rich_text);
+            prop.type = BCMSPropType.RICH_TEXT;
           }
         } else {
           return Error(`Default data is undefinited`);
