@@ -21,7 +21,9 @@ export interface BCMSPropChangeUpdate {
   colorData?: BCMSPropColorPickerData;
 }
 export interface BCMSPropChangeTransform {
+  /** ID on property which will be transformed. */
   from: string;
+  /** To which property type */
   to: BCMSPropType
 }
 export interface BCMSPropChange {

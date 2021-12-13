@@ -44,6 +44,45 @@ import {
 let objectUtil: ObjectUtility;
 let stringUtil: StringUtility;
 
+function nodeToText(node: BCMSEntryContentNode) {
+  let output = '';
+  if (node.type === BCMSEntryContentNodeType.text && node.text) {
+    output = node.text;
+  } else if (node.content) {
+    output =
+      node.content.map((childNode) => nodeToText(childNode)).join('') + '\n';
+  }
+  /**
+   * This is my first blog
+   * item 1
+   * item 2
+   * item 2.1
+   * This is some paragraph
+   * This is code block'
+   */
+
+  // else if (node.type === BCMSEntryContentNodeType.paragraph && node.content) {
+  //   output = `${node.content.map((childNode) => nodeToText(childNode))}`;
+  // } else if (node.type === BCMSEntryContentNodeType.heading && node.content) {
+  //   output = `${node.content.map((childNode) => nodeToText(childNode))}`;
+  // } else if (
+  //   node.type === BCMSEntryContentNodeType.bulletList &&
+  //   node.content
+  // ) {
+  //   output = `${node.content.map((childNode) => nodeToText(childNode))}`;
+  // } else if (node.type === BCMSEntryContentNodeType.listItem && node.content) {
+  //   output = `${node.content.map((childNode) => nodeToText(childNode))}`;
+  // } else if (
+  //   node.type === BCMSEntryContentNodeType.orderedList &&
+  //   node.content
+  // ) {
+  //   output = `${node.content.map((childNode) => nodeToText(childNode))}`;
+  // } else if (node.type === BCMSEntryContentNodeType.codeBlock && node.content) {
+  //   output = `${node.content.map((childNode) => nodeToText(childNode))}`;
+  // }
+  return output;
+}
+
 export const BCMSPropHandler: BCMSPropHandlerType = {
   async checkPropValues({ props, values, level }) {
     if (props.length !== values.length) {
@@ -786,229 +825,143 @@ export const BCMSPropHandler: BCMSPropHandlerType = {
         }
       } else if (typeof change.transform === 'object') {
         const transform = change.transform as BCMSPropChangeTransform;
-        const prop = props.find((p) => p.id === transform.from);
-        const type = transform.to;
-        if (prop?.defaultData) {
-          if (type === BCMSPropType.STRING) {
-            if (
-              prop.type === BCMSPropType.NUMBER ||
-              prop.type === BCMSPropType.BOOLEAN
-            ) {
-              const stringArray: string[] = [];
-              for (
-                let j = 0;
-                j < (prop.defaultData as Array<number | boolean>).length;
-                j++
-              ) {
-                const defaultData = (
-                  prop.defaultData as Array<number | boolean>
-                )[j];
-                stringArray.push(`${defaultData}`);
-              }
+        const propIndex = props.findIndex((p) => p.id === transform.from);
+        const prop = props[propIndex];
+        const wantedPropType = transform.to;
+        if (!prop) {
+          throw Error(`(${level}.transform.from) --> Invalid ID.`);
+        }
+        if (wantedPropType === BCMSPropType.STRING) {
+          if (
+            prop.type === BCMSPropType.NUMBER ||
+            prop.type === BCMSPropType.BOOLEAN
+          ) {
+            prop.type = BCMSPropType.STRING;
+            prop.defaultData = (
+              prop.defaultData as Array<number | boolean>
+            ).map((e) => `${e}`);
+          } else if (prop.type === BCMSPropType.DATE) {
+            prop.type = BCMSPropType.STRING;
+            prop.defaultData = (prop.defaultData as number[]).map((e) =>
+              new Date(e).toUTCString(),
+            );
+          } else if (prop.type === BCMSPropType.ENUMERATION) {
+            const selectEnum = (prop.defaultData as BCMSPropEnumData).selected;
+            if (selectEnum) {
               prop.type = BCMSPropType.STRING;
-              prop.defaultData = stringArray;
-            } else if (prop.type === BCMSPropType.DATE) {
-              const stringArray: string[] = [];
-              for (let j = 0; j < (prop.defaultData as number[]).length; j++) {
-                const defaultData = (prop.defaultData as number[])[j];
-                const date = new Date(defaultData).toLocaleDateString();
-                stringArray.push(`${date}`);
-              }
-              prop.type = BCMSPropType.STRING;
-              prop.defaultData = stringArray;
-            } else if (prop.type === BCMSPropType.ENUMERATION) {
-              const selectEnum = (prop.defaultData as BCMSPropEnumData)
-                .selected;
-              if (selectEnum) {
-                prop.type = BCMSPropType.STRING;
-                prop.defaultData = [`${selectEnum}`];
-              }
-            } else if (prop.type === BCMSPropType.MEDIA) {
-              const mediaPath: string[] = [];
-              for (
-                let j = 0;
-                j < (prop.defaultData as BCMSPropMediaData[]).length;
-                j++
-              ) {
-                const mediaId = (prop.defaultData as BCMSPropMediaData[])[j];
-                const media = await BCMSRepo.media.findById(mediaId);
-
-                if (media) {
-                  const path = await BCMSMediaService.getPath(media);
-                  mediaPath.push(`${path}`);
-                }
-              }
-              prop.type = BCMSPropType.STRING;
-              prop.defaultData = mediaPath;
-            } else if (prop.type === BCMSPropType.RICH_TEXT) {
-              let output = '';
-              const ConvertInString = {
-                nodeToText(node: BCMSEntryContentNode) {
-                  if (
-                    node.type === BCMSEntryContentNodeType.text &&
-                    node.text
-                  ) {
-                    output = `${node.text}\n`;
-                  } else if (
-                    node.type === BCMSEntryContentNodeType.paragraph &&
-                    node.content
-                  ) {
-                    output = `${node.content.map((childNode) =>
-                      ConvertInString.nodeToText(childNode),
-                    )}`;
-                  } else if (
-                    node.type === BCMSEntryContentNodeType.heading &&
-                    node.content
-                  ) {
-                    output = `${node.content.map((childNode) =>
-                      ConvertInString.nodeToText(childNode),
-                    )}`;
-                  } else if (
-                    node.type === BCMSEntryContentNodeType.bulletList &&
-                    node.content
-                  ) {
-                    output = `${node.content.map((childNode) =>
-                      ConvertInString.nodeToText(childNode),
-                    )}`;
-                  } else if (
-                    node.type === BCMSEntryContentNodeType.listItem &&
-                    node.content
-                  ) {
-                    output = `${node.content.map((childNode) =>
-                      ConvertInString.nodeToText(childNode),
-                    )}`;
-                  } else if (
-                    node.type === BCMSEntryContentNodeType.orderedList &&
-                    node.content
-                  ) {
-                    output = `${node.content.map((childNode) =>
-                      ConvertInString.nodeToText(childNode),
-                    )}`;
-                  } else if (
-                    node.type === BCMSEntryContentNodeType.codeBlock &&
-                    node.content
-                  ) {
-                    output = `${node.content.map((childNode) =>
-                      ConvertInString.nodeToText(childNode),
-                    )}`;
-                  }
-                  return output;
-                },
-              };
-              const rich_texts = prop.defaultData as BCMSPropRichTextData[];
-              let allText = '';
-              const text: string[] = [];
-              for (let j = 0; j < rich_texts.length; j++) {
-                const nodes = rich_texts[j].nodes;
-                for (let k = 0; k < nodes.length; k++) {
-                  const node = nodes[k];
-                  allText += ConvertInString.nodeToText(node);
-                }
-              }
-              text.push(allText);
-              prop.type = BCMSPropType.STRING;
-              prop.array = false;
-              prop.defaultData = text;
-            } else {
-              return Error(`Default data can not be converted to another prop`);
+              prop.defaultData = [`${selectEnum}`];
             }
-          } else if (type === BCMSPropType.NUMBER) {
-            if (
-              prop.type === BCMSPropType.STRING ||
-              prop.type === BCMSPropType.BOOLEAN
-            ) {
-              const numbers: number[] = [];
-              for (
-                let j = 0;
-                j < (prop.defaultData as Array<string | boolean>).length;
-                j++
-              ) {
-                const defaultData = (
-                  prop.defaultData as Array<string | boolean>
-                )[j];
-                let data = Number(defaultData);
-                if (isNaN(data)) {
-                  data = 0;
-                }
-                numbers.push(data);
+          } else if (prop.type === BCMSPropType.MEDIA) {
+            const mediaPaths: string[] = [];
+            const currentDefaultData = prop.defaultData as BCMSPropMediaData[];
+            for (let j = 0; j < currentDefaultData.length; j++) {
+              const mediaId = currentDefaultData[j];
+              const media = await BCMSRepo.media.findById(mediaId);
+              if (media) {
+                mediaPaths.push(`${await BCMSMediaService.getPath(media)}`);
               }
-
-              prop.type = BCMSPropType.NUMBER;
-              prop.defaultData = numbers;
-            } else {
-              return Error(`Default data can not be converted to another prop`);
             }
-          } else if (type === BCMSPropType.BOOLEAN) {
-            const boolean: boolean[] = [];
-            if (prop.type === BCMSPropType.STRING) {
-              for (let j = 0; j < (prop.defaultData as string[]).length; j++) {
-                const defaultData = (prop.defaultData as string[])[j];
-                let booleanItem: boolean;
-                if (defaultData.toLocaleLowerCase() === 'true') {
-                  booleanItem = true;
-                } else {
-                  booleanItem = false;
-                }
-                boolean.push(booleanItem);
+            prop.type = BCMSPropType.STRING;
+            prop.defaultData = mediaPaths;
+          } else if (prop.type === BCMSPropType.RICH_TEXT) {
+            const rich_texts = prop.defaultData as BCMSPropRichTextData[];
+            const text: string[] = [];
+            for (let j = 0; j < rich_texts.length; j++) {
+              const textIndex = text.push('') - 1;
+              const nodes = rich_texts[j].nodes;
+              for (let k = 0; k < nodes.length; k++) {
+                const node = nodes[k];
+                text[textIndex] += nodeToText(node);
               }
-            } else if (prop.type === BCMSPropType.NUMBER) {
-              prop.type = BCMSPropType.BOOLEAN;
-              for (let j = 0; j < (prop.defaultData as number[]).length; j++) {
-                const defaultData = (prop.defaultData as number[])[j];
-                let booleanItem: boolean;
-                if (defaultData > 0) {
-                  booleanItem = true;
-                } else {
-                  booleanItem = false;
-                }
-                boolean.push(booleanItem);
-              }
-            } else {
-              return Error(`Default data can not be converted to another prop`);
             }
-            prop.type = BCMSPropType.BOOLEAN;
-            prop.defaultData = boolean;
-          } else if (type === BCMSPropType.DATE) {
-            const dates: number[] = [];
-            if (prop.type === BCMSPropType.STRING) {
-              for (let j = 0; j < (prop.defaultData as string[]).length; j++) {
-                const defaultData = (prop.defaultData as string[])[j];
-                let date = Date.parse(defaultData);
-                if (isNaN(date)) {
-                  date = 0;
-                }
-                dates.push(date);
-              }
-            } else {
-              return Error(`Default data can not be converted to another prop`);
-            }
-            prop.type = BCMSPropType.DATE;
-            prop.defaultData = dates;
-          } else if (type === BCMSPropType.RICH_TEXT) {
-            const rich_text: BCMSPropRichTextData = { nodes: [] };
-            if (prop.type === BCMSPropType.STRING) {
-              const node = {
-                type: BCMSEntryContentNodeType.paragraph,
-                content: [],
-              } as BCMSEntryContentNode;
-              for (let j = 0; j < (prop.defaultData as string[]).length; j++) {
-                const defaultData = (prop.defaultData as string[])[j];
-                const content = {
-                  type: BCMSEntryContentNodeType.text,
-                  text: defaultData,
-                } as BCMSEntryContentNode;
-                node.content?.push(content);
-              }
-              rich_text.nodes.push(node);
-            } else {
-              return Error(`Default data can not be converted to another prop`);
-            }
-            (prop.defaultData as string[]).length = 0;
-            (prop.defaultData as BCMSPropRichTextData[]).push(rich_text);
-            prop.type = BCMSPropType.RICH_TEXT;
+            prop.type = BCMSPropType.STRING;
+            prop.defaultData = text;
+          } else {
+            return Error(`Default data can not be converted to another prop`);
           }
-        } else {
-          return Error(`Default data is undefinited`);
+        } else if (wantedPropType === BCMSPropType.NUMBER) {
+          if (
+            prop.type === BCMSPropType.STRING ||
+            prop.type === BCMSPropType.BOOLEAN
+          ) {
+            const currentDefaultData = prop.defaultData as Array<
+              string | boolean
+            >;
+            const newDefaultData: number[] = [];
+            for (let j = 0; j < currentDefaultData.length; j++) {
+              const item = currentDefaultData[j];
+              let data = Number(item);
+              if (isNaN(data)) {
+                data = 0;
+              }
+              newDefaultData.push(data);
+            }
+            prop.type = BCMSPropType.NUMBER;
+            prop.defaultData = newDefaultData;
+          } else {
+            return Error(`Default data can not be converted to another prop`);
+          }
+        } else if (wantedPropType === BCMSPropType.BOOLEAN) {
+          const boolean: boolean[] = [];
+          if (prop.type === BCMSPropType.STRING) {
+            const currentDefaultData = prop.defaultData as string[];
+            for (let j = 0; j < currentDefaultData.length; j++) {
+              const item = currentDefaultData[j];
+              boolean.push(item.toLocaleLowerCase() === 'true' ? true : false);
+            }
+          } else if (prop.type === BCMSPropType.NUMBER) {
+            const currentDefaultData = prop.defaultData as number[];
+            for (let j = 0; j < currentDefaultData.length; j++) {
+              const item = currentDefaultData[j];
+              boolean.push(item > 0 ? true : false);
+            }
+          } else {
+            return Error(`Default data can not be converted to another prop`);
+          }
+          prop.type = BCMSPropType.BOOLEAN;
+          prop.defaultData = boolean;
+        } else if (wantedPropType === BCMSPropType.DATE) {
+          const dates: number[] = [];
+          if (prop.type === BCMSPropType.STRING) {
+            const currentDefaultData = prop.defaultData as string[];
+            for (let j = 0; j < currentDefaultData.length; j++) {
+              const item = currentDefaultData[j];
+              let date = Date.parse(item);
+              if (isNaN(date)) {
+                date = 0;
+              }
+              dates.push(date);
+            }
+          } else {
+            return Error(`Default data can not be converted to another prop`);
+          }
+          prop.type = BCMSPropType.DATE;
+          prop.defaultData = dates;
+        } else if (wantedPropType === BCMSPropType.RICH_TEXT) {
+          const newDefaultData: BCMSPropRichTextData[] = [];
+          if (prop.type === BCMSPropType.STRING) {
+            const currentDefaultData = prop.defaultData as string[];
+            for (let j = 0; j < currentDefaultData.length; j++) {
+              const item = currentDefaultData[j];
+              newDefaultData.push({
+                nodes: [
+                  {
+                    type: BCMSEntryContentNodeType.paragraph,
+                    content: [
+                      {
+                        type: BCMSEntryContentNodeType.text,
+                        text: item,
+                      },
+                    ],
+                  },
+                ],
+              });
+            }
+          } else {
+            return Error(`Default data can not be converted to another prop`);
+          }
+          prop.type = BCMSPropType.RICH_TEXT;
+          prop.defaultData = newDefaultData;
         }
       } else {
         return Error(`(${level}) --> changes[${i}] in of unknown type.`);
