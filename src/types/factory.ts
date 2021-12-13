@@ -13,6 +13,7 @@ import type {
   BCMSWidgetFactory,
   BCMSColorFactory,
   BCMSTagFactory,
+  BCMSChangeFactory,
 } from '.';
 
 export interface BCMSFactory {
@@ -30,4 +31,5 @@ export interface BCMSFactory {
   prop: BCMSPropFactory;
   color: BCMSColorFactory;
   tag: BCMSTagFactory;
+  change: BCMSChangeFactory;
 }

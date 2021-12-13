@@ -13,6 +13,7 @@ import type {
   BCMSColorRepository,
   BCMSTagRepository,
 } from '.';
+import type { BCMSChangeRepository } from './changes';
 
 export interface BCMSRepo {
   apiKey: BCMSApiKeyRepository;
@@ -28,4 +29,5 @@ export interface BCMSRepo {
   widget: BCMSWidgetRepository;
   color: BCMSColorRepository;
   tag: BCMSTagRepository;
+  change: BCMSChangeRepository;
 }

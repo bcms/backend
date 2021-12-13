@@ -77,6 +77,7 @@ import { bcmsSetup } from './setup';
 import { BCMSColorController, createBcmsColorRepository } from './color';
 import { BCMSTagController, createBcmsTagRepository } from './tag';
 import { BCMSTypeConverterController } from './type-converter';
+import { BCMSChangeController, createBcmsChangeRepository } from './changes';
 
 const backend: BCMSBackend = {
   app: undefined as never,
@@ -187,6 +188,7 @@ async function initialize() {
     createBcmsWidgetRepository(),
     createBcmsColorRepository(),
     createBcmsTagRepository(),
+    createBcmsChangeRepository(),
   ];
   const middleware: Middleware[] = [
     createCorsMiddleware(),
@@ -217,6 +219,7 @@ async function initialize() {
     BCMSColorController,
     BCMSTagController,
     BCMSTypeConverterController,
+    BCMSChangeController,
   ];
   if (BCMSConfig.database.fs) {
     modules.push(

@@ -14,4 +14,5 @@ export const BCMSRepo: BCMSRepoType = {
   widget: undefined as never,
   color: undefined as never,
   tag: undefined as never,
+  change: undefined as never,
 };
