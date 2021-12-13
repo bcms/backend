@@ -909,6 +909,8 @@ export const BCMSPropHandler: BCMSPropHandlerType = {
               prop.type = BCMSPropType.STRING;
               prop.array = false;
               prop.defaultData = text;
+            } else {
+              return Error(`Default data can not be converted to another prop`);
             }
           } else if (type === BCMSPropType.NUMBER) {
             if (
@@ -930,8 +932,11 @@ export const BCMSPropHandler: BCMSPropHandlerType = {
                 }
                 numbers.push(data);
               }
+
               prop.type = BCMSPropType.NUMBER;
               prop.defaultData = numbers;
+            } else {
+              return Error(`Default data can not be converted to another prop`);
             }
           } else if (type === BCMSPropType.BOOLEAN) {
             const boolean: boolean[] = [];
@@ -958,6 +963,8 @@ export const BCMSPropHandler: BCMSPropHandlerType = {
                 }
                 boolean.push(booleanItem);
               }
+            } else {
+              return Error(`Default data can not be converted to another prop`);
             }
             prop.type = BCMSPropType.BOOLEAN;
             prop.defaultData = boolean;
@@ -972,6 +979,8 @@ export const BCMSPropHandler: BCMSPropHandlerType = {
                 }
                 dates.push(date);
               }
+            } else {
+              return Error(`Default data can not be converted to another prop`);
             }
             prop.type = BCMSPropType.DATE;
             prop.defaultData = dates;
@@ -991,6 +1000,8 @@ export const BCMSPropHandler: BCMSPropHandlerType = {
                 node.content?.push(content);
               }
               rich_text.nodes.push(node);
+            } else {
+              return Error(`Default data can not be converted to another prop`);
             }
             (prop.defaultData as string[]).length = 0;
             (prop.defaultData as BCMSPropRichTextData[]).push(rich_text);
