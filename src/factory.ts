@@ -1,6 +1,6 @@
 import type { Module } from '@becomes/purple-cheetah/types';
 import { createBcmsApiKeyFactory } from './api';
-import { createBcmsChangeFactory } from './changes';
+import { createBcmsChangeFactory } from './change';
 import { createBcmsColorFactory } from './color';
 import { createBcmsEntryFactory } from './entry';
 import { createBcmsGroupFactory } from './group';

@@ -3,7 +3,6 @@ import type { Socket } from '@becomes/purple-cheetah-mod-socket/types';
 import type { Module } from '@becomes/purple-cheetah/types';
 import {
   BCMSSocketApiKeyEvent,
-  BCMSSocketChangeEvent,
   BCMSSocketColorEvent,
   BCMSSocketEntryEvent,
   BCMSSocketEventName,
@@ -179,17 +178,6 @@ export const BCMSSocketManager: BCMSSocketManagerType = {
         BCMSSocketEventName.TAG,
         {
           tg: data.tagId,
-          t: data.type,
-        },
-        data.userIds,
-      );
-    },
-    async change(data) {
-      await emit<BCMSSocketChangeEvent>(
-        soc,
-        BCMSSocketEventName.TAG,
-        {
-          ch: data.changeId,
           t: data.type,
         },
         data.userIds,

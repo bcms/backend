@@ -1,5 +1,5 @@
 export * from './api';
-export * from './changes';
+export * from './change';
 export * from './entry';
 export * from './event';
 export * from './function';
@@ -22,7 +22,6 @@ export * from './util';
 export * from './widget';
 export * from './color';
 export * from './tag';
-export * from './changes';
 
 export * from './config';
 export * from './factory';

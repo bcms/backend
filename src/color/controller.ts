@@ -217,6 +217,7 @@ export const BCMSColorController = createController<Setup>({
             userIds: 'all',
             excludeUserId: [accessToken.payload.userId],
           });
+          await BCMSRepo.change.methods.updateAndIncByName('color');
           return {
             item: addedColor,
           };
@@ -276,6 +277,7 @@ export const BCMSColorController = createController<Setup>({
             userIds: 'all',
             excludeUserId: [accessToken.payload.userId],
           });
+          await BCMSRepo.change.methods.updateAndIncByName('color');
           return {
             item: updatedColor,
           };
@@ -314,6 +316,7 @@ export const BCMSColorController = createController<Setup>({
             userIds: 'all',
             excludeUserId: [accessToken.payload.userId],
           });
+          await BCMSRepo.change.methods.updateAndIncByName('color');
           return {
             message: 'Success.',
           };

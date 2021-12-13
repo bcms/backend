@@ -77,7 +77,7 @@ import { bcmsSetup } from './setup';
 import { BCMSColorController, createBcmsColorRepository } from './color';
 import { BCMSTagController, createBcmsTagRepository } from './tag';
 import { BCMSTypeConverterController } from './type-converter';
-import { BCMSChangeController, createBcmsChangeRepository } from './changes';
+import { BCMSChangeController, createBcmsChangeRepository } from './change';
 
 const backend: BCMSBackend = {
   app: undefined as never,

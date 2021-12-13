@@ -154,13 +154,3 @@ export interface BCMSSocketTagEvent {
    */
   t: BCMSSocketEventType;
 }
-export interface BCMSSocketChangeEvent {
-  /**
-   * Change ID.
-   */
-  ch: string;
-  /**
-   * Event type.
-   */
-  t: BCMSSocketEventType;
-}
