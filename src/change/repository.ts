@@ -1,6 +1,7 @@
 import { BCMSConfig } from '@bcms/config';
+import { BCMSFactory } from '@bcms/factory';
 import { BCMSRepo } from '@bcms/repo';
-import { BCMSChange, BCMSChangeFSDBSchema } from '@bcms/types';
+import { BCMSChange, BCMSChangeFSDBSchema, BCMSChangeName } from '@bcms/types';
 import {
   BCMSChangeTimeMongoDBSchema,
   BCMSChangeRepositoryMethods,
@@ -8,6 +9,31 @@ import {
 import { createFSDBRepository } from '@becomes/purple-cheetah-mod-fsdb';
 import { createMongoDBCachedRepository } from '@becomes/purple-cheetah-mod-mongodb';
 import type { Module } from '@becomes/purple-cheetah/types';
+
+async function init() {
+  const names: BCMSChangeName[] = [
+    'color',
+    'entry',
+    'group',
+    'language',
+    'media',
+    'status',
+    'tag',
+    'templates',
+    'widget',
+  ];
+  for (let i = 0; i < names.length; i++) {
+    const name = names[i];
+    if (!(await BCMSRepo.change.methods.findByName(name))) {
+      await BCMSRepo.change.add(
+        BCMSFactory.change.create({
+          count: 0,
+          name,
+        }),
+      );
+    }
+  }
+}
 
 export function createBcmsChangeRepository(): Module {
   return {
@@ -37,6 +63,9 @@ export function createBcmsChangeRepository(): Module {
                   }
                   return null;
                 },
+                async findByName(changeName) {
+                  return repo.findBy((e) => e.name === changeName);
+                },
               };
             },
           })
@@ -54,6 +83,7 @@ export function createBcmsChangeRepository(): Module {
                   const result = await mongoDBInterface.findOneAndUpdate(
                     { _id: change._id },
                     {
+                      updatedAt: Date.now(),
                       $inc: { count: 1 },
                     },
                   );
@@ -66,6 +96,7 @@ export function createBcmsChangeRepository(): Module {
                   const result = await mongoDBInterface.findOneAndUpdate(
                     { name: changeName },
                     {
+                      updatedAt: Date.now(),
                       $inc: { count: 1 },
                     },
                   );
@@ -74,11 +105,27 @@ export function createBcmsChangeRepository(): Module {
                   }
                   return result;
                 },
+                async findByName(changeName) {
+                  const cacheHit = cacheHandler.findOne(
+                    (e) => e.name === changeName,
+                  );
+                  if (cacheHit) {
+                    return cacheHit;
+                  }
+                  const item = await mongoDBInterface.findOne({
+                    name: changeName,
+                  });
+                  if (item) {
+                    cacheHandler.set(item._id, item);
+                  }
+                  return item;
+                },
               };
             },
           });
-
-      next();
+      init()
+        .then(() => next())
+        .catch((err) => next(err));
     },
   };
 }
