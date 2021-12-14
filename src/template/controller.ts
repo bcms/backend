@@ -184,6 +184,7 @@ export const BCMSTemplateController = createController<Setup>({
             userIds: 'all',
             excludeUserId: [accessToken.payload.userId],
           });
+          await BCMSRepo.change.methods.updateAndIncByName('templates');
           return {
             item: addedTemplate,
           };
@@ -336,6 +337,7 @@ export const BCMSTemplateController = createController<Setup>({
             userIds: 'all',
             excludeUserId: [accessToken.payload.userId],
           });
+          await BCMSRepo.change.methods.updateAndIncByName('templates');
           return {
             item: updatedTemplate,
           };
@@ -402,6 +404,7 @@ export const BCMSTemplateController = createController<Setup>({
             userIds: 'all',
             excludeUserId: [accessToken.payload.userId],
           });
+          await BCMSRepo.change.methods.updateAndIncByName('templates');
           return {
             message: 'Success.',
           };

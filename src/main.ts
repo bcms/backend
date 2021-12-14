@@ -77,7 +77,11 @@ import { bcmsSetup } from './setup';
 import { BCMSColorController, createBcmsColorRepository } from './color';
 import { BCMSTagController, createBcmsTagRepository } from './tag';
 import { BCMSTypeConverterController } from './type-converter';
-import { BCMSChangeController, createBcmsChangeRepository } from './change';
+import {
+  BCMSChangeController,
+  createBcmsChangeRepository,
+  createChangeInitializeModule,
+} from './change';
 
 const backend: BCMSBackend = {
   app: undefined as never,
@@ -279,6 +283,7 @@ async function initialize() {
   modules.push(createBcmsFunctionModule());
   modules.push(createBcmsEventModule());
   modules.push(createBcmsJobModule());
+  modules.push(createChangeInitializeModule());
 
   modules.push(createBcmsPluginModule(BCMSConfig));
 

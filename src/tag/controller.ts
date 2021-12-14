@@ -180,6 +180,7 @@ export const BCMSTagController = createController({
             userIds: 'all',
             excludeUserId: [accessToken.payload.userId],
           });
+          await BCMSRepo.change.methods.updateAndIncByName('tag');
           return {
             item: addedTag,
           };
@@ -240,6 +241,7 @@ export const BCMSTagController = createController({
             userIds: 'all',
             excludeUserId: [accessToken.payload.userId],
           });
+          await BCMSRepo.change.methods.updateAndIncByName('tag');
           return {
             item: updatedTag,
           };
@@ -260,7 +262,7 @@ export const BCMSTagController = createController({
           if (!tag) {
             throw errorHandler.occurred(
               HTTPStatus.NOT_FOUNT,
-              bcmsResCode('ta001', { id: request.params.id }),
+              bcmsResCode('tag001', { id: request.params.id }),
             );
           }
           const deleteTag = await BCMSRepo.tag.deleteById(request.params.id);
@@ -282,6 +284,7 @@ export const BCMSTagController = createController({
             userIds: 'all',
             excludeUserId: [accessToken.payload.userId],
           });
+          await BCMSRepo.change.methods.updateAndIncByName('tag');
           return {
             message: 'Success.',
           };

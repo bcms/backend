@@ -34,7 +34,7 @@ export const BCMSChangeFSDBSchema: ObjectSchema = {
   },
 };
 
-export const BCMSChangeTimeMongoDBSchema = new Schema({
+export const BCMSChangeMongoDBSchema = new Schema({
   ...MongoDBEntitySchemaString,
   name: {
     type: String,

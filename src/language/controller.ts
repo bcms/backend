@@ -123,6 +123,7 @@ export const BCMSLanguageController = createController({
             userIds: 'all',
             excludeUserId: [accessToken.payload.userId],
           });
+          await BCMSRepo.change.methods.updateAndIncByName('language');
           return {
             item: language,
           };
@@ -162,6 +163,7 @@ export const BCMSLanguageController = createController({
             userIds: 'all',
             excludeUserId: [accessToken.payload.userId],
           });
+          await BCMSRepo.change.methods.updateAndIncByName('language');
           return {
             message: 'Success.',
           };

@@ -1,39 +1,13 @@
 import { BCMSConfig } from '@bcms/config';
-import { BCMSFactory } from '@bcms/factory';
 import { BCMSRepo } from '@bcms/repo';
-import { BCMSChange, BCMSChangeFSDBSchema, BCMSChangeName } from '@bcms/types';
+import { BCMSChange, BCMSChangeFSDBSchema } from '@bcms/types';
 import {
-  BCMSChangeTimeMongoDBSchema,
+  BCMSChangeMongoDBSchema,
   BCMSChangeRepositoryMethods,
 } from '@bcms/types/change';
 import { createFSDBRepository } from '@becomes/purple-cheetah-mod-fsdb';
 import { createMongoDBCachedRepository } from '@becomes/purple-cheetah-mod-mongodb';
 import type { Module } from '@becomes/purple-cheetah/types';
-
-async function init() {
-  const names: BCMSChangeName[] = [
-    'color',
-    'entry',
-    'group',
-    'language',
-    'media',
-    'status',
-    'tag',
-    'templates',
-    'widget',
-  ];
-  for (let i = 0; i < names.length; i++) {
-    const name = names[i];
-    if (!(await BCMSRepo.change.methods.findByName(name))) {
-      await BCMSRepo.change.add(
-        BCMSFactory.change.create({
-          count: 0,
-          name,
-        }),
-      );
-    }
-  }
-}
 
 export function createBcmsChangeRepository(): Module {
   return {
@@ -64,7 +38,7 @@ export function createBcmsChangeRepository(): Module {
                   return null;
                 },
                 async findByName(changeName) {
-                  return repo.findBy((e) => e.name === changeName);
+                  return await repo.findBy((e) => e.name === changeName);
                 },
               };
             },
@@ -76,7 +50,7 @@ export function createBcmsChangeRepository(): Module {
           >({
             name: name,
             collection,
-            schema: BCMSChangeTimeMongoDBSchema,
+            schema: BCMSChangeMongoDBSchema,
             methods({ mongoDBInterface, cacheHandler }) {
               return {
                 async updateAndInc(change) {
@@ -123,9 +97,8 @@ export function createBcmsChangeRepository(): Module {
               };
             },
           });
-      init()
-        .then(() => next())
-        .catch((err) => next(err));
+
+      next();
     },
   };
 }
