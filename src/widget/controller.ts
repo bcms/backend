@@ -218,6 +218,7 @@ export const BCMSWidgetController = createController<Setup>({
             userIds: 'all',
             excludeUserId: [accessToken.payload.userId],
           });
+          await BCMSRepo.change.methods.updateAndIncByName('widget');
           return {
             item: widget,
           };
@@ -347,6 +348,7 @@ export const BCMSWidgetController = createController<Setup>({
             userIds: 'all',
             excludeUserId: [accessToken.payload.userId],
           });
+          await BCMSRepo.change.methods.updateAndIncByName('widget');
           return {
             item: widget,
           };
@@ -391,6 +393,7 @@ export const BCMSWidgetController = createController<Setup>({
             userIds: 'all',
             excludeUserId: [accessToken.payload.userId],
           });
+          await BCMSRepo.change.methods.updateAndIncByName('widget');
           return {
             message: 'Success.',
           };

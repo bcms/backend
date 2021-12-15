@@ -507,6 +507,7 @@ export const BCMSMediaController = createController<Setup>({
             userIds: 'all',
             excludeUserId: [accessToken.payload.userId],
           });
+          await BCMSRepo.change.methods.updateAndIncByName('media');
           return {
             item: addedMedia,
           };
@@ -572,6 +573,7 @@ export const BCMSMediaController = createController<Setup>({
             userIds: 'all',
             excludeUserId: [accessToken.payload.userId],
           });
+          await BCMSRepo.change.methods.updateAndIncByName('media');
           return {
             item: addedMedia,
           };
@@ -664,6 +666,7 @@ export const BCMSMediaController = createController<Setup>({
             userIds: 'all',
             excludeUserId: [accessToken.payload.userId],
           });
+          await BCMSRepo.change.methods.updateAndIncByName('media');
           return {
             item: updateMedia,
           };
@@ -767,6 +770,7 @@ export const BCMSMediaController = createController<Setup>({
             userIds: 'all',
             excludeUserId: [accessToken.payload.userId],
           });
+          await BCMSRepo.change.methods.updateAndIncByName('media');
           return {
             item: duplicateMedia,
           };
@@ -816,6 +820,7 @@ export const BCMSMediaController = createController<Setup>({
             userIds: 'all',
             excludeUserId: [accessToken.payload.userId],
           });
+          await BCMSRepo.change.methods.updateAndIncByName('media');
           return {
             item: moveMedia,
           };
@@ -873,6 +878,7 @@ export const BCMSMediaController = createController<Setup>({
             userIds: 'all',
             excludeUserId: [accessToken.payload.userId],
           });
+          await BCMSRepo.change.methods.updateAndIncByName('media');
           return {
             message: 'Success.',
           };

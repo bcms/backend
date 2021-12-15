@@ -339,6 +339,7 @@ export const BCMSEntryController = createController<Setup>({
             userIds: 'all',
             excludeUserId: token ? [token.payload.userId] : undefined,
           });
+          await BCMSRepo.change.methods.updateAndIncByName('entry');
           return {
             item: addedEntry,
           };
@@ -433,6 +434,7 @@ export const BCMSEntryController = createController<Setup>({
             userIds: 'all',
             excludeUserId: token ? [token.payload.userId] : undefined,
           });
+          await BCMSRepo.change.methods.updateAndIncByName('entry');
           return {
             item: updatedEntry,
           };
@@ -469,6 +471,7 @@ export const BCMSEntryController = createController<Setup>({
             userIds: 'all',
             excludeUserId: token ? [token.payload.userId] : undefined,
           });
+          await BCMSRepo.change.methods.updateAndIncByName('entry');
           return {
             message: 'Success.',
           };

@@ -140,6 +140,7 @@ export const BCMSStatusController = createController<Setup>({
             userIds: 'all',
             excludeUserId: [accessToken.payload.userId],
           });
+          await BCMSRepo.change.methods.updateAndIncByName('status');
           return {
             item: addedStatus,
           };
@@ -207,6 +208,7 @@ export const BCMSStatusController = createController<Setup>({
             userIds: 'all',
             excludeUserId: [accessToken.payload.userId],
           });
+          await BCMSRepo.change.methods.updateAndIncByName('status');
           return {
             item: updatedStatus,
           };
@@ -248,6 +250,7 @@ export const BCMSStatusController = createController<Setup>({
             userIds: 'all',
             excludeUserId: [accessToken.payload.userId],
           });
+          await BCMSRepo.change.methods.updateAndIncByName('status');
           return {
             message: 'Success.',
           };

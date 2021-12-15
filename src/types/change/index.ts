@@ -1,3 +1,4 @@
-export * from './controller';
+export * from './models';
+
 export * from './factory';
 export * from './repository';

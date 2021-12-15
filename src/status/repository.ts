@@ -12,6 +12,32 @@ import {
   BCMSStatusRepositoryMethods,
 } from '../types';
 
+export async function initBcmsStatusRepository(): Promise<void> {
+  const stringUtil = useStringUtility();
+  const draft = await BCMSRepo.status.methods.findByName(
+    stringUtil.toSlugUnderscore('Draft'),
+  );
+  if (!draft) {
+    await BCMSRepo.status.add(
+      BCMSFactory.status.create({
+        label: 'Draft',
+        name: stringUtil.toSlugUnderscore('Draft'),
+      }),
+    );
+  }
+  const activeStatus = await BCMSRepo.status.methods.findByName(
+    stringUtil.toSlugUnderscore('Active'),
+  );
+  if (!activeStatus) {
+    await BCMSRepo.status.add(
+      BCMSFactory.status.create({
+        label: 'Active',
+        name: stringUtil.toSlugUnderscore('Active'),
+      }),
+    );
+  }
+}
+
 export function createBcmsStatusRepository(): Module {
   return {
     name: 'Create status repository',
@@ -56,35 +82,7 @@ export function createBcmsStatusRepository(): Module {
               };
             },
           });
-
-      const stringUtil = useStringUtility();
-      BCMSRepo.status.methods
-        .findByName(stringUtil.toSlugUnderscore('Draft'))
-        .then(async (draftStatus) => {
-          if (!draftStatus) {
-            await BCMSRepo.status.add(
-              BCMSFactory.status.create({
-                label: 'Draft',
-                name: stringUtil.toSlugUnderscore('Draft'),
-              }),
-            );
-          }
-          const activeStatus = await BCMSRepo.status.methods.findByName(
-            stringUtil.toSlugUnderscore('Active'),
-          );
-          if (!activeStatus) {
-            await BCMSRepo.status.add(
-              BCMSFactory.status.create({
-                label: 'Active',
-                name: stringUtil.toSlugUnderscore('Active'),
-              }),
-            );
-          }
-          next();
-        })
-        .catch((error) => {
-          next(error);
-        });
+      next();
     },
   };
 }

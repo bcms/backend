@@ -1,7 +1,10 @@
 import { useFS } from '@becomes/purple-cheetah';
 import type { Module } from '@becomes/purple-cheetah/types';
+import { initBcmsChangeRepository } from './change';
 import { loadBcmsConfig } from './config';
+import { initBcmsLanguageRepository } from './language';
 import { loadBcmsResponseCodes } from './response-code';
+import { initBcmsStatusRepository } from './status';
 import { BCMSChildProcess } from './util';
 
 async function init() {
@@ -29,6 +32,23 @@ export function bcmsSetup(): Module {
     name: 'Setup',
     initialize({ next }) {
       init()
+        .then(() => next())
+        .catch((err) => next(err));
+    },
+  };
+}
+
+async function postInit(): Promise<void> {
+  await initBcmsStatusRepository();
+  await initBcmsLanguageRepository();
+  await initBcmsChangeRepository();
+}
+
+export function bcmsPostSetup(): Module {
+  return {
+    name: 'Post Setup',
+    initialize({ next }) {
+      postInit()
         .then(() => next())
         .catch((err) => next(err));
     },

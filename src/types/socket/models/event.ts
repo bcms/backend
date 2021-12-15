@@ -12,6 +12,7 @@ export enum BCMSSocketEventName {
   WIDGET = 'WIDGET',
   COLOR = 'COLOR',
   TAG = 'TAG',
+  CHANGE = 'CHANGE',
 }
 
 // eslint-disable-next-line no-shadow

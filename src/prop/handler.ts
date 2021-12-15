@@ -1310,6 +1310,9 @@ export const BCMSPropHandler: BCMSPropHandlerType = {
         });
       }
     }
+    if (groups.length > 0) {
+      await BCMSRepo.change.methods.updateAndIncByName('group');
+    }
     const widgets = await BCMSRepo.widget.methods.findAllByPropGroupPointer(
       groupId,
     );
@@ -1329,6 +1332,9 @@ export const BCMSPropHandler: BCMSPropHandlerType = {
         });
       }
     }
+    if (widgets.length > 0) {
+      await BCMSRepo.change.methods.updateAndIncByName('widget');
+    }
     const templates = await BCMSRepo.template.methods.findAllByPropGroupPointer(
       groupId,
     );
@@ -1347,6 +1353,9 @@ export const BCMSPropHandler: BCMSPropHandlerType = {
           userIds: 'all',
         });
       }
+    }
+    if (templates.length > 0) {
+      await BCMSRepo.change.methods.updateAndIncByName('templates');
     }
     if (errors.length > 0) {
       return errors;
@@ -1383,6 +1392,9 @@ export const BCMSPropHandler: BCMSPropHandlerType = {
         });
       }
     }
+    if (groups.length > 0) {
+      await BCMSRepo.change.methods.updateAndIncByName('group');
+    }
     const widgets = await BCMSRepo.widget.methods.findAllByPropEntryPointer(
       templateId,
     );
@@ -1402,6 +1414,9 @@ export const BCMSPropHandler: BCMSPropHandlerType = {
         });
       }
     }
+    if (widgets.length > 0) {
+      await BCMSRepo.change.methods.updateAndIncByName('widget');
+    }
     const templates = await BCMSRepo.template.methods.findAllByPropEntryPointer(
       templateId,
     );
@@ -1420,6 +1435,9 @@ export const BCMSPropHandler: BCMSPropHandlerType = {
           userIds: 'all',
         });
       }
+    }
+    if (templates.length > 0) {
+      await BCMSRepo.change.methods.updateAndIncByName('templates');
     }
     if (errors.length > 0) {
       return errors;
@@ -1455,6 +1473,9 @@ export const BCMSPropHandler: BCMSPropHandlerType = {
         });
       }
     }
+    if (groups.length > 0) {
+      await BCMSRepo.change.methods.updateAndIncByName('group');
+    }
     const widgets = await BCMSRepo.widget.methods.findAllByPropTag(tagId);
     for (let i = 0; i < widgets.length; i++) {
       const widget = widgets[i];
@@ -1472,6 +1493,9 @@ export const BCMSPropHandler: BCMSPropHandlerType = {
         });
       }
     }
+    if (widgets.length > 0) {
+      await BCMSRepo.change.methods.updateAndIncByName('widget');
+    }
     const templates = await BCMSRepo.template.methods.findAllByPropTag(tagId);
     for (let i = 0; i < templates.length; i++) {
       const template = templates[i];
@@ -1488,6 +1512,9 @@ export const BCMSPropHandler: BCMSPropHandlerType = {
           userIds: 'all',
         });
       }
+    }
+    if (templates.length > 0) {
+      await BCMSRepo.change.methods.updateAndIncByName('templates');
     }
     if (errors.length > 0) {
       return errors;
@@ -1522,6 +1549,9 @@ export const BCMSPropHandler: BCMSPropHandlerType = {
         });
       }
     }
+    if (groups.length > 0) {
+      await BCMSRepo.change.methods.updateAndIncByName('group');
+    }
     const widgets = await BCMSRepo.widget.methods.findAllByPropMedia(mediaId);
     for (let i = 0; i < widgets.length; i++) {
       const widget = widgets[i];
@@ -1538,6 +1568,9 @@ export const BCMSPropHandler: BCMSPropHandlerType = {
           userIds: 'all',
         });
       }
+    }
+    if (widgets.length > 0) {
+      await BCMSRepo.change.methods.updateAndIncByName('widget');
     }
     const templates = await BCMSRepo.template.methods.findAllByPropMedia(
       mediaId,
@@ -1557,6 +1590,9 @@ export const BCMSPropHandler: BCMSPropHandlerType = {
           userIds: 'all',
         });
       }
+    }
+    if (templates.length > 0) {
+      await BCMSRepo.change.methods.updateAndIncByName('templates');
     }
   },
   async removeWidget({ widgetId }) {
@@ -1587,6 +1623,10 @@ export const BCMSPropHandler: BCMSPropHandlerType = {
         });
       }
     }
+    if (groups.length > 0) {
+      await BCMSRepo.change.methods.updateAndIncByName('group');
+    }
+    // TODO: check if this is required. Widget cannot have widget inside of it.
     const widgets = await BCMSRepo.widget.methods.findAllByPropWidget(widgetId);
     for (let i = 0; i < widgets.length; i++) {
       const widget = widgets[i];
@@ -1603,6 +1643,9 @@ export const BCMSPropHandler: BCMSPropHandlerType = {
           userIds: 'all',
         });
       }
+    }
+    if (widgets.length > 0) {
+      await BCMSRepo.change.methods.updateAndIncByName('widget');
     }
     const templates = await BCMSRepo.template.methods.findAllByPropWidget(
       widgetId,
@@ -1622,6 +1665,9 @@ export const BCMSPropHandler: BCMSPropHandlerType = {
           userIds: 'all',
         });
       }
+    }
+    if (templates.length > 0) {
+      await BCMSRepo.change.methods.updateAndIncByName('templates');
     }
     if (errors.length > 0) {
       return errors;

@@ -240,6 +240,7 @@ export const BCMSGroupController = createController<Setup>({
             userIds: 'all',
             excludeUserId: [accessToken.payload.userId],
           });
+          await BCMSRepo.change.methods.updateAndIncByName('group');
           return {
             item: addedGroup,
           };
@@ -357,6 +358,7 @@ export const BCMSGroupController = createController<Setup>({
             userIds: 'all',
             excludeUserId: [accessToken.payload.userId],
           });
+          await BCMSRepo.change.methods.updateAndIncByName('group');
           return {
             item: updatedGroup,
           };
@@ -402,6 +404,7 @@ export const BCMSGroupController = createController<Setup>({
             userIds: 'all',
             excludeUserId: [accessToken.payload.userId],
           });
+          await BCMSRepo.change.methods.updateAndIncByName('group');
           return {
             message: 'Success.',
           };
