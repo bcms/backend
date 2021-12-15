@@ -35,7 +35,7 @@ export const BCMSChangeController = createController({
     return {
       getInfo: createControllerMethod<
         BCMSJwtApiRouteProtectionPreRequestHandlerResult,
-        { item: GetInfoData }
+        GetInfoData
       >({
         path: '/info',
         type: 'get',
@@ -90,9 +90,7 @@ export const BCMSChangeController = createController({
               lastChangeAt: change.updatedAt,
             };
           }
-          return {
-            item: output,
-          };
+          return output;
         },
       }),
     };
