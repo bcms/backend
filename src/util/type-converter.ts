@@ -242,6 +242,13 @@ export class BCMSTypeConverter {
       };
     });
   }
+  static async jsDoc(
+    data: BCMSTypeConverterTarget[],
+  ): Promise<BCMSTypeConverterResultItem[]> {
+    console.log(data);
+    // TODO: Implement logic
+    return [];
+  }
 }
 function toCamelCase(nameEncoded: string) {
   return nameEncoded
