@@ -1626,6 +1626,7 @@ export const BCMSPropHandler: BCMSPropHandlerType = {
     if (groups.length > 0) {
       await BCMSRepo.change.methods.updateAndIncByName('group');
     }
+    // TODO: check if this is required. Widget cannot have widget inside of it.
     const widgets = await BCMSRepo.widget.methods.findAllByPropWidget(widgetId);
     for (let i = 0; i < widgets.length; i++) {
       const widget = widgets[i];

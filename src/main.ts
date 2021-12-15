@@ -41,7 +41,6 @@ import { createBcmsJobModule } from './job';
 import {
   BCMSLanguageController,
   createBcmsLanguageRepository,
-  initLanguage,
 } from './language';
 import {
   BCMSMediaController,
@@ -73,14 +72,13 @@ import { BCMSUiAssetMiddleware } from './ui-middleware';
 import { createBcmsIdCounterRepository } from './id-counter';
 import { createBcmsFactories } from './factory';
 import { BCMSAuthController } from './auth';
-import { bcmsSetup } from './setup';
+import { bcmsPostSetup, bcmsSetup } from './setup';
 import { BCMSColorController, createBcmsColorRepository } from './color';
 import { BCMSTagController, createBcmsTagRepository } from './tag';
 import { BCMSTypeConverterController } from './type-converter';
 import {
   BCMSChangeController,
   createBcmsChangeRepository,
-  createChangeInitializeModule,
 } from './change';
 
 const backend: BCMSBackend = {
@@ -279,14 +277,14 @@ async function initialize() {
   modules.push(createBcmsApiKeySecurity());
   modules.push(createBcmsPropHandler());
   modules.push(createBcmsEntryParser());
-  modules.push(initLanguage());
   modules.push(createBcmsFunctionModule());
   modules.push(createBcmsEventModule());
   modules.push(createBcmsJobModule());
-  modules.push(createChangeInitializeModule());
-
+  
   modules.push(createBcmsPluginModule(BCMSConfig));
-
+  
+  modules.push(bcmsPostSetup());
+  
   backend.app = createPurpleCheetah({
     port: BCMSConfig.port,
     middleware,

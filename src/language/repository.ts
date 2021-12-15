@@ -1,4 +1,5 @@
 import { BCMSConfig } from '@bcms/config';
+import { BCMSFactory } from '@bcms/factory';
 import { BCMSRepo } from '@bcms/repo';
 import { createFSDBRepository } from '@becomes/purple-cheetah-mod-fsdb';
 import { createMongoDBCachedRepository } from '@becomes/purple-cheetah-mod-mongodb';
@@ -9,6 +10,20 @@ import {
   BCMSLanguageMongoDBSchema,
   BCMSLanguageRepositoryMethods,
 } from '../types';
+
+export async function initBcmsLanguageRepository(): Promise<void> {
+  const langs = await BCMSRepo.language.findAll();
+  if (langs.length === 0) {
+    const lang = BCMSFactory.language.create({
+      code: 'en',
+      def: true,
+      name: 'English',
+      nativeName: 'English',
+      userId: '',
+    });
+    await BCMSRepo.language.add(lang);
+  }
+}
 
 export function createBcmsLanguageRepository(): Module {
   return {

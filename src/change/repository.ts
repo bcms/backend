@@ -1,6 +1,7 @@
 import { BCMSConfig } from '@bcms/config';
+import { BCMSFactory } from '@bcms/factory';
 import { BCMSRepo } from '@bcms/repo';
-import { BCMSChange, BCMSChangeFSDBSchema } from '@bcms/types';
+import { BCMSChange, BCMSChangeFSDBSchema, BCMSChangeName } from '@bcms/types';
 import {
   BCMSChangeMongoDBSchema,
   BCMSChangeRepositoryMethods,
@@ -8,6 +9,31 @@ import {
 import { createFSDBRepository } from '@becomes/purple-cheetah-mod-fsdb';
 import { createMongoDBCachedRepository } from '@becomes/purple-cheetah-mod-mongodb';
 import type { Module } from '@becomes/purple-cheetah/types';
+
+export async function initBcmsChangeRepository(): Promise<void> {
+  const names: BCMSChangeName[] = [
+    'color',
+    'entry',
+    'group',
+    'language',
+    'media',
+    'status',
+    'tag',
+    'templates',
+    'widget',
+  ];
+  for (let i = 0; i < names.length; i++) {
+    const name = names[i];
+    if (!(await BCMSRepo.change.methods.findByName(name))) {
+      await BCMSRepo.change.add(
+        BCMSFactory.change.create({
+          count: 0,
+          name: name,
+        }),
+      );
+    }
+  }
+}
 
 export function createBcmsChangeRepository(): Module {
   return {
