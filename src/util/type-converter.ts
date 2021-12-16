@@ -8,7 +8,8 @@ import {
   BCMSTypeConverterTarget,
 } from '@bcms/types';
 import { BCMSRepo } from '@bcms/repo';
-
+import { join } from 'path';
+import * as fs from 'fs-extra';
 interface BCMSTypeConverterPropsResult {
   props: Array<{
     name: string;
@@ -62,10 +63,20 @@ class BCMSImports {
     }
     return output;
   }
+  flattenForJSDoc(): string[] {
+    const output: string[] = [];
+    for (const path in this.state) {
+      const names = Object.keys(this.state[path]);
+      names.map((e) => {
+        output.push(`* @typedef { import('${path}.js').${e} } ${e}`);
+      });
+    }
+    return output;
+  }
 }
 
 export class BCMSTypeConverter {
-  static async bcmsPropTypeToTypescriptType(
+  static async bcmsPropTypeToConvertType(
     prop: BCMSProp,
   ): Promise<{ type: string; imports: BCMSImports }> {
     let output = '';
@@ -127,7 +138,7 @@ export class BCMSTypeConverter {
     }
     return { type: prop.array ? output + '[]' : output, imports };
   }
-  static async toTypescriptProps({
+  static async toConvertProps({
     props,
   }: {
     props: BCMSProp[];
@@ -138,7 +149,7 @@ export class BCMSTypeConverter {
     };
     for (let i = 0; i < props.length; i++) {
       const prop = props[i];
-      const typeResult = await this.bcmsPropTypeToTypescriptType(prop);
+      const typeResult = await this.bcmsPropTypeToConvertType(prop);
       output.imports.fromImports(typeResult.imports);
       output.props.push({
         name: prop.name,
@@ -169,7 +180,7 @@ export class BCMSTypeConverter {
           ].join('\n');
         } else if (target.props) {
           const props = target.props;
-          const result = await this.toTypescriptProps({ props });
+          const result = await this.toConvertProps({ props });
           const interfaceName = toCamelCase(target.name + '_' + target.type);
           let typescriptProps: string[] = [];
           let additional: string[] = [''];
@@ -234,7 +245,11 @@ export class BCMSTypeConverter {
         }
       }
     }
-
+    for (let index = 0; index < Object.keys(output).length; index++) {
+      const e = Object.keys(output)[index];
+      await fs.createFile(join(process.cwd(), '_test', e));
+      await fs.writeFile(join(process.cwd(), '_test', e), output[e]);
+    }
     return Object.keys(output).map((outputFile) => {
       return {
         outputFile,
@@ -245,9 +260,108 @@ export class BCMSTypeConverter {
   static async jsDoc(
     data: BCMSTypeConverterTarget[],
   ): Promise<BCMSTypeConverterResultItem[]> {
-    console.log(data);
-    // TODO: Implement logic
-    return [];
+    const output: {
+      [outputFile: string]: string;
+    } = {};
+    let loop = true;
+    const parsedItems: {
+      [name: string]: boolean;
+    } = {};
+
+    while (loop) {
+      const target = data.pop();
+      if (!target) {
+        loop = false;
+      } else {
+        if (target.type === 'enum' && target.enumItems) {
+          output[`enum/${target.name}.js`] = [
+            `/** `,
+            '* @param {',
+            ...target.enumItems.map((e) => `*  | '${e}'`),
+            `* } ${toCamelCase(target.name)} `,
+            '*/',
+          ].join('\n');
+        } else if (target.props) {
+          const props = target.props;
+          const result = await this.toConvertProps({ props });
+          const interfaceName = toCamelCase(target.name + '_' + target.type);
+          let jsDocProps: string[] = [];
+          let additional: string[] = [''];
+          if (target.type === 'entry') {
+            const languages = await BCMSRepo.language.findAll();
+            jsDocProps = [
+              '*  @param { string } id',
+              '*  @param { number } createdAt',
+              '*  @param { number } updatedAt',
+              '*  @param { string } cid',
+              '*  @param { string } templateId',
+              '*  @param { string } userId',
+              '*  @param { string } status',
+              '*  @param {  ',
+              ...languages.map(
+                (lng) => `          { ${lng.code}: ${interfaceName}Meta }`,
+              ),
+              '          } meta',
+              '*  @param {  ',
+              ...languages.map(
+                (lng) => `          { ${lng.code}: BCMSEntryContentParsed }`,
+              ),
+              '          } content',
+            ];
+
+            result.imports.set(
+              'BCMSEntryContentParsed',
+              '@becomes/cms-client/types',
+            );
+            additional = [
+              '',
+              `*  @typedef { Object } ${interfaceName}Meta`,
+              ...result.props.map(
+                (prop) => `*  @param { ${prop.type} } ${prop.name}`,
+              ),
+              '',
+            ];
+          } else {
+            jsDocProps = result.props.map(
+              (prop) => `*  @param { ${prop.type} } ${prop.name}`,
+            );
+          }
+          output[`${target.type}/${target.name}.js`] = [
+            `/**`,
+            ...result.imports.flattenForJSDoc(),
+            ...additional,
+            `*  @typedef { Object } ${toCamelCase(
+              target.name + '_' + target.type,
+            )}`,
+            ...jsDocProps,
+            `*  @returns { Object }`,
+            `*/`,
+          ].join('\n');
+          const importsState = result.imports.state;
+          for (const path in importsState) {
+            if (!path.startsWith('@becomes')) {
+              for (const name in importsState[path]) {
+                const metadata = importsState[path][name].metadata;
+                if (metadata && !parsedItems[name]) {
+                  data.push(metadata);
+                }
+              }
+            }
+          }
+        }
+      }
+    }
+    for (let index = 0; index < Object.keys(output).length; index++) {
+      const e = Object.keys(output)[index];
+      await fs.createFile(join(process.cwd(), '_jsDoc', e));
+      await fs.writeFile(join(process.cwd(), '_jsDoc', e), output[e]);
+    }
+    return Object.keys(output).map((outputFile) => {
+      return {
+        outputFile,
+        content: output[outputFile],
+      };
+    });
   }
 }
 function toCamelCase(nameEncoded: string) {

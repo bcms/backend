@@ -14,6 +14,7 @@
 /local-dev-dist
 /public
 /_test
+/_jsDoc
 
 # Logs
 /log
