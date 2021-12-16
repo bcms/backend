@@ -2,6 +2,7 @@ const { createConfig, createTasks, Proc } = require('@banez/npm-tool');
 const path = require('path');
 const util = require('util');
 const fs = require('fs');
+const fsp = require('fs/promises');
 const fse = require('fs-extra');
 
 /**
@@ -110,6 +111,32 @@ module.exports = createConfig({
         title: 'Fix imports',
         task: async () => {
           await fixImports();
+        },
+      },
+      {
+        title: 'Copy response codes',
+        task: async () => {
+          await fse.copy(
+            path.join(process.cwd(), 'src', 'response-code', 'codes'),
+            path.join(process.cwd(), 'dist', 'src', 'response-code', 'codes'),
+          );
+        },
+      },
+      {
+        title: 'Create custom package.json',
+        task: async () => {
+          const packageJson = JSON.parse(
+            await fsp.readFile(path.join(process.cwd(), 'package.json')),
+          );
+          packageJson.devDependencies = undefined;
+          packageJson.nodemonConfig = undefined;
+          packageJson.scripts = {
+            start: 'node src/main.js',
+          };
+          await fsp.writeFile(
+            path.join(process.cwd(), 'dist', 'package.json'),
+            JSON.stringify(packageJson, null, '  '),
+          );
         },
       },
     ],

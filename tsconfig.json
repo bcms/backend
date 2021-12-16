@@ -2,9 +2,9 @@
   "compilerOptions": {
     "module": "commonjs",
     "declaration": true,
-    "declarationMap": true,
-    "sourceMap": true,
-    "removeComments": true,
+    "declarationMap": false,
+    "sourceMap": false,
+    "removeComments": false,
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
     "strict": true,
