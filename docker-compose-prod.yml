@@ -1,6 +1,11 @@
 version: '3.9'
+networks:
+  default:
+    external: true
+    name: bcms
 services:
   backend_prod:
+    hostname: 'bcms-backend'
     image: 'becomes/cms-backend'
     ports:
       - '1280:1280'

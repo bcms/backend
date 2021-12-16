@@ -1,12 +1,18 @@
 version: '3.9'
+networks:
+  default:
+    external: true
+    name: bcms
 services:
   proxy:
+    hostname: 'bcms-proxy'
     image: 'becomes/cms-proxy-local:1.0.2'
     ports:
       - '8080:8080'
     logging:
       driver: none
   shim:
+    hostname: 'bcms-shim'
     depends_on:
       - proxy
     image: 'becomes/cms-shim-local:1.0.2'
@@ -15,6 +21,7 @@ services:
     logging:
       driver: none
   backend:
+    hostname: 'bcms-backend'
     depends_on:
       - shim
     build: 
