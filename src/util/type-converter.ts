@@ -8,8 +8,6 @@ import {
   BCMSTypeConverterTarget,
 } from '@bcms/types';
 import { BCMSRepo } from '@bcms/repo';
-import { join } from 'path';
-import * as fs from 'fs-extra';
 interface BCMSTypeConverterPropsResult {
   props: Array<{
     name: string;
@@ -245,11 +243,6 @@ export class BCMSTypeConverter {
         }
       }
     }
-    for (let index = 0; index < Object.keys(output).length; index++) {
-      const e = Object.keys(output)[index];
-      await fs.createFile(join(process.cwd(), '_test', e));
-      await fs.writeFile(join(process.cwd(), '_test', e), output[e]);
-    }
     return Object.keys(output).map((outputFile) => {
       return {
         outputFile,
@@ -350,11 +343,6 @@ export class BCMSTypeConverter {
           }
         }
       }
-    }
-    for (let index = 0; index < Object.keys(output).length; index++) {
-      const e = Object.keys(output)[index];
-      await fs.createFile(join(process.cwd(), '_jsDoc', e));
-      await fs.writeFile(join(process.cwd(), '_jsDoc', e), output[e]);
     }
     return Object.keys(output).map((outputFile) => {
       return {
