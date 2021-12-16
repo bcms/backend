@@ -4,7 +4,7 @@ import { ObjectUtilityError } from '@becomes/purple-cheetah/types';
 import { BCMSConfig as BCMSConfigType, BCMSConfigSchema } from './types';
 
 export const BCMSConfig: BCMSConfigType = {
-  port: 1280,
+  port: process.env.PORT ? parseInt(process.env.PORT, 10) : 8080,
   jwt: {
     expireIn: 300000,
     secret: 'secret',
