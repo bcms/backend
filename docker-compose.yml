@@ -6,7 +6,7 @@ networks:
 services:
   proxy:
     hostname: 'bcms-proxy'
-    image: 'becomes/cms-proxy-local:1.0.2'
+    image: 'becomes/cms-proxy-local:1.0.4'
     ports:
       - '8080:8080'
     logging:
@@ -28,7 +28,7 @@ services:
       context: '.'
       dockerfile: Dockerfile.dev
     ports:
-      - '1280:1280'
+      - '1280:8080'
     volumes:
       - type: bind
         source: ./bcms.config.js
