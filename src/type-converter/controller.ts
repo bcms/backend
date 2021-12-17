@@ -40,7 +40,6 @@ export const BCMSTypeConverterController = createController({
           const templates = await BCMSRepo.template.findAll();
           const groups = await BCMSRepo.group.findAll();
           const widgets = await BCMSRepo.widget.findAll();
-          let convertContent: BCMSTypeConverterResultItem[] = [];
           if (
             request.params.languageType !== 'typescript' &&
             request.params.languageType !== 'JSDoc'
@@ -54,39 +53,38 @@ export const BCMSTypeConverterController = createController({
             request.params.languageType === 'typescript'
               ? 'typescript'
               : 'jsDoc';
-          convertContent = await BCMSTypeConverter[converter]([
-            ...templates.map((e) => {
-              return {
-                name: e.name,
-                type: 'template',
-                props: e.props,
-              } as BCMSTypeConverterTarget;
-            }),
-            ...templates.map((e) => {
-              return {
-                name: e.name,
-                type: 'entry',
-                props: e.props,
-              } as BCMSTypeConverterTarget;
-            }),
-            ...groups.map((e) => {
-              return {
-                name: e.name,
-                type: 'group',
-                props: e.props,
-              } as BCMSTypeConverterTarget;
-            }),
-            ...widgets.map((e) => {
-              return {
-                name: e.name,
-                type: 'widget',
-                props: e.props,
-              } as BCMSTypeConverterTarget;
-            }),
-          ]);
 
           return {
-            items: convertContent,
+            items: await BCMSTypeConverter[converter]([
+              ...templates.map((e) => {
+                return {
+                  name: e.name,
+                  type: 'template',
+                  props: e.props,
+                } as BCMSTypeConverterTarget;
+              }),
+              ...templates.map((e) => {
+                return {
+                  name: e.name,
+                  type: 'entry',
+                  props: e.props,
+                } as BCMSTypeConverterTarget;
+              }),
+              ...groups.map((e) => {
+                return {
+                  name: e.name,
+                  type: 'group',
+                  props: e.props,
+                } as BCMSTypeConverterTarget;
+              }),
+              ...widgets.map((e) => {
+                return {
+                  name: e.name,
+                  type: 'widget',
+                  props: e.props,
+                } as BCMSTypeConverterTarget;
+              }),
+            ]),
           };
         },
       }),
@@ -151,27 +149,19 @@ export const BCMSTypeConverterController = createController({
               bcmsResCode('tc002', { itemId: request.params.itemId }),
             );
           }
-          let convertContent: BCMSTypeConverterResultItem[] = [];
-          if (request.params.languageType === 'typescript') {
-            convertContent = await BCMSTypeConverter.typescript([
-              {
-                name: item.name,
-                type: itemType,
-                props: item.props,
-              },
-            ]);
-          } else if (request.params.languageType === 'JSDoc') {
-            convertContent = await BCMSTypeConverter.jsDoc([
-              {
-                name: item.name,
-                type: itemType,
-                props: item.props,
-              },
-            ]);
-          }
+          const converter: 'typescript' | 'jsDoc' =
+            request.params.languageType === 'typescript'
+              ? 'typescript'
+              : 'jsDoc';
 
           return {
-            items: convertContent,
+            items: await BCMSTypeConverter[converter]([
+              {
+                name: item.name,
+                type: itemType,
+                props: item.props,
+              },
+            ]),
           };
         },
       }),
