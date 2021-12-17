@@ -66,7 +66,7 @@ class BCMSImports {
     for (const path in this.state) {
       const names = Object.keys(this.state[path]);
       names.map((e) => {
-        output.push(` *  @typedef { import('${path}.js').${e} } ${e}`);
+        output.push(` *  @typedef { import('${path}').${e} } ${e}`);
       });
     }
     return output;
@@ -271,7 +271,7 @@ export class BCMSTypeConverter {
             `/** `,
             ' *  @typedef {(',
             ...target.enumItems.map((e) => ` *              | '${e}'`),
-            ` *           )} ${toCamelCase(target.name)} `,
+            ` *           )} ${toCamelCase(target.name)}Enum `,
             ' */',
           ].join('\n');
         } else if (target.props) {
