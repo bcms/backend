@@ -49,69 +49,41 @@ export const BCMSTypeConverterController = createController({
               HTTPStatus.BAD_REQUEST,
               bcmsResCode('tc003', { type: request.params.type }),
             );
-          } else if (request.params.languageType === 'typescript') {
-            convertContent = await BCMSTypeConverter.typescript([
-              ...templates.map((e) => {
-                return {
-                  name: e.name,
-                  type: 'template',
-                  props: e.props,
-                } as BCMSTypeConverterTarget;
-              }),
-              ...templates.map((e) => {
-                return {
-                  name: e.name,
-                  type: 'entry',
-                  props: e.props,
-                } as BCMSTypeConverterTarget;
-              }),
-              ...groups.map((e) => {
-                return {
-                  name: e.name,
-                  type: 'group',
-                  props: e.props,
-                } as BCMSTypeConverterTarget;
-              }),
-              ...widgets.map((e) => {
-                return {
-                  name: e.name,
-                  type: 'widget',
-                  props: e.props,
-                } as BCMSTypeConverterTarget;
-              }),
-            ]);
-          } else if (request.params.languageType === 'JSDoc') {
-            convertContent = await BCMSTypeConverter.jsDoc([
-              ...templates.map((e) => {
-                return {
-                  name: e.name,
-                  type: 'template',
-                  props: e.props,
-                } as BCMSTypeConverterTarget;
-              }),
-              ...templates.map((e) => {
-                return {
-                  name: e.name,
-                  type: 'entry',
-                  props: e.props,
-                } as BCMSTypeConverterTarget;
-              }),
-              ...groups.map((e) => {
-                return {
-                  name: e.name,
-                  type: 'group',
-                  props: e.props,
-                } as BCMSTypeConverterTarget;
-              }),
-              ...widgets.map((e) => {
-                return {
-                  name: e.name,
-                  type: 'widget',
-                  props: e.props,
-                } as BCMSTypeConverterTarget;
-              }),
-            ]);
           }
+          const converter: 'typescript' | 'jsDoc' =
+            request.params.languageType === 'typescript'
+              ? 'typescript'
+              : 'jsDoc';
+          convertContent = await BCMSTypeConverter[converter]([
+            ...templates.map((e) => {
+              return {
+                name: e.name,
+                type: 'template',
+                props: e.props,
+              } as BCMSTypeConverterTarget;
+            }),
+            ...templates.map((e) => {
+              return {
+                name: e.name,
+                type: 'entry',
+                props: e.props,
+              } as BCMSTypeConverterTarget;
+            }),
+            ...groups.map((e) => {
+              return {
+                name: e.name,
+                type: 'group',
+                props: e.props,
+              } as BCMSTypeConverterTarget;
+            }),
+            ...widgets.map((e) => {
+              return {
+                name: e.name,
+                type: 'widget',
+                props: e.props,
+              } as BCMSTypeConverterTarget;
+            }),
+          ]);
 
           return {
             items: convertContent,
