@@ -66,7 +66,7 @@ class BCMSImports {
     for (const path in this.state) {
       const names = Object.keys(this.state[path]);
       names.map((e) => {
-        output.push(`* @typedef { import('${path}.js').${e} } ${e}`);
+        output.push(` *  @typedef { import('${path}.js').${e} } ${e}`);
       });
     }
     return output;
@@ -269,10 +269,10 @@ export class BCMSTypeConverter {
         if (target.type === 'enum' && target.enumItems) {
           output[`enum/${target.name}.js`] = [
             `/** `,
-            '* @param {',
-            ...target.enumItems.map((e) => `*  | '${e}'`),
-            `* } ${toCamelCase(target.name)} `,
-            '*/',
+            ' *  @typedef {(',
+            ...target.enumItems.map((e) => ` *              | '${e}'`),
+            ` *           )} ${toCamelCase(target.name)} `,
+            ' */',
           ].join('\n');
         } else if (target.props) {
           const props = target.props;
@@ -283,23 +283,24 @@ export class BCMSTypeConverter {
           if (target.type === 'entry') {
             const languages = await BCMSRepo.language.findAll();
             jsDocProps = [
-              '*  @param { string } id',
-              '*  @param { number } createdAt',
-              '*  @param { number } updatedAt',
-              '*  @param { string } cid',
-              '*  @param { string } templateId',
-              '*  @param { string } userId',
-              '*  @param { string } status',
-              '*  @param {  ',
+              ' *  @property { string } id',
+              ' *  @property { number } createdAt',
+              ' *  @property { number } updatedAt',
+              ' *  @property { string } cid',
+              ' *  @property { string } templateId',
+              ' *  @property { string } userId',
+              ' *  @property { string } status',
+              ' *  @property {{  ',
               ...languages.map(
-                (lng) => `          { ${lng.code}: ${interfaceName}Meta }`,
+                (lng) => ` *              ${lng.code}: ${interfaceName}Meta `,
               ),
-              '          } meta',
-              '*  @param {  ',
+              ' *            }} meta',
+              ' *  @property {{  ',
               ...languages.map(
-                (lng) => `          { ${lng.code}: BCMSEntryContentParsed }`,
+                (lng) =>
+                  ` *               ${lng.code}: BCMSEntryContentParsed `,
               ),
-              '          } content',
+              ' *            }} content',
             ];
 
             result.imports.set(
@@ -307,28 +308,27 @@ export class BCMSTypeConverter {
               '@becomes/cms-client/types',
             );
             additional = [
-              '',
-              `*  @typedef { Object } ${interfaceName}Meta`,
+              ' *',
+              ` *  @typedef { Object } ${interfaceName}Meta`,
               ...result.props.map(
-                (prop) => `*  @param { ${prop.type} } ${prop.name}`,
+                (prop) => ` *  @property { ${prop.type} } ${prop.name}`,
               ),
-              '',
+              ' *',
             ];
           } else {
             jsDocProps = result.props.map(
-              (prop) => `*  @param { ${prop.type} } ${prop.name}`,
+              (prop) => ` *  @property { ${prop.type} } ${prop.name}`,
             );
           }
           output[`${target.type}/${target.name}.js`] = [
             `/**`,
             ...result.imports.flattenForJSDoc(),
             ...additional,
-            `*  @typedef { Object } ${toCamelCase(
+            ` *  @typedef { Object } ${toCamelCase(
               target.name + '_' + target.type,
             )}`,
             ...jsDocProps,
-            `*  @returns { Object }`,
-            `*/`,
+            ` */`,
           ].join('\n');
           const importsState = result.imports.state;
           for (const path in importsState) {
