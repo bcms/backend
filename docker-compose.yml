@@ -38,6 +38,3 @@ services:
       - type: bind
         source: ./_test
         target: /app/_test
-      - type: bind
-        source: ./_jsDoc
-        target: /app/_jsDoc
