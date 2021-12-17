@@ -24,7 +24,7 @@ services:
     hostname: 'bcms-backend'
     depends_on:
       - shim
-    build: 
+    build:
       context: '.'
       dockerfile: Dockerfile.dev
     ports:

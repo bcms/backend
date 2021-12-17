@@ -30,19 +30,32 @@ export const BCMSTypeConverterController = createController({
         JWTPreRequestHandlerResult<BCMSUserCustomPool>,
         { items: BCMSTypeConverterResultItem[] }
       >({
-        path: '/all',
+        path: '/:languageType/all',
         type: 'get',
         preRequestHandler: createJwtProtectionPreRequestHandler(
           [JWTRoleName.ADMIN, JWTRoleName.USER],
           JWTPermissionName.READ,
         ),
-        async handler() {
+        async handler({ request, errorHandler }) {
           const templates = await BCMSRepo.template.findAll();
           const groups = await BCMSRepo.group.findAll();
           const widgets = await BCMSRepo.widget.findAll();
+          if (
+            request.params.languageType !== 'typescript' &&
+            request.params.languageType !== 'JSDoc'
+          ) {
+            throw errorHandler.occurred(
+              HTTPStatus.BAD_REQUEST,
+              bcmsResCode('tc003', { type: request.params.type }),
+            );
+          }
+          const converter: 'typescript' | 'jsDoc' =
+            request.params.languageType === 'typescript'
+              ? 'typescript'
+              : 'jsDoc';
 
           return {
-            items: await BCMSTypeConverter.typescript([
+            items: await BCMSTypeConverter[converter]([
               ...templates.map((e) => {
                 return {
                   name: e.name,
@@ -86,6 +99,15 @@ export const BCMSTypeConverterController = createController({
           JWTPermissionName.READ,
         ),
         async handler({ request, errorHandler }) {
+          if (
+            request.params.languageType !== 'typescript' &&
+            request.params.languageType !== 'JSDoc'
+          ) {
+            throw errorHandler.occurred(
+              HTTPStatus.BAD_REQUEST,
+              bcmsResCode('tc003', { type: request.params.type }),
+            );
+          }
           const allowedTypes = ['template', 'group', 'widget', 'entry'];
           if (!allowedTypes.includes(request.params.itemType)) {
             throw errorHandler.occurred(
@@ -94,25 +116,30 @@ export const BCMSTypeConverterController = createController({
             );
           }
           let item: BCMSGroup | BCMSTemplate | BCMSWidget | null = null;
+          let itemType: BCMSTypeConverterTarget['type'] = 'entry';
           switch (request.params.itemType) {
             case 'entry':
               {
                 item = await BCMSRepo.template.findById(request.params.itemId);
+                itemType = 'entry';
               }
               break;
             case 'group':
               {
                 item = await BCMSRepo.group.findById(request.params.itemId);
+                itemType = 'group';
               }
               break;
             case 'widget':
               {
                 item = await BCMSRepo.widget.findById(request.params.itemId);
+                itemType = 'widget';
               }
               break;
             case 'template':
               {
                 item = await BCMSRepo.template.findById(request.params.itemId);
+                itemType = 'template';
               }
               break;
           }
@@ -122,12 +149,16 @@ export const BCMSTypeConverterController = createController({
               bcmsResCode('tc002', { itemId: request.params.itemId }),
             );
           }
+          const converter: 'typescript' | 'jsDoc' =
+            request.params.languageType === 'typescript'
+              ? 'typescript'
+              : 'jsDoc';
 
           return {
-            items: await BCMSTypeConverter.typescript([
+            items: await BCMSTypeConverter[converter]([
               {
                 name: item.name,
-                type: 'entry',
+                type: itemType,
                 props: item.props,
               },
             ]),
