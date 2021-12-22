@@ -5,7 +5,6 @@ import { loadBcmsConfig } from './config';
 import { initBcmsLanguageRepository } from './language';
 import { loadBcmsResponseCodes } from './response-code';
 import { initBcmsStatusRepository } from './status';
-import { jsdoctest } from './test';
 import { BCMSChildProcess } from './util';
 
 async function init() {
@@ -43,7 +42,6 @@ async function postInit(): Promise<void> {
   await initBcmsStatusRepository();
   await initBcmsLanguageRepository();
   await initBcmsChangeRepository();
-  await jsdoctest();
 }
 
 export function bcmsPostSetup(): Module {
