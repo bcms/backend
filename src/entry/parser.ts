@@ -124,6 +124,12 @@ export function createBcmsEntryParser(): Module {
           }
           return output;
         },
+        async contentToText() {
+          // TODO: Logic
+          // TODO: Widgets should be parsed as JSON
+
+          return '';
+        },
       };
       moduleConfig.next();
     },

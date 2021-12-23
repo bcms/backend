@@ -20,4 +20,11 @@ export interface BCMSEntryParser {
     depth?: number;
     maxDepth: number;
   }): Promise<BCMSEntryContentParsedItem[]>;
+  contentToText(data: {
+    nodes: BCMSEntryContentNode[];
+    level?: string;
+    justLng?: string;
+    depth?: number;
+    maxDepth: number;
+  }): Promise<string>;
 }

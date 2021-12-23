@@ -18,7 +18,3 @@ export interface SearchResult {
   matches: number;
   pointer: string;
 }
-export interface SearchSetItem {
-  id: string;
-  data: string[];
-}
