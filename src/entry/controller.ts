@@ -315,6 +315,7 @@ export const BCMSEntryController = createController<Setup>({
             }
             idc = 1;
           }
+          // TODO: body.content to text -> const plainText = parser.contentToText(body.content);
           const entry = BCMSFactory.entry.create({
             cid: idc.toString(16),
             templateId: template._id,
@@ -419,6 +420,7 @@ export const BCMSEntryController = createController<Setup>({
           }
           entry.status = status ? status._id : '';
           entry.meta = meta;
+          // TODO: convert body.content to text
           entry.content = body.content;
           const updatedEntry = await BCMSRepo.entry.update(entry);
           if (!updatedEntry) {
