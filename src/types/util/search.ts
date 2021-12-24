@@ -1,5 +1,5 @@
-// import type { SearchResult } from '../search';
+import type { BCMSEntryContentNode } from '..';
 
 export interface BCMSSearch {
-  search(data: string):any;
+  searchText(data: { node: BCMSEntryContentNode }): string;
 }

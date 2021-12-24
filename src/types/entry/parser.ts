@@ -3,6 +3,7 @@ import type {
   BCMSEntryParsed,
   BCMSEntryContentParsedItem,
   BCMSEntryContentNode,
+  BCMSEntryContent,
 } from './models';
 
 export interface BCMSEntryParser {
@@ -21,10 +22,6 @@ export interface BCMSEntryParser {
     maxDepth: number;
   }): Promise<BCMSEntryContentParsedItem[]>;
   contentToText(data: {
-    nodes: BCMSEntryContentNode[];
-    level?: string;
-    justLng?: string;
-    depth?: number;
-    maxDepth: number;
-  }): Promise<string>;
+    contents: BCMSEntryContent[];
+  }): Promise<BCMSEntryContent[]>;
 }

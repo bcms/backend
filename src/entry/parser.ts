@@ -1,6 +1,6 @@
 import { BCMSPropHandler } from '@bcms/prop';
 import { BCMSRepo } from '@bcms/repo';
-import { BCMSHtml } from '@bcms/util';
+import { BCMSHtml, BCMSSearch } from '@bcms/util';
 import type { Module } from '@becomes/purple-cheetah/types';
 import {
   BCMSEntryParsed,
@@ -10,6 +10,7 @@ import {
   BCMSEntryContentParsedItem,
   BCMSEntryContentNodeHeadingAttr,
   BCMSPropValueWidgetData,
+  BCMSEntryContent,
 } from '../types';
 
 let parser: BCMSEntryParser;
@@ -124,11 +125,28 @@ export function createBcmsEntryParser(): Module {
           }
           return output;
         },
-        async contentToText() {
-          // TODO: Logic
-          // TODO: Widgets should be parsed as JSON
-
-          return '';
+        async contentToText({ contents }) {
+          const contentsNew: BCMSEntryContent[] = [];
+          for (let i = 0; i < contents.length; i++) {
+            const content = contents[i];
+            let output = '';
+            for (let j = 0; j < content.nodes.length; j++) {
+              const node = content.nodes[j];
+              if (node.type === BCMSEntryContentNodeType.widget) {
+                const attrs = node.attrs as BCMSPropValueWidgetData;
+                output += JSON.stringify(attrs);
+              } else {
+                output += BCMSSearch.searchText({ node });
+              }
+            }
+            const contentsNewItem: BCMSEntryContent = {
+              lng: content.lng,
+              nodes: content.nodes,
+              plainText: output,
+            };
+            contentsNew.push(contentsNewItem);
+          }
+          return contentsNew;
         },
       };
       moduleConfig.next();

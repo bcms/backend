@@ -315,7 +315,9 @@ export const BCMSEntryController = createController<Setup>({
             }
             idc = 1;
           }
-          // TODO: body.content to text -> const plainText = parser.contentToText(body.content);
+          const plainText = await entryParser.contentToText({
+            contents: body.content,
+          });
           const entry = BCMSFactory.entry.create({
             cid: idc.toString(16),
             templateId: template._id,
@@ -324,7 +326,7 @@ export const BCMSEntryController = createController<Setup>({
               : `key_${key ? key._id : 'unknown'}`,
             status: status ? status._id : undefined,
             meta: meta,
-            content: body.content,
+            content: plainText,
           });
           const addedEntry = await BCMSRepo.entry.add(entry);
           if (!addedEntry) {
@@ -420,8 +422,10 @@ export const BCMSEntryController = createController<Setup>({
           }
           entry.status = status ? status._id : '';
           entry.meta = meta;
-          // TODO: convert body.content to text
-          entry.content = body.content;
+          const plainText = await entryParser.contentToText({
+            contents: body.content,
+          });
+          entry.content = plainText;
           const updatedEntry = await BCMSRepo.entry.update(entry);
           if (!updatedEntry) {
             throw errorHandler.occurred(

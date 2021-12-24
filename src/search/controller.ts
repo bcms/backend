@@ -1,7 +1,11 @@
 import { search } from '@banez/search';
 import type { SearchSetItem } from '@banez/search/types';
 import { BCMSRepo } from '@bcms/repo';
-import type { BCMSUserCustomPool } from '@bcms/types';
+import type {
+  BCMSUserCustomPool,
+  GetAllSearchResultItem,
+  SearchResultType,
+} from '@bcms/types';
 import {
   createController,
   createControllerMethod,
@@ -12,28 +16,6 @@ import {
   JWTPreRequestHandlerResult,
   JWTRoleName,
 } from '@becomes/purple-cheetah-mod-jwt/types';
-
-type SearchResultType =
-  | 'entry'
-  | 'widget'
-  | 'group'
-  | 'template'
-  | 'media'
-  | 'user'
-  | 'tag'
-  | 'color'
-  | 'apiKey';
-interface GetAllSearchResultItem {
-  /**
-   * - Role ADMIN: all
-   * - Role USER: entry, media, user, tag, color
-   */
-  type: SearchResultType;
-  id: string;
-  score: number;
-  matches: number;
-  positions: number[][];
-}
 
 export const BCMSSearchController = createController({
   name: 'Search controller',
@@ -97,6 +79,110 @@ export const BCMSSearchController = createController({
                       };
                     }),
                   );
+                }
+                break;
+              case 'group':
+                {
+                  const items = await BCMSRepo.group.findAll();
+                  searchSet.push(
+                    ...items.map((item) => {
+                      return {
+                        id: `${searchItem}_${item._id}`,
+                        data: [JSON.stringify(item)],
+                      };
+                    }),
+                  );
+                }
+                break;
+              case 'tag':
+                {
+                  const items = await BCMSRepo.tag.findAll();
+                  searchSet.push(
+                    ...items.map((item) => {
+                      return {
+                        id: `${searchItem}_${item._id}`,
+                        data: [JSON.stringify(item)],
+                      };
+                    }),
+                  );
+                }
+                break;
+              case 'user':
+                {
+                  const items = await BCMSRepo.user.findAll();
+                  searchSet.push(
+                    ...items.map((item) => {
+                      return {
+                        id: `${searchItem}_${item._id}`,
+                        data: [JSON.stringify(item)],
+                      };
+                    }),
+                  );
+                }
+                break;
+              case 'media':
+                {
+                  const items = await BCMSRepo.media.findAll();
+                  searchSet.push(
+                    ...items.map((item) => {
+                      return {
+                        id: `${searchItem}_${item._id}`,
+                        data: [JSON.stringify(item)],
+                      };
+                    }),
+                  );
+                }
+                break;
+              case 'template':
+                {
+                  const items = await BCMSRepo.template.findAll();
+                  searchSet.push(
+                    ...items.map((item) => {
+                      return {
+                        id: `${searchItem}_${item._id}`,
+                        data: [JSON.stringify(item)],
+                      };
+                    }),
+                  );
+                }
+                break;
+              case 'widget':
+                {
+                  const items = await BCMSRepo.widget.findAll();
+                  searchSet.push(
+                    ...items.map((item) => {
+                      return {
+                        id: `${searchItem}_${item._id}`,
+                        data: [JSON.stringify(item)],
+                      };
+                    }),
+                  );
+                }
+                break;
+              case 'entry':
+                {
+                  const items = await BCMSRepo.entry.findAll();
+                  for (let j = 0; j < items.length; j++) {
+                    const item = items[j];
+                    for (let k = 0; k < item.content.length; k++) {
+                      const contentItem = item.content[k];
+                      console.log(
+                        JSON.stringify([
+                          contentItem.lng,
+                          contentItem.plainText,
+                        ]),
+                      );
+                      searchSet.push({
+                        id: `${searchItem}_${item._id}`,
+                        data: [
+                          JSON.stringify([
+                            contentItem.lng,
+                            contentItem.plainText,
+                          ]),
+                        ],
+                      });
+                    }
+                  }
                 }
                 break;
               // TODO: Add other types

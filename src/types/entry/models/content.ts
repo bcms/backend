@@ -22,7 +22,7 @@ export const BCMSEntryContentFSDBSchema: ObjectSchema = {
   },
   plainText: {
     __type: 'string',
-    __required: true,
+    __required: false,
   },
 };
 export const BCMSEntryContentMongoDBSchema = new Schema({
