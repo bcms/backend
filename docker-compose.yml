@@ -42,6 +42,3 @@ services:
       - type: bind
         source: ./uploads
         target: /app/uploads
-      - type: bind
-        source: ./_test
-        target: /app/_test
