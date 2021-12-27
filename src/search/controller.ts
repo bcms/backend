@@ -185,7 +185,6 @@ export const BCMSSearchController = createController({
                   }
                 }
                 break;
-              // TODO: Add other types
             }
           }
           const searchResult = search({
