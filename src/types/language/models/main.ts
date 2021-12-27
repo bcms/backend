@@ -42,7 +42,7 @@ export const BCMSLanguageMongoDBSchema = new Schema({
   ...MongoDBEntitySchemaString,
   userId: {
     type: String,
-    required: true,
+    required: false,
   },
   code: {
     type: String,

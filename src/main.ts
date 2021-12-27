@@ -21,7 +21,7 @@ import { createFSDB } from '@becomes/purple-cheetah-mod-fsdb';
 import { createMongoDB } from '@becomes/purple-cheetah-mod-mongodb';
 
 import type { BCMSBackend, BCMSUserCustomPool } from './types';
-import { BCMSConfig } from './config';
+import { BCMSConfig, loadBcmsConfig } from './config';
 import { BCMSCypressController } from './cypress';
 import {
   BCMSShimHealthController,
@@ -76,16 +76,17 @@ import { bcmsPostSetup, bcmsSetup } from './setup';
 import { BCMSColorController, createBcmsColorRepository } from './color';
 import { BCMSTagController, createBcmsTagRepository } from './tag';
 import { BCMSTypeConverterController } from './type-converter';
-import { BCMSChangeController, createBcmsChangeRepository } from './change';
 import { BCMSSearchController } from './search';
+import { BCMSChangeController, createBcmsChangeRepository } from './change';
+import { loadBcmsResponseCodes } from './response-code';
 
 const backend: BCMSBackend = {
   app: undefined as never,
 };
 
 async function initialize() {
-  // await loadBcmsConfig();
-  // await loadBcmsResponseCodes();
+  await loadBcmsConfig();
+  await loadBcmsResponseCodes();
 
   const modules: Module[] = [
     bcmsSetup(),

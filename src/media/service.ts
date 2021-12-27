@@ -407,14 +407,14 @@ export const BCMSMediaService: BCMSMediaServiceType = {
       if (oldMedia.name !== newMedia.name) {
         const pathToOldMedia = await BCMSMediaService.getPath(oldMedia);
         const pathToNewMedia = await BCMSMediaService.getPath(newMedia);
-        await fs.rename(
+        await fs.move(
           path.join(process.cwd(), 'uploads', pathToOldMedia),
           path.join(process.cwd(), 'uploads', pathToNewMedia),
         );
         const pathParts = pathToNewMedia.split('/');
         const basePath = pathParts.slice(0, pathParts.length - 1).join('/');
         if (newMedia.type === BCMSMediaType.IMG) {
-          await fs.rename(
+          await fs.move(
             path.join(
               process.cwd(),
               'uploads',
@@ -438,7 +438,7 @@ export const BCMSMediaService: BCMSMediaServiceType = {
           const newNameParts = newMedia.name.split('.');
           const newName =
             newNameParts.slice(0, newNameParts.length - 1).join('.') + '.png';
-          await fs.rename(
+          await fs.move(
             path.join(
               process.cwd(),
               'uploads',

@@ -1,16 +1,11 @@
 import { useFS } from '@becomes/purple-cheetah';
 import type { Module } from '@becomes/purple-cheetah/types';
 import { initBcmsChangeRepository } from './change';
-import { loadBcmsConfig } from './config';
 import { initBcmsLanguageRepository } from './language';
-import { loadBcmsResponseCodes } from './response-code';
 import { initBcmsStatusRepository } from './status';
-import { jsdoctest } from './test';
 import { BCMSChildProcess } from './util';
 
 async function init() {
-  await loadBcmsConfig();
-  await loadBcmsResponseCodes();
   const fs = useFS({
     base: process.cwd(),
   });
@@ -43,7 +38,6 @@ async function postInit(): Promise<void> {
   await initBcmsStatusRepository();
   await initBcmsLanguageRepository();
   await initBcmsChangeRepository();
-  await jsdoctest();
 }
 
 export function bcmsPostSetup(): Module {

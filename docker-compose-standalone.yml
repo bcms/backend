@@ -5,7 +5,8 @@ networks:
     name: bcms
 services:
   backend:
-    hostname: 'bcms-backend'
+    container_name: bcms-instance-6169756ef956f26df700c2d7
+    hostname: 'bcms-instance-6169756ef956f26df700c2d7'
     build:
       context: ''
       dockerfile: Dockerfile.dev

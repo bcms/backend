@@ -148,10 +148,6 @@ export const BCMSConfigSchema: ObjectSchema = {
                 __type: 'string',
                 __required: true,
               },
-              prefix: {
-                __type: 'string',
-                __required: true,
-              },
             },
           },
           atlas: {
@@ -167,10 +163,6 @@ export const BCMSConfigSchema: ObjectSchema = {
                 __required: true,
               },
               password: {
-                __type: 'string',
-                __required: true,
-              },
-              prefix: {
                 __type: 'string',
                 __required: true,
               },
