@@ -24,6 +24,7 @@
     "build:plugins": "tsc -p tsconfig.plugins.json"
   },
   "dependencies": {
+    "@banez/search": "^1.0.0",
     "@becomes/purple-cheetah": "^3.5.1",
     "@becomes/purple-cheetah-mod-fsdb": "^1.1.1",
     "@becomes/purple-cheetah-mod-graphql": "^1.1.0",

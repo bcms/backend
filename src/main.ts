@@ -76,10 +76,8 @@ import { bcmsPostSetup, bcmsSetup } from './setup';
 import { BCMSColorController, createBcmsColorRepository } from './color';
 import { BCMSTagController, createBcmsTagRepository } from './tag';
 import { BCMSTypeConverterController } from './type-converter';
-import {
-  BCMSChangeController,
-  createBcmsChangeRepository,
-} from './change';
+import { BCMSSearchController } from './search';
+import { BCMSChangeController, createBcmsChangeRepository } from './change';
 import { loadBcmsResponseCodes } from './response-code';
 
 const backend: BCMSBackend = {
@@ -223,6 +221,7 @@ async function initialize() {
     BCMSTagController,
     BCMSTypeConverterController,
     BCMSChangeController,
+    BCMSSearchController,
   ];
   if (BCMSConfig.database.fs) {
     modules.push(
@@ -281,11 +280,11 @@ async function initialize() {
   modules.push(createBcmsFunctionModule());
   modules.push(createBcmsEventModule());
   modules.push(createBcmsJobModule());
-  
+
   modules.push(createBcmsPluginModule(BCMSConfig));
-  
+
   modules.push(bcmsPostSetup());
-  
+
   backend.app = createPurpleCheetah({
     port: BCMSConfig.port,
     middleware,

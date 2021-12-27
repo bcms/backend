@@ -23,6 +23,7 @@ export * from './widget';
 export * from './color';
 export * from './tag';
 export * from './change';
+export * from './search';
 
 export * from './config';
 export * from './factory';

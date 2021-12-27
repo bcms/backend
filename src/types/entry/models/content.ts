@@ -5,6 +5,7 @@ import type { BCMSPropValueWidgetData, BCMSPropParsed } from '../../prop';
 export interface BCMSEntryContent {
   lng: string;
   nodes: BCMSEntryContentNode[];
+  plainText: string;
 }
 export const BCMSEntryContentFSDBSchema: ObjectSchema = {
   lng: {
@@ -19,6 +20,10 @@ export const BCMSEntryContentFSDBSchema: ObjectSchema = {
       __content: {},
     },
   },
+  plainText: {
+    __type: 'string',
+    __required: false,
+  },
 };
 export const BCMSEntryContentMongoDBSchema = new Schema({
   lng: {
@@ -29,6 +34,7 @@ export const BCMSEntryContentMongoDBSchema = new Schema({
     type: [Object],
     required: true,
   },
+  planeText: String,
 });
 
 export interface BCMSEntryContentNode {

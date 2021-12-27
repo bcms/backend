@@ -2,7 +2,7 @@ import { BCMSFactory } from '@bcms/factory';
 import { BCMSMediaService } from '@bcms/media';
 import { BCMSRepo } from '@bcms/repo';
 import { BCMSSocketManager } from '@bcms/socket';
-import { BCMSHtml } from '@bcms/util';
+import { BCMSContentUtility } from '@bcms/util';
 import { useObjectUtility, useStringUtility } from '@becomes/purple-cheetah';
 import {
   Module,
@@ -52,34 +52,6 @@ function nodeToText(node: BCMSEntryContentNode) {
     output =
       node.content.map((childNode) => nodeToText(childNode)).join('') + '\n';
   }
-  /**
-   * This is my first blog
-   * item 1
-   * item 2
-   * item 2.1
-   * This is some paragraph
-   * This is code block'
-   */
-
-  // else if (node.type === BCMSEntryContentNodeType.paragraph && node.content) {
-  //   output = `${node.content.map((childNode) => nodeToText(childNode))}`;
-  // } else if (node.type === BCMSEntryContentNodeType.heading && node.content) {
-  //   output = `${node.content.map((childNode) => nodeToText(childNode))}`;
-  // } else if (
-  //   node.type === BCMSEntryContentNodeType.bulletList &&
-  //   node.content
-  // ) {
-  //   output = `${node.content.map((childNode) => nodeToText(childNode))}`;
-  // } else if (node.type === BCMSEntryContentNodeType.listItem && node.content) {
-  //   output = `${node.content.map((childNode) => nodeToText(childNode))}`;
-  // } else if (
-  //   node.type === BCMSEntryContentNodeType.orderedList &&
-  //   node.content
-  // ) {
-  //   output = `${node.content.map((childNode) => nodeToText(childNode))}`;
-  // } else if (node.type === BCMSEntryContentNodeType.codeBlock && node.content) {
-  //   output = `${node.content.map((childNode) => nodeToText(childNode))}`;
-  // }
   return output;
 }
 
@@ -1240,25 +1212,10 @@ export const BCMSPropHandler: BCMSPropHandlerType = {
                             .level,
                         }
                       : undefined,
-                  value: BCMSHtml.nodeToHtml({ node }),
+                  value: BCMSContentUtility.nodeToHtml({ node }),
                 };
               }) as BCMSEntryContentParsedItem[];
             });
-            // parsed[prop.name] = items.map((item) => {
-            //   return item.nodes.map((node) => {
-            //     return {
-            //       type: node.type,
-            //       attrs:
-            //         node.type === BCMSEntryContentNodeType.heading
-            //           ? {
-            //               level: (node.attrs as BCMSEntryContentNodeHeadingAttr)
-            //                 .level,
-            //             }
-            //           : undefined,
-            //       value: BCMSHtml.nodeToHtml({ node }),
-            //     };
-            //   });
-            // });
           } else {
             parsed[prop.name] = items[0].nodes.map((node) => {
               return {
@@ -1270,7 +1227,7 @@ export const BCMSPropHandler: BCMSPropHandlerType = {
                           .level,
                       }
                     : undefined,
-                value: BCMSHtml.nodeToHtml({ node }),
+                value: BCMSContentUtility.nodeToHtml({ node }),
               };
             });
           }

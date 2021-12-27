@@ -1,6 +1,6 @@
 import { BCMSPropHandler } from '@bcms/prop';
 import { BCMSRepo } from '@bcms/repo';
-import { BCMSHtml } from '@bcms/util';
+import { BCMSContentUtility } from '@bcms/util';
 import type { Module } from '@becomes/purple-cheetah/types';
 import {
   BCMSEntryParsed,
@@ -10,6 +10,7 @@ import {
   BCMSEntryContentParsedItem,
   BCMSEntryContentNodeHeadingAttr,
   BCMSPropValueWidgetData,
+  BCMSEntryContent,
 } from '../types';
 
 let parser: BCMSEntryParser;
@@ -118,11 +119,34 @@ export function createBcmsEntryParser(): Module {
                           .level,
                       }
                     : undefined,
-                value: BCMSHtml.nodeToHtml({ node }),
+                value: BCMSContentUtility.nodeToHtml({ node }),
               });
             }
           }
           return output;
+        },
+        async injectPlaneText({ content }) {
+          const contentsNew: BCMSEntryContent[] = [];
+          for (let i = 0; i < content.length; i++) {
+            const item = content[i];
+            let output = '';
+            for (let j = 0; j < item.nodes.length; j++) {
+              const node = item.nodes[j];
+              output += BCMSContentUtility.nodeToText({ node }) + '\n';
+              // if (node.type === BCMSEntryContentNodeType.widget) {
+              //   const attrs = node.attrs as BCMSPropValueWidgetData;
+              //   output += '__widget' + JSON.stringify(attrs);
+              // } else {
+              //   output += BCMSSearch.searchText({ node });
+              // }
+            }
+            contentsNew.push({
+              lng: item.lng,
+              nodes: item.nodes,
+              plainText: output.toLowerCase(),
+            });
+          }
+          return contentsNew;
         },
       };
       moduleConfig.next();

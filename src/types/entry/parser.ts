@@ -3,6 +3,7 @@ import type {
   BCMSEntryParsed,
   BCMSEntryContentParsedItem,
   BCMSEntryContentNode,
+  BCMSEntryContent,
 } from './models';
 
 export interface BCMSEntryParser {
@@ -20,4 +21,7 @@ export interface BCMSEntryParser {
     depth?: number;
     maxDepth: number;
   }): Promise<BCMSEntryContentParsedItem[]>;
+  injectPlaneText(data: {
+    content: BCMSEntryContent[];
+  }): Promise<BCMSEntryContent[]>;
 }
