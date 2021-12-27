@@ -5,7 +5,7 @@ import {
 import { MongoDBEntitySchemaString } from '@becomes/purple-cheetah-mod-mongodb/types';
 import type { ObjectSchema } from '@becomes/purple-cheetah/types';
 import { Schema } from 'mongoose';
-import type { BCMSProp } from '../../prop';
+import type { BCMSProp, BCMSPropGql } from '../../prop';
 
 export interface BCMSGroup extends FSDBEntity {
   cid: string;
@@ -13,6 +13,14 @@ export interface BCMSGroup extends FSDBEntity {
   label: string;
   desc: string;
   props: BCMSProp[];
+}
+
+export interface BCMSGroupGql extends FSDBEntity {
+  cid: string;
+  name: string;
+  label: string;
+  desc: string;
+  props: BCMSPropGql[];
 }
 
 export const BCMSGroupFSDBSchema: ObjectSchema = {

@@ -1,4 +1,4 @@
-import type { BCMSProp, BCMSPropType } from './models';
+import type { BCMSProp, BCMSPropType, BCMSPropGql } from './models';
 
 export interface BCMSPropFactory {
   create(type: BCMSPropType, array?: boolean): BCMSProp | null;
@@ -14,4 +14,5 @@ export interface BCMSPropFactory {
   colorPicker(array?: boolean): BCMSProp;
   tag(array?: boolean): BCMSProp;
   widget(array?: boolean): BCMSProp;
+  toGql(prop: BCMSProp | BCMSProp[]): BCMSPropGql | BCMSPropGql[];
 }

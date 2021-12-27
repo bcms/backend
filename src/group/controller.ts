@@ -27,6 +27,7 @@ import {
   BCMSGroupLite,
 } from '../types';
 import { createJwtAndBodyCheckRouteProtection } from '../util';
+import { BCMSGroupRequestHandler } from './request-handler';
 
 interface Setup {
   stringUtil: StringUtility;
@@ -101,7 +102,7 @@ export const BCMSGroupController = createController<Setup>({
         ),
         async handler() {
           return {
-            items: await BCMSRepo.group.findAll(),
+            items: await BCMSGroupRequestHandler.getAll(),
           };
         },
       }),
@@ -199,50 +200,12 @@ export const BCMSGroupController = createController<Setup>({
           bodySchema: BCMSGroupAddDataSchema,
         }),
         async handler({ errorHandler, body, accessToken }) {
-          let idc = await BCMSRepo.idc.methods.findAndIncByForId('groups');
-          if (!idc) {
-            const groupIdc = BCMSFactory.idc.create({
-              count: 2,
-              forId: 'groups',
-              name: 'Groups',
-            });
-            const addIdcResult = await BCMSRepo.idc.add(groupIdc);
-            if (!addIdcResult) {
-              throw errorHandler.occurred(
-                HTTPStatus.INTERNAL_SERVER_ERROR,
-                'Failed to add IDC to the database.',
-              );
-            }
-            idc = 1;
-          }
-          const group = BCMSFactory.group.create({
-            cid: idc.toString(16),
-            desc: body.desc,
-            label: body.label,
-            name: stringUtil.toSlugUnderscore(body.label),
-          });
-          if (await BCMSRepo.group.methods.findByName(group.name)) {
-            throw errorHandler.occurred(
-              HTTPStatus.FORBIDDEN,
-              bcmsResCode('grp002', { name: group.name }),
-            );
-          }
-          const addedGroup = await BCMSRepo.group.add(group);
-          if (!addedGroup) {
-            throw errorHandler.occurred(
-              HTTPStatus.INTERNAL_SERVER_ERROR,
-              bcmsResCode('grp003'),
-            );
-          }
-          await BCMSSocketManager.emit.group({
-            groupId: addedGroup._id,
-            type: BCMSSocketEventType.UPDATE,
-            userIds: 'all',
-            excludeUserId: [accessToken.payload.userId],
-          });
-          await BCMSRepo.change.methods.updateAndIncByName('group');
           return {
-            item: addedGroup,
+            item: await BCMSGroupRequestHandler.create({
+              accessToken,
+              errorHandler,
+              body,
+            }),
           };
         },
       }),

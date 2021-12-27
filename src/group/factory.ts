@@ -1,5 +1,6 @@
+import { BCMSFactory } from '@bcms/factory';
 import { Types } from 'mongoose';
-import type { BCMSGroupFactory } from '../types';
+import type { BCMSGroupFactory, BCMSPropGql } from '../types';
 
 export function createBcmsGroupFactory(): BCMSGroupFactory {
   return {
@@ -25,6 +26,18 @@ export function createBcmsGroupFactory(): BCMSGroupFactory {
         name: group.name,
         label: group.label,
         propsCount: group.props.length,
+      };
+    },
+    toGql(group) {
+      return {
+        _id: group._id,
+        createdAt: group.createdAt,
+        updatedAt: group.updatedAt,
+        cid: group.cid,
+        desc: group.desc,
+        name: group.name,
+        label: group.label,
+        props: BCMSFactory.prop.toGql(group.props) as BCMSPropGql[],
       };
     },
   };

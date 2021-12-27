@@ -48,6 +48,17 @@ export interface BCMSProp {
   array: boolean;
   defaultData: BCMSPropData;
 }
+export interface BCMSPropGql {
+  id: string;
+  type: BCMSPropType;
+  required: boolean;
+  name: string;
+  label: string;
+  array: boolean;
+  defaultData: BCMSPropDataGql & {
+    __typename: string;
+  };
+}
 export const BCMSPropSchema: ObjectSchema = {
   id: {
     __type: 'string',
@@ -87,6 +98,28 @@ export type BCMSPropData =
   | BCMSPropWidgetData
   | BCMSPropRichTextData[]
   | BCMSPropColorPickerData;
+export interface BCMSPropDataGqlValueString {
+  value: string[];
+}
+export interface BCMSPropDataGqlValueNumber {
+  value: number[];
+}
+export interface BCMSPropDataGqlValueBoolean {
+  value: boolean[];
+}
+export interface BCMSPropDataGqlValueRichText {
+  value: BCMSPropRichTextData[];
+}
+export type BCMSPropDataGql =
+  | BCMSPropDataGqlValueString
+  | BCMSPropDataGqlValueNumber
+  | BCMSPropDataGqlValueBoolean
+  | BCMSPropDataGqlValueRichText
+  | BCMSPropEnumData
+  | BCMSPropEntryPointerData
+  | BCMSPropGroupPointerData
+  | BCMSPropWidgetData
+  | BCMSPropColorPickerData;
 export interface BCMSPropParsed {
   [name: string]: BCMSPropDataParsed;
 }
@@ -105,7 +138,7 @@ export type BCMSPropDataParsed =
   | BCMSPropWidgetDataParsed
   | BCMSPropMediaDataParsed
   | BCMSPropMediaDataParsed[]
-  | BCMSPropRichTextDataParsed
+  | BCMSPropRichTextDataParsed;
 
 export interface BCMSPropValue {
   /**

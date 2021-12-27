@@ -55,8 +55,12 @@ import {
 } from './template';
 import { BCMSWidgetController, createBcmsWidgetRepository } from './widget';
 import { createSocket } from '@becomes/purple-cheetah-mod-socket';
-import { BCMSGroupController, createBcmsGroupRepository } from './group';
-import { createBcmsPropHandler } from './prop';
+import {
+  BCMSGroupCollection,
+  BCMSGroupController,
+  createBcmsGroupRepository,
+} from './group';
+import { BCMSPropCollection, createBcmsPropHandler } from './prop';
 import {
   createBcmsEntryParser,
   BCMSEntryController,
@@ -79,6 +83,7 @@ import { BCMSTypeConverterController } from './type-converter';
 import { BCMSSearchController } from './search';
 import { BCMSChangeController, createBcmsChangeRepository } from './change';
 import { loadBcmsResponseCodes } from './response-code';
+import { createGraphql } from '@becomes/purple-cheetah-mod-graphql';
 
 const backend: BCMSBackend = {
   app: undefined as never,
@@ -282,6 +287,16 @@ async function initialize() {
   modules.push(createBcmsJobModule());
 
   modules.push(createBcmsPluginModule(BCMSConfig));
+
+  modules.push(
+    createGraphql({
+      uri: '/api/gql',
+      // TODO: Disable in production
+      graphiql: true,
+      rootName: 'BCMS',
+      collections: [BCMSPropCollection, BCMSGroupCollection],
+    }),
+  );
 
   modules.push(bcmsPostSetup());
 

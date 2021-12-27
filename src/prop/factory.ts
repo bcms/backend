@@ -1,5 +1,26 @@
 import { v4 as uuidv4 } from 'uuid';
-import { BCMSPropFactory, BCMSPropType } from '../types';
+import {
+  BCMSPropFactory,
+  BCMSPropType,
+  BCMSPropDataGql,
+  BCMSPropEnumData,
+  BCMSPropGql,
+  BCMSProp,
+} from '../types';
+
+function bcmsPropTypeToGqlType(type: BCMSPropType): string {
+  switch (type) {
+    case BCMSPropType.STRING: {
+      return 'BCMSPropDataValueString';
+    }
+    case BCMSPropType.NUMBER: {
+      return 'BCMSPropDataValueNumber';
+    }
+    default: {
+      return '';
+    }
+  }
+}
 
 export function createBcmsPropFactory(): BCMSPropFactory {
   const self: BCMSPropFactory = {
@@ -193,6 +214,46 @@ export function createBcmsPropFactory(): BCMSPropFactory {
         type: BCMSPropType.WIDGET,
         defaultData: [],
       };
+    },
+    toGql(_props) {
+      let props: BCMSProp[] = [];
+      let isArray = false;
+      if (_props instanceof Array) {
+        props = _props;
+        isArray = true;
+      } else {
+        props = [_props];
+      }
+      const output: BCMSPropGql[] = [];
+      for (let i = 0; i < props.length; i++) {
+        const prop = props[i];
+        let defaultData: BCMSPropDataGql = {} as never;
+        if (
+          prop.type === BCMSPropType.STRING ||
+          prop.type === BCMSPropType.NUMBER ||
+          prop.type === BCMSPropType.BOOLEAN ||
+          prop.type === BCMSPropType.RICH_TEXT
+        ) {
+          defaultData = {
+            value: prop.defaultData as string[],
+          };
+        } else {
+          defaultData = prop.defaultData as BCMSPropEnumData;
+        }
+        output.push({
+          array: prop.array,
+          id: prop.id,
+          label: prop.label,
+          name: prop.name,
+          required: prop.required,
+          type: prop.type,
+          defaultData: {
+            ...defaultData,
+            __typename: bcmsPropTypeToGqlType(prop.type),
+          },
+        });
+      }
+      return isArray ? output : output[0];
     },
   };
   return self;

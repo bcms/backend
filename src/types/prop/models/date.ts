@@ -1,1 +1,1 @@
-export type BCMSPropDateData = number[] | number;
+export type BCMSPropDateData = number[];
