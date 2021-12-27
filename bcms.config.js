@@ -1,5 +1,5 @@
 module.exports = {
-  port: 1280,
+  port: 8080,
   local: true,
   jwt: {
     scope: 'localhost',
