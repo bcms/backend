@@ -166,12 +166,6 @@ export const BCMSSearchController = createController({
                     const item = items[j];
                     for (let k = 0; k < item.content.length; k++) {
                       const contentItem = item.content[k];
-                      console.log(
-                        JSON.stringify([
-                          contentItem.lng,
-                          contentItem.plainText,
-                        ]),
-                      );
                       searchSet.push({
                         id: `${searchItem}_${item._id}`,
                         data: [
