@@ -1,5 +1,6 @@
-import type { BCMSEntryContent } from '../entry';
+import type { BCMSEntryContentNode } from '../entry';
 
-export interface BCMSEntryContentUtility {
-  check(data: { content: BCMSEntryContent }): Promise<Error | void>;
+export interface BCMSContentUtility {
+  nodeToHtml(data: { node: BCMSEntryContentNode }): string;
+  nodeToText(data: { node: BCMSEntryContentNode }): string;
 }

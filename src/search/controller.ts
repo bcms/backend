@@ -88,7 +88,7 @@ export const BCMSSearchController = createController({
                     ...items.map((item) => {
                       return {
                         id: `${searchItem}_${item._id}`,
-                        data: [JSON.stringify(item)],
+                        data: [JSON.stringify(item).toLowerCase()],
                       };
                     }),
                   );
@@ -183,7 +183,7 @@ export const BCMSSearchController = createController({
           }
           const searchResult = search({
             set: searchSet,
-            searchTerm: term,
+            searchTerm: term.toLowerCase().trim(),
           });
           return {
             items: searchResult.items

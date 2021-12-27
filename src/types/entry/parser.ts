@@ -21,7 +21,7 @@ export interface BCMSEntryParser {
     depth?: number;
     maxDepth: number;
   }): Promise<BCMSEntryContentParsedItem[]>;
-  contentToText(data: {
-    contents: BCMSEntryContent[];
+  injectPlaneText(data: {
+    content: BCMSEntryContent[];
   }): Promise<BCMSEntryContent[]>;
 }

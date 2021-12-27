@@ -1,6 +1,6 @@
 import { BCMSPropHandler } from '@bcms/prop';
 import { BCMSRepo } from '@bcms/repo';
-import { BCMSHtml, BCMSSearch } from '@bcms/util';
+import { BCMSContentUtility } from '@bcms/util';
 import type { Module } from '@becomes/purple-cheetah/types';
 import {
   BCMSEntryParsed,
@@ -119,32 +119,32 @@ export function createBcmsEntryParser(): Module {
                           .level,
                       }
                     : undefined,
-                value: BCMSHtml.nodeToHtml({ node }),
+                value: BCMSContentUtility.nodeToHtml({ node }),
               });
             }
           }
           return output;
         },
-        async contentToText({ contents }) {
+        async injectPlaneText({ content }) {
           const contentsNew: BCMSEntryContent[] = [];
-          for (let i = 0; i < contents.length; i++) {
-            const content = contents[i];
+          for (let i = 0; i < content.length; i++) {
+            const item = content[i];
             let output = '';
-            for (let j = 0; j < content.nodes.length; j++) {
-              const node = content.nodes[j];
-              if (node.type === BCMSEntryContentNodeType.widget) {
-                const attrs = node.attrs as BCMSPropValueWidgetData;
-                output += JSON.stringify(attrs);
-              } else {
-                output += BCMSSearch.searchText({ node });
-              }
+            for (let j = 0; j < item.nodes.length; j++) {
+              const node = item.nodes[j];
+              output += BCMSContentUtility.nodeToText({ node }) + '\n';
+              // if (node.type === BCMSEntryContentNodeType.widget) {
+              //   const attrs = node.attrs as BCMSPropValueWidgetData;
+              //   output += '__widget' + JSON.stringify(attrs);
+              // } else {
+              //   output += BCMSSearch.searchText({ node });
+              // }
             }
-            const contentsNewItem: BCMSEntryContent = {
-              lng: content.lng,
-              nodes: content.nodes,
-              plainText: output,
-            };
-            contentsNew.push(contentsNewItem);
+            contentsNew.push({
+              lng: item.lng,
+              nodes: item.nodes,
+              plainText: output.toLowerCase(),
+            });
           }
           return contentsNew;
         },
