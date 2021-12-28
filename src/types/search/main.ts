@@ -1,4 +1,4 @@
-export type SearchResultType =
+export type BCMSSearchResultType =
   | 'entry'
   | 'widget'
   | 'group'
@@ -8,13 +8,14 @@ export type SearchResultType =
   | 'tag'
   | 'color'
   | 'apiKey';
-export interface GetAllSearchResultItem {
+export interface BCMSGetAllSearchResultItem {
   /**
    * - Role ADMIN: all
    * - Role USER: entry, media, user, tag, color
    */
-  type: SearchResultType;
+  type: BCMSSearchResultType;
   id: string;
+  templateId?: string;
   score: number;
   matches: number;
   positions: number[][];
