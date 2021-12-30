@@ -10,7 +10,10 @@ export const BCMSPropDataUnion = createGraphqlUnion({
     'BCMSPropDataValueEntryPointer',
     'BCMSPropDataValueEnumeration',
     'BCMSPropDataValueGroupPointer',
+    'BCMSPropDataValueMedia',
     // 'BCMSPropDataValueRichText',
+    'BCMSPropDataValueTag',
+    'BCMSPropDataValueDate',
     'BCMSPropDataValueWidget',
   ],
 });

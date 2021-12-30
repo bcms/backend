@@ -6,6 +6,6 @@ export const BCMSGroupUpdateDataInput = createGraphqlInput({
     id: 'String!',
     label: 'String',
     desc: 'String',
-    propChanges: '[BCMSPropChange]',
+    propChanges: '[BCMSPropChange!]',
   },
 });

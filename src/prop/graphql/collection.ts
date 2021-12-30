@@ -22,6 +22,9 @@ import {
   BCMSPropDataValueWidgetObject,
   BCMSPropDataValueColorPickerObject,
   BCMSPropDataValueEnumObject,
+  BCMSPropDataValueDateObject,
+  BCMSPropDataValueMediaObject,
+  BCMSPropDataValueTagObject,
 } from './objects';
 import { BCMSPropDataUnion } from './unions';
 
@@ -31,12 +34,9 @@ export const BCMSPropCollection = createGraphqlCollection({
   inputs: [
     BCMSPropDataValueColorPickerInput,
     BCMSPropDataInput,
-    BCMSPropDataValueBooleanInput,
     BCMSPropDataValueEntryPointerInput,
     BCMSPropDataValueEnumInput,
     BCMSPropDataValueGroupPointerInput,
-    BCMSPropDataValueNumberInput,
-    BCMSPropDataValueStringInput,
     BCMSPropDataValueWidgetInput,
   ],
   unions: [BCMSPropDataUnion],
@@ -51,5 +51,8 @@ export const BCMSPropCollection = createGraphqlCollection({
     BCMSPropDataValueWidgetObject,
     BCMSPropObject,
     BCMSPropDataValueColorPickerObject,
+    BCMSPropDataValueDateObject,
+    BCMSPropDataValueMediaObject,
+    BCMSPropDataValueTagObject,
   ],
 });
