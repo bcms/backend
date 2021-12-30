@@ -1,8 +1,5 @@
-import { BCMSFactory } from '@bcms/factory';
-import { BCMSPropHandler } from '@bcms/prop';
 import { BCMSRepo } from '@bcms/repo';
 import { bcmsResCode } from '@bcms/response-code';
-import { BCMSSocketManager } from '@bcms/socket';
 import {
   createController,
   createControllerMethod,
@@ -22,7 +19,6 @@ import {
   BCMSGroupUpdateData,
   BCMSGroupUpdateDataSchema,
   BCMSGroup,
-  BCMSSocketEventType,
   BCMSJWTAndBodyCheckerRouteProtectionResult,
   BCMSGroupLite,
 } from '../types';
@@ -41,7 +37,7 @@ export const BCMSGroupController = createController<Setup>({
       stringUtil: useStringUtility(),
     };
   },
-  methods({ stringUtil }) {
+  methods() {
     return {
       whereIsItUsed: createControllerMethod({
         path: '/:id/where-is-it-used',
@@ -119,9 +115,7 @@ export const BCMSGroupController = createController<Setup>({
         ),
         async handler() {
           return {
-            items: (await BCMSRepo.group.findAll()).map((e) =>
-              BCMSFactory.group.toLite(e),
-            ),
+            items: await BCMSGroupRequestHandler.getAllLite(),
           };
         },
       }),
@@ -138,15 +132,9 @@ export const BCMSGroupController = createController<Setup>({
         ),
         async handler({ request }) {
           const ids = (request.headers['x-bcms-ids'] as string).split('-');
-          if (ids[0] && ids[0].length === 24) {
-            return {
-              items: await BCMSRepo.group.findAllById(ids),
-            };
-          } else {
-            return {
-              items: await BCMSRepo.group.methods.findAllByCid(ids),
-            };
-          }
+          return {
+            items: await BCMSGroupRequestHandler.getMany(ids),
+          };
         },
       }),
 
@@ -162,7 +150,7 @@ export const BCMSGroupController = createController<Setup>({
         ),
         async handler() {
           return {
-            count: await BCMSRepo.group.count(),
+            count: await BCMSGroupRequestHandler.count(),
           };
         },
       }),
@@ -178,13 +166,10 @@ export const BCMSGroupController = createController<Setup>({
           JWTPermissionName.READ,
         ),
         async handler({ request, errorHandler }) {
-          const group = await BCMSRepo.group.findById(request.params.id);
-          if (!group) {
-            throw errorHandler.occurred(
-              HTTPStatus.NOT_FOUNT,
-              bcmsResCode('grp001', { id: request.params.id }),
-            );
-          }
+          const group = await BCMSGroupRequestHandler.getById({
+            id: request.params.id,
+            errorHandler,
+          });
           return { item: group };
         },
       }),
@@ -221,109 +206,12 @@ export const BCMSGroupController = createController<Setup>({
           bodySchema: BCMSGroupUpdateDataSchema,
         }),
         async handler({ errorHandler, body, accessToken }) {
-          const group = await BCMSRepo.group.findById(body._id);
-          if (!group) {
-            throw errorHandler.occurred(
-              HTTPStatus.NOT_FOUNT,
-              bcmsResCode('grp001', { id: body._id }),
-            );
-          }
-          let changeDetected = false;
-          if (typeof body.label !== 'undefined' && body.label !== group.label) {
-            const name = stringUtil.toSlugUnderscore(body.label);
-            if (group.name !== name) {
-              if (await BCMSRepo.group.methods.findByName(name)) {
-                throw errorHandler.occurred(
-                  HTTPStatus.FORBIDDEN,
-                  bcmsResCode('grp002', { name: group.name }),
-                );
-              }
-            }
-            changeDetected = true;
-            group.label = body.label;
-            group.name = name;
-          }
-          if (typeof body.desc === 'string' && body.desc !== group.desc) {
-            changeDetected = true;
-            group.desc = body.desc;
-          }
-          if (
-            typeof body.propChanges !== 'undefined' &&
-            body.propChanges.length > 0
-          ) {
-            changeDetected = true;
-            const updatedProps = await BCMSPropHandler.applyPropChanges(
-              group.props,
-              body.propChanges,
-              `(group: ${group.name}).props`,
-            );
-            if (updatedProps instanceof Error) {
-              throw errorHandler.occurred(
-                HTTPStatus.BAD_REQUEST,
-                bcmsResCode('g009', {
-                  msg: updatedProps.message,
-                }),
-              );
-            }
-            group.props = updatedProps;
-          }
-
-          if (!changeDetected) {
-            throw errorHandler.occurred(
-              HTTPStatus.FORBIDDEN,
-              bcmsResCode('g003'),
-            );
-          }
-
-          const infiniteLoopResult = await BCMSPropHandler.testInfiniteLoop(
-            group.props,
-            {
-              group: [
-                {
-                  _id: group._id,
-                  label: group.label,
-                },
-              ],
-            },
-          );
-          if (infiniteLoopResult instanceof Error) {
-            throw errorHandler.occurred(
-              HTTPStatus.BAD_REQUEST,
-              bcmsResCode('g008', {
-                msg: infiniteLoopResult.message,
-              }),
-            );
-          }
-          const checkPropsResult = await BCMSPropHandler.propsChecker(
-            group.props,
-            group.props,
-            'group.props',
-            true,
-          );
-          if (checkPropsResult instanceof Error) {
-            throw errorHandler.occurred(
-              HTTPStatus.BAD_REQUEST,
-              bcmsResCode('g007', {
-                msg: checkPropsResult.message,
-              }),
-            );
-          }
-          const updatedGroup = await BCMSRepo.group.update(group);
-          if (!updatedGroup) {
-            throw errorHandler.occurred(
-              HTTPStatus.INTERNAL_SERVER_ERROR,
-              bcmsResCode('grp005'),
-            );
-          }
-          await BCMSSocketManager.emit.group({
-            groupId: updatedGroup._id,
-            type: BCMSSocketEventType.UPDATE,
-            userIds: 'all',
-            excludeUserId: [accessToken.payload.userId],
-          });
-          await BCMSRepo.change.methods.updateAndIncByName('group');
           return {
-            item: updatedGroup,
+            item: await BCMSGroupRequestHandler.update({
+              accessToken,
+              errorHandler,
+              body,
+            }),
           };
         },
       }),
@@ -339,35 +227,13 @@ export const BCMSGroupController = createController<Setup>({
           JWTPermissionName.DELETE,
         ),
         async handler({ request, errorHandler, logger, name, accessToken }) {
-          const group = await BCMSRepo.group.findById(request.params.id);
-          if (!group) {
-            throw errorHandler.occurred(
-              HTTPStatus.NOT_FOUNT,
-              bcmsResCode('grp001', { id: request.params.id }),
-            );
-          }
-          const deleteResult = await BCMSRepo.group.deleteById(
-            request.params.id,
-          );
-          if (!deleteResult) {
-            throw errorHandler.occurred(
-              HTTPStatus.INTERNAL_SERVER_ERROR,
-              bcmsResCode('grp006'),
-            );
-          }
-          const errors = await BCMSPropHandler.removeGroupPointer({
-            groupId: group._id,
+          await BCMSGroupRequestHandler.delete({
+            accessToken,
+            errorHandler,
+            id: request.params._id,
+            logger,
+            name,
           });
-          if (errors) {
-            logger.error(name, errors);
-          }
-          await BCMSSocketManager.emit.group({
-            groupId: group._id,
-            type: BCMSSocketEventType.REMOVE,
-            userIds: 'all',
-            excludeUserId: [accessToken.payload.userId],
-          });
-          await BCMSRepo.change.methods.updateAndIncByName('group');
           return {
             message: 'Success.',
           };
