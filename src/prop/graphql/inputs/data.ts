@@ -10,8 +10,8 @@ export const BCMSPropDataInput = createGraphqlInput({
     entryPointer: 'BCMSPropEntryPointerInput',
     enum: 'BCMSPropEnumerationInput',
     groupPointer: 'BCMSPropGroupPointerInput',
-    media: '[String!]!',
-    data: '[Float!]!',
-    tag: '[String!]!',
+    media: '[String!]',
+    date: '[Float!]',
+    tag: '[String!]',
   },
 });

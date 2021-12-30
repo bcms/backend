@@ -14,6 +14,7 @@ import type {
   BCMSPropValueGroupPointerData,
 } from './group-pointer';
 import type { BCMSPropMediaData, BCMSPropMediaDataParsed } from './media';
+import type { BCMSPropTagData } from './tag';
 import type {
   BCMSPropValueWidgetData,
   BCMSPropWidgetData,
@@ -119,7 +120,10 @@ export type BCMSPropDataGql =
   | BCMSPropEntryPointerData
   | BCMSPropGroupPointerData[]
   | BCMSPropWidgetData
-  | BCMSPropColorPickerData;
+  | BCMSPropColorPickerData
+  | BCMSPropMediaData[]
+  | BCMSPropDateData
+  | BCMSPropTagData;
 export interface BCMSPropParsed {
   [name: string]: BCMSPropDataParsed;
 }
@@ -131,6 +135,9 @@ export interface BCMSPropDataInputGql {
   entryPointer?: BCMSPropEntryPointerData;
   enum?: BCMSPropEnumData;
   groupPointer?: BCMSPropGroupPointerData[];
+  media?: BCMSPropMediaData[];
+  date?: BCMSPropDateData;
+  tag?: BCMSPropTagData;
 }
 
 export type BCMSPropDataParsed =

@@ -6,7 +6,7 @@ import { BCMSConfig as BCMSConfigType, BCMSConfigSchema } from './types';
 export const BCMSConfig: BCMSConfigType = {
   port: process.env.PORT ? parseInt(process.env.PORT, 10) : 8080,
   jwt: {
-    expireIn: 300000,
+    expireIn: 300000000,
     secret: 'secret',
     scope: 'localhost',
   },

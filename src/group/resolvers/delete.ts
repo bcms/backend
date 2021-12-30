@@ -21,7 +21,7 @@ export const BCMSGroupDeleteResolver = createGraphqlResolver<
   Args,
   string
 >({
-  name: 'getOne',
+  name: 'delete',
   return: {
     type: 'BCMSGroup',
   },

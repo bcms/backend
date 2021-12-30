@@ -1,15 +1,12 @@
 import { createGraphqlCollection } from '@becomes/purple-cheetah-mod-graphql';
 import { BCMSPropTypeEnum } from './enums';
 import {
-  BCMSPropDataValueBooleanInput,
   BCMSPropDataValueColorPickerInput,
   BCMSPropDataValueEntryPointerInput,
   BCMSPropDataValueEnumInput,
-  BCMSPropDataValueStringInput,
   BCMSPropDataValueWidgetInput,
   BCMSPropDataInput,
   BCMSPropDataValueGroupPointerInput,
-  BCMSPropDataValueNumberInput,
 } from './inputs';
 import {
   BCMSPropObject,

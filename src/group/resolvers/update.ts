@@ -54,8 +54,21 @@ export const BCMSGroupUpdateResolver = createGraphqlResolver<
                 defaultData = dData.boolean;
               } else if (dData.color) {
                 defaultData = dData.color;
+              } else if (dData.entryPointer) {
+                defaultData = dData.entryPointer;
+              } else if (dData.enum) {
+                defaultData = dData.enum;
+              } else if (dData.groupPointer) {
+                defaultData = dData.groupPointer;
+              } else if (dData.number) {
+                defaultData = dData.number;
+              } else if (dData.string) {
+                defaultData = dData.string;
+              } else if (dData.tag) {
+                defaultData = dData.tag;
+              } else if (dData.date) {
+                defaultData = dData.date;
               }
-              // TODO: Add rest
             }
             return {
               update: change.update,
