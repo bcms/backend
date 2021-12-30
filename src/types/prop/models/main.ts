@@ -117,7 +117,7 @@ export type BCMSPropDataGql =
   | BCMSPropDataGqlValueRichText
   | BCMSPropEnumData
   | BCMSPropEntryPointerData
-  | BCMSPropGroupPointerData[]
+  | BCMSPropGroupPointerData
   | BCMSPropWidgetData
   | BCMSPropColorPickerData;
 export interface BCMSPropParsed {
@@ -130,7 +130,7 @@ export interface BCMSPropDataInputGql {
   boolean?: boolean[];
   entryPointer?: BCMSPropEntryPointerData;
   enum?: BCMSPropEnumData;
-  groupPointer?: BCMSPropGroupPointerData[];
+  groupPointer?: BCMSPropGroupPointerData;
 }
 
 export type BCMSPropDataParsed =
