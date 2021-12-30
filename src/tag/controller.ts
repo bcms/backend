@@ -134,12 +134,12 @@ export const BCMSTagController = createController({
           bodySchema: BCMSTagCreateDataSchema,
         }),
         async handler({ errorHandler, body, accessToken }) {
-          let idc = await BCMSRepo.idc.methods.findAndIncByForId('tag');
+          let idc = await BCMSRepo.idc.methods.findAndIncByForId('tags');
           if (!idc) {
             const tagIdc = BCMSFactory.idc.create({
               count: 2,
-              forId: 'tag',
-              name: 'Tag',
+              forId: 'tags',
+              name: 'Tags',
             });
             const addIdcResult = await BCMSRepo.idc.add(tagIdc);
             if (!addIdcResult) {

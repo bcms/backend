@@ -134,12 +134,12 @@ export const BCMSColorController = createController<Setup>({
           bodySchema: BCMSColorCreateDataSchema,
         }),
         async handler({ errorHandler, body, accessToken }) {
-          let idc = await BCMSRepo.idc.methods.findAndIncByForId('color');
+          let idc = await BCMSRepo.idc.methods.findAndIncByForId('colors');
           if (!idc) {
             const colorIdc = BCMSFactory.idc.create({
               count: 2,
-              forId: 'color',
-              name: 'Color',
+              forId: 'colors',
+              name: 'Colors',
             });
             const addIdcResult = await BCMSRepo.idc.add(colorIdc);
             if (!addIdcResult) {

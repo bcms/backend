@@ -118,7 +118,7 @@ export type BCMSPropDataGql =
   | BCMSPropDataGqlValueRichText
   | BCMSPropEnumData
   | BCMSPropEntryPointerData
-  | BCMSPropGroupPointerData[]
+  | BCMSPropGroupPointerData
   | BCMSPropWidgetData
   | BCMSPropColorPickerData
   | BCMSPropMediaData[]
