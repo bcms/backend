@@ -6,6 +6,7 @@ import {
   BCMSPropEnumData,
   BCMSPropGql,
   BCMSProp,
+  BCMSPropRichTextData,
 } from '../types';
 
 function bcmsPropTypeToGqlType(type: BCMSPropType): string {
@@ -38,13 +39,13 @@ function bcmsPropTypeToGqlType(type: BCMSPropType): string {
       return 'BCMSPropDataValueWidget';
     }
     case BCMSPropType.DATE: {
-      return 'BCMSPropDataValueNumber';
+      return 'BCMSPropDataValueDate';
     }
     case BCMSPropType.MEDIA: {
-      return 'BCMSPropDataValueString';
+      return 'BCMSPropDataValueMedia';
     }
     case BCMSPropType.TAG: {
-      return 'BCMSPropDataValueString';
+      return 'BCMSPropDataValueTag';
     }
     default: {
       return '';
@@ -258,14 +259,21 @@ export function createBcmsPropFactory(): BCMSPropFactory {
       for (let i = 0; i < props.length; i++) {
         const prop = props[i];
         let defaultData: BCMSPropDataGql = {} as never;
-        if (
-          prop.type === BCMSPropType.STRING ||
-          prop.type === BCMSPropType.NUMBER ||
-          prop.type === BCMSPropType.BOOLEAN ||
-          prop.type === BCMSPropType.RICH_TEXT
-        ) {
+        if (prop.type === BCMSPropType.STRING) {
           defaultData = {
-            value: prop.defaultData as string[],
+            string: prop.defaultData as string[],
+          };
+        } else if (prop.type === BCMSPropType.NUMBER) {
+          defaultData = {
+            number: prop.defaultData as number[],
+          };
+        } else if (prop.type === BCMSPropType.BOOLEAN) {
+          defaultData = {
+            boolean: prop.defaultData as boolean[],
+          };
+        } else if (prop.type === BCMSPropType.RICH_TEXT) {
+          defaultData = {
+            richText: prop.defaultData as BCMSPropRichTextData[],
           };
         } else {
           defaultData = prop.defaultData as BCMSPropEnumData;

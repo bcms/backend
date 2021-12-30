@@ -99,16 +99,16 @@ export type BCMSPropData =
   | BCMSPropRichTextData[]
   | BCMSPropColorPickerData;
 export interface BCMSPropDataGqlValueString {
-  value: string[];
+  string: string[];
 }
 export interface BCMSPropDataGqlValueNumber {
-  value: number[];
+  number: number[];
 }
 export interface BCMSPropDataGqlValueBoolean {
-  value: boolean[];
+  boolean: boolean[];
 }
 export interface BCMSPropDataGqlValueRichText {
-  value: BCMSPropRichTextData[];
+  richText: BCMSPropRichTextData[];
 }
 export type BCMSPropDataGql =
   | BCMSPropDataGqlValueString

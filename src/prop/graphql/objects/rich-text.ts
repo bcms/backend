@@ -3,7 +3,7 @@ import { createGraphqlObject } from '@becomes/purple-cheetah-mod-graphql';
 export const BCMSPropDataValueRichTextObject = createGraphqlObject({
   name: 'BCMSPropDataValueRichText',
   fields: {
-    value: '[BCMSPropRichTextData!]!',
+    richText: '[BCMSPropRichTextData!]!',
   },
 });
 
