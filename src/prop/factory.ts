@@ -16,6 +16,36 @@ function bcmsPropTypeToGqlType(type: BCMSPropType): string {
     case BCMSPropType.NUMBER: {
       return 'BCMSPropDataValueNumber';
     }
+    case BCMSPropType.BOOLEAN: {
+      return 'BCMSPropDataValueBoolean';
+    }
+    case BCMSPropType.RICH_TEXT: {
+      return 'BCMSPropDataValueRichText';
+    }
+    case BCMSPropType.COLOR_PICKER: {
+      return 'BCMSPropDataValueColorPicker';
+    }
+    case BCMSPropType.ENTRY_POINTER: {
+      return 'BCMSPropDataValueEntryPointer';
+    }
+    case BCMSPropType.ENUMERATION: {
+      return 'BCMSPropDataValueEnumeration';
+    }
+    case BCMSPropType.GROUP_POINTER: {
+      return 'BCMSPropDataValueGroupPointer';
+    }
+    case BCMSPropType.WIDGET: {
+      return 'BCMSPropDataValueWidget';
+    }
+    case BCMSPropType.DATE: {
+      return 'BCMSPropDataValueNumber';
+    }
+    case BCMSPropType.MEDIA: {
+      return 'BCMSPropDataValueString';
+    }
+    case BCMSPropType.TAG: {
+      return 'BCMSPropDataValueString';
+    }
     default: {
       return '';
     }
