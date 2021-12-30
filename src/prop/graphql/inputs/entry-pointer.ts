@@ -4,7 +4,7 @@ export const BCMSPropDataValueEntryPointerInput = createGraphqlInput({
   name: 'BCMSPropEntryPointerInput',
   fields: {
     templateId: 'String!',
-    entryIds: 'String!',
+    entryIds: '[String!]!',
     displayProp: 'String!',
   },
 });

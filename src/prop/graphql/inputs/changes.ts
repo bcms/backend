@@ -28,7 +28,7 @@ export const BCMSPropChangeUpdateInput = createGraphqlInput({
     label: 'String!',
     move: 'Float!',
     required: 'Boolean!',
-    enumItems: '[String!]!',
+    enumItems: '[String!]',
     colorData: 'BCMSPropColorPickerInput',
   },
 });
@@ -37,6 +37,6 @@ export const BCMSPropChangeTransformInput = createGraphqlInput({
   name: 'BCMSPropChangeTransform',
   fields: {
     from: 'String!',
-    to: 'String!',
+    to: 'BCMSPropType!',
   },
 });

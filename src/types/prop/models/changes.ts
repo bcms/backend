@@ -1,4 +1,7 @@
-import type { BCMSPropColorPickerData } from '@bcms/types';
+import type {
+  BCMSPropColorPickerData,
+  BCMSPropDataInputGql,
+} from '@bcms/types';
 import type { ObjectSchema } from '@becomes/purple-cheetah/types';
 import { BCMSPropColorPickerDataSchema } from './color-picker';
 import type { BCMSPropData, BCMSPropType } from './main';
@@ -9,6 +12,13 @@ export interface BCMSPropChangeAdd {
   required: boolean;
   array: boolean;
   defaultData?: BCMSPropData;
+}
+export interface BCMSPropChangeAddGql {
+  label: string;
+  type: BCMSPropType;
+  required: boolean;
+  array: boolean;
+  defaultData?: BCMSPropDataInputGql;
 }
 
 export interface BCMSPropChangeUpdate {
@@ -24,14 +34,14 @@ export interface BCMSPropChangeTransform {
   /** ID on property which will be transformed. */
   from: string;
   /** To which property type */
-  to: BCMSPropType
+  to: BCMSPropType;
 }
 export interface BCMSPropChange {
   add?: BCMSPropChangeAdd;
   /** ID of the property which will be removed. */
   remove?: string;
   update?: BCMSPropChangeUpdate;
-  transform?: BCMSPropChangeTransform
+  transform?: BCMSPropChangeTransform;
 }
 
 export const BCMSPropChangeSchema: ObjectSchema = {
@@ -96,3 +106,11 @@ export const BCMSPropChangeSchema: ObjectSchema = {
     },
   },
 };
+
+export interface BCMSPropChangeGql {
+  add?: BCMSPropChangeAddGql;
+  /** ID of the property which will be removed. */
+  remove?: string;
+  update?: BCMSPropChangeUpdate;
+  transform?: BCMSPropChangeTransform;
+}

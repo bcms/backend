@@ -1,5 +1,9 @@
 import type { ObjectSchema } from '@becomes/purple-cheetah/types';
-import { BCMSPropChange, BCMSPropChangeSchema } from '../../prop';
+import {
+  BCMSPropChange,
+  BCMSPropChangeSchema,
+  BCMSPropChangeGql,
+} from '../../prop';
 
 export interface BCMSGroupUpdateData {
   _id: string;
@@ -7,7 +11,6 @@ export interface BCMSGroupUpdateData {
   desc?: string;
   propChanges?: BCMSPropChange[];
 }
-
 export const BCMSGroupUpdateDataSchema: ObjectSchema = {
   _id: {
     __type: 'string',
@@ -30,3 +33,10 @@ export const BCMSGroupUpdateDataSchema: ObjectSchema = {
     },
   },
 };
+
+export interface BCMSGroupUpdateDataGql {
+  _id: string;
+  label?: string;
+  desc?: string;
+  propChanges?: BCMSPropChangeGql[];
+}

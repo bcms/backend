@@ -93,7 +93,7 @@ export type BCMSPropData =
   | BCMSPropDateData
   | BCMSPropEnumData
   | BCMSPropEntryPointerData
-  | BCMSPropGroupPointerData
+  | BCMSPropGroupPointerData[]
   | BCMSPropMediaData[]
   | BCMSPropWidgetData
   | BCMSPropRichTextData[]
@@ -117,11 +117,20 @@ export type BCMSPropDataGql =
   | BCMSPropDataGqlValueRichText
   | BCMSPropEnumData
   | BCMSPropEntryPointerData
-  | BCMSPropGroupPointerData
+  | BCMSPropGroupPointerData[]
   | BCMSPropWidgetData
   | BCMSPropColorPickerData;
 export interface BCMSPropParsed {
   [name: string]: BCMSPropDataParsed;
+}
+export interface BCMSPropDataInputGql {
+  string?: string[];
+  number?: number[];
+  color?: BCMSPropColorPickerData;
+  boolean?: boolean[];
+  entryPointer?: BCMSPropEntryPointerData;
+  enum?: BCMSPropEnumData;
+  groupPointer?: BCMSPropGroupPointerData[];
 }
 
 export type BCMSPropDataParsed =
