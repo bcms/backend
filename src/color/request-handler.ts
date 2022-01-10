@@ -26,6 +26,25 @@ export class BCMSColorRequestHandler {
   static async count(): Promise<number> {
     return await BCMSRepo.color.count();
   }
+  static async getById({
+    id,
+    errorHandler,
+  }: {
+    id: string;
+    errorHandler: HTTPError;
+  }): Promise<BCMSColor> {
+    const color =
+      id.length === 24
+        ? await BCMSRepo.color.findById(id)
+        : await BCMSRepo.color.methods.findByCid(id);
+    if (!color) {
+      throw errorHandler.occurred(
+        HTTPStatus.NOT_FOUNT,
+        bcmsResCode('col001', { id }),
+      );
+    }
+    return color;
+  }
   static async create({
     accessToken,
     errorHandler,

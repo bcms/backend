@@ -6,6 +6,7 @@ import {
   BCMSColorCountResolver,
   BCMSColorCreateResolver,
   BCMSColorGetAllResolver,
+  BCMSColorGetByIdResolver,
   BCMSColorGetManyResolver,
 } from './resolvers';
 
@@ -19,5 +20,6 @@ export const BCMSColorCollection = createGraphqlCollection({
     BCMSColorGetAllResolver,
     BCMSColorGetManyResolver,
     BCMSColorCountResolver,
+    BCMSColorGetByIdResolver,
   ],
 });

@@ -101,19 +101,11 @@ export const BCMSColorController = createController<Setup>({
           JWTPermissionName.READ,
         ),
         async handler({ request, errorHandler }) {
-          const id = request.params.id;
-          const color =
-            id.length === 24
-              ? await BCMSRepo.color.findById(id)
-              : await BCMSRepo.color.methods.findByCid(id);
-          if (!color) {
-            throw errorHandler.occurred(
-              HTTPStatus.NOT_FOUNT,
-              bcmsResCode('col001', { id }),
-            );
-          }
           return {
-            item: color,
+            item: await BCMSColorRequestHandler.getById({
+              id: request.params.id,
+              errorHandler,
+            }),
           };
         },
       }),
