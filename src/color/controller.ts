@@ -200,29 +200,11 @@ export const BCMSColorController = createController<Setup>({
           JWTPermissionName.DELETE,
         ),
         async handler({ request, errorHandler, accessToken }) {
-          const color = await BCMSRepo.color.findById(request.params.id);
-          if (!color) {
-            throw errorHandler.occurred(
-              HTTPStatus.NOT_FOUNT,
-              bcmsResCode('col001', { id: request.params.id }),
-            );
-          }
-          const deleteResult = await BCMSRepo.color.deleteById(
-            request.params.id,
-          );
-          if (!deleteResult) {
-            throw errorHandler.occurred(
-              HTTPStatus.INTERNAL_SERVER_ERROR,
-              bcmsResCode('col006'),
-            );
-          }
-          await BCMSSocketManager.emit.color({
-            colorId: color._id,
-            type: BCMSSocketEventType.REMOVE,
-            userIds: 'all',
-            excludeUserId: [accessToken.payload.userId],
+          await BCMSColorRequestHandler.delete({
+            id: request.params.id,
+            errorHandler,
+            accessToken,
           });
-          await BCMSRepo.change.methods.updateAndIncByName('color');
           return {
             message: 'Success.',
           };

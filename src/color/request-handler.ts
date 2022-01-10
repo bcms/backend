@@ -140,4 +140,35 @@ export class BCMSColorRequestHandler {
     await BCMSRepo.change.methods.updateAndIncByName('color');
     return addedColor;
   }
+  static async delete({
+    errorHandler,
+    id,
+    accessToken,
+  }: {
+    id: string;
+    accessToken: JWT<BCMSUserCustomPool>;
+    errorHandler: HTTPError;
+  }): Promise<void> {
+    const color = await BCMSRepo.color.findById(id);
+    if (!color) {
+      throw errorHandler.occurred(
+        HTTPStatus.NOT_FOUNT,
+        bcmsResCode('col001', { id: id }),
+      );
+    }
+    const deleteResult = await BCMSRepo.color.deleteById(id);
+    if (!deleteResult) {
+      throw errorHandler.occurred(
+        HTTPStatus.INTERNAL_SERVER_ERROR,
+        bcmsResCode('col006'),
+      );
+    }
+    await BCMSSocketManager.emit.color({
+      colorId: color._id,
+      type: BCMSSocketEventType.REMOVE,
+      userIds: 'all',
+      excludeUserId: [accessToken.payload.userId],
+    });
+    await BCMSRepo.change.methods.updateAndIncByName('color');
+  }
 }
