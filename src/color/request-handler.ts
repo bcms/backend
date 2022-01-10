@@ -5,6 +5,7 @@ import { BCMSSocketManager } from '@bcms/socket';
 import {
   BCMSColor,
   BCMSColorCreateData,
+  BCMSColorUpdateData,
   BCMSSocketEventType,
   BCMSUserCustomPool,
 } from '@bcms/types';
@@ -139,6 +140,59 @@ export class BCMSColorRequestHandler {
     });
     await BCMSRepo.change.methods.updateAndIncByName('color');
     return addedColor;
+  }
+  static async update({
+    errorHandler,
+    body,
+    accessToken,
+  }: {
+    body: BCMSColorUpdateData;
+    accessToken: JWT<BCMSUserCustomPool>;
+    errorHandler: HTTPError;
+  }): Promise<BCMSColor> {
+    const color = await BCMSRepo.color.findById(body._id);
+    if (!color) {
+      throw errorHandler.occurred(
+        HTTPStatus.NOT_FOUNT,
+        bcmsResCode('col001', { id: body._id }),
+      );
+    }
+    let changeDetected = false;
+    if (typeof body.label === 'string' && body.label !== color.label) {
+      changeDetected = true;
+      color.label = body.label;
+      color.name = StringUtility.toSlugUnderscore(body.label);
+    }
+    if (typeof body.value === 'string' && body.value !== color.value) {
+      const checkHex = /^#[0-9A-Fa-f]{6}(?:[0-9A-Fa-f]{2})?$/g;
+      if (!body.value.match(checkHex)) {
+        throw errorHandler.occurred(
+          HTTPStatus.BAD_REQUEST,
+          bcmsResCode('col010'),
+        );
+      }
+      changeDetected = true;
+      color.value = body.value;
+    }
+    if (!changeDetected) {
+      throw errorHandler.occurred(HTTPStatus.FORBIDDEN, bcmsResCode('g003'));
+    }
+    const updatedColor = await BCMSRepo.color.update(color);
+    if (!updatedColor) {
+      throw errorHandler.occurred(
+        HTTPStatus.INTERNAL_SERVER_ERROR,
+        bcmsResCode('col005'),
+      );
+    }
+    await BCMSSocketManager.emit.color({
+      colorId: updatedColor._id,
+      type: BCMSSocketEventType.UPDATE,
+      userIds: 'all',
+      excludeUserId: [accessToken.payload.userId],
+    });
+    await BCMSRepo.change.methods.updateAndIncByName('color');
+
+    return updatedColor;
   }
   static async delete({
     errorHandler,

@@ -1,6 +1,3 @@
-import { BCMSRepo } from '@bcms/repo';
-import { bcmsResCode } from '@bcms/response-code';
-import { BCMSSocketManager } from '@bcms/socket';
 import {
   BCMSColor,
   BCMSColorCreateData,
@@ -8,7 +5,6 @@ import {
   BCMSColorUpdateData,
   BCMSColorUpdateDataSchema,
   BCMSJWTAndBodyCheckerRouteProtectionResult,
-  BCMSSocketEventType,
   BCMSUserCustomPool,
 } from '@bcms/types';
 import {
@@ -23,7 +19,7 @@ import {
   JWTPreRequestHandlerResult,
   JWTRoleName,
 } from '@becomes/purple-cheetah-mod-jwt/types';
-import { HTTPStatus, StringUtility } from '@becomes/purple-cheetah/types';
+import type { StringUtility } from '@becomes/purple-cheetah/types';
 import { createJwtAndBodyCheckRouteProtection } from '../util';
 import { BCMSColorRequestHandler } from './request-handler';
 
@@ -39,7 +35,7 @@ export const BCMSColorController = createController<Setup>({
       stringUtil: useStringUtility(),
     };
   },
-  methods({ stringUtil }) {
+  methods() {
     return {
       getAll: createControllerMethod<
         JWTPreRequestHandlerResult<BCMSUserCustomPool>,
@@ -140,52 +136,12 @@ export const BCMSColorController = createController<Setup>({
           bodySchema: BCMSColorUpdateDataSchema,
         }),
         async handler({ errorHandler, body, accessToken }) {
-          const color = await BCMSRepo.color.findById(body._id);
-          if (!color) {
-            throw errorHandler.occurred(
-              HTTPStatus.NOT_FOUNT,
-              bcmsResCode('col001', { id: body._id }),
-            );
-          }
-          let changeDetected = false;
-          if (typeof body.label === 'string' && body.label !== color.label) {
-            changeDetected = true;
-            color.label = body.label;
-            color.name = stringUtil.toSlugUnderscore(body.label);
-          }
-          if (typeof body.value === 'string' && body.value !== color.value) {
-            const checkHex = /^#[0-9A-Fa-f]{6}(?:[0-9A-Fa-f]{2})?$/g;
-            if (!body.value.match(checkHex)) {
-              throw errorHandler.occurred(
-                HTTPStatus.BAD_REQUEST,
-                bcmsResCode('col010'),
-              );
-            }
-            changeDetected = true;
-            color.value = body.value;
-          }
-          if (!changeDetected) {
-            throw errorHandler.occurred(
-              HTTPStatus.FORBIDDEN,
-              bcmsResCode('g003'),
-            );
-          }
-          const updatedColor = await BCMSRepo.color.update(color);
-          if (!updatedColor) {
-            throw errorHandler.occurred(
-              HTTPStatus.INTERNAL_SERVER_ERROR,
-              bcmsResCode('col005'),
-            );
-          }
-          await BCMSSocketManager.emit.color({
-            colorId: updatedColor._id,
-            type: BCMSSocketEventType.UPDATE,
-            userIds: 'all',
-            excludeUserId: [accessToken.payload.userId],
-          });
-          await BCMSRepo.change.methods.updateAndIncByName('color');
           return {
-            item: updatedColor,
+            item: await BCMSColorRequestHandler.update({
+              errorHandler,
+              body,
+              accessToken,
+            }),
           };
         },
       }),
