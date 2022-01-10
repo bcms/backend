@@ -77,7 +77,11 @@ import { createBcmsIdCounterRepository } from './id-counter';
 import { createBcmsFactories } from './factory';
 import { BCMSAuthController } from './auth';
 import { bcmsPostSetup, bcmsSetup } from './setup';
-import { BCMSColorController, createBcmsColorRepository } from './color';
+import {
+  BCMSColorCollection,
+  BCMSColorController,
+  createBcmsColorRepository,
+} from './color';
 import { BCMSTagController, createBcmsTagRepository } from './tag';
 import { BCMSTypeConverterController } from './type-converter';
 import { BCMSSearchController } from './search';
@@ -294,7 +298,11 @@ async function initialize() {
       // TODO: Disable in production
       graphiql: true,
       rootName: 'BCMS',
-      collections: [BCMSPropCollection, BCMSGroupCollection],
+      collections: [
+        BCMSPropCollection,
+        BCMSGroupCollection,
+        BCMSColorCollection,
+      ],
     }),
   );
 
