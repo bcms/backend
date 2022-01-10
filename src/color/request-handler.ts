@@ -23,6 +23,9 @@ export class BCMSColorRequestHandler {
       return await BCMSRepo.color.methods.findAllByCid(ids);
     }
   }
+  static async count(): Promise<number> {
+    return await BCMSRepo.color.count();
+  }
   static async create({
     accessToken,
     errorHandler,

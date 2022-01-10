@@ -3,6 +3,7 @@ import { BCMSColorSourceTypeEnum } from './enums';
 import { BCMSColorCreateDataInput, BCMSColorSourceInput } from './inputs';
 import { BCMSColorObject, BCMSColorSourceObject } from './objects';
 import {
+  BCMSColorCountResolver,
   BCMSColorCreateResolver,
   BCMSColorGetAllResolver,
   BCMSColorGetManyResolver,
@@ -17,5 +18,6 @@ export const BCMSColorCollection = createGraphqlCollection({
     BCMSColorCreateResolver,
     BCMSColorGetAllResolver,
     BCMSColorGetManyResolver,
+    BCMSColorCountResolver,
   ],
 });

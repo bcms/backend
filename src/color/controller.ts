@@ -86,7 +86,7 @@ export const BCMSColorController = createController<Setup>({
         ),
         async handler() {
           return {
-            count: await BCMSRepo.color.count(),
+            count: await BCMSColorRequestHandler.count(),
           };
         },
       }),
