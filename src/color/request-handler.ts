@@ -16,6 +16,13 @@ export class BCMSColorRequestHandler {
   static async getAll(): Promise<BCMSColor[]> {
     return await BCMSRepo.color.findAll();
   }
+  static async getMany(ids: string[]): Promise<BCMSColor[]> {
+    if (ids[0] && ids[0].length === 24) {
+      return await BCMSRepo.color.findAllById(ids);
+    } else {
+      return await BCMSRepo.color.methods.findAllByCid(ids);
+    }
+  }
   static async create({
     accessToken,
     errorHandler,
