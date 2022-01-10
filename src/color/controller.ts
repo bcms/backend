@@ -53,7 +53,7 @@ export const BCMSColorController = createController<Setup>({
         ),
         async handler() {
           return {
-            items: await BCMSRepo.color.findAll(),
+            items: await BCMSColorRequestHandler.getAll(),
           };
         },
       }),
