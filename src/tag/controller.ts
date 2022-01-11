@@ -45,7 +45,7 @@ export const BCMSTagController = createController({
         ),
         async handler() {
           return {
-            items: await BCMSRepo.tag.findAll(),
+            items: await BCMSTagRequestHandler.getAll(),
           };
         },
       }),
