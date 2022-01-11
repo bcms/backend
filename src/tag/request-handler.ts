@@ -15,6 +15,13 @@ export class BCMSTagRequestHandler {
   static async getAll(): Promise<BCMSTag[]> {
     return await BCMSRepo.tag.findAll();
   }
+  static async getMany(ids: string[]): Promise<BCMSTag[]> {
+    if (ids[0] && ids[0].length === 24) {
+      return await BCMSRepo.tag.findAllById(ids);
+    } else {
+      return await BCMSRepo.tag.methods.findAllByCid(ids);
+    }
+  }
   static async create({
     accessToken,
     errorHandler,

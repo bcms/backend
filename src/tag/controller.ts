@@ -61,15 +61,9 @@ export const BCMSTagController = createController({
         ),
         async handler({ request }) {
           const ids = (request.headers['x-bcms-ids'] as string).split('-');
-          if (ids[0] && ids[0].length === 24) {
-            return {
-              items: await BCMSRepo.tag.findAllById(ids),
-            };
-          } else {
-            return {
-              items: await BCMSRepo.tag.methods.findAllByCid(ids),
-            };
-          }
+          return {
+            items: await BCMSTagRequestHandler.getMany(ids),
+          };
         },
       }),
       getById: createControllerMethod<
