@@ -1,4 +1,5 @@
 import { BCMSFactory } from '@bcms/factory';
+import { BCMSPropHandler } from '@bcms/prop';
 import { BCMSRepo } from '@bcms/repo';
 import { bcmsResCode } from '@bcms/response-code';
 import { BCMSSocketManager } from '@bcms/socket';
@@ -10,7 +11,7 @@ import {
   BCMSUserCustomPool,
 } from '@bcms/types';
 import type { JWT } from '@becomes/purple-cheetah-mod-jwt/types';
-import { HTTPError, HTTPStatus } from '@becomes/purple-cheetah/types';
+import { HTTPError, HTTPStatus, Logger } from '@becomes/purple-cheetah/types';
 
 export class BCMSTagRequestHandler {
   static async getAll(): Promise<BCMSTag[]> {
@@ -168,5 +169,46 @@ export class BCMSTagRequestHandler {
     });
     await BCMSRepo.change.methods.updateAndIncByName('tag');
     return updatedTag;
+  }
+  static async delete({
+    errorHandler,
+    id,
+    logger,
+    name,
+    accessToken,
+  }: {
+    id: string;
+    accessToken: JWT<BCMSUserCustomPool>;
+    errorHandler: HTTPError;
+    logger: Logger;
+    name: string;
+  }): Promise<void> {
+    const tag = await BCMSRepo.tag.findById(id);
+    if (!tag) {
+      throw errorHandler.occurred(
+        HTTPStatus.NOT_FOUNT,
+        bcmsResCode('tag001', { id }),
+      );
+    }
+    const deleteTag = await BCMSRepo.tag.deleteById(id);
+    if (!deleteTag) {
+      throw errorHandler.occurred(
+        HTTPStatus.INTERNAL_SERVER_ERROR,
+        bcmsResCode('tag006'),
+      );
+    }
+    const errors = await BCMSPropHandler.removeTag({
+      tagId: tag._id,
+    });
+    if (errors) {
+      logger.error(name, errors);
+    }
+    await BCMSSocketManager.emit.tag({
+      tagId: tag._id,
+      type: BCMSSocketEventType.REMOVE,
+      userIds: 'all',
+      excludeUserId: [accessToken.payload.userId],
+    });
+    await BCMSRepo.change.methods.updateAndIncByName('tag');
   }
 }

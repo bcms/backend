@@ -3,12 +3,13 @@ import { BCMSTagCreateDataInput, BCMSTagUpdateDataInput } from './inputs';
 import { BCMSTagObject } from './objects';
 import {
   BCMSTagCreateResolver,
+  BCMSTagDeleteResolver,
   BCMSTagGetAllResolver,
   BCMSTagGetByIdResolver,
   BCMSTagGetByValueResolver,
   BCMSTagGetManyResolver,
+  BCMSTagUpdateResolver,
 } from './resolvers';
-import { BCMSTagUpdateResolver } from './resolvers/update';
 
 export const BCMSTagCollection = createGraphqlCollection({
   name: 'tag',
@@ -16,6 +17,7 @@ export const BCMSTagCollection = createGraphqlCollection({
   inputs: [BCMSTagCreateDataInput, BCMSTagUpdateDataInput],
   resolvers: [
     BCMSTagCreateResolver,
+    BCMSTagDeleteResolver,
     BCMSTagGetAllResolver,
     BCMSTagGetManyResolver,
     BCMSTagGetByIdResolver,
