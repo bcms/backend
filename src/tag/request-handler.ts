@@ -41,6 +41,22 @@ export class BCMSTagRequestHandler {
     }
     return tag;
   }
+  static async getByValue({
+    value,
+    errorHandler,
+  }: {
+    value: string;
+    errorHandler: HTTPError;
+  }): Promise<BCMSTag> {
+    const tag = await BCMSRepo.tag.methods.findByValue(value);
+    if (!tag) {
+      throw errorHandler.occurred(
+        HTTPStatus.NOT_FOUNT,
+        bcmsResCode('tag010', { value }),
+      );
+    }
+    return tag;
+  }
   static async create({
     accessToken,
     errorHandler,

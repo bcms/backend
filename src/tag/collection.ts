@@ -5,6 +5,7 @@ import {
   BCMSTagCreateResolver,
   BCMSTagGetAllResolver,
   BCMSTagGetByIdResolver,
+  BCMSTagGetByValueResolver,
   BCMSTagGetManyResolver,
 } from './resolvers';
 
@@ -17,5 +18,6 @@ export const BCMSTagCollection = createGraphqlCollection({
     BCMSTagGetAllResolver,
     BCMSTagGetManyResolver,
     BCMSTagGetByIdResolver,
+    BCMSTagGetByValueResolver,
   ],
 });

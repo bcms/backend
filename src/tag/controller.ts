@@ -96,16 +96,11 @@ export const BCMSTagController = createController({
           JWTPermissionName.READ,
         ),
         async handler({ request, errorHandler }) {
-          const value = request.params.value;
-          const tag = await BCMSRepo.tag.methods.findByValue(value);
-          if (!tag) {
-            throw errorHandler.occurred(
-              HTTPStatus.NOT_FOUNT,
-              bcmsResCode('tag010', { value }),
-            );
-          }
           return {
-            item: tag,
+            item: await BCMSTagRequestHandler.getByValue({
+              value: request.params.value,
+              errorHandler,
+            }),
           };
         },
       }),
