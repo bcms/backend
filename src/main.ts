@@ -82,7 +82,11 @@ import {
   BCMSColorController,
   createBcmsColorRepository,
 } from './color';
-import { BCMSTagController, createBcmsTagRepository } from './tag';
+import {
+  BCMSTagCollection,
+  BCMSTagController,
+  createBcmsTagRepository,
+} from './tag';
 import { BCMSTypeConverterController } from './type-converter';
 import { BCMSSearchController } from './search';
 import { BCMSChangeController, createBcmsChangeRepository } from './change';
@@ -302,6 +306,7 @@ async function initialize() {
         BCMSPropCollection,
         BCMSGroupCollection,
         BCMSColorCollection,
+        BCMSTagCollection,
       ],
     }),
   );
