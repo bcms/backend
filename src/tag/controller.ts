@@ -135,53 +135,12 @@ export const BCMSTagController = createController({
           bodySchema: BCMSTagUpdateDataSchema,
         }),
         async handler({ errorHandler, body, accessToken }) {
-          if (body.value === '') {
-            throw errorHandler.occurred(
-              HTTPStatus.BAD_REQUEST,
-              bcmsResCode('tag009'),
-            );
-          }
-          const tag = await BCMSRepo.tag.findById(body._id);
-          if (!tag) {
-            throw errorHandler.occurred(
-              HTTPStatus.NOT_FOUNT,
-              bcmsResCode('tag001', { id: body._id }),
-            );
-          }
-          const existTag = await BCMSRepo.tag.methods.findByValue(body.value);
-          if (existTag) {
-            throw errorHandler.occurred(
-              HTTPStatus.BAD_REQUEST,
-              bcmsResCode('tag002', { value: body.value }),
-            );
-          }
-          let changeDetected = false;
-          if (typeof body.value === 'string' && body.value !== tag.value) {
-            changeDetected = true;
-            tag.value = body.value;
-          }
-          if (!changeDetected) {
-            throw errorHandler.occurred(
-              HTTPStatus.FORBIDDEN,
-              bcmsResCode('g003'),
-            );
-          }
-          const updatedTag = await BCMSRepo.tag.update(tag);
-          if (!updatedTag) {
-            throw errorHandler.occurred(
-              HTTPStatus.INTERNAL_SERVER_ERROR,
-              bcmsResCode('tag005'),
-            );
-          }
-          await BCMSSocketManager.emit.tag({
-            tagId: updatedTag._id,
-            type: BCMSSocketEventType.UPDATE,
-            userIds: 'all',
-            excludeUserId: [accessToken.payload.userId],
-          });
-          await BCMSRepo.change.methods.updateAndIncByName('tag');
           return {
-            item: updatedTag,
+            item: await BCMSTagRequestHandler.update({
+              accessToken,
+              body,
+              errorHandler,
+            }),
           };
         },
       }),
