@@ -144,7 +144,7 @@ export const BCMSPropHandler: BCMSPropHandlerType = {
                   __type: 'array',
                   __required: true,
                   __child: {
-                    __type: 'string',
+                    __type: 'number',
                   },
                 },
               },
