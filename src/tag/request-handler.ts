@@ -22,6 +22,25 @@ export class BCMSTagRequestHandler {
       return await BCMSRepo.tag.methods.findAllByCid(ids);
     }
   }
+  static async getById({
+    id,
+    errorHandler,
+  }: {
+    id: string;
+    errorHandler: HTTPError;
+  }): Promise<BCMSTag> {
+    const tag =
+      id.length === 24
+        ? await BCMSRepo.tag.findById(id)
+        : await BCMSRepo.tag.methods.findByCid(id);
+    if (!tag) {
+      throw errorHandler.occurred(
+        HTTPStatus.NOT_FOUNT,
+        bcmsResCode('tag001', { id }),
+      );
+    }
+    return tag;
+  }
   static async create({
     accessToken,
     errorHandler,
