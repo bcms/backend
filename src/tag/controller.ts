@@ -1,4 +1,3 @@
-import { BCMSFactory } from '@bcms/factory';
 import { BCMSPropHandler } from '@bcms/prop';
 import { BCMSRepo } from '@bcms/repo';
 import { bcmsResCode } from '@bcms/response-code';
@@ -27,6 +26,7 @@ import {
   JWTRoleName,
 } from '@becomes/purple-cheetah-mod-jwt/types';
 import { HTTPStatus } from '@becomes/purple-cheetah/types';
+import { BCMSTagRequestHandler } from './request-handler';
 
 export const BCMSTagController = createController({
   name: 'Tag controller',
@@ -134,55 +134,12 @@ export const BCMSTagController = createController({
           bodySchema: BCMSTagCreateDataSchema,
         }),
         async handler({ errorHandler, body, accessToken }) {
-          let idc = await BCMSRepo.idc.methods.findAndIncByForId('tags');
-          if (!idc) {
-            const tagIdc = BCMSFactory.idc.create({
-              count: 2,
-              forId: 'tags',
-              name: 'Tags',
-            });
-            const addIdcResult = await BCMSRepo.idc.add(tagIdc);
-            if (!addIdcResult) {
-              throw errorHandler.occurred(
-                HTTPStatus.INTERNAL_SERVER_ERROR,
-                'Failed to add IDC to the database.',
-              );
-            }
-            idc = 1;
-          }
-          if (body.value === '') {
-            throw errorHandler.occurred(
-              HTTPStatus.BAD_REQUEST,
-              bcmsResCode('tag009'),
-            );
-          }
-          const existTag = await BCMSRepo.tag.methods.findByValue(body.value);
-          if (existTag) {
-            throw errorHandler.occurred(
-              HTTPStatus.BAD_REQUEST,
-              bcmsResCode('tag002', { value: body.value }),
-            );
-          }
-          const tag = BCMSFactory.tag.create({
-            cid: idc.toString(16),
-            value: body.value,
-          });
-          const addedTag = await BCMSRepo.tag.add(tag);
-          if (!addedTag) {
-            throw errorHandler.occurred(
-              HTTPStatus.INTERNAL_SERVER_ERROR,
-              bcmsResCode('tag003'),
-            );
-          }
-          await BCMSSocketManager.emit.tag({
-            tagId: addedTag._id,
-            type: BCMSSocketEventType.UPDATE,
-            userIds: 'all',
-            excludeUserId: [accessToken.payload.userId],
-          });
-          await BCMSRepo.change.methods.updateAndIncByName('tag');
           return {
-            item: addedTag,
+            item: await BCMSTagRequestHandler.create({
+              accessToken,
+              errorHandler,
+              body,
+            }),
           };
         },
       }),
