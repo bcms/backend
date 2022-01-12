@@ -1,10 +1,13 @@
 import { createGraphqlCollection } from '@becomes/purple-cheetah-mod-graphql';
 import { BCMSTemplateObject } from './objects';
-import { BCMSTemplateGetAllResolver } from './resolvers';
+import {
+  BCMSTemplateGetAllResolver,
+  BCMSTemplateManyResolver,
+} from './resolvers';
 
 export const BCMSTemplateCollection = createGraphqlCollection({
   name: 'template',
   objects: [BCMSTemplateObject],
   inputs: [],
-  resolvers: [BCMSTemplateGetAllResolver],
+  resolvers: [BCMSTemplateGetAllResolver, BCMSTemplateManyResolver],
 });
