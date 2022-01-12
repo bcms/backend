@@ -14,7 +14,7 @@ import {
 import { BCMSColorRequestHandler } from '../request-handler';
 
 interface Args extends BCMSGraphqlSecurityArgsType {
-  body: BCMSColorCreateData;
+  data: BCMSColorCreateData;
 }
 
 export const BCMSColorCreateResolver = createGraphqlResolver<
@@ -29,9 +29,9 @@ export const BCMSColorCreateResolver = createGraphqlResolver<
   type: GraphqlResolverType.MUTATION,
   args: {
     ...BCMSGraphqlSecurityArgs,
-    body: 'BCMSColorCreateData!',
+    DataTransfer: 'BCMSColorCreateData!',
   },
-  async resolve({ accessToken, errorHandler, body }) {
+  async resolve({ accessToken, errorHandler, data }) {
     const jwt = securityVerifyJWT({
       token: accessToken,
       errorHandler,
@@ -40,7 +40,7 @@ export const BCMSColorCreateResolver = createGraphqlResolver<
     });
     const color = await BCMSColorRequestHandler.create({
       accessToken: jwt,
-      body,
+      body: data,
       errorHandler,
     });
     return color;
