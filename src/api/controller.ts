@@ -23,14 +23,17 @@ import {
   BCMSSocketEventType,
   BCMSUserCustomPool,
   BCMSApiKey,
+  BCMSFunctionManager,
 } from '../types';
 import { bcmsResCode } from '@bcms/response-code';
 import { BCMSFactory } from '@bcms/factory';
 import { BCMSSocketManager } from '@bcms/socket';
 import { BCMSRepo } from '@bcms/repo';
+import { useBcmsFunctionManger } from '@bcms/function';
 
 interface Setup {
   objectUtil: ObjectUtility;
+  functionManager: BCMSFunctionManager;
 }
 
 export const BCMSApiKeyController = createController<Setup>({
@@ -39,15 +42,23 @@ export const BCMSApiKeyController = createController<Setup>({
   setup() {
     return {
       objectUtil: useObjectUtility(),
+      functionManager: useBcmsFunctionManger(),
     };
   },
-  methods({ objectUtil }) {
+  methods({ objectUtil, functionManager }) {
     return {
       getAccessList: createControllerMethod({
         path: '/access/list',
         type: 'get',
         preRequestHandler: createBcmsApiKeySecurityPreRequestHandler(),
         async handler({ apiKey }) {
+          const fns = functionManager.getAll();
+          for (let i = 0; i < fns.length; i++) {
+            const fn = fns[i];
+            if (fn.config.public) {
+              apiKey.access.functions.push({ name: fn.config.name });
+            }
+          }
           return apiKey.access;
         },
       }),

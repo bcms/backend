@@ -124,12 +124,16 @@ export const BCMSFunctionController = createController<Setup>({
           } catch (error) {
             const e = error as HTTPException<unknown>;
             if (e.message && e.stack && e.status) {
+              e.message = {
+                result: e.message,
+                success: false,
+              };
               throw error;
             }
             logger.error(name, error);
             throw errorHandler.occurred(HTTPStatus.INTERNAL_SERVER_ERROR, {
               success: false,
-              err: (error as Error).message,
+              result: (error as Error).message,
             });
           }
         },

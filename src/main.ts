@@ -101,11 +101,11 @@ const backend: BCMSBackend = {
 async function initialize() {
   await loadBcmsConfig();
   await loadBcmsResponseCodes();
+  await createBcmsShimService();
 
   const modules: Module[] = [
     bcmsSetup(),
     createBcmsFactories(),
-    createBcmsShimService(),
     createJwt({
       scopes: [
         {
@@ -284,6 +284,7 @@ async function initialize() {
   } else {
     throw Error('No database configuration detected.');
   }
+  console.log(ShimConfig);
   if (ShimConfig.local) {
     middleware.push(createRequestLoggerMiddleware());
     controllers.push(BCMSCypressController);
