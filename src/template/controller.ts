@@ -40,7 +40,7 @@ export const BCMSTemplateController = createController<Setup>({
       stringUtil: useStringUtility(),
     };
   },
-  methods({ stringUtil }) {
+  methods() {
     return {
       getAll: createControllerMethod<
         JWTPreRequestHandlerResult<BCMSUserCustomPool>,
@@ -146,144 +146,12 @@ export const BCMSTemplateController = createController<Setup>({
           bodySchema: BCMSTemplateUpdateDataSchema,
         }),
         async handler({ body, errorHandler, accessToken }) {
-          const id = body._id;
-          const template = await BCMSRepo.template.findById(id);
-          if (!template) {
-            throw errorHandler.occurred(
-              HTTPStatus.NOT_FOUNT,
-              bcmsResCode('tmp001', { id }),
-            );
-          }
-          let changeDetected = false;
-          if (
-            typeof body.label !== 'undefined' &&
-            body.label !== template.label
-          ) {
-            const name = stringUtil.toSlugUnderscore(body.label);
-            if (template.name !== name) {
-              if (await BCMSRepo.template.methods.findByName(name)) {
-                throw errorHandler.occurred(
-                  HTTPStatus.FORBIDDEN,
-                  bcmsResCode('tmp002', { name: template.name }),
-                );
-              }
-            }
-            changeDetected = true;
-            template.label = body.label;
-            template.name = name;
-          }
-          if (typeof body.desc !== 'undefined' && template.desc !== body.desc) {
-            changeDetected = true;
-            template.desc = body.desc;
-          }
-          if (
-            typeof body.singleEntry !== 'undefined' &&
-            template.singleEntry !== body.singleEntry
-          ) {
-            changeDetected = true;
-            template.singleEntry = body.singleEntry;
-          }
-          if (
-            typeof body.propChanges !== 'undefined' &&
-            body.propChanges.length > 0
-          ) {
-            for (let i = 0; i < body.propChanges.length; i++) {
-              const change = body.propChanges[i];
-              if (change.add) {
-                const name = stringUtil.toSlugUnderscore(change.add.label);
-                if (name === 'title' || name === 'slug') {
-                  throw errorHandler.occurred(
-                    HTTPStatus.FORBIDDEN,
-                    bcmsResCode('tmp009', {
-                      name,
-                    }),
-                  );
-                }
-              } else if (change.update) {
-                if (
-                  change.update.label === 'Title' ||
-                  change.update.label === 'Slug'
-                ) {
-                  throw errorHandler.occurred(
-                    HTTPStatus.FORBIDDEN,
-                    bcmsResCode('tmp009', {
-                      name: change.update.label,
-                    }),
-                  );
-                }
-              } else if (change.remove) {
-                if (change.remove === 'title' || change.remove === 'slug') {
-                  throw errorHandler.occurred(
-                    HTTPStatus.FORBIDDEN,
-                    bcmsResCode('tmp009', {
-                      name: change.remove,
-                    }),
-                  );
-                }
-              }
-            }
-            changeDetected = true;
-            const result = await BCMSPropHandler.applyPropChanges(
-              template.props,
-              body.propChanges,
-            );
-            if (result instanceof Error) {
-              throw errorHandler.occurred(
-                HTTPStatus.BAD_REQUEST,
-                bcmsResCode('g009', {
-                  msg: result.message,
-                }),
-              );
-            }
-            template.props = result;
-          }
-          if (!changeDetected) {
-            throw errorHandler.occurred(
-              HTTPStatus.FORBIDDEN,
-              bcmsResCode('g003'),
-            );
-          }
-          const hasInfiniteLoop = await BCMSPropHandler.testInfiniteLoop(
-            template.props,
-          );
-          if (hasInfiniteLoop instanceof Error) {
-            throw errorHandler.occurred(
-              HTTPStatus.BAD_REQUEST,
-              bcmsResCode('g008', {
-                msg: hasInfiniteLoop.message,
-              }),
-            );
-          }
-          const checkProps = await BCMSPropHandler.propsChecker(
-            template.props,
-            template.props,
-            'template.props',
-            true,
-          );
-          if (checkProps instanceof Error) {
-            throw errorHandler.occurred(
-              HTTPStatus.BAD_REQUEST,
-              bcmsResCode('g007', {
-                msg: checkProps.message,
-              }),
-            );
-          }
-          const updatedTemplate = await BCMSRepo.template.update(template);
-          if (!updatedTemplate) {
-            throw errorHandler.occurred(
-              HTTPStatus.INTERNAL_SERVER_ERROR,
-              bcmsResCode('tmp005'),
-            );
-          }
-          await BCMSSocketManager.emit.template({
-            templateId: updatedTemplate._id,
-            type: BCMSSocketEventType.UPDATE,
-            userIds: 'all',
-            excludeUserId: [accessToken.payload.userId],
-          });
-          await BCMSRepo.change.methods.updateAndIncByName('templates');
           return {
-            item: updatedTemplate,
+            item: await BCMSTemplateRequestHandler.update({
+              accessToken,
+              errorHandler,
+              body,
+            }),
           };
         },
       }),

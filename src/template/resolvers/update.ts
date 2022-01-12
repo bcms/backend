@@ -3,10 +3,10 @@ import { securityVerifyJWT } from '@bcms/security';
 import {
   BCMSGraphqlSecurityArgs,
   BCMSGraphqlSecurityArgsType,
-  BCMSGroupGql,
-  BCMSGroupUpdateData,
-  BCMSGroupUpdateDataGql,
   BCMSPropData,
+  BCMSTemplateGql,
+  BCMSTemplateUpdateData,
+  BCMSTemplateUpdateDataGql,
 } from '@bcms/types';
 import { createGraphqlResolver } from '@becomes/purple-cheetah-mod-graphql';
 import { GraphqlResolverType } from '@becomes/purple-cheetah-mod-graphql/types';
@@ -14,25 +14,25 @@ import {
   JWTPermissionName,
   JWTRoleName,
 } from '@becomes/purple-cheetah-mod-jwt/types';
-import { BCMSGroupRequestHandler } from '../request-handler';
+import { BCMSTemplateRequestHandler } from '../request-handler';
 
 interface Args extends BCMSGraphqlSecurityArgsType {
-  data: BCMSGroupUpdateDataGql;
+  data: BCMSTemplateUpdateDataGql;
 }
 
-export const BCMSGroupUpdateResolver = createGraphqlResolver<
+export const BCMSTemplateUpdateResolver = createGraphqlResolver<
   void,
   Args,
-  BCMSGroupGql
+  BCMSTemplateGql
 >({
   name: 'update',
   return: {
-    type: 'BCMSGroup',
+    type: 'BCMSTemplate',
   },
   type: GraphqlResolverType.MUTATION,
   args: {
     ...BCMSGraphqlSecurityArgs,
-    data: 'BCMSGroupUpdateData!',
+    data: 'BCMSTemplateUpdateData!',
   },
   async resolve({ accessToken, errorHandler, data }) {
     const jwt = securityVerifyJWT({
@@ -41,10 +41,11 @@ export const BCMSGroupUpdateResolver = createGraphqlResolver<
       permission: JWTPermissionName.WRITE,
       roles: [JWTRoleName.ADMIN, JWTRoleName.USER],
     });
-    const body: BCMSGroupUpdateData = {
+    const body: BCMSTemplateUpdateData = {
       _id: data._id,
       desc: data.desc,
       label: data.label,
+      singleEntry: data.singleEntry,
       propChanges: data.propChanges
         ? data.propChanges.map((change) => {
             let defaultData: BCMSPropData | undefined = undefined;
@@ -87,14 +88,14 @@ export const BCMSGroupUpdateResolver = createGraphqlResolver<
           })
         : undefined,
     };
-    const group = await BCMSGroupRequestHandler.update({
+    const template = await BCMSTemplateRequestHandler.update({
       accessToken: jwt,
       body,
       errorHandler,
     });
     return {
-      ...group,
-      props: BCMSFactory.prop.toGql(group.props),
-    } as BCMSGroupGql;
+      ...template,
+      props: BCMSFactory.prop.toGql(template.props),
+    } as BCMSTemplateGql;
   },
 });

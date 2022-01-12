@@ -13,7 +13,7 @@ export interface BCMSTemplateUpdateData {
   propChanges?: BCMSPropChange[];
 }
 
-export interface BCMSTempalteUpdateDataGql {
+export interface BCMSTemplateUpdateDataGql {
   _id: string;
   label?: string;
   desc?: string;
