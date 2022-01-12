@@ -106,19 +106,11 @@ export const BCMSTemplateController = createController<Setup>({
           JWTPermissionName.READ,
         ),
         async handler({ request, errorHandler }) {
-          const id = request.params.id;
-          const template =
-            id.length === 24
-              ? await BCMSRepo.template.findById(id)
-              : await BCMSRepo.template.methods.findByCid(id);
-          if (!template) {
-            throw errorHandler.occurred(
-              HTTPStatus.NOT_FOUNT,
-              bcmsResCode('tmp001', { id }),
-            );
-          }
           return {
-            item: template,
+            item: await BCMSTemplateRequestHandler.getById({
+              id: request.params.id,
+              errorHandler,
+            }),
           };
         },
       }),

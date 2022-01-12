@@ -3,6 +3,7 @@ import { BCMSTemplateObject } from './objects';
 import {
   BCMSTemplateCountResolver,
   BCMSTemplateGetAllResolver,
+  BCMSTemplateGetByIdResolver,
   BCMSTemplateManyResolver,
 } from './resolvers';
 
@@ -14,5 +15,6 @@ export const BCMSTemplateCollection = createGraphqlCollection({
     BCMSTemplateCountResolver,
     BCMSTemplateGetAllResolver,
     BCMSTemplateManyResolver,
+    BCMSTemplateGetByIdResolver,
   ],
 });

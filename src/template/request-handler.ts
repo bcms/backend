@@ -1,5 +1,7 @@
 import { BCMSRepo } from '@bcms/repo';
+import { bcmsResCode } from '@bcms/response-code';
 import type { BCMSTemplate } from '@bcms/types';
+import { HTTPError, HTTPStatus } from '@becomes/purple-cheetah/types';
 
 export class BCMSTemplateRequestHandler {
   static async getAll(): Promise<BCMSTemplate[]> {
@@ -14,5 +16,24 @@ export class BCMSTemplateRequestHandler {
   }
   static async count(): Promise<number> {
     return await BCMSRepo.template.count();
+  }
+  static async getById({
+    id,
+    errorHandler,
+  }: {
+    id: string;
+    errorHandler: HTTPError;
+  }): Promise<BCMSTemplate> {
+    const template =
+      id.length === 24
+        ? await BCMSRepo.template.findById(id)
+        : await BCMSRepo.template.methods.findByCid(id);
+    if (!template) {
+      throw errorHandler.occurred(
+        HTTPStatus.NOT_FOUNT,
+        bcmsResCode('tmp001', { id }),
+      );
+    }
+    return template;
   }
 }
