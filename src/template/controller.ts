@@ -24,7 +24,6 @@ import {
 } from '../types';
 import { BCMSRepo } from '@bcms/repo';
 import { bcmsResCode } from '@bcms/response-code';
-import { BCMSFactory } from '@bcms/factory';
 import { BCMSSocketManager } from '@bcms/socket';
 import { BCMSPropHandler } from '@bcms/prop';
 import { BCMSTemplateRequestHandler } from './request-handler';
@@ -126,54 +125,12 @@ export const BCMSTemplateController = createController<Setup>({
           bodySchema: BCMSTemplateCreateDataSchema,
         }),
         async handler({ body, errorHandler, accessToken }) {
-          let idc = await BCMSRepo.idc.methods.findAndIncByForId('templates');
-          if (!idc) {
-            const templateIdc = BCMSFactory.idc.create({
-              count: 2,
-              forId: 'templates',
-              name: 'Templates',
-            });
-            const addIdcResult = await BCMSRepo.idc.add(templateIdc);
-            if (!addIdcResult) {
-              throw errorHandler.occurred(
-                HTTPStatus.INTERNAL_SERVER_ERROR,
-                'Failed to add IDC to the database.',
-              );
-            }
-            idc = 1;
-          }
-          const template = BCMSFactory.template.create({
-            cid: idc.toString(16),
-            label: body.label,
-            name: stringUtil.toSlugUnderscore(body.label),
-            desc: body.desc,
-            singleEntry: body.singleEntry,
-            userId: accessToken.payload.userId,
-          });
-          const templateWithSameName =
-            await BCMSRepo.template.methods.findByName(template.name);
-          if (templateWithSameName) {
-            throw errorHandler.occurred(
-              HTTPStatus.FORBIDDEN,
-              bcmsResCode('tmp002', { name: template.name }),
-            );
-          }
-          const addedTemplate = await BCMSRepo.template.add(template);
-          if (!addedTemplate) {
-            throw errorHandler.occurred(
-              HTTPStatus.INTERNAL_SERVER_ERROR,
-              bcmsResCode('tmp003'),
-            );
-          }
-          await BCMSSocketManager.emit.template({
-            templateId: addedTemplate._id,
-            type: BCMSSocketEventType.UPDATE,
-            userIds: 'all',
-            excludeUserId: [accessToken.payload.userId],
-          });
-          await BCMSRepo.change.methods.updateAndIncByName('templates');
           return {
-            item: addedTemplate,
+            item: await BCMSTemplateRequestHandler.create({
+              accessToken,
+              errorHandler,
+              body,
+            }),
           };
         },
       }),
