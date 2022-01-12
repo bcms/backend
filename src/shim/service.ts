@@ -1,7 +1,6 @@
 import * as crypto from 'crypto';
 import type { BCMSShimService as BCMSShimServiceType } from '../types';
 import {
-  Module,
   HTTPStatus,
   HTTPError,
   HttpClientResponseError,
@@ -81,62 +80,45 @@ export const BCMSShimService: BCMSShimServiceType = {
   },
 };
 
-export function createBcmsShimService(): Module {
-  return {
-    name: 'Shim service',
-    initialize({ next }) {
-      logger = useLogger({ name: 'Shim service' });
-      http = createHttpClient({
-        name: 'shimClient',
-        host: { name: '172.17.0.1', port: BCMSConfig.local ? '1279' : '3000' },
-        basePath: '/shim',
-      });
-      const fs = useFS();
-      fs.read('shim.json')
-        .then((file) => {
-          const objectUtil = useObjectUtility();
-          try {
-            const shimJson = JSON.parse(file.toString());
-            const checkObject = objectUtil.compareWithSchema(
-              shimJson,
-              {
-                code: {
-                  __type: 'string',
-                  __required: false,
-                },
-                instanceId: {
-                  __type: 'string',
-                  __required: false,
-                },
-                local: {
-                  __type: 'boolean',
-                  __required: false,
-                },
-              },
-              'shim',
-            );
-            if (checkObject instanceof ObjectUtilityError) {
-              next(Error(checkObject.message));
-              return;
-            }
-            ShimConfig.code = shimJson.code || 'local';
-            ShimConfig.instanceId = shimJson.instanceId || '';
-            ShimConfig.local = shimJson.local || false;
-          } catch (err) {
-            next(err as Error);
-            return;
-          }
-          setInterval(() => {
-            if (connected && validTo < Date.now()) {
-              connected = false;
-              logger.warn('', 'Lost connection to the SHIM.');
-            }
-          }, 1000);
-          next();
-        })
-        .catch((err) => {
-          next(err);
-        });
+export async function createBcmsShimService(): Promise<void> {
+  logger = useLogger({ name: 'Shim service' });
+  http = createHttpClient({
+    name: 'shimClient',
+    host: { name: '172.17.0.1', port: BCMSConfig.local ? '1279' : '3000' },
+    basePath: '/shim',
+  });
+  const fs = useFS();
+  const file = await fs.read('shim.json');
+  const objectUtil = useObjectUtility();
+  const shimJson = JSON.parse(file.toString());
+  const checkObject = objectUtil.compareWithSchema(
+    shimJson,
+    {
+      code: {
+        __type: 'string',
+        __required: false,
+      },
+      instanceId: {
+        __type: 'string',
+        __required: false,
+      },
+      local: {
+        __type: 'boolean',
+        __required: false,
+      },
     },
-  };
+    'shim',
+  );
+  if (checkObject instanceof ObjectUtilityError) {
+    throw Error(checkObject.message);
+  }
+  ShimConfig.code = shimJson.code || 'local';
+  ShimConfig.instanceId = shimJson.instanceId || '';
+  ShimConfig.local = shimJson.local || false;
+  setInterval(() => {
+    if (connected && validTo < Date.now()) {
+      connected = false;
+      logger.warn('', 'Lost connection to the SHIM.');
+    }
+  }, 1000);
 }
