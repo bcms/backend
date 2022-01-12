@@ -90,7 +90,7 @@ export const BCMSTemplateController = createController<Setup>({
         ),
         async handler() {
           return {
-            count: await BCMSRepo.template.count(),
+            count: await BCMSTemplateRequestHandler.count(),
           };
         },
       }),

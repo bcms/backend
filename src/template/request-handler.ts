@@ -12,4 +12,7 @@ export class BCMSTemplateRequestHandler {
       return await BCMSRepo.template.methods.findAllByCid(ids);
     }
   }
+  static async count(): Promise<number> {
+    return await BCMSRepo.template.count();
+  }
 }
