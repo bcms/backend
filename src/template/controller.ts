@@ -27,6 +27,7 @@ import { bcmsResCode } from '@bcms/response-code';
 import { BCMSFactory } from '@bcms/factory';
 import { BCMSSocketManager } from '@bcms/socket';
 import { BCMSPropHandler } from '@bcms/prop';
+import { BCMSTemplateRequestHandler } from './request-handler';
 
 interface Setup {
   stringUtil: StringUtility;
@@ -54,7 +55,7 @@ export const BCMSTemplateController = createController<Setup>({
         ),
         async handler() {
           return {
-            items: await BCMSRepo.template.findAll(),
+            items: await BCMSTemplateRequestHandler.getAll(),
           };
         },
       }),
