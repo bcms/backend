@@ -7,11 +7,12 @@ import { BCMSTemplateObject } from './objects';
 import {
   BCMSTemplateCountResolver,
   BCMSTemplateCreateResolver,
+  BCMSTemplateDeleteResolver,
   BCMSTemplateGetAllResolver,
   BCMSTemplateGetByIdResolver,
   BCMSTemplateManyResolver,
+  BCMSTemplateUpdateResolver,
 } from './resolvers';
-import { BCMSTemplateUpdateResolver } from './resolvers/update';
 
 export const BCMSTemplateCollection = createGraphqlCollection({
   name: 'template',
@@ -20,6 +21,7 @@ export const BCMSTemplateCollection = createGraphqlCollection({
   resolvers: [
     BCMSTemplateCountResolver,
     BCMSTemplateCreateResolver,
+    BCMSTemplateDeleteResolver,
     BCMSTemplateGetAllResolver,
     BCMSTemplateManyResolver,
     BCMSTemplateGetByIdResolver,

@@ -9,23 +9,17 @@ import {
   JWTPreRequestHandlerResult,
   JWTRoleName,
 } from '@becomes/purple-cheetah-mod-jwt/types';
-import { HTTPStatus, StringUtility } from '@becomes/purple-cheetah/types';
+import type { StringUtility } from '@becomes/purple-cheetah/types';
 import { createJwtAndBodyCheckRouteProtection } from '../util';
 import {
-  BCMSApiKey,
   BCMSUserCustomPool,
   BCMSTemplateCreateData,
   BCMSTemplateCreateDataSchema,
   BCMSTemplateUpdateData,
   BCMSTemplateUpdateDataSchema,
-  BCMSSocketEventType,
   BCMSTemplate,
   BCMSJWTAndBodyCheckerRouteProtectionResult,
 } from '../types';
-import { BCMSRepo } from '@bcms/repo';
-import { bcmsResCode } from '@bcms/response-code';
-import { BCMSSocketManager } from '@bcms/socket';
-import { BCMSPropHandler } from '@bcms/prop';
 import { BCMSTemplateRequestHandler } from './request-handler';
 
 interface Setup {
@@ -167,56 +161,13 @@ export const BCMSTemplateController = createController<Setup>({
           JWTPermissionName.DELETE,
         ),
         async handler({ request, errorHandler, logger, name, accessToken }) {
-          const id = request.params.id;
-          const template = await BCMSRepo.template.findById(id);
-          if (!template) {
-            throw errorHandler.occurred(
-              HTTPStatus.NOT_FOUNT,
-              bcmsResCode('tmp001', { id }),
-            );
-          }
-          const deleteResult = await BCMSRepo.template.deleteById(id);
-          if (!deleteResult) {
-            throw errorHandler.occurred(
-              HTTPStatus.INTERNAL_SERVER_ERROR,
-              bcmsResCode('tmp006'),
-            );
-          }
-          await BCMSRepo.entry.methods.deleteAllByTemplateId(id);
-          const errors = await BCMSPropHandler.removeEntryPointer({
-            templateId: id,
+          await BCMSTemplateRequestHandler.delete({
+            errorHandler,
+            id: request.params.id,
+            logger,
+            name,
+            accessToken,
           });
-          if (errors) {
-            logger.error(name, errors);
-          }
-
-          const keys = await BCMSRepo.apiKey.findAll();
-          const updateKeys: BCMSApiKey[] = [];
-          for (let i = 0; i < keys.length; i++) {
-            const key = keys[i];
-            if (key.access.templates.find((e) => e._id === template._id)) {
-              key.access.templates = key.access.templates.filter(
-                (e) => e._id !== template._id,
-              );
-              updateKeys.push(key);
-            }
-          }
-          for (let i = 0; i < updateKeys.length; i++) {
-            const key = updateKeys[i];
-            await BCMSRepo.apiKey.update(key);
-            await BCMSSocketManager.emit.apiKey({
-              apiKeyId: key._id,
-              type: BCMSSocketEventType.UPDATE,
-              userIds: 'all',
-            });
-          }
-          await BCMSSocketManager.emit.template({
-            templateId: template._id,
-            type: BCMSSocketEventType.REMOVE,
-            userIds: 'all',
-            excludeUserId: [accessToken.payload.userId],
-          });
-          await BCMSRepo.change.methods.updateAndIncByName('templates');
           return {
             message: 'Success.',
           };
