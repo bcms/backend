@@ -69,7 +69,7 @@ export const BCMSTemplateOrganizerController = createController<Setup>({
         async handler({ request }) {
           const ids = (request.headers['x-bcms-ids'] as string).split('-');
           return {
-            items: await BCMSRepo.templateOrganizer.findAllById(ids),
+            items: await BCMSTemplateOrganizerRequestHandler.getMany(ids),
           };
         },
       }),

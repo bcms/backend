@@ -16,6 +16,9 @@ export class BCMSTemplateOrganizerRequestHandler {
   static async getAll(): Promise<BCMSTemplateOrganizer[]> {
     return await BCMSRepo.templateOrganizer.findAll();
   }
+  static async getMany(ids: string[]): Promise<BCMSTemplateOrganizer[]> {
+    return await BCMSRepo.templateOrganizer.findAllById(ids);
+  }
   static async create({
     accessToken,
     errorHandler,

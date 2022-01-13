@@ -4,6 +4,7 @@ import { BCMSTemplateOrganizerObject } from './objects';
 import {
   BCMSTemplateOrganizerCreateResolver,
   BCMSTemplateOrganizerGetAllResolver,
+  BCMSTemplateOrganizerGetManyResolver,
 } from './resolvers';
 
 export const BCMSTemplateOrganizerCollection = createGraphqlCollection({
@@ -13,5 +14,6 @@ export const BCMSTemplateOrganizerCollection = createGraphqlCollection({
   resolvers: [
     BCMSTemplateOrganizerCreateResolver,
     BCMSTemplateOrganizerGetAllResolver,
+    BCMSTemplateOrganizerGetManyResolver,
   ],
 });
