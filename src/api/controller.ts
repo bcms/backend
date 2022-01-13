@@ -59,6 +59,16 @@ export const BCMSApiKeyController = createController<Setup>({
               apiKey.access.functions.push({ name: fn.config.name });
             }
           }
+          const templates = await BCMSRepo.template.findAll();
+          let i = 0;
+          while (i < apiKey.access.templates.length) {
+            const tempAccess = apiKey.access.templates[i];
+            if (!templates.find((e) => e._id === tempAccess._id)) {
+              apiKey.access.templates.splice(i, 1);
+            } else {
+              i++;
+            }
+          }
           return apiKey.access;
         },
       }),
