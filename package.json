@@ -27,7 +27,7 @@
     "@banez/search": "file:packs/search.tgz",
     "@becomes/purple-cheetah": "^3.5.1",
     "@becomes/purple-cheetah-mod-fsdb": "^1.1.1",
-    "@becomes/purple-cheetah-mod-graphql": "^1.1.0",
+    "@becomes/purple-cheetah-mod-graphql": "^1.1.2",
     "@becomes/purple-cheetah-mod-jwt": "^1.1.0",
     "@becomes/purple-cheetah-mod-mem-cache": "^1.1.1",
     "@becomes/purple-cheetah-mod-mongodb": "^1.1.3",
