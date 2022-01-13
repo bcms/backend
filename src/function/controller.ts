@@ -15,6 +15,7 @@ import {
   JWTError,
   JWTManager,
   JWTPermissionName,
+  JWTPreRequestHandlerResult,
   JWTRoleName,
 } from '@becomes/purple-cheetah-mod-jwt/types';
 import { HTTPException, HTTPStatus } from '@becomes/purple-cheetah/types';
@@ -22,6 +23,7 @@ import type {
   BCMSApiKey,
   BCMSUserCustomPool,
   BCMSFunctionManager,
+  BCMSFunctionConfig,
 } from '../types';
 import { useBcmsFunctionManger } from './main';
 
@@ -56,6 +58,24 @@ export const BCMSFunctionController = createController<Setup>({
                 name: e.config.name,
                 public: !!e.config.public,
               };
+            }),
+          };
+        },
+      }),
+      getAll: createControllerMethod<
+        JWTPreRequestHandlerResult<BCMSUserCustomPool>,
+        { items: BCMSFunctionConfig[] }
+      >({
+        path: '/all',
+        type: 'get',
+        preRequestHandler: createJwtProtectionPreRequestHandler(
+          [JWTRoleName.ADMIN],
+          JWTPermissionName.READ,
+        ),
+        async handler() {
+          return {
+            items: fnManager.getAll().map((e) => {
+              return e.config;
             }),
           };
         },
