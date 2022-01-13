@@ -33,6 +33,7 @@ export const BCMSGroupDeleteResolver = createGraphqlResolver<
     collectionName,
     resolverName,
   }) {
+    const endpointName = `${collectionName}.${resolverName}`;
     const jwt = securityVerifyJWT({
       token: accessToken,
       errorHandler,
@@ -43,7 +44,7 @@ export const BCMSGroupDeleteResolver = createGraphqlResolver<
       errorHandler,
       id,
       logger,
-      name: collectionName + resolverName,
+      name: endpointName,
       accessToken: jwt,
     });
     return 'Success';
