@@ -11,27 +11,28 @@ import {
 } from '@becomes/purple-cheetah-mod-jwt/types';
 import { BCMSGroupRequestHandler } from '../request-handler';
 
-interface Args extends BCMSGraphqlSecurityArgsType {
-  id: string;
-  name: string;
-}
-
 export const BCMSGroupDeleteResolver = createGraphqlResolver<
   void,
-  Args,
+  BCMSGraphqlSecurityArgsType & { id: string },
   string
 >({
   name: 'delete',
   return: {
-    type: 'BCMSGroup',
+    type: 'String',
   },
   type: GraphqlResolverType.MUTATION,
   args: {
     ...BCMSGraphqlSecurityArgs,
     id: 'String!',
-    name: 'String!',
   },
-  async resolve({ accessToken, errorHandler, id, logger, name }) {
+  async resolve({
+    accessToken,
+    errorHandler,
+    id,
+    logger,
+    collectionName,
+    resolverName,
+  }) {
     const jwt = securityVerifyJWT({
       token: accessToken,
       errorHandler,
@@ -42,7 +43,7 @@ export const BCMSGroupDeleteResolver = createGraphqlResolver<
       errorHandler,
       id,
       logger,
-      name,
+      name: collectionName + resolverName,
       accessToken: jwt,
     });
     return 'Success';
