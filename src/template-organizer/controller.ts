@@ -52,7 +52,7 @@ export const BCMSTemplateOrganizerController = createController<Setup>({
         ),
         async handler() {
           return {
-            items: await BCMSRepo.templateOrganizer.findAll(),
+            items: await BCMSTemplateOrganizerRequestHandler.getAll(),
           };
         },
       }),
