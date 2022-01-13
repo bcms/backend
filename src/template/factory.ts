@@ -1,6 +1,7 @@
 import { v4 as uuidv4 } from 'uuid';
 import { Types } from 'mongoose';
-import { BCMSPropType, BCMSTemplateFactory } from '../types';
+import { BCMSPropGql, BCMSPropType, BCMSTemplateFactory } from '../types';
+import { BCMSFactory } from '@bcms/factory';
 
 export function createBcmsTemplateFactory(): BCMSTemplateFactory {
   return {
@@ -37,6 +38,20 @@ export function createBcmsTemplateFactory(): BCMSTemplateFactory {
                 defaultData: [''],
               },
             ],
+      };
+    },
+    toGql(template) {
+      return {
+        _id: template._id,
+        createdAt: template.createdAt,
+        updatedAt: template.updatedAt,
+        cid: template.cid,
+        desc: template.desc,
+        label: template.label,
+        name: template.name,
+        singleEntry: template.singleEntry,
+        userId: template.userId,
+        props: BCMSFactory.prop.toGql(template.props) as BCMSPropGql[],
       };
     },
   };

@@ -9,9 +9,9 @@ import {
   JWTPermissionName,
   JWTRoleName,
 } from '@becomes/purple-cheetah-mod-jwt/types';
-import { BCMSGroupRequestHandler } from '../request-handler';
+import { BCMSTemplateRequestHandler } from '../request-handler';
 
-export const BCMSGroupDeleteResolver = createGraphqlResolver<
+export const BCMSTemplateDeleteResolver = createGraphqlResolver<
   void,
   BCMSGraphqlSecurityArgsType & { id: string },
   string
@@ -39,13 +39,14 @@ export const BCMSGroupDeleteResolver = createGraphqlResolver<
       permission: JWTPermissionName.READ,
       roles: [JWTRoleName.ADMIN, JWTRoleName.USER],
     });
-    await BCMSGroupRequestHandler.delete({
+    console.log('oj', collectionName + resolverName);
+    await BCMSTemplateRequestHandler.delete({
       errorHandler,
       id,
+      accessToken: jwt,
       logger,
       name: collectionName + resolverName,
-      accessToken: jwt,
     });
-    return 'Success';
+    return 'Success.';
   },
 });

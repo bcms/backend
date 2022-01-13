@@ -5,7 +5,7 @@ export const BCMSPropDataInput = createGraphqlInput({
   fields: {
     string: '[String!]',
     number: '[Float!]',
-    color: 'BCMSPropColorPickerInput',
+    colorPicker: 'BCMSPropColorPickerInput',
     boolean: '[Boolean!]',
     entryPointer: 'BCMSPropEntryPointerInput',
     enum: 'BCMSPropEnumerationInput',

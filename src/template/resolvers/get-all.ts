@@ -1,7 +1,9 @@
+import { BCMSFactory } from '@bcms/factory';
 import { securityVerifyJWT } from '@bcms/security';
 import {
   BCMSGraphqlSecurityArgs,
   BCMSGraphqlSecurityArgsType,
+  BCMSTemplateGql,
 } from '@bcms/types';
 import { createGraphqlResolver } from '@becomes/purple-cheetah-mod-graphql';
 import { GraphqlResolverType } from '@becomes/purple-cheetah-mod-graphql/types';
@@ -9,43 +11,33 @@ import {
   JWTPermissionName,
   JWTRoleName,
 } from '@becomes/purple-cheetah-mod-jwt/types';
-import { BCMSGroupRequestHandler } from '../request-handler';
+import { BCMSTemplateRequestHandler } from '../request-handler';
 
-export const BCMSGroupDeleteResolver = createGraphqlResolver<
+export const BCMSTemplateGetAllResolver = createGraphqlResolver<
   void,
-  BCMSGraphqlSecurityArgsType & { id: string },
-  string
+  BCMSGraphqlSecurityArgsType,
+  BCMSTemplateGql[]
 >({
-  name: 'delete',
+  name: 'getAll',
   return: {
-    type: 'String',
+    type: 'BCMSTemplateArray',
   },
-  type: GraphqlResolverType.MUTATION,
+  type: GraphqlResolverType.QUERY,
   args: {
     ...BCMSGraphqlSecurityArgs,
-    id: 'String!',
   },
-  async resolve({
-    accessToken,
-    errorHandler,
-    id,
-    logger,
-    collectionName,
-    resolverName,
-  }) {
-    const jwt = securityVerifyJWT({
+  async resolve({ accessToken, errorHandler }) {
+    securityVerifyJWT({
       token: accessToken,
       errorHandler,
       permission: JWTPermissionName.READ,
       roles: [JWTRoleName.ADMIN, JWTRoleName.USER],
     });
-    await BCMSGroupRequestHandler.delete({
-      errorHandler,
-      id,
-      logger,
-      name: collectionName + resolverName,
-      accessToken: jwt,
+    return (await BCMSTemplateRequestHandler.getAll()).map((template) => {
+      return {
+        ...template,
+        props: BCMSFactory.prop.toGql(template.props),
+      } as BCMSTemplateGql;
     });
-    return 'Success';
   },
 });

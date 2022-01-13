@@ -1,5 +1,5 @@
 import type { BCMSProp } from '../prop';
-import type { BCMSTemplate } from './models';
+import type { BCMSTemplate, BCMSTemplateGql } from './models';
 
 export interface BCMSTemplateFactory {
   create(data: {
@@ -11,4 +11,5 @@ export interface BCMSTemplateFactory {
     singleEntry?: boolean;
     props?: BCMSProp[];
   }): BCMSTemplate;
+  toGql(template: BCMSTemplate): BCMSTemplateGql;
 }

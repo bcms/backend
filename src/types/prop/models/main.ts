@@ -130,7 +130,7 @@ export interface BCMSPropParsed {
 export interface BCMSPropDataInputGql {
   string?: string[];
   number?: number[];
-  color?: BCMSPropColorPickerData;
+  colorPicker?: BCMSPropColorPickerData;
   boolean?: boolean[];
   entryPointer?: BCMSPropEntryPointerData;
   enum?: BCMSPropEnumData;

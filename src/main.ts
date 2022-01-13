@@ -50,6 +50,7 @@ import {
 } from './media';
 import { BCMSStatusController, createBcmsStatusRepository } from './status';
 import {
+  BCMSTemplateCollection,
   BCMSTemplateController,
   createBcmsTemplateRepository,
 } from './template';
@@ -308,6 +309,7 @@ async function initialize() {
         BCMSGroupCollection,
         BCMSColorCollection,
         BCMSTagCollection,
+        BCMSTemplateCollection,
       ],
     }),
   );

@@ -9,43 +9,28 @@ import {
   JWTPermissionName,
   JWTRoleName,
 } from '@becomes/purple-cheetah-mod-jwt/types';
-import { BCMSGroupRequestHandler } from '../request-handler';
+import { BCMSTemplateRequestHandler } from '../request-handler';
 
-export const BCMSGroupDeleteResolver = createGraphqlResolver<
+export const BCMSTemplateCountResolver = createGraphqlResolver<
   void,
-  BCMSGraphqlSecurityArgsType & { id: string },
-  string
+  BCMSGraphqlSecurityArgsType,
+  number
 >({
-  name: 'delete',
+  name: 'count',
   return: {
-    type: 'String',
+    type: 'Float',
   },
-  type: GraphqlResolverType.MUTATION,
+  type: GraphqlResolverType.QUERY,
   args: {
     ...BCMSGraphqlSecurityArgs,
-    id: 'String!',
   },
-  async resolve({
-    accessToken,
-    errorHandler,
-    id,
-    logger,
-    collectionName,
-    resolverName,
-  }) {
-    const jwt = securityVerifyJWT({
+  async resolve({ accessToken, errorHandler }) {
+    securityVerifyJWT({
       token: accessToken,
       errorHandler,
       permission: JWTPermissionName.READ,
       roles: [JWTRoleName.ADMIN, JWTRoleName.USER],
     });
-    await BCMSGroupRequestHandler.delete({
-      errorHandler,
-      id,
-      logger,
-      name: collectionName + resolverName,
-      accessToken: jwt,
-    });
-    return 'Success';
+    return await BCMSTemplateRequestHandler.count();
   },
 });

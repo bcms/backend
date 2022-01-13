@@ -1,9 +1,10 @@
+import { BCMSFactory } from '@bcms/factory';
 import { securityVerifyJWT } from '@bcms/security';
 import {
-  BCMSColor,
-  BCMSColorCreateData,
   BCMSGraphqlSecurityArgs,
   BCMSGraphqlSecurityArgsType,
+  BCMSTemplateCreateData,
+  BCMSTemplateGql,
 } from '@bcms/types';
 import { createGraphqlResolver } from '@becomes/purple-cheetah-mod-graphql';
 import { GraphqlResolverType } from '@becomes/purple-cheetah-mod-graphql/types';
@@ -11,25 +12,25 @@ import {
   JWTPermissionName,
   JWTRoleName,
 } from '@becomes/purple-cheetah-mod-jwt/types';
-import { BCMSColorRequestHandler } from '../request-handler';
+import { BCMSTemplateRequestHandler } from '../request-handler';
 
 interface Args extends BCMSGraphqlSecurityArgsType {
-  data: BCMSColorCreateData;
+  data: BCMSTemplateCreateData;
 }
 
-export const BCMSColorCreateResolver = createGraphqlResolver<
+export const BCMSTemplateCreateResolver = createGraphqlResolver<
   void,
   Args,
-  BCMSColor
+  BCMSTemplateGql
 >({
   name: 'create',
   return: {
-    type: 'BCMSColor',
+    type: 'BCMSTemplate',
   },
   type: GraphqlResolverType.MUTATION,
   args: {
     ...BCMSGraphqlSecurityArgs,
-    DataTransfer: 'BCMSColorCreateData!',
+    data: 'BCMSTemplateCreateData!',
   },
   async resolve({ accessToken, errorHandler, data }) {
     const jwt = securityVerifyJWT({
@@ -38,11 +39,14 @@ export const BCMSColorCreateResolver = createGraphqlResolver<
       permission: JWTPermissionName.WRITE,
       roles: [JWTRoleName.ADMIN],
     });
-    const color = await BCMSColorRequestHandler.create({
+    const template = await BCMSTemplateRequestHandler.create({
       accessToken: jwt,
       body: data,
       errorHandler,
     });
-    return color;
+    return {
+      ...template,
+      props: BCMSFactory.prop.toGql(template.props),
+    } as BCMSTemplateGql;
   },
 });
