@@ -3,7 +3,6 @@ import { bcmsResCode } from '@bcms/response-code';
 import {
   createController,
   createControllerMethod,
-  useStringUtility,
 } from '@becomes/purple-cheetah';
 import { createJwtProtectionPreRequestHandler } from '@becomes/purple-cheetah-mod-jwt';
 import {
@@ -11,7 +10,7 @@ import {
   JWTPreRequestHandlerResult,
   JWTRoleName,
 } from '@becomes/purple-cheetah-mod-jwt/types';
-import { HTTPStatus, StringUtility } from '@becomes/purple-cheetah/types';
+import { HTTPStatus } from '@becomes/purple-cheetah/types';
 import {
   BCMSUserCustomPool,
   BCMSGroupAddData,
@@ -25,18 +24,9 @@ import {
 import { createJwtAndBodyCheckRouteProtection } from '../util';
 import { BCMSGroupRequestHandler } from './request-handler';
 
-interface Setup {
-  stringUtil: StringUtility;
-}
-
-export const BCMSGroupController = createController<Setup>({
+export const BCMSGroupController = createController({
   name: 'Group controller',
   path: '/api/group',
-  setup() {
-    return {
-      stringUtil: useStringUtility(),
-    };
-  },
   methods() {
     return {
       whereIsItUsed: createControllerMethod({
