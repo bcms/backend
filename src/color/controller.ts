@@ -10,7 +10,6 @@ import {
 import {
   createController,
   createControllerMethod,
-  useStringUtility,
 } from '@becomes/purple-cheetah';
 import { createJwtProtectionPreRequestHandler } from '@becomes/purple-cheetah-mod-jwt';
 
@@ -19,22 +18,12 @@ import {
   JWTPreRequestHandlerResult,
   JWTRoleName,
 } from '@becomes/purple-cheetah-mod-jwt/types';
-import type { StringUtility } from '@becomes/purple-cheetah/types';
 import { createJwtAndBodyCheckRouteProtection } from '../util';
 import { BCMSColorRequestHandler } from './request-handler';
 
-interface Setup {
-  stringUtil: StringUtility;
-}
-
-export const BCMSColorController = createController<Setup>({
+export const BCMSColorController = createController({
   name: 'Color controller',
   path: '/api/color',
-  setup() {
-    return {
-      stringUtil: useStringUtility(),
-    };
-  },
   methods() {
     return {
       getAll: createControllerMethod<
