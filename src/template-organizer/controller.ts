@@ -1,4 +1,3 @@
-import { BCMSFactory } from '@bcms/factory';
 import { BCMSRepo } from '@bcms/repo';
 import { bcmsResCode } from '@bcms/response-code';
 import { BCMSSocketManager } from '@bcms/socket';
@@ -25,6 +24,7 @@ import {
   BCMSUserCustomPool,
 } from '../types';
 import { createJwtAndBodyCheckRouteProtection } from '../util';
+import { BCMSTemplateOrganizerRequestHandler } from './request-handler';
 
 interface Setup {
   stringUtil: StringUtility;
@@ -109,27 +109,12 @@ export const BCMSTemplateOrganizerController = createController<Setup>({
           roleNames: [JWTRoleName.ADMIN],
         }),
         async handler({ errorHandler, body, accessToken }) {
-          const org = BCMSFactory.templateOrganizer.create({
-            label: body.label,
-            name: stringUtil.toSlugUnderscore(body.label),
-            parentId: body.parentId,
-            templateIds: body.templateIds,
-          });
-          const addedOrg = await BCMSRepo.templateOrganizer.add(org);
-          if (!addedOrg) {
-            throw errorHandler.occurred(
-              HTTPStatus.INTERNAL_SERVER_ERROR,
-              bcmsResCode('tpo003'),
-            );
-          }
-          await BCMSSocketManager.emit.templateOrganizer({
-            templateOrganizerId: addedOrg._id,
-            type: BCMSSocketEventType.UPDATE,
-            userIds: 'all',
-            excludeUserId: [accessToken.payload.userId],
-          });
           return {
-            item: addedOrg,
+            item: await BCMSTemplateOrganizerRequestHandler.create({
+              errorHandler,
+              body,
+              accessToken,
+            }),
           };
         },
       }),
