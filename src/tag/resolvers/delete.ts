@@ -11,11 +11,11 @@ import {
 } from '@becomes/purple-cheetah-mod-jwt/types';
 import { BCMSTagRequestHandler } from '../request-handler';
 
-interface Args extends BCMSGraphqlSecurityArgsType {
-  id: string;
-  name: string;
-}
-export const BCMSTagDeleteResolver = createGraphqlResolver<void, Args, string>({
+export const BCMSTagDeleteResolver = createGraphqlResolver<
+  void,
+  BCMSGraphqlSecurityArgsType & { id: string },
+  string
+>({
   name: 'delete',
   return: {
     type: 'String',
@@ -24,9 +24,16 @@ export const BCMSTagDeleteResolver = createGraphqlResolver<void, Args, string>({
   args: {
     ...BCMSGraphqlSecurityArgs,
     id: 'String!',
-    name: 'String!',
   },
-  async resolve({ accessToken, errorHandler, id, name, logger }) {
+  async resolve({
+    accessToken,
+    errorHandler,
+    id,
+    logger,
+    collectionName,
+    resolverName,
+  }) {
+    const endpointName = `${collectionName}.${resolverName}`;
     const jwt = securityVerifyJWT({
       token: accessToken,
       errorHandler,
@@ -35,7 +42,7 @@ export const BCMSTagDeleteResolver = createGraphqlResolver<void, Args, string>({
     });
     await BCMSTagRequestHandler.delete({
       id,
-      name,
+      name: endpointName,
       logger,
       errorHandler,
       accessToken: jwt,
