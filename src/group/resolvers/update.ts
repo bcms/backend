@@ -58,6 +58,8 @@ export const BCMSGroupUpdateResolver = createGraphqlResolver<
                 defaultData = dData.entryPointer;
               } else if (dData.enum) {
                 defaultData = dData.enum;
+              } else if (dData.media) {
+                defaultData = dData.media;
               } else if (dData.groupPointer) {
                 defaultData = dData.groupPointer;
               } else if (dData.number) {
