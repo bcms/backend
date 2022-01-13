@@ -1,7 +1,6 @@
 import {
   createController,
   createControllerMethod,
-  useStringUtility,
 } from '@becomes/purple-cheetah';
 import { createJwtProtectionPreRequestHandler } from '@becomes/purple-cheetah-mod-jwt';
 import {
@@ -9,7 +8,6 @@ import {
   JWTPreRequestHandlerResult,
   JWTRoleName,
 } from '@becomes/purple-cheetah-mod-jwt/types';
-import type { StringUtility } from '@becomes/purple-cheetah/types';
 import { createJwtAndBodyCheckRouteProtection } from '../util';
 import {
   BCMSUserCustomPool,
@@ -22,18 +20,9 @@ import {
 } from '../types';
 import { BCMSTemplateRequestHandler } from './request-handler';
 
-interface Setup {
-  stringUtil: StringUtility;
-}
-
-export const BCMSTemplateController = createController<Setup>({
+export const BCMSTemplateController = createController({
   name: 'Template controller',
   path: '/api/template',
-  setup() {
-    return {
-      stringUtil: useStringUtility(),
-    };
-  },
   methods() {
     return {
       getAll: createControllerMethod<
