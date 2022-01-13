@@ -33,19 +33,19 @@ export const BCMSTemplateDeleteResolver = createGraphqlResolver<
     collectionName,
     resolverName,
   }) {
+    const endpointName = `${collectionName}.${resolverName}`;
     const jwt = securityVerifyJWT({
       token: accessToken,
       errorHandler,
       permission: JWTPermissionName.READ,
       roles: [JWTRoleName.ADMIN, JWTRoleName.USER],
     });
-    console.log('oj', collectionName + resolverName);
     await BCMSTemplateRequestHandler.delete({
       errorHandler,
       id,
       accessToken: jwt,
       logger,
-      name: collectionName + resolverName,
+      name: endpointName,
     });
     return 'Success.';
   },
