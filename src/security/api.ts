@@ -110,7 +110,7 @@ export function createBcmsApiKeySecurity(): Module {
               ` ${request.requestMethod}: ${request.path}`,
           );
         }
-        return key;
+        return JSON.parse(JSON.stringify(key));
       };
       BCMSApiKeySecurity.verifyAccess = (key, method, path) => {
         method = method.toLowerCase();
