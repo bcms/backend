@@ -114,7 +114,10 @@ export function createBcmsApiKeySecurity(): Module {
       };
       BCMSApiKeySecurity.verifyAccess = (key, method, path) => {
         method = method.toLowerCase();
-        if (path.startsWith('/api/key/access/list')) {
+        if (
+          path.startsWith('/api/key/access/list') ||
+          path.startsWith('/api/type-converter')
+        ) {
           return true;
         } else if (path.startsWith('/api/media') && method === 'get') {
           return true;

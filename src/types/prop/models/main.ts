@@ -6,7 +6,10 @@ import type {
 } from '@bcms/types';
 import type { ObjectSchema } from '@becomes/purple-cheetah/types';
 import type { BCMSPropDateData } from './date';
-import type { BCMSPropEntryPointerData } from './entry-pointer';
+import type {
+  BCMSPropEntryPointerData,
+  BCMSPropEntryPointerDataParsed,
+} from './entry-pointer';
 import type { BCMSPropEnumData } from './enum';
 import type {
   BCMSPropGroupPointerData,
@@ -149,6 +152,8 @@ export type BCMSPropDataParsed =
   | number[]
   | BCMSPropEnumData
   | BCMSPropEntryPointerData
+  | BCMSPropEntryPointerDataParsed
+  | BCMSPropEntryPointerDataParsed[]
   | BCMSPropGroupPointerDataParsed
   | BCMSPropGroupPointerDataParsed[]
   | BCMSPropWidgetDataParsed

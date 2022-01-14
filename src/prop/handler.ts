@@ -1,3 +1,4 @@
+import { useBcmsEntryParser } from '@bcms/entry';
 import { BCMSFactory } from '@bcms/factory';
 import { BCMSMediaService } from '@bcms/media';
 import { BCMSRepo } from '@bcms/repo';
@@ -1083,108 +1084,156 @@ export const BCMSPropHandler: BCMSPropHandlerType = {
         } else if (prop.type === BCMSPropType.ENTRY_POINTER) {
           const data = prop.defaultData as BCMSPropEntryPointerData;
           const valueData = value.data as string[];
-          if (prop.array) {
-            if (depth === maxDepth) {
-              parsed[prop.name] = valueData;
-            } else {
-              const template = await BCMSRepo.template.findById(
-                data.templateId,
-              );
-              if (template) {
-                if (prop.array) {
-                  (parsed[prop.name] as BCMSPropEntryPointerDataParsed[]) = [];
-                  for (let j = 0; j < valueData.length; j++) {
-                    const entryId = valueData[j];
-                    const entry = await BCMSRepo.entry.findById(entryId);
-                    if (entry) {
-                      const parsedIndex = (
-                        parsed[prop.name] as BCMSPropEntryPointerDataParsed[]
-                      ).push({});
-                      for (let k = 0; k < entry.meta.length; k++) {
-                        const entryMeta = entry.meta[k];
-                        const lng = await BCMSRepo.language.methods.findByCode(
-                          entryMeta.lng,
-                        );
-                        if (lng && (!onlyLng || onlyLng === lng.code)) {
-                          (
-                            parsed[
-                              prop.name
-                            ] as BCMSPropEntryPointerDataParsed[]
-                          )[parsedIndex][lng.code] =
-                            await BCMSPropHandler.parse({
-                              maxDepth,
-                              meta: template.props,
-                              values: entryMeta.props,
-                              depth: depth + 1,
-                              level: `${level}.${prop.name}.${k}`,
-                            });
-                          (
-                            parsed[
-                              prop.name
-                            ] as BCMSPropEntryPointerDataParsed[]
-                          )[parsedIndex][lng.code]._id = entryId;
-                        }
-                      }
-                    }
-                  }
-                } else {
-                  (parsed[prop.name] as BCMSPropEntryPointerDataParsed) = {};
-                  const entryId = valueData[0];
+          const template = await BCMSRepo.template.findById(data.templateId);
+          if (template) {
+            if (prop.array) {
+              if (depth === maxDepth) {
+                (parsed[prop.name] as BCMSPropEntryPointerData) = {
+                  displayProp: 'title',
+                  entryIds: valueData,
+                  templateId: template._id,
+                };
+              } else {
+                const parsedProp: BCMSPropEntryPointerDataParsed[] = [];
+                for (let j = 0; j < valueData.length; j++) {
+                  const entryId = valueData[j];
                   const entry = await BCMSRepo.entry.findById(entryId);
                   if (entry) {
+                    const parsedIndex = parsedProp.push({
+                      _id: '',
+                      createdAt: -1,
+                      updatedAt: -1,
+                      cid: '',
+                      templateId: '',
+                      userId: '',
+                      meta: {},
+                      content: {},
+                    });
                     for (let k = 0; k < entry.meta.length; k++) {
                       const entryMeta = entry.meta[k];
                       const lng = await BCMSRepo.language.methods.findByCode(
                         entryMeta.lng,
                       );
                       if (lng && (!onlyLng || onlyLng === lng.code)) {
-                        (parsed[prop.name] as BCMSPropEntryPointerDataParsed)[
-                          lng.code
-                        ] = await BCMSPropHandler.parse({
-                          maxDepth,
-                          meta: template.props,
-                          values: entryMeta.props,
-                          depth: depth + 1,
-                          level: `${level}.${prop.name}.0`,
-                        });
-                        (parsed[prop.name] as BCMSPropEntryPointerDataParsed)[
-                          lng.code
-                        ]._id = entryId;
+                        parsedProp[parsedIndex].meta[lng.code] =
+                          await BCMSPropHandler.parse({
+                            maxDepth,
+                            meta: template.props,
+                            values: entryMeta.props,
+                            depth: depth + 1,
+                            level: `${level}.${prop.name}.${k}`,
+                          });
+                        parsedProp[parsedIndex]._id = entry._id;
+                        parsedProp[parsedIndex].cid = entry.cid;
+                        parsedProp[parsedIndex].createdAt = entry.createdAt;
+                        parsedProp[parsedIndex].updatedAt = entry.updatedAt;
+                        parsedProp[parsedIndex].templateId = entry.templateId;
+                        parsedProp[parsedIndex].userId = entry.userId;
+                        parsedProp[parsedIndex].status = entry.status;
+
+                        const entryParser = useBcmsEntryParser();
+                        const entryContent = entry.content.find(
+                          (e) => e.lng === lng.code,
+                        );
+                        if (entryContent) {
+                          parsedProp[parsedIndex].content[lng.code] =
+                            await entryParser.parseContent({
+                              nodes: entryContent.nodes,
+                              maxDepth: 1,
+                              depth: 0,
+                              justLng: lng.code,
+                              level: `${level}.content`,
+                            });
+                        }
                       }
                     }
                   }
                 }
+                (parsed[prop.name] as BCMSPropEntryPointerDataParsed[]) =
+                  parsedProp;
+
+                // else {
+                //   const parsedProp: BCMSPropEntryPointerDataParsed = {
+                //     meta: {},
+                //     content: [],
+                //   };
+                //   const entryId = valueData[0];
+                //   const entry = await BCMSRepo.entry.findById(entryId);
+                //   if (entry) {
+                //     for (let k = 0; k < entry.meta.length; k++) {
+                //       const entryMeta = entry.meta[k];
+                //       const lng = await BCMSRepo.language.methods.findByCode(
+                //         entryMeta.lng,
+                //       );
+                //       if (lng && (!onlyLng || onlyLng === lng.code)) {
+                //         parsedProp.meta = await BCMSPropHandler.parse({
+                //           maxDepth,
+                //           meta: template.props,
+                //           values: entryMeta.props,
+                //           depth: depth + 1,
+                //           level: `${level}.${prop.name}.0`,
+                //         });
+                //         parsedProp.meta._id = entryId;
+                //       }
+                //     }
+                //   }
+                //   parsed[prop.name] = parsedProp;
+                // }
               }
-            }
-          } else {
-            if (depth === maxDepth) {
-              parsed[prop.name] = valueData[0];
             } else {
-              const entry = await BCMSRepo.entry.findById(valueData[0]);
-              if (entry) {
-                const template = await BCMSRepo.template.findById(
-                  data.templateId,
-                );
-                if (template) {
-                  (parsed[prop.name] as BCMSPropEntryPointerDataParsed) = {};
+              if (depth === maxDepth) {
+                (parsed[prop.name] as BCMSPropEntryPointerData) = {
+                  displayProp: 'title',
+                  entryIds: [valueData[0]],
+                  templateId: template._id,
+                };
+              } else {
+                const entry = await BCMSRepo.entry.findById(valueData[0]);
+                if (entry) {
+                  const parsedProp: BCMSPropEntryPointerDataParsed = {
+                    _id: '',
+                    createdAt: -1,
+                    updatedAt: -1,
+                    cid: '',
+                    templateId: '',
+                    userId: '',
+                    meta: {},
+                    content: {},
+                  };
                   for (let j = 0; j < entry.meta.length; j++) {
                     const entryMeta = entry.meta[j];
                     const lng = await BCMSRepo.language.methods.findByCode(
                       entryMeta.lng,
                     );
                     if (lng) {
-                      (parsed[prop.name] as BCMSPropEntryPointerDataParsed)[
-                        lng.code
-                      ] = await BCMSPropHandler.parse({
+                      parsedProp.meta[lng.code] = await BCMSPropHandler.parse({
                         maxDepth,
                         meta: template.props,
                         values: entryMeta.props,
                         depth: depth + 1,
                         level: `${level}.${prop.name}`,
                       });
-                      (parsed[prop.name] as BCMSPropEntryPointerDataParsed)[
-                        lng.code
-                      ]._id = valueData[0];
+                      parsedProp.cid = entry.cid;
+                      parsedProp._id = entry._id;
+                      parsedProp.createdAt = entry.createdAt;
+                      parsedProp.updatedAt = entry.updatedAt;
+                      parsedProp.templateId = entry.templateId;
+                      parsedProp.userId = entry.userId;
+                      parsedProp.status = entry.status;
+                      const entryParser = useBcmsEntryParser();
+                      const entryContent = entry.content.find(
+                        (e) => e.lng === lng.code,
+                      );
+                      if (entryContent) {
+                        parsedProp.content[lng.code] = await entryParser.parseContent({
+                          nodes: entryContent.nodes,
+                          maxDepth: 1,
+                          depth: 0,
+                          justLng: lng.code,
+                          level: `${level}.content`,
+                        });
+                      }
+                      parsed[prop.name] = parsedProp;
                     }
                   }
                 }

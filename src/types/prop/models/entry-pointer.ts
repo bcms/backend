@@ -1,3 +1,4 @@
+import type { BCMSEntryContentParsedItem } from '@bcms/types';
 import type { ObjectSchema } from '@becomes/purple-cheetah/types';
 import type { BCMSPropParsed } from './main';
 
@@ -7,8 +8,20 @@ export interface BCMSPropEntryPointerData {
   displayProp: string;
 }
 
+// export interface BCMSPropEntryPointerDataParsed {
+//   [lng: string]: BCMSPropParsed;
+// }
+
 export interface BCMSPropEntryPointerDataParsed {
-  [lng: string]: BCMSPropParsed;
+  _id: string;
+  cid: string;
+  createdAt: number;
+  updatedAt: number;
+  templateId: string;
+  userId: string;
+  status?: string;
+  meta: { [lng: string]: BCMSPropParsed };
+  content: { [lng: string]: BCMSEntryContentParsedItem[] };
 }
 
 export const BCMSPropEntryPointerDataSchema: ObjectSchema = {

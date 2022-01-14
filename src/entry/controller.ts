@@ -15,7 +15,6 @@ import {
 } from '@becomes/purple-cheetah-mod-jwt/types';
 import {
   HTTPStatus,
-  Logger,
   ObjectUtility,
   ObjectUtilityError,
 } from '@becomes/purple-cheetah/types';

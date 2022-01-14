@@ -5,18 +5,16 @@ import type {
   BCMSTemplate,
   BCMSTypeConverterResultItem,
   BCMSTypeConverterTarget,
-  BCMSUserCustomPool,
   BCMSWidget,
 } from '@bcms/types';
+import { createJwtApiProtectionPreRequestHandler } from '@bcms/util';
 import { BCMSTypeConverter } from '@bcms/util/type-converter';
 import {
   createController,
   createControllerMethod,
 } from '@becomes/purple-cheetah';
-import { createJwtProtectionPreRequestHandler } from '@becomes/purple-cheetah-mod-jwt';
 import {
   JWTPermissionName,
-  JWTPreRequestHandlerResult,
   JWTRoleName,
 } from '@becomes/purple-cheetah-mod-jwt/types';
 import { HTTPStatus } from '@becomes/purple-cheetah/types';
@@ -27,15 +25,15 @@ export const BCMSTypeConverterController = createController({
   methods() {
     return {
       getAll: createControllerMethod<
-        JWTPreRequestHandlerResult<BCMSUserCustomPool>,
+        unknown,
         { items: BCMSTypeConverterResultItem[] }
       >({
         path: '/:languageType/all',
         type: 'get',
-        preRequestHandler: createJwtProtectionPreRequestHandler(
-          [JWTRoleName.ADMIN, JWTRoleName.USER],
-          JWTPermissionName.READ,
-        ),
+        preRequestHandler: createJwtApiProtectionPreRequestHandler({
+          roleNames: [JWTRoleName.ADMIN, JWTRoleName.USER],
+          permissionName: JWTPermissionName.READ,
+        }),
         async handler({ request, errorHandler }) {
           const templates = await BCMSRepo.template.findAll();
           const groups = await BCMSRepo.group.findAll();
@@ -89,15 +87,15 @@ export const BCMSTypeConverterController = createController({
         },
       }),
       get: createControllerMethod<
-        JWTPreRequestHandlerResult<BCMSUserCustomPool>,
+        unknown,
         { items: BCMSTypeConverterResultItem[] }
       >({
         path: '/:itemId/:itemType/:languageType',
         type: 'get',
-        preRequestHandler: createJwtProtectionPreRequestHandler(
-          [JWTRoleName.ADMIN, JWTRoleName.USER],
-          JWTPermissionName.READ,
-        ),
+        preRequestHandler: createJwtApiProtectionPreRequestHandler({
+          roleNames: [JWTRoleName.ADMIN, JWTRoleName.USER],
+          permissionName: JWTPermissionName.READ,
+        }),
         async handler({ request, errorHandler }) {
           if (
             request.params.languageType !== 'typescript' &&
