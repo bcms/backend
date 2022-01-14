@@ -34,7 +34,10 @@ import {
   BCMSSocketEventType,
   BCMSUserCustomPool,
 } from '../types';
-import { createJwtAndBodyCheckRouteProtection } from '../util';
+import {
+  createJwtAndBodyCheckRouteProtection,
+  createJwtApiProtectionPreRequestHandler,
+} from '../util';
 import { BCMSRepo } from '@bcms/repo';
 import { bcmsResCode } from '@bcms/response-code';
 import { BCMSSocketManager } from '@bcms/socket';
@@ -212,16 +215,13 @@ export const BCMSMediaController = createController<Setup>({
         },
       }),
 
-      getBinary: createControllerMethod<
-        JWTPreRequestHandlerResult<BCMSUserCustomPool>,
-        { __file: string }
-      >({
+      getBinary: createControllerMethod<unknown, { __file: string }>({
         path: '/:id/bin',
         type: 'get',
-        preRequestHandler: createJwtProtectionPreRequestHandler(
-          [JWTRoleName.ADMIN, JWTRoleName.DEV],
-          JWTPermissionName.READ,
-        ),
+        preRequestHandler: createJwtApiProtectionPreRequestHandler({
+          roleNames: [JWTRoleName.ADMIN, JWTRoleName.DEV],
+          permissionName: JWTPermissionName.READ,
+        }),
         async handler({ request, errorHandler }) {
           const media = await BCMSRepo.media.findById(request.params.id);
           if (!media) {
