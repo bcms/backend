@@ -60,16 +60,13 @@ export const BCMSMediaController = createController<Setup>({
   },
   methods({ jwt, stringUtil }) {
     return {
-      getAll: createControllerMethod<
-        JWTPreRequestHandlerResult<BCMSUserCustomPool>,
-        { items: BCMSMedia[] }
-      >({
+      getAll: createControllerMethod<unknown, { items: BCMSMedia[] }>({
         path: '/all',
         type: 'get',
-        preRequestHandler: createJwtProtectionPreRequestHandler(
-          [JWTRoleName.ADMIN, JWTRoleName.DEV],
-          JWTPermissionName.READ,
-        ),
+        preRequestHandler: createJwtApiProtectionPreRequestHandler({
+          roleNames: [JWTRoleName.ADMIN, JWTRoleName.DEV],
+          permissionName: JWTPermissionName.READ,
+        }),
         async handler() {
           return {
             items: await BCMSRepo.media.findAll(),
@@ -153,16 +150,13 @@ export const BCMSMediaController = createController<Setup>({
         },
       }),
 
-      getById: createControllerMethod<
-        JWTPreRequestHandlerResult<BCMSUserCustomPool>,
-        { item: BCMSMedia }
-      >({
+      getById: createControllerMethod<unknown, { item: BCMSMedia }>({
         path: '/:id',
         type: 'get',
-        preRequestHandler: createJwtProtectionPreRequestHandler(
-          [JWTRoleName.ADMIN, JWTRoleName.DEV],
-          JWTPermissionName.READ,
-        ),
+        preRequestHandler: createJwtApiProtectionPreRequestHandler({
+          roleNames: [JWTRoleName.ADMIN, JWTRoleName.DEV],
+          permissionName: JWTPermissionName.READ,
+        }),
         async handler({ request, errorHandler }) {
           const media = await BCMSRepo.media.findById(request.params.id);
           if (!media) {
