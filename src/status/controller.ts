@@ -69,7 +69,7 @@ export const BCMSStatusController = createController<Setup>({
         ),
         async handler() {
           return {
-            count: await BCMSRepo.status.count(),
+            count: await BCMSStatusRequestHandler.count(),
           };
         },
       }),
@@ -86,18 +86,11 @@ export const BCMSStatusController = createController<Setup>({
             JWTPermissionName.READ,
           ),
         async handler({ request, errorHandler }) {
-          const id = request.params.id;
-          const status = await BCMSRepo.status.findById(id);
-          if (!status) {
-            throw errorHandler.occurred(
-              HTTPStatus.NOT_FOUNT,
-              bcmsResCode('sts001', {
-                id,
-              }),
-            );
-          }
           return {
-            item: status,
+            item: await BCMSStatusRequestHandler.getById({
+              id: request.params.id,
+              errorHandler,
+            }),
           };
         },
       }),

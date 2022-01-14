@@ -16,6 +16,27 @@ export class BCMSStatusRequestHandler {
   static async getAll(): Promise<BCMSStatus[]> {
     return await BCMSRepo.status.findAll();
   }
+  static async count(): Promise<number> {
+    return await BCMSRepo.status.count();
+  }
+  static async getById({
+    id,
+    errorHandler,
+  }: {
+    id: string;
+    errorHandler: HTTPError;
+  }): Promise<BCMSStatus> {
+    const status = await BCMSRepo.status.findById(id);
+    if (!status) {
+      throw errorHandler.occurred(
+        HTTPStatus.NOT_FOUNT,
+        bcmsResCode('sts001', {
+          id,
+        }),
+      );
+    }
+    return status;
+  }
   static async create({
     accessToken,
     errorHandler,
