@@ -1,6 +1,3 @@
-import { BCMSRepo } from '@bcms/repo';
-import { bcmsResCode } from '@bcms/response-code';
-import { BCMSSocketManager } from '@bcms/socket';
 import {
   createController,
   createControllerMethod,
@@ -11,10 +8,8 @@ import {
   JWTPreRequestHandlerResult,
   JWTRoleName,
 } from '@becomes/purple-cheetah-mod-jwt/types';
-import { HTTPStatus } from '@becomes/purple-cheetah/types';
 import {
   BCMSJWTAndBodyCheckerRouteProtectionResult,
-  BCMSSocketEventType,
   BCMSTemplateOrganizer,
   BCMSTemplateOrganizerCreateData,
   BCMSTemplateOrganizerCreateDataSchema,
@@ -133,29 +128,10 @@ export const BCMSTemplateOrganizerController = createController({
           JWTPermissionName.READ,
         ),
         async handler({ request, errorHandler, accessToken }) {
-          const tempOrg = await BCMSRepo.templateOrganizer.findById(
-            request.params.id,
-          );
-          if (!tempOrg) {
-            throw errorHandler.occurred(
-              HTTPStatus.NOT_FOUNT,
-              bcmsResCode('tpo001', { id: request.params.id }),
-            );
-          }
-          const deleteResult = await BCMSRepo.templateOrganizer.deleteById(
-            request.params.id,
-          );
-          if (!deleteResult) {
-            throw errorHandler.occurred(
-              HTTPStatus.INTERNAL_SERVER_ERROR,
-              bcmsResCode('tpo004'),
-            );
-          }
-          await BCMSSocketManager.emit.templateOrganizer({
-            templateOrganizerId: tempOrg._id,
-            type: BCMSSocketEventType.REMOVE,
-            userIds: 'all',
-            excludeUserId: [accessToken.payload.userId],
+          await BCMSTemplateOrganizerRequestHandler.delete({
+            id: request.params.id,
+            errorHandler,
+            accessToken,
           });
           return {
             message: 'Success.',

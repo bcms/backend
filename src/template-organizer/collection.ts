@@ -6,6 +6,7 @@ import {
 import { BCMSTemplateOrganizerObject } from './objects';
 import {
   BCMSTemplateOrganizerCreateResolver,
+  BCMSTemplateOrganizerDeleteResolver,
   BCMSTemplateOrganizerGetAllResolver,
   BCMSTemplateOrganizerGetByIdResolver,
   BCMSTemplateOrganizerGetManyResolver,
@@ -21,6 +22,7 @@ export const BCMSTemplateOrganizerCollection = createGraphqlCollection({
   ],
   resolvers: [
     BCMSTemplateOrganizerCreateResolver,
+    BCMSTemplateOrganizerDeleteResolver,
     BCMSTemplateOrganizerGetAllResolver,
     BCMSTemplateOrganizerGetManyResolver,
     BCMSTemplateOrganizerGetByIdResolver,

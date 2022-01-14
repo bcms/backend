@@ -126,4 +126,34 @@ export class BCMSTemplateOrganizerRequestHandler {
     });
     return updatedTempOrg;
   }
+  static async delete({
+    errorHandler,
+    id,
+    accessToken,
+  }: {
+    id: string;
+    accessToken: JWT<BCMSUserCustomPool>;
+    errorHandler: HTTPError;
+  }): Promise<void> {
+    const tempOrg = await BCMSRepo.templateOrganizer.findById(id);
+    if (!tempOrg) {
+      throw errorHandler.occurred(
+        HTTPStatus.NOT_FOUNT,
+        bcmsResCode('tpo001', { id }),
+      );
+    }
+    const deleteResult = await BCMSRepo.templateOrganizer.deleteById(id);
+    if (!deleteResult) {
+      throw errorHandler.occurred(
+        HTTPStatus.INTERNAL_SERVER_ERROR,
+        bcmsResCode('tpo004'),
+      );
+    }
+    await BCMSSocketManager.emit.templateOrganizer({
+      templateOrganizerId: tempOrg._id,
+      type: BCMSSocketEventType.REMOVE,
+      userIds: 'all',
+      excludeUserId: [accessToken.payload.userId],
+    });
+  }
 }
