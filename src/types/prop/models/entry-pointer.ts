@@ -13,8 +13,15 @@ export interface BCMSPropEntryPointerData {
 // }
 
 export interface BCMSPropEntryPointerDataParsed {
-  meta: BCMSPropParsed;
-  content: BCMSEntryContentParsedItem[];
+  _id: string;
+  cid: string;
+  createdAt: number;
+  updatedAt: number;
+  templateId: string;
+  userId: string;
+  status?: string;
+  meta: { [lng: string]: BCMSPropParsed };
+  content: { [lng: string]: BCMSEntryContentParsedItem[] };
 }
 
 export const BCMSPropEntryPointerDataSchema: ObjectSchema = {
