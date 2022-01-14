@@ -48,7 +48,11 @@ import {
   createBcmsMediaRepository,
   createBcmsMediaService,
 } from './media';
-import { BCMSStatusController, createBcmsStatusRepository } from './status';
+import {
+  BCMSStatusCollection,
+  BCMSStatusController,
+  createBcmsStatusRepository,
+} from './status';
 import {
   BCMSTemplateCollection,
   BCMSTemplateController,
@@ -309,6 +313,7 @@ async function initialize() {
         BCMSPropCollection,
         BCMSGroupCollection,
         BCMSColorCollection,
+        BCMSStatusCollection,
         BCMSTagCollection,
         BCMSTemplateCollection,
         BCMSTemplateOrganizerCollection,
