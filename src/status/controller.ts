@@ -1,7 +1,6 @@
 import {
   createController,
   createControllerMethod,
-  useStringUtility,
 } from '@becomes/purple-cheetah';
 import { createJwtProtectionPreRequestHandler } from '@becomes/purple-cheetah-mod-jwt';
 import {
@@ -9,7 +8,7 @@ import {
   JWTPreRequestHandlerResult,
   JWTRoleName,
 } from '@becomes/purple-cheetah-mod-jwt/types';
-import { HTTPStatus, StringUtility } from '@becomes/purple-cheetah/types';
+import { HTTPStatus } from '@becomes/purple-cheetah/types';
 import { createJwtAndBodyCheckRouteProtection } from '../util';
 import {
   BCMSJWTAndBodyCheckerRouteProtectionResult,
@@ -26,19 +25,10 @@ import { bcmsResCode } from '@bcms/response-code';
 import { BCMSSocketManager } from '@bcms/socket';
 import { BCMSStatusRequestHandler } from './request-handler';
 
-interface Setup {
-  stringUtil: StringUtility;
-}
-
-export const BCMSStatusController = createController<Setup>({
+export const BCMSStatusController = createController({
   name: 'Status controller',
   path: '/api/status',
-  setup() {
-    return {
-      stringUtil: useStringUtility(),
-    };
-  },
-  methods({ stringUtil }) {
+  methods() {
     return {
       getAll: createControllerMethod<
         JWTPreRequestHandlerResult<BCMSUserCustomPool>,
@@ -127,59 +117,12 @@ export const BCMSStatusController = createController<Setup>({
           bodySchema: BCMSStatusUpdateDataSchema,
         }),
         async handler({ body, errorHandler, accessToken }) {
-          const id = body._id;
-          const status = await BCMSRepo.status.findById(id);
-          if (!status) {
-            throw errorHandler.occurred(
-              HTTPStatus.NOT_FOUNT,
-              bcmsResCode('sts001', {
-                id,
-              }),
-            );
-          }
-          let changeDetected = false;
-          if (typeof body.label === 'string' && status.label !== body.label) {
-            changeDetected = true;
-            const newName = stringUtil.toSlugUnderscore(body.label);
-            if (status.name !== newName) {
-              const statusWithSameName =
-                await BCMSRepo.status.methods.findByName(newName);
-              if (statusWithSameName) {
-                throw errorHandler.occurred(
-                  HTTPStatus.FORBIDDEN,
-                  bcmsResCode('sts002', { name: newName }),
-                );
-              }
-              status.name = newName;
-            }
-            status.label = body.label;
-          }
-          if (typeof body.color === 'string' && status.color !== body.color) {
-            changeDetected = true;
-            status.color = body.color;
-          }
-          if (!changeDetected) {
-            throw errorHandler.occurred(
-              HTTPStatus.BAD_REQUEST,
-              bcmsResCode('g003'),
-            );
-          }
-          const updatedStatus = await BCMSRepo.status.update(status);
-          if (!updatedStatus) {
-            throw errorHandler.occurred(
-              HTTPStatus.INTERNAL_SERVER_ERROR,
-              bcmsResCode('sts004'),
-            );
-          }
-          await BCMSSocketManager.emit.status({
-            statusId: updatedStatus._id,
-            type: BCMSSocketEventType.UPDATE,
-            userIds: 'all',
-            excludeUserId: [accessToken.payload.userId],
-          });
-          await BCMSRepo.change.methods.updateAndIncByName('status');
           return {
-            item: updatedStatus,
+            item: await BCMSStatusRequestHandler.update({
+              accessToken,
+              body,
+              errorHandler,
+            }),
           };
         },
       }),
