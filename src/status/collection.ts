@@ -4,10 +4,11 @@ import { BCMSStatusObject } from './objects';
 import {
   BCMSStatusCountResolver,
   BCMSStatusCreateResolver,
+  BCMSStatusDeleteResolver,
   BCMSStatusGetAllResolver,
   BCMSStatusGetByIdResolver,
+  BCMSStatusUpdateResolver,
 } from './resolvers';
-import { BCMSStatusUpdateResolver } from './resolvers/update';
 
 export const BCMSStatusCollection = createGraphqlCollection({
   name: 'status',
@@ -16,6 +17,7 @@ export const BCMSStatusCollection = createGraphqlCollection({
   resolvers: [
     BCMSStatusCountResolver,
     BCMSStatusCreateResolver,
+    BCMSStatusDeleteResolver,
     BCMSStatusGetAllResolver,
     BCMSStatusGetByIdResolver,
     BCMSStatusUpdateResolver,

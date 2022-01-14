@@ -137,4 +137,37 @@ export class BCMSStatusRequestHandler {
     await BCMSRepo.change.methods.updateAndIncByName('status');
     return updatedStatus;
   }
+  static async delete({
+    errorHandler,
+    id,
+    accessToken,
+  }: {
+    id: string;
+    accessToken: JWT<BCMSUserCustomPool>;
+    errorHandler: HTTPError;
+  }): Promise<void> {
+    const status = await BCMSRepo.status.findById(id);
+    if (!status) {
+      throw errorHandler.occurred(
+        HTTPStatus.NOT_FOUNT,
+        bcmsResCode('sts001', {
+          id,
+        }),
+      );
+    }
+    const deleteResult = await BCMSRepo.status.deleteById(id);
+    if (!deleteResult) {
+      throw errorHandler.occurred(
+        HTTPStatus.INTERNAL_SERVER_ERROR,
+        bcmsResCode('sts005'),
+      );
+    }
+    await BCMSSocketManager.emit.status({
+      statusId: status._id,
+      type: BCMSSocketEventType.REMOVE,
+      userIds: 'all',
+      excludeUserId: [accessToken.payload.userId],
+    });
+    await BCMSRepo.change.methods.updateAndIncByName('status');
+  }
 }

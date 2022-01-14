@@ -8,11 +8,9 @@ import {
   JWTPreRequestHandlerResult,
   JWTRoleName,
 } from '@becomes/purple-cheetah-mod-jwt/types';
-import { HTTPStatus } from '@becomes/purple-cheetah/types';
 import { createJwtAndBodyCheckRouteProtection } from '../util';
 import {
   BCMSJWTAndBodyCheckerRouteProtectionResult,
-  BCMSSocketEventType,
   BCMSStatus,
   BCMSStatusCreateData,
   BCMSStatusCreateDataSchema,
@@ -20,9 +18,6 @@ import {
   BCMSStatusUpdateDataSchema,
   BCMSUserCustomPool,
 } from '../types';
-import { BCMSRepo } from '@bcms/repo';
-import { bcmsResCode } from '@bcms/response-code';
-import { BCMSSocketManager } from '@bcms/socket';
 import { BCMSStatusRequestHandler } from './request-handler';
 
 export const BCMSStatusController = createController({
@@ -126,7 +121,6 @@ export const BCMSStatusController = createController({
           };
         },
       }),
-
       deleteById: createControllerMethod<
         JWTPreRequestHandlerResult<BCMSUserCustomPool>,
         { message: 'Success.' }
@@ -139,30 +133,11 @@ export const BCMSStatusController = createController({
             JWTPermissionName.READ,
           ),
         async handler({ request, errorHandler, accessToken }) {
-          const id = request.params.id;
-          const status = await BCMSRepo.status.findById(id);
-          if (!status) {
-            throw errorHandler.occurred(
-              HTTPStatus.NOT_FOUNT,
-              bcmsResCode('sts001', {
-                id,
-              }),
-            );
-          }
-          const deleteResult = await BCMSRepo.status.deleteById(id);
-          if (!deleteResult) {
-            throw errorHandler.occurred(
-              HTTPStatus.INTERNAL_SERVER_ERROR,
-              bcmsResCode('sts005'),
-            );
-          }
-          await BCMSSocketManager.emit.status({
-            statusId: status._id,
-            type: BCMSSocketEventType.REMOVE,
-            userIds: 'all',
-            excludeUserId: [accessToken.payload.userId],
+          await BCMSStatusRequestHandler.delete({
+            errorHandler,
+            id: request.params.id,
+            accessToken,
           });
-          await BCMSRepo.change.methods.updateAndIncByName('status');
           return {
             message: 'Success.',
           };
