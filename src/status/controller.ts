@@ -23,8 +23,8 @@ import {
 } from '../types';
 import { BCMSRepo } from '@bcms/repo';
 import { bcmsResCode } from '@bcms/response-code';
-import { BCMSFactory } from '@bcms/factory';
 import { BCMSSocketManager } from '@bcms/socket';
+import { BCMSStatusRequestHandler } from './request-handler';
 
 interface Setup {
   stringUtil: StringUtility;
@@ -113,36 +113,12 @@ export const BCMSStatusController = createController<Setup>({
           bodySchema: BCMSStatusCreateDataSchema,
         }),
         async handler({ body, errorHandler, accessToken }) {
-          const status = BCMSFactory.status.create({
-            label: body.label,
-            name: stringUtil.toSlugUnderscore(body.label),
-            color: body.color,
-          });
-          const statusWithSameName = await BCMSRepo.status.methods.findByName(
-            status.name,
-          );
-          if (statusWithSameName) {
-            throw errorHandler.occurred(
-              HTTPStatus.FORBIDDEN,
-              bcmsResCode('sts002', { name: status.name }),
-            );
-          }
-          const addedStatus = await BCMSRepo.status.add(status);
-          if (!addedStatus) {
-            throw errorHandler.occurred(
-              HTTPStatus.INTERNAL_SERVER_ERROR,
-              bcmsResCode('sts003'),
-            );
-          }
-          await BCMSSocketManager.emit.status({
-            statusId: addedStatus._id,
-            type: BCMSSocketEventType.UPDATE,
-            userIds: 'all',
-            excludeUserId: [accessToken.payload.userId],
-          });
-          await BCMSRepo.change.methods.updateAndIncByName('status');
           return {
-            item: addedStatus,
+            item: await BCMSStatusRequestHandler.create({
+              body,
+              errorHandler,
+              accessToken,
+            }),
           };
         },
       }),
