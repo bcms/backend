@@ -98,6 +98,7 @@ import { BCMSChangeController, createBcmsChangeRepository } from './change';
 import { loadBcmsResponseCodes } from './response-code';
 import { createGraphql } from '@becomes/purple-cheetah-mod-graphql';
 import { BCMSTemplateOrganizerCollection } from './template-organizer/collection';
+import { BCMSMediaCollection } from './media/collection';
 
 const backend: BCMSBackend = {
   app: undefined as never,
@@ -312,6 +313,7 @@ async function initialize() {
       collections: [
         BCMSPropCollection,
         BCMSGroupCollection,
+        BCMSMediaCollection,
         BCMSColorCollection,
         BCMSStatusCollection,
         BCMSTagCollection,

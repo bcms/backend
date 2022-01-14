@@ -41,6 +41,7 @@ import { BCMSSocketManager } from '@bcms/socket';
 import { BCMSMediaService } from './service';
 import { BCMSFactory } from '@bcms/factory';
 import { BCMSPropHandler } from '@bcms/prop';
+import { BCMSMediaRequestHandler } from './request-handler';
 
 interface Setup {
   jwt: JWTManager;
@@ -69,7 +70,7 @@ export const BCMSMediaController = createController<Setup>({
         ),
         async handler() {
           return {
-            items: await BCMSRepo.media.findAll(),
+            items: await BCMSMediaRequestHandler.getAll(),
           };
         },
       }),
