@@ -52,7 +52,7 @@ export const BCMSStatusController = createController<Setup>({
         ),
         async handler() {
           return {
-            items: await BCMSRepo.status.findAll(),
+            items: await BCMSStatusRequestHandler.getAll(),
           };
         },
       }),
