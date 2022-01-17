@@ -125,7 +125,7 @@ export const BCMSMediaController = createController<Setup>({
         async handler({ request }) {
           const ids = (request.headers['x-bcms-ids'] as string).split('-');
           return {
-            items: await BCMSRepo.media.findAllById(ids),
+            items: await BCMSMediaRequestHandler.getMany(ids),
           };
         },
       }),

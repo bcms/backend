@@ -5,6 +5,7 @@ import {
   BCMSMediaGetAllAggregatedResolver,
   BCMSMediaGetAllByParentIdResolver,
   BCMSMediaGetAllResolver,
+  BCMSMediaGetManyResolver,
 } from './resolvers';
 
 export const BCMSMediaCollection = createGraphqlCollection({
@@ -15,5 +16,6 @@ export const BCMSMediaCollection = createGraphqlCollection({
     BCMSMediaGetAllAggregatedResolver,
     BCMSMediaGetAllByParentIdResolver,
     BCMSMediaGetAllResolver,
+    BCMSMediaGetManyResolver,
   ],
 });

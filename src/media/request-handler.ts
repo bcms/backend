@@ -27,4 +27,7 @@ export class BCMSMediaRequestHandler {
     }
     return await BCMSMediaService.getChildren(media);
   }
+  static async getMany(ids: string[]): Promise<BCMSMedia[]> {
+    return await BCMSRepo.media.findAllById(ids);
+  }
 }
