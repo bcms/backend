@@ -493,56 +493,12 @@ export const BCMSMediaController = createController<Setup>({
           bodySchema: BCMSMediaAddDirDataSchema,
         }),
         async handler({ body, errorHandler, accessToken }) {
-          let parent: BCMSMedia | null = null;
-          if (body.parentId) {
-            parent = await BCMSRepo.media.findById(body.parentId);
-            if (!parent) {
-              throw errorHandler.occurred(
-                HTTPStatus.NOT_FOUNT,
-                bcmsResCode('mda001', { id: body.parentId }),
-              );
-            }
-          }
-          body.name = stringUtil.toSlug(body.name);
-          const media = BCMSFactory.media.create({
-            userId: accessToken.payload.userId,
-            type: BCMSMediaType.DIR,
-            mimetype: 'dir',
-            name: body.name,
-            isInRoot: !parent,
-            parentId: parent ? parent._id : '',
-            hasChildren: true,
-            altText: '',
-            caption: '',
-            height: -1,
-            width: -1,
-          });
-          if (
-            await BCMSRepo.media.methods.findByNameAndParentId(
-              media.name,
-              parent ? parent._id : undefined,
-            )
-          ) {
-            media.name =
-              crypto.randomBytes(6).toString('hex') + '-' + media.name;
-          }
-          const addedMedia = await BCMSRepo.media.add(media);
-          if (!addedMedia) {
-            throw errorHandler.occurred(
-              HTTPStatus.INTERNAL_SERVER_ERROR,
-              bcmsResCode('mda003'),
-            );
-          }
-          await BCMSMediaService.storage.mkdir(addedMedia);
-          await BCMSSocketManager.emit.media({
-            mediaId: addedMedia._id,
-            type: BCMSSocketEventType.UPDATE,
-            userIds: 'all',
-            excludeUserId: [accessToken.payload.userId],
-          });
-          await BCMSRepo.change.methods.updateAndIncByName('media');
           return {
-            item: addedMedia,
+            item: await BCMSMediaRequestHandler.createDir({
+              accessToken,
+              errorHandler,
+              body,
+            }),
           };
         },
       }),
