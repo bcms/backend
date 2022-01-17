@@ -33,4 +33,20 @@ export class BCMSMediaRequestHandler {
   static async count(): Promise<number> {
     return await BCMSRepo.media.count();
   }
+  static async getById({
+    id,
+    errorHandler,
+  }: {
+    id: string;
+    errorHandler: HTTPError;
+  }): Promise<BCMSMedia> {
+    const media = await BCMSRepo.media.findById(id);
+    if (!media) {
+      throw errorHandler.occurred(
+        HTTPStatus.NOT_FOUNT,
+        bcmsResCode('mda001', { id }),
+      );
+    }
+    return media;
+  }
 }
