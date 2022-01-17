@@ -3,6 +3,7 @@ import { BCMSMediaTypeEnum } from './enums';
 import { BCMSMediaAggregateObject, BCMSMediaObject } from './objects';
 import {
   BCMSMediaGetAllAggregatedResolver,
+  BCMSMediaGetAllByParentIdResolver,
   BCMSMediaGetAllResolver,
 } from './resolvers';
 
@@ -10,5 +11,9 @@ export const BCMSMediaCollection = createGraphqlCollection({
   name: 'media',
   enums: [BCMSMediaTypeEnum],
   objects: [BCMSMediaObject, BCMSMediaAggregateObject],
-  resolvers: [BCMSMediaGetAllResolver, BCMSMediaGetAllAggregatedResolver],
+  resolvers: [
+    BCMSMediaGetAllAggregatedResolver,
+    BCMSMediaGetAllByParentIdResolver,
+    BCMSMediaGetAllResolver,
+  ],
 });

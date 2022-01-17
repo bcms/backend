@@ -30,7 +30,7 @@ export const BCMSMediaGetAllAggregatedResolver = createGraphqlResolver<
       token: accessToken,
       errorHandler,
       permission: JWTPermissionName.READ,
-      roles: [JWTRoleName.ADMIN, JWTRoleName.USER],
+      roles: [JWTRoleName.ADMIN, JWTRoleName.DEV],
     });
     return await BCMSMediaRequestHandler.getAllAggregated();
   },
