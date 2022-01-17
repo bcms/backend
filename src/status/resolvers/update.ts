@@ -36,7 +36,7 @@ export const BCMSStatusUpdateResolver = createGraphqlResolver<
       token: accessToken,
       errorHandler,
       permission: JWTPermissionName.WRITE,
-      roles: [JWTRoleName.ADMIN, JWTRoleName.USER],
+      roles: [JWTRoleName.ADMIN],
     });
     return await BCMSStatusRequestHandler.update({
       errorHandler,

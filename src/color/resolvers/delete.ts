@@ -29,8 +29,8 @@ export const BCMSColorDeleteResolver = createGraphqlResolver<
     const jwt = securityVerifyJWT({
       token: accessToken,
       errorHandler,
-      permission: JWTPermissionName.READ,
-      roles: [JWTRoleName.ADMIN, JWTRoleName.USER],
+      permission: JWTPermissionName.DELETE,
+      roles: [JWTRoleName.ADMIN],
     });
     await BCMSColorRequestHandler.delete({
       id,

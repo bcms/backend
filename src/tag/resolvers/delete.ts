@@ -37,7 +37,7 @@ export const BCMSTagDeleteResolver = createGraphqlResolver<
     const jwt = securityVerifyJWT({
       token: accessToken,
       errorHandler,
-      permission: JWTPermissionName.READ,
+      permission: JWTPermissionName.DELETE,
       roles: [JWTRoleName.ADMIN, JWTRoleName.USER],
     });
     await BCMSTagRequestHandler.delete({

@@ -125,7 +125,7 @@ export const BCMSTemplateOrganizerController = createController({
         type: 'delete',
         preRequestHandler: createJwtProtectionPreRequestHandler(
           [JWTRoleName.ADMIN, JWTRoleName.USER],
-          JWTPermissionName.READ,
+          JWTPermissionName.DELETE,
         ),
         async handler({ request, errorHandler, accessToken }) {
           await BCMSTemplateOrganizerRequestHandler.delete({

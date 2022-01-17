@@ -87,7 +87,7 @@ export const BCMSStatusController = createController({
         type: 'post',
         preRequestHandler: createJwtAndBodyCheckRouteProtection({
           roleNames: [JWTRoleName.ADMIN],
-          permissionName: JWTPermissionName.READ,
+          permissionName: JWTPermissionName.WRITE,
           bodySchema: BCMSStatusCreateDataSchema,
         }),
         async handler({ body, errorHandler, accessToken }) {
@@ -108,7 +108,7 @@ export const BCMSStatusController = createController({
         type: 'put',
         preRequestHandler: createJwtAndBodyCheckRouteProtection({
           roleNames: [JWTRoleName.ADMIN],
-          permissionName: JWTPermissionName.READ,
+          permissionName: JWTPermissionName.WRITE,
           bodySchema: BCMSStatusUpdateDataSchema,
         }),
         async handler({ body, errorHandler, accessToken }) {
@@ -130,7 +130,7 @@ export const BCMSStatusController = createController({
         preRequestHandler:
           createJwtProtectionPreRequestHandler<BCMSUserCustomPool>(
             [JWTRoleName.ADMIN],
-            JWTPermissionName.READ,
+            JWTPermissionName.DELETE,
           ),
         async handler({ request, errorHandler, accessToken }) {
           await BCMSStatusRequestHandler.delete({
