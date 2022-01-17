@@ -87,7 +87,7 @@ export const BCMSMediaController = createController<Setup>({
         ),
         async handler() {
           return {
-            items: await BCMSMediaService.aggregateFromRoot(),
+            items: await BCMSMediaRequestHandler.getAllAggregated(),
           };
         },
       }),
