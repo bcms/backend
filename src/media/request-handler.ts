@@ -30,4 +30,7 @@ export class BCMSMediaRequestHandler {
   static async getMany(ids: string[]): Promise<BCMSMedia[]> {
     return await BCMSRepo.media.findAllById(ids);
   }
+  static async count(): Promise<number> {
+    return await BCMSRepo.media.count();
+  }
 }

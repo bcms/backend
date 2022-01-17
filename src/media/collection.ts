@@ -2,6 +2,7 @@ import { createGraphqlCollection } from '@becomes/purple-cheetah-mod-graphql';
 import { BCMSMediaTypeEnum } from './enums';
 import { BCMSMediaAggregateObject, BCMSMediaObject } from './objects';
 import {
+  BCMSMediaCountResolver,
   BCMSMediaGetAllAggregatedResolver,
   BCMSMediaGetAllByParentIdResolver,
   BCMSMediaGetAllResolver,
@@ -13,6 +14,7 @@ export const BCMSMediaCollection = createGraphqlCollection({
   enums: [BCMSMediaTypeEnum],
   objects: [BCMSMediaObject, BCMSMediaAggregateObject],
   resolvers: [
+    BCMSMediaCountResolver,
     BCMSMediaGetAllAggregatedResolver,
     BCMSMediaGetAllByParentIdResolver,
     BCMSMediaGetAllResolver,

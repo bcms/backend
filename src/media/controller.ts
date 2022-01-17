@@ -142,7 +142,7 @@ export const BCMSMediaController = createController<Setup>({
         ),
         async handler() {
           return {
-            count: await BCMSRepo.media.count(),
+            count: await BCMSMediaRequestHandler.count(),
           };
         },
       }),
