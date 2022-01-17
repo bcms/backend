@@ -1,9 +1,13 @@
 import { BCMSRepo } from '@bcms/repo';
 import { bcmsResCode } from '@bcms/response-code';
-import type { BCMSMedia, BCMSMediaAggregate } from '@bcms/types';
+import {
+  BCMSMedia,
+  BCMSMediaAggregate,
+  BCMSMediaSimpleAggregate,
+  BCMSMediaType,
+} from '@bcms/types';
 import { HTTPError, HTTPStatus } from '@becomes/purple-cheetah/types';
 import { BCMSMediaService } from './service';
-
 export class BCMSMediaRequestHandler {
   static async getAll(): Promise<BCMSMedia[]> {
     return await BCMSRepo.media.findAll();
@@ -48,5 +52,39 @@ export class BCMSMediaRequestHandler {
       );
     }
     return media;
+  }
+
+  static async getByIdAggregated({
+    id,
+    errorHandler,
+  }: {
+    id: string;
+    errorHandler: HTTPError;
+  }): Promise<BCMSMediaSimpleAggregate | BCMSMediaAggregate> {
+    const media = await BCMSRepo.media.findById(id);
+    if (!media) {
+      throw errorHandler.occurred(
+        HTTPStatus.NOT_FOUNT,
+        bcmsResCode('mda001', { id }),
+      );
+    }
+
+    if (media.type !== BCMSMediaType.DIR) {
+      return {
+        _id: media._id,
+        createdAt: media.createdAt,
+        updatedAt: media.updatedAt,
+        isInRoot: media.isInRoot,
+        mimetype: media.mimetype,
+        name: media.name,
+        size: media.size,
+        state: false,
+        type: media.type,
+        userId: media.userId,
+      } as BCMSMediaSimpleAggregate;
+    }
+    return (await BCMSMediaService.aggregateFromParent({
+      parent: media,
+    })) as BCMSMediaAggregate;
   }
 }

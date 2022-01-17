@@ -173,31 +173,11 @@ export const BCMSMediaController = createController<Setup>({
             JWTPermissionName.READ,
           ),
         async handler({ request, errorHandler }) {
-          const media = await BCMSRepo.media.findById(request.params.id);
-          if (!media) {
-            throw errorHandler.occurred(
-              HTTPStatus.NOT_FOUNT,
-              bcmsResCode('mda001', { id: request.params.id }),
-            );
-          }
-          if (media.type !== BCMSMediaType.DIR) {
-            return {
-              item: {
-                _id: media._id,
-                createdAt: media.createdAt,
-                updatedAt: media.updatedAt,
-                isInRoot: media.isInRoot,
-                mimetype: media.mimetype,
-                name: media.name,
-                size: media.size,
-                state: false,
-                type: media.type,
-                userId: media.userId,
-              },
-            };
-          }
           return {
-            item: await BCMSMediaService.aggregateFromParent({ parent: media }),
+            item: await BCMSMediaRequestHandler.getByIdAggregated({
+              id: request.params.id,
+              errorHandler,
+            }),
           };
         },
       }),
