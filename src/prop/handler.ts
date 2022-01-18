@@ -1108,7 +1108,7 @@ export const BCMSPropHandler: BCMSPropHandlerType = {
                       userId: '',
                       meta: {},
                       content: {},
-                    });
+                    }) - 1;
                     for (let k = 0; k < entry.meta.length; k++) {
                       const entryMeta = entry.meta[k];
                       const lng = await BCMSRepo.language.methods.findByCode(
