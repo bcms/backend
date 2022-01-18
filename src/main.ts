@@ -10,9 +10,9 @@ import type {
   Module,
 } from '@becomes/purple-cheetah/types';
 import {
-  JWT,
   JWTAlgorithm,
   JWTError,
+  JWTPayload,
   JWTPermissionName,
   JWTRoleName,
 } from '@becomes/purple-cheetah-mod-jwt/types';
@@ -128,10 +128,13 @@ async function initialize() {
         let id: string;
         if (socket.handshake.query.at) {
           try {
-            const token: JWT<BCMSUserCustomPool> = JSON.parse(
-              socket.handshake.query.token as string,
+            const token: JWTPayload<BCMSUserCustomPool> = JSON.parse(
+              Buffer.from(
+                (socket.handshake.query.at as string).split('.')[1],
+                'base64',
+              ).toString(),
             );
-            id = token.payload.userId;
+            id = token.userId;
           } catch (err) {
             id = 'none';
           }
