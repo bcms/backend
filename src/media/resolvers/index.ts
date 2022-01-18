@@ -6,3 +6,4 @@ export * from './get-all';
 export * from './get-many';
 export * from './get-one-aggregate';
 export * from './get-one';
+export * from './update';

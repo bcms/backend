@@ -1,7 +1,6 @@
 import {
   createController,
   createControllerMethod,
-  useStringUtility,
 } from '@becomes/purple-cheetah';
 import {
   createJwtProtectionPreRequestHandler,
@@ -14,7 +13,7 @@ import {
   JWTPreRequestHandlerResult,
   JWTRoleName,
 } from '@becomes/purple-cheetah-mod-jwt/types';
-import { HTTPStatus, StringUtility } from '@becomes/purple-cheetah/types';
+import { HTTPStatus } from '@becomes/purple-cheetah/types';
 import {
   BCMSJWTAndBodyCheckerRouteProtectionResult,
   BCMSMedia,
@@ -45,7 +44,6 @@ import { BCMSMediaRequestHandler } from './request-handler';
 
 interface Setup {
   jwt: JWTManager;
-  stringUtil: StringUtility;
 }
 export const BCMSMediaController = createController<Setup>({
   name: 'Media controller',
@@ -53,10 +51,9 @@ export const BCMSMediaController = createController<Setup>({
   setup() {
     return {
       jwt: useJwt(),
-      stringUtil: useStringUtility(),
     };
   },
-  methods({ jwt, stringUtil }) {
+  methods({ jwt }) {
     return {
       getAll: createControllerMethod<unknown, { items: BCMSMedia[] }>({
         path: '/all',
@@ -441,83 +438,12 @@ export const BCMSMediaController = createController<Setup>({
           bodySchema: BCMSMediaUpdateDataSchema,
         }),
         async handler({ errorHandler, body, accessToken }) {
-          const media = await BCMSRepo.media.findById(body._id);
-          if (!media) {
-            throw errorHandler.occurred(
-              HTTPStatus.NOT_FOUNT,
-              bcmsResCode('mda001', { id: body._id }),
-            );
-          }
-          const oldMedia = JSON.parse(JSON.stringify(media));
-          if (media.type === BCMSMediaType.DIR) {
-            throw errorHandler.occurred(
-              HTTPStatus.INTERNAL_SERVER_ERROR,
-              bcmsResCode('mda005'),
-            );
-          }
-          let changeDetected = false;
-          const mediaNameInfo = BCMSMediaService.getNameAndExt(media.name);
-
-          if (
-            typeof body.name === 'string' &&
-            body.name !== mediaNameInfo.name
-          ) {
-            const name = `${stringUtil.toSlug(body.name)}${
-              mediaNameInfo.ext ? '.' + mediaNameInfo.ext : ''
-            }`;
-
-            if (
-              await BCMSRepo.media.methods.findByNameAndParentId(
-                name,
-                media.parentId,
-              )
-            ) {
-              throw errorHandler.occurred(
-                HTTPStatus.INTERNAL_SERVER_ERROR,
-                bcmsResCode('mda002', { name }),
-              );
-            }
-
-            changeDetected = true;
-            media.name = name;
-          }
-          if (
-            typeof body.altText === 'string' &&
-            body.altText !== media.altText
-          ) {
-            changeDetected = true;
-            media.altText = body.altText;
-          }
-          if (
-            typeof body.caption === 'string' &&
-            body.caption !== media.caption
-          ) {
-            changeDetected = true;
-            media.caption = body.caption;
-          }
-          if (!changeDetected) {
-            throw errorHandler.occurred(
-              HTTPStatus.FORBIDDEN,
-              bcmsResCode('g003'),
-            );
-          }
-          await BCMSMediaService.storage.rename(oldMedia, media);
-          const updateMedia = await BCMSRepo.media.update(media);
-          if (!updateMedia) {
-            throw errorHandler.occurred(
-              HTTPStatus.INTERNAL_SERVER_ERROR,
-              bcmsResCode('mda005'),
-            );
-          }
-          await BCMSSocketManager.emit.media({
-            mediaId: updateMedia._id,
-            type: BCMSSocketEventType.UPDATE,
-            userIds: 'all',
-            excludeUserId: [accessToken.payload.userId],
-          });
-          await BCMSRepo.change.methods.updateAndIncByName('media');
           return {
-            item: updateMedia,
+            item: await BCMSMediaRequestHandler.update({
+              body,
+              accessToken,
+              errorHandler,
+            }),
           };
         },
       }),
