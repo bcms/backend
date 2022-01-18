@@ -12,6 +12,7 @@ import {
 import { StringUtility } from '@becomes/purple-cheetah';
 import type { JWT } from '@becomes/purple-cheetah-mod-jwt/types';
 import { HTTPError, HTTPStatus } from '@becomes/purple-cheetah/types';
+import { BCMSColorService } from './service';
 
 export class BCMSColorRequestHandler {
   static async getAll(): Promise<BCMSColor[]> {
@@ -107,8 +108,8 @@ export class BCMSColorRequestHandler {
         'The value of the color origin is not entered',
       );
     }
-    const checkHex = /^#[0-9A-Fa-f]{6}(?:[0-9A-Fa-f]{2})?$/g;
-    if (!body.value.match(checkHex)) {
+
+    if (!(await BCMSColorService.check(body.value))) {
       throw errorHandler.occurred(
         HTTPStatus.BAD_REQUEST,
         bcmsResCode('col010'),
@@ -164,8 +165,7 @@ export class BCMSColorRequestHandler {
       color.name = StringUtility.toSlugUnderscore(body.label);
     }
     if (typeof body.value === 'string' && body.value !== color.value) {
-      const checkHex = /^#[0-9A-Fa-f]{6}(?:[0-9A-Fa-f]{2})?$/g;
-      if (!body.value.match(checkHex)) {
+      if (!(await BCMSColorService.check(body.value))) {
         throw errorHandler.occurred(
           HTTPStatus.BAD_REQUEST,
           bcmsResCode('col010'),
