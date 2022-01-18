@@ -6,7 +6,6 @@ import {
   BCMSMedia,
   BCMSMediaAddDirData,
   BCMSMediaAggregate,
-  BCMSMediaSimpleAggregate,
   BCMSMediaType,
   BCMSSocketEventType,
   BCMSUserCustomPool,
@@ -68,7 +67,7 @@ export class BCMSMediaRequestHandler {
   }: {
     id: string;
     errorHandler: HTTPError;
-  }): Promise<BCMSMediaSimpleAggregate | BCMSMediaAggregate> {
+  }): Promise<BCMSMediaAggregate> {
     const media = await BCMSRepo.media.findById(id);
     if (!media) {
       throw errorHandler.occurred(
@@ -89,11 +88,12 @@ export class BCMSMediaRequestHandler {
         state: false,
         type: media.type,
         userId: media.userId,
-      } as BCMSMediaSimpleAggregate;
+        path: await BCMSMediaService.getPath(media),
+      };
     }
-    return (await BCMSMediaService.aggregateFromParent({
+    return await BCMSMediaService.aggregateFromParent({
       parent: media,
-    })) as BCMSMediaAggregate;
+    });
   }
   static async createDir({
     accessToken,
