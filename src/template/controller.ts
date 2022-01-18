@@ -8,7 +8,10 @@ import {
   JWTPreRequestHandlerResult,
   JWTRoleName,
 } from '@becomes/purple-cheetah-mod-jwt/types';
-import { createJwtAndBodyCheckRouteProtection } from '../util';
+import {
+  createJwtAndBodyCheckRouteProtection,
+  createJwtApiProtectionPreRequestHandler,
+} from '../util';
 import {
   BCMSUserCustomPool,
   BCMSTemplateCreateData,
@@ -77,16 +80,13 @@ export const BCMSTemplateController = createController({
         },
       }),
 
-      getById: createControllerMethod<
-        JWTPreRequestHandlerResult<BCMSUserCustomPool>,
-        { item: BCMSTemplate }
-      >({
+      getById: createControllerMethod<unknown, { item: BCMSTemplate }>({
         path: '/:id',
         type: 'get',
-        preRequestHandler: createJwtProtectionPreRequestHandler(
-          [JWTRoleName.ADMIN, JWTRoleName.USER],
-          JWTPermissionName.READ,
-        ),
+        preRequestHandler: createJwtApiProtectionPreRequestHandler({
+          roleNames: [JWTRoleName.ADMIN, JWTRoleName.USER],
+          permissionName: JWTPermissionName.READ,
+        }),
         async handler({ request, errorHandler }) {
           return {
             item: await BCMSTemplateRequestHandler.getById({
