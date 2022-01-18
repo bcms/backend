@@ -38,7 +38,6 @@ import { BCMSRepo } from '@bcms/repo';
 import { bcmsResCode } from '@bcms/response-code';
 import { BCMSSocketManager } from '@bcms/socket';
 import { BCMSMediaService } from './service';
-import { BCMSFactory } from '@bcms/factory';
 import { BCMSPropHandler } from '@bcms/prop';
 import { BCMSMediaRequestHandler } from './request-handler';
 
@@ -460,94 +459,12 @@ export const BCMSMediaController = createController<Setup>({
           bodySchema: BCMSMediaDuplicateDataSchema,
         }),
         async handler({ body, errorHandler, accessToken }) {
-          const oldMedia = await BCMSRepo.media.findById(body._id);
-          if (!oldMedia) {
-            throw errorHandler.occurred(
-              HTTPStatus.NOT_FOUNT,
-              bcmsResCode('mda001', { id: body._id }),
-            );
-          }
-          if (oldMedia.type === BCMSMediaType.DIR) {
-            throw errorHandler.occurred(
-              HTTPStatus.INTERNAL_SERVER_ERROR,
-              bcmsResCode('mda005'),
-            );
-          }
-          const duplicateToMedia = await BCMSRepo.media.findById(
-            body.duplicateTo,
-          );
-          let isInRootMedia: boolean;
-          let parentIdMedia: string;
-          if (duplicateToMedia) {
-            if (duplicateToMedia.type !== BCMSMediaType.DIR) {
-              throw errorHandler.occurred(
-                HTTPStatus.INTERNAL_SERVER_ERROR,
-                bcmsResCode('mda005'),
-              );
-            }
-            isInRootMedia = false;
-            parentIdMedia = duplicateToMedia._id;
-          } else {
-            isInRootMedia = true;
-            parentIdMedia = '';
-          }
-          const newMedia = BCMSFactory.media.create({
-            userId: accessToken.payload.userId,
-            type: oldMedia.type,
-            mimetype: oldMedia.mimetype,
-            size: oldMedia.size,
-            name: oldMedia.name,
-            isInRoot: isInRootMedia,
-            hasChildren: false,
-            parentId: parentIdMedia,
-            altText: oldMedia.altText,
-            caption: oldMedia.caption,
-            height: oldMedia.height,
-            width: oldMedia.width,
-          });
-
-          // Check if media with name exists, and if does,
-          // prefix `copyof-{n}-{medianame}`
-          {
-            let loop = true;
-            let depth = 0;
-            let newName = newMedia.name;
-            while (loop) {
-              if (
-                await BCMSRepo.media.methods.findByNameAndParentId(
-                  newName,
-                  body.duplicateTo,
-                )
-              ) {
-                depth++;
-              } else {
-                loop = false;
-              }
-              newName = `copyof-${depth > 0 ? `${depth}-` : ''}${
-                newMedia.name
-              }`;
-            }
-            newMedia.name = newName;
-          }
-
-          await BCMSMediaService.storage.duplicate(oldMedia, newMedia);
-          const duplicateMedia = await BCMSRepo.media.add(newMedia);
-          if (!duplicateMedia) {
-            await BCMSMediaService.storage.removeFile(newMedia);
-            throw errorHandler.occurred(
-              HTTPStatus.INTERNAL_SERVER_ERROR,
-              bcmsResCode('mda003'),
-            );
-          }
-          await BCMSSocketManager.emit.media({
-            mediaId: duplicateMedia._id,
-            type: BCMSSocketEventType.UPDATE,
-            userIds: 'all',
-            excludeUserId: [accessToken.payload.userId],
-          });
-          await BCMSRepo.change.methods.updateAndIncByName('media');
           return {
-            item: duplicateMedia,
+            item: await BCMSMediaRequestHandler.duplicateFile({
+              body,
+              errorHandler,
+              accessToken,
+            }),
           };
         },
       }),
