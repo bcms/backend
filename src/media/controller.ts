@@ -481,40 +481,12 @@ export const BCMSMediaController = createController<Setup>({
           bodySchema: BCMSMediaMoveDataSchema,
         }),
         async handler({ body, errorHandler, accessToken }) {
-          const media = await BCMSRepo.media.findById(body._id);
-          if (!media) {
-            throw errorHandler.occurred(
-              HTTPStatus.NOT_FOUNT,
-              bcmsResCode('mda001', { id: body._id }),
-            );
-          }
-          if (media.type === BCMSMediaType.DIR) {
-            throw errorHandler.occurred(
-              HTTPStatus.INTERNAL_SERVER_ERROR,
-              bcmsResCode('mda005'),
-            );
-          }
-          const moveToMedia = await BCMSRepo.media.findById(body.moveTo);
-
-          await BCMSMediaService.storage.move(media, moveToMedia);
-          if (moveToMedia) {
-            media.isInRoot = false;
-            media.parentId = body.moveTo;
-          } else {
-            media.isInRoot = true;
-            media.parentId = '';
-          }
-          const moveMedia = await BCMSRepo.media.update(media);
-
-          await BCMSSocketManager.emit.media({
-            mediaId: media._id,
-            type: BCMSSocketEventType.UPDATE,
-            userIds: 'all',
-            excludeUserId: [accessToken.payload.userId],
-          });
-          await BCMSRepo.change.methods.updateAndIncByName('media');
           return {
-            item: moveMedia,
+            item: await BCMSMediaRequestHandler.moveFile({
+              body,
+              errorHandler,
+              accessToken,
+            }),
           };
         },
       }),

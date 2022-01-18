@@ -3,6 +3,7 @@ import { BCMSMediaTypeEnum } from './enums';
 import {
   BCMSMediaCreateDirDataInput,
   BCMSMediaDuplicateDataInput,
+  BCMSMediaMoveDataInput,
   BCMSMediaUpdateDataInput,
 } from './inputs';
 import { BCMSMediaAggregateObject, BCMSMediaObject } from './objects';
@@ -16,6 +17,7 @@ import {
   BCMSMediaGetByIdAggregatedResolver,
   BCMSMediaGetByIdResolver,
   BCMSMediaGetManyResolver,
+  BCMSMediaMoveResolver,
   BCMSMediaUpdateResolver,
 } from './resolvers';
 
@@ -25,6 +27,7 @@ export const BCMSMediaCollection = createGraphqlCollection({
   inputs: [
     BCMSMediaCreateDirDataInput,
     BCMSMediaDuplicateDataInput,
+    BCMSMediaMoveDataInput,
     BCMSMediaUpdateDataInput,
   ],
   objects: [BCMSMediaObject, BCMSMediaAggregateObject],
@@ -38,6 +41,7 @@ export const BCMSMediaCollection = createGraphqlCollection({
     BCMSMediaGetManyResolver,
     BCMSMediaGetByIdAggregatedResolver,
     BCMSMediaGetByIdResolver,
+    BCMSMediaMoveResolver,
     BCMSMediaUpdateResolver,
   ],
 });
