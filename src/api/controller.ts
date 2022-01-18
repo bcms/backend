@@ -24,12 +24,14 @@ import {
   BCMSUserCustomPool,
   BCMSApiKey,
   BCMSFunctionManager,
+  BCMSJWTAndBodyCheckerRouteProtectionResult,
 } from '../types';
 import { bcmsResCode } from '@bcms/response-code';
-import { BCMSFactory } from '@bcms/factory';
 import { BCMSSocketManager } from '@bcms/socket';
 import { BCMSRepo } from '@bcms/repo';
 import { useBcmsFunctionManger } from '@bcms/function';
+import { createJwtAndBodyCheckRouteProtection } from '@bcms/util';
+import { BCMSApiKeyRequestHandler } from './request-handler';
 
 interface Setup {
   objectUtil: ObjectUtility;
@@ -126,53 +128,24 @@ export const BCMSApiKeyController = createController<Setup>({
       }),
 
       create: createControllerMethod<
-        JWTPreRequestHandlerResult<BCMSUserCustomPool>,
+        BCMSJWTAndBodyCheckerRouteProtectionResult<BCMSApiKeyAddData>,
         { item: BCMSApiKey }
       >({
         type: 'post',
-        preRequestHandler: createJwtProtectionPreRequestHandler(
-          [JWTRoleName.ADMIN],
-          JWTPermissionName.WRITE,
-        ),
-        async handler({ request, errorHandler, accessToken }) {
+        preRequestHandler: createJwtAndBodyCheckRouteProtection({
+          roleNames: [JWTRoleName.ADMIN],
+          permissionName: JWTPermissionName.WRITE,
+          bodySchema: BCMSApiKeyAddDataSchema,
+        }),
+        async handler({ body, errorHandler, accessToken }) {
           {
-            const data: BCMSApiKeyAddData = request.body;
-            const checkBody = objectUtil.compareWithSchema(
-              data,
-              BCMSApiKeyAddDataSchema,
-              'body',
-            );
-            if (checkBody instanceof ObjectUtilityError) {
-              throw errorHandler.occurred(
-                HTTPStatus.BAD_REQUEST,
-                bcmsResCode('g002', {
-                  msg: checkBody.message,
-                }),
-              );
-            }
-            const rewriteResult = BCMSFactory.apiKey.rewriteKey(
-              BCMSFactory.apiKey.create({
-                userId: accessToken.payload.userId,
-                name: data.name,
-                desc: data.desc,
-                blocked: data.blocked,
-                access: data.access,
+            return {
+              item: await BCMSApiKeyRequestHandler.create({
+                accessToken,
+                errorHandler,
+                body,
               }),
-            );
-            const key = await BCMSRepo.apiKey.add(rewriteResult.key);
-            if (!key) {
-              throw errorHandler.occurred(
-                HTTPStatus.INTERNAL_SERVER_ERROR,
-                bcmsResCode('ak003'),
-              );
-            }
-            await BCMSSocketManager.emit.apiKey({
-              apiKeyId: key._id,
-              type: BCMSSocketEventType.UPDATE,
-              userIds: 'all',
-              excludeUserId: [accessToken.payload.userId],
-            });
-            return { item: key };
+            };
           }
         },
       }),

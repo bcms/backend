@@ -33,7 +33,11 @@ import {
 } from './shim';
 import { BCMSUserController, createBcmsUserRepository } from './user';
 import { BCMSApiKeySecurity, createBcmsApiKeySecurity } from './security';
-import { BCMSApiKeyController, createBcmsApiKeyRepository } from './api';
+import {
+  BCMSApiKeyCollection,
+  BCMSApiKeyController,
+  createBcmsApiKeyRepository,
+} from './api';
 import { BCMSFunctionController, createBcmsFunctionModule } from './function';
 import { BCMSPluginController, createBcmsPluginModule } from './plugin';
 import { createBcmsEventModule } from './event';
@@ -311,6 +315,7 @@ async function initialize() {
       graphiql: true,
       rootName: 'BCMS',
       collections: [
+        BCMSApiKeyCollection,
         BCMSPropCollection,
         BCMSGroupCollection,
         BCMSMediaCollection,
