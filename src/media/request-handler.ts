@@ -1,4 +1,6 @@
 import * as crypto from 'crypto';
+import imageSize from 'image-size';
+import * as util from 'util';
 import { BCMSFactory } from '@bcms/factory';
 import { BCMSRepo } from '@bcms/repo';
 import { bcmsResCode } from '@bcms/response-code';
@@ -13,7 +15,7 @@ import {
 } from '@bcms/types';
 import { StringUtility } from '@becomes/purple-cheetah';
 import type { JWT } from '@becomes/purple-cheetah-mod-jwt/types';
-import { HTTPError, HTTPStatus } from '@becomes/purple-cheetah/types';
+import { HTTPError, HTTPStatus, Logger } from '@becomes/purple-cheetah/types';
 import { BCMSMediaService } from './service';
 import { BCMSSocketManager } from '@bcms/socket';
 export class BCMSMediaRequestHandler {
@@ -94,6 +96,98 @@ export class BCMSMediaRequestHandler {
     return (await BCMSMediaService.aggregateFromParent({
       parent: media,
     })) as BCMSMediaAggregate;
+  }
+  static async createFile({
+    accessToken,
+    errorHandler,
+    parentId,
+    file,
+    logger,
+    name,
+  }: {
+    accessToken: JWT<BCMSUserCustomPool>;
+    errorHandler: HTTPError;
+    name: string;
+    logger: Logger;
+    parentId: string;
+    file: Express.Multer.File | undefined;
+  }): Promise<BCMSMedia> {
+    if (!file) {
+      throw errorHandler.occurred(
+        HTTPStatus.BAD_REQUEST,
+        bcmsResCode('mda009'),
+      );
+    }
+    let parent: BCMSMedia | null = null;
+    if (parentId) {
+      parent = await BCMSRepo.media.findById(parentId);
+      if (!parent) {
+        throw errorHandler.occurred(
+          HTTPStatus.NOT_FOUNT,
+          bcmsResCode('mda001', { id: parentId }),
+        );
+      }
+    }
+    const fileInfo = BCMSMediaService.getNameAndExt(file.originalname);
+    const media = BCMSFactory.media.create({
+      userId: accessToken.payload.userId,
+      type: BCMSMediaService.mimetypeToMediaType(file.mimetype),
+      mimetype: file.mimetype,
+      size: file.size,
+      name: `${StringUtility.toSlug(fileInfo.name)}${
+        fileInfo.ext ? '.' + fileInfo.ext : ''
+      }`,
+      isInRoot: !parent,
+      hasChildren: false,
+      parentId: parentId ? parentId : '',
+      altText: '',
+      caption: '',
+      height: -1,
+      width: -1,
+    });
+    if (
+      await BCMSRepo.media.methods.findByNameAndParentId(
+        media.name,
+        parent ? parent._id : undefined,
+      )
+    ) {
+      media.name = crypto.randomBytes(6).toString('hex') + '-' + media.name;
+    }
+    await BCMSMediaService.storage.save(media, file.buffer);
+    if (media.type === BCMSMediaType.IMG) {
+      try {
+        const dimensions = await util.promisify(imageSize)(
+          await BCMSMediaService.storage.getPath({ media }),
+        );
+        if (!dimensions) {
+          throw errorHandler.occurred(
+            HTTPStatus.NOT_FOUNT,
+            bcmsResCode('mda013'),
+          );
+        }
+        media.width = dimensions.width as number;
+        media.height = dimensions.height as number;
+      } catch (error) {
+        logger.error(name, error);
+      }
+    }
+    const addedMedia = await BCMSRepo.media.add(media);
+    if (!addedMedia) {
+      await BCMSMediaService.storage.removeFile(media);
+      throw errorHandler.occurred(
+        HTTPStatus.INTERNAL_SERVER_ERROR,
+        bcmsResCode('mda003'),
+      );
+    }
+
+    await BCMSSocketManager.emit.media({
+      mediaId: addedMedia._id,
+      type: BCMSSocketEventType.UPDATE,
+      userIds: 'all',
+      excludeUserId: [accessToken.payload.userId],
+    });
+    await BCMSRepo.change.methods.updateAndIncByName('media');
+    return addedMedia;
   }
   static async createDir({
     accessToken,

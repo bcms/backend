@@ -1,6 +1,3 @@
-import * as crypto from 'crypto';
-import imageSize from 'image-size';
-import * as util from 'util';
 import {
   createController,
   createControllerMethod,
@@ -397,86 +394,15 @@ export const BCMSMediaController = createController<Setup>({
           JWTPermissionName.WRITE,
         ),
         async handler({ request, errorHandler, accessToken, logger, name }) {
-          const parentId = request.query.parentId as string;
-          const file = request.file;
-          if (!file) {
-            throw errorHandler.occurred(
-              HTTPStatus.BAD_REQUEST,
-              bcmsResCode('mda009'),
-            );
-          }
-          let parent: BCMSMedia | null = null;
-          if (parentId) {
-            parent = await BCMSRepo.media.findById(parentId);
-            if (!parent) {
-              throw errorHandler.occurred(
-                HTTPStatus.NOT_FOUNT,
-                bcmsResCode('mda001', { id: parentId }),
-              );
-            }
-          }
-          const fileInfo = BCMSMediaService.getNameAndExt(file.originalname);
-          const media = BCMSFactory.media.create({
-            userId: accessToken.payload.userId,
-            type: BCMSMediaService.mimetypeToMediaType(file.mimetype),
-            mimetype: file.mimetype,
-            size: file.size,
-            name: `${stringUtil.toSlug(fileInfo.name)}${
-              fileInfo.ext ? '.' + fileInfo.ext : ''
-            }`,
-            isInRoot: !parent,
-            hasChildren: false,
-            parentId: parentId ? parentId : '',
-            altText: '',
-            caption: '',
-            height: -1,
-            width: -1,
-          });
-          if (
-            await BCMSRepo.media.methods.findByNameAndParentId(
-              media.name,
-              parent ? parent._id : undefined,
-            )
-          ) {
-            media.name =
-              crypto.randomBytes(6).toString('hex') + '-' + media.name;
-          }
-          await BCMSMediaService.storage.save(media, file.buffer);
-          if (media.type === BCMSMediaType.IMG) {
-            try {
-              const dimensions = await util.promisify(imageSize)(
-                await BCMSMediaService.storage.getPath({ media }),
-              );
-              if (!dimensions) {
-                throw errorHandler.occurred(
-                  HTTPStatus.NOT_FOUNT,
-                  bcmsResCode('mda013'),
-                );
-              }
-              media.width = dimensions.width as number;
-              media.height = dimensions.height as number;
-            } catch (error) {
-              logger.error(name, error);
-            }
-          }
-          const addedMedia = await BCMSRepo.media.add(media);
-          if (!addedMedia) {
-            await BCMSMediaService.storage.removeFile(media);
-            throw errorHandler.occurred(
-              HTTPStatus.INTERNAL_SERVER_ERROR,
-              bcmsResCode('mda003'),
-            );
-          }
-
-          await BCMSSocketManager.emit.media({
-            mediaId: addedMedia._id,
-            type: BCMSSocketEventType.UPDATE,
-            userIds: 'all',
-            excludeUserId: [accessToken.payload.userId],
-          });
-          await BCMSRepo.change.methods.updateAndIncByName('media');
           return {
-            item: addedMedia,
+            item: await BCMSMediaRequestHandler.createFile({
+              accessToken,
+              errorHandler,
+              logger,
+              name,
+              file: request.file,
+              parentId: request.query.parentId as string,
+            }),
           };
         },
       }),
