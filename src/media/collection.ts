@@ -1,11 +1,7 @@
 import { createGraphqlCollection } from '@becomes/purple-cheetah-mod-graphql';
 import { BCMSMediaTypeEnum } from './enums';
 import { BCMSMediaCreateDirDataInput } from './inputs';
-import {
-  BCMSMediaAggregateObject,
-  BCMSMediaObject,
-  BCMSMediaSimpleAggregateObject,
-} from './objects';
+import { BCMSMediaAggregateObject, BCMSMediaObject } from './objects';
 import {
   BCMSMediaCountResolver,
   BCMSMediaCreateDirResolver,
@@ -16,18 +12,12 @@ import {
   BCMSMediaGetByIdResolver,
   BCMSMediaGetManyResolver,
 } from './resolvers';
-import { BCMSMediaAggregateUnion } from './unions';
 
 export const BCMSMediaCollection = createGraphqlCollection({
   name: 'media',
   enums: [BCMSMediaTypeEnum],
-  unions: [BCMSMediaAggregateUnion],
   inputs: [BCMSMediaCreateDirDataInput],
-  objects: [
-    BCMSMediaObject,
-    BCMSMediaAggregateObject,
-    BCMSMediaSimpleAggregateObject,
-  ],
+  objects: [BCMSMediaObject, BCMSMediaAggregateObject],
   resolvers: [
     BCMSMediaCountResolver,
     BCMSMediaCreateDirResolver,

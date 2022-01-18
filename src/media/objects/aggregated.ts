@@ -16,17 +16,3 @@ export const BCMSMediaAggregateObject = createGraphqlObject({
     state: 'Boolean!',
   },
 });
-
-export const BCMSMediaSimpleAggregateObject = createGraphqlObject({
-  name: 'BCMSMediaSimpleAggregate',
-  fields: {
-    ...BCMSGqlDefaultEntityProps,
-    userId: 'String!',
-    type: 'BCMSMediaType!',
-    mimetype: 'String!',
-    size: 'Float!',
-    name: 'String!',
-    isInRoot: 'Boolean!',
-    state: 'Boolean!',
-  },
-});

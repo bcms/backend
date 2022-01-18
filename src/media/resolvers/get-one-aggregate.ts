@@ -3,7 +3,6 @@ import {
   BCMSGraphqlSecurityArgs,
   BCMSGraphqlSecurityArgsType,
   BCMSMediaAggregate,
-  BCMSMediaSimpleAggregate,
 } from '@bcms/types';
 import { createGraphqlResolver } from '@becomes/purple-cheetah-mod-graphql';
 import { GraphqlResolverType } from '@becomes/purple-cheetah-mod-graphql/types';
@@ -12,15 +11,14 @@ import {
   JWTRoleName,
 } from '@becomes/purple-cheetah-mod-jwt/types';
 import { BCMSMediaRequestHandler } from '../request-handler';
-type mediaAggregateResponse = BCMSMediaSimpleAggregate | BCMSMediaAggregate;
 export const BCMSMediaGetByIdAggregatedResolver = createGraphqlResolver<
   void,
   BCMSGraphqlSecurityArgsType & { id: string },
-  mediaAggregateResponse
+  BCMSMediaAggregate
 >({
   name: 'getByIdAggregate',
   return: {
-    type: 'BCMSMediaAggregateUnion',
+    type: 'BCMSMediaAggregate',
   },
   type: GraphqlResolverType.QUERY,
   args: {
