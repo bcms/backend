@@ -1,3 +1,4 @@
+import { BCMSColorService } from '@bcms/color';
 import { BCMSFactory } from '@bcms/factory';
 import { BCMSRepo } from '@bcms/repo';
 import { bcmsResCode } from '@bcms/response-code';
@@ -47,6 +48,14 @@ export class BCMSStatusRequestHandler {
     errorHandler: HTTPError;
     body: BCMSStatusCreateData;
   }): Promise<BCMSStatus> {
+    if (body.color) {
+      if (!(await BCMSColorService.check(body.color))) {
+        throw errorHandler.occurred(
+          HTTPStatus.BAD_REQUEST,
+          bcmsResCode('col010'),
+        );
+      }
+    }
     const status = BCMSFactory.status.create({
       label: body.label,
       name: StringUtility.toSlugUnderscore(body.label),
@@ -115,6 +124,12 @@ export class BCMSStatusRequestHandler {
       status.label = body.label;
     }
     if (typeof body.color === 'string' && status.color !== body.color) {
+      if (!(await BCMSColorService.check(body.color))) {
+        throw errorHandler.occurred(
+          HTTPStatus.BAD_REQUEST,
+          bcmsResCode('col010'),
+        );
+      }
       changeDetected = true;
       status.color = body.color;
     }
