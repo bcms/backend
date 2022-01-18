@@ -27,7 +27,6 @@ import {
   BCMSMediaType,
   BCMSMediaUpdateData,
   BCMSMediaUpdateDataSchema,
-  BCMSSocketEventType,
   BCMSUserCustomPool,
 } from '../types';
 import {
@@ -36,9 +35,7 @@ import {
 } from '../util';
 import { BCMSRepo } from '@bcms/repo';
 import { bcmsResCode } from '@bcms/response-code';
-import { BCMSSocketManager } from '@bcms/socket';
 import { BCMSMediaService } from './service';
-import { BCMSPropHandler } from '@bcms/prop';
 import { BCMSMediaRequestHandler } from './request-handler';
 
 interface Setup {
@@ -502,47 +499,13 @@ export const BCMSMediaController = createController<Setup>({
           JWTPermissionName.DELETE,
         ),
         async handler({ request, errorHandler, accessToken, logger, name }) {
-          const media = await BCMSRepo.media.findById(request.params.id);
-          if (!media) {
-            throw errorHandler.occurred(
-              HTTPStatus.NOT_FOUNT,
-              bcmsResCode('mda001', { id: request.params.id }),
-            );
-          }
-          let deletedChildrenIds: string[] = [];
-          if (media.type === BCMSMediaType.DIR) {
-            deletedChildrenIds = (
-              await BCMSMediaService.getChildren(media)
-            ).map((e) => e._id);
-            for (let i = 0; i < deletedChildrenIds.length; i++) {
-              const childId = deletedChildrenIds[i];
-              await BCMSRepo.media.deleteById(childId);
-            }
-            await BCMSRepo.media.deleteById(media._id);
-            await BCMSMediaService.storage.removeDir(media);
-          } else {
-            const deleteResult = await BCMSRepo.media.deleteById(media._id);
-            if (!deleteResult) {
-              throw errorHandler.occurred(
-                HTTPStatus.INTERNAL_SERVER_ERROR,
-                bcmsResCode('mda006'),
-              );
-            }
-            await BCMSMediaService.storage.removeFile(media);
-          }
-          const errors = await BCMSPropHandler.removeMedia({
-            mediaId: media._id,
+          await BCMSMediaRequestHandler.delete({
+            id: request.params.id,
+            errorHandler,
+            accessToken,
+            logger,
+            name,
           });
-          if (errors) {
-            logger.error(name, errors);
-          }
-          await BCMSSocketManager.emit.media({
-            mediaId: media._id,
-            type: BCMSSocketEventType.REMOVE,
-            userIds: 'all',
-            excludeUserId: [accessToken.payload.userId],
-          });
-          await BCMSRepo.change.methods.updateAndIncByName('media');
           return {
             message: 'Success.',
           };

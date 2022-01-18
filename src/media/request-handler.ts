@@ -20,6 +20,7 @@ import type { JWT } from '@becomes/purple-cheetah-mod-jwt/types';
 import { HTTPError, HTTPStatus, Logger } from '@becomes/purple-cheetah/types';
 import { BCMSMediaService } from './service';
 import { BCMSSocketManager } from '@bcms/socket';
+import { BCMSPropHandler } from '@bcms/prop';
 export class BCMSMediaRequestHandler {
   static async getAll(): Promise<BCMSMedia[]> {
     return await BCMSRepo.media.findAll();
@@ -456,5 +457,60 @@ export class BCMSMediaRequestHandler {
     });
     await BCMSRepo.change.methods.updateAndIncByName('media');
     return moveMedia;
+  }
+  static async delete({
+    errorHandler,
+    id,
+    logger,
+    name,
+    accessToken,
+  }: {
+    id: string;
+    accessToken: JWT<BCMSUserCustomPool>;
+    errorHandler: HTTPError;
+    logger: Logger;
+    name: string;
+  }): Promise<void> {
+    const media = await BCMSRepo.media.findById(id);
+    if (!media) {
+      throw errorHandler.occurred(
+        HTTPStatus.NOT_FOUNT,
+        bcmsResCode('mda001', { id }),
+      );
+    }
+    let deletedChildrenIds: string[] = [];
+    if (media.type === BCMSMediaType.DIR) {
+      deletedChildrenIds = (await BCMSMediaService.getChildren(media)).map(
+        (e) => e._id,
+      );
+      for (let i = 0; i < deletedChildrenIds.length; i++) {
+        const childId = deletedChildrenIds[i];
+        await BCMSRepo.media.deleteById(childId);
+      }
+      await BCMSRepo.media.deleteById(media._id);
+      await BCMSMediaService.storage.removeDir(media);
+    } else {
+      const deleteResult = await BCMSRepo.media.deleteById(media._id);
+      if (!deleteResult) {
+        throw errorHandler.occurred(
+          HTTPStatus.INTERNAL_SERVER_ERROR,
+          bcmsResCode('mda006'),
+        );
+      }
+      await BCMSMediaService.storage.removeFile(media);
+    }
+    const errors = await BCMSPropHandler.removeMedia({
+      mediaId: media._id,
+    });
+    if (errors) {
+      logger.error(name, errors);
+    }
+    await BCMSSocketManager.emit.media({
+      mediaId: media._id,
+      type: BCMSSocketEventType.REMOVE,
+      userIds: 'all',
+      excludeUserId: [accessToken.payload.userId],
+    });
+    await BCMSRepo.change.methods.updateAndIncByName('media');
   }
 }

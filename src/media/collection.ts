@@ -10,6 +10,7 @@ import { BCMSMediaAggregateObject, BCMSMediaObject } from './objects';
 import {
   BCMSMediaCountResolver,
   BCMSMediaCreateDirResolver,
+  BCMSMediaDeleteResolver,
   BCMSMediaDuplicateResolver,
   BCMSMediaGetAllAggregatedResolver,
   BCMSMediaGetAllByParentIdResolver,
@@ -34,6 +35,7 @@ export const BCMSMediaCollection = createGraphqlCollection({
   resolvers: [
     BCMSMediaCountResolver,
     BCMSMediaCreateDirResolver,
+    BCMSMediaDeleteResolver,
     BCMSMediaDuplicateResolver,
     BCMSMediaGetAllAggregatedResolver,
     BCMSMediaGetAllByParentIdResolver,
