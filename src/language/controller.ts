@@ -20,8 +20,8 @@ import {
 } from '../types';
 import { BCMSRepo } from '@bcms/repo';
 import { bcmsResCode } from '@bcms/response-code';
-import { BCMSFactory } from '@bcms/factory';
 import { BCMSSocketManager } from '@bcms/socket';
+import { BCMSLanguageRequestHandler } from './request-handler';
 
 export const BCMSLanguageController = createController({
   path: '/api/language',
@@ -97,35 +97,12 @@ export const BCMSLanguageController = createController({
           bodySchema: BCMSLanguageAddDataSchema,
         }),
         async handler({ body, accessToken, errorHandler }) {
-          const language = BCMSFactory.language.create({
-            name: body.name,
-            code: body.code,
-            nativeName: body.nativeName,
-            def: false,
-            userId: accessToken.payload.userId,
-          });
-          if (await BCMSRepo.language.methods.findByCode(language.code)) {
-            throw errorHandler.occurred(
-              HTTPStatus.FORBIDDEN,
-              bcmsResCode('lng002', { code: language.code }),
-            );
-          }
-          const addedLanguage = await BCMSRepo.language.add(language);
-          if (!addedLanguage) {
-            throw errorHandler.occurred(
-              HTTPStatus.INTERNAL_SERVER_ERROR,
-              bcmsResCode('lng003'),
-            );
-          }
-          await BCMSSocketManager.emit.language({
-            languageId: addedLanguage._id,
-            type: BCMSSocketEventType.UPDATE,
-            userIds: 'all',
-            excludeUserId: [accessToken.payload.userId],
-          });
-          await BCMSRepo.change.methods.updateAndIncByName('language');
           return {
-            item: language,
+            item: await BCMSLanguageRequestHandler.create({
+              body,
+              accessToken,
+              errorHandler,
+            }),
           };
         },
       }),

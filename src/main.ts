@@ -43,6 +43,7 @@ import { BCMSPluginController, createBcmsPluginModule } from './plugin';
 import { createBcmsEventModule } from './event';
 import { createBcmsJobModule } from './job';
 import {
+  BCMSLanguageCollection,
   BCMSLanguageController,
   createBcmsLanguageRepository,
 } from './language';
@@ -321,6 +322,7 @@ async function initialize() {
         BCMSApiKeyCollection,
         BCMSPropCollection,
         BCMSGroupCollection,
+        BCMSLanguageCollection,
         BCMSMediaCollection,
         BCMSColorCollection,
         BCMSStatusCollection,
