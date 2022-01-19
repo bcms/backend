@@ -6,6 +6,6 @@ export const BCMSApiKeyCreateDataInput = createGraphqlInput({
     name: 'String!',
     desc: 'String!',
     blocked: 'Boolean!',
-    source: 'BCMSApiKeyAccessData!',
+    access: 'BCMSApiKeyAccessData!',
   },
 });
