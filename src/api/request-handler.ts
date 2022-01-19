@@ -5,6 +5,7 @@ import { BCMSSocketManager } from '@bcms/socket';
 import {
   BCMSApiKey,
   BCMSApiKeyAddData,
+  BCMSApiKeyUpdateData,
   BCMSSocketEventType,
   BCMSUserCustomPool,
 } from '@bcms/types';
@@ -66,5 +67,56 @@ export class BCMSApiKeyRequestHandler {
       excludeUserId: [accessToken.payload.userId],
     });
     return key;
+  }
+  static async update({
+    accessToken,
+    errorHandler,
+    body,
+  }: {
+    accessToken: JWT<BCMSUserCustomPool>;
+    errorHandler: HTTPError;
+    body: BCMSApiKeyUpdateData;
+  }): Promise<BCMSApiKey> {
+    const key = await BCMSRepo.apiKey.findById(body._id);
+    if (!key) {
+      throw errorHandler.occurred(
+        HTTPStatus.NOT_FOUNT,
+        bcmsResCode('ak001', { id: body._id }),
+      );
+    }
+    let changeDetected = false;
+    if (typeof body.name !== 'undefined' && body.name !== key.name) {
+      changeDetected = true;
+      key.name = body.name;
+    }
+    if (typeof body.desc !== 'undefined' && body.desc !== key.desc) {
+      changeDetected = true;
+      key.desc = body.desc;
+    }
+    if (typeof body.blocked !== 'undefined' && body.blocked !== key.blocked) {
+      changeDetected = true;
+      key.blocked = body.blocked;
+    }
+    if (typeof body.access !== 'undefined') {
+      changeDetected = true;
+      key.access = body.access;
+    }
+    if (!changeDetected) {
+      throw errorHandler.occurred(HTTPStatus.FORBIDDEN, bcmsResCode('g003'));
+    }
+    const updatedKey = await BCMSRepo.apiKey.update(key);
+    if (!updatedKey) {
+      throw errorHandler.occurred(
+        HTTPStatus.INTERNAL_SERVER_ERROR,
+        bcmsResCode('ak005'),
+      );
+    }
+    await BCMSSocketManager.emit.apiKey({
+      apiKeyId: updatedKey._id,
+      type: BCMSSocketEventType.UPDATE,
+      userIds: 'all',
+      excludeUserId: [accessToken.payload.userId],
+    });
+    return updatedKey;
   }
 }

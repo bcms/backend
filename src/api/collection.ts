@@ -2,6 +2,7 @@ import { createGraphqlCollection } from '@becomes/purple-cheetah-mod-graphql';
 import {
   BCMSApiKeyAccessDataInput,
   BCMSApiKeyCreateDataInput,
+  BCMSApiKeyUpdateDataInput,
   BCMSFunctionNameDataInput,
   BCMSUserPolicyCRUDDataInput,
   BCMSUserPolicyCRUDWithIdDataInput,
@@ -18,6 +19,7 @@ import {
   BCMSApiKeyCreateResolver,
   BCMSApiKeyGetAllResolver,
   BCMSApiKeyGetByIdResolver,
+  BCMSApiKeyUpdateResolver,
 } from './resolvers';
 
 export const BCMSApiKeyCollection = createGraphqlCollection({
@@ -36,11 +38,13 @@ export const BCMSApiKeyCollection = createGraphqlCollection({
     BCMSUserPolicyCRUDDataInput,
     BCMSUserPolicyCRUDWithIdDataInput,
     BCMSFunctionNameDataInput,
+    BCMSApiKeyUpdateDataInput,
   ],
   resolvers: [
     BCMSApiKeyCreateResolver,
     BCMSApiKeyCountResolver,
     BCMSApiKeyGetAllResolver,
     BCMSApiKeyGetByIdResolver,
+    BCMSApiKeyUpdateResolver,
   ],
 });
