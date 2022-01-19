@@ -120,14 +120,12 @@ export const BCMSApiKeyController = createController<Setup>({
           JWTPermissionName.READ,
         ),
         async handler({ request, errorHandler }) {
-          const key = await BCMSRepo.apiKey.findById(request.params.id);
-          if (!key) {
-            throw errorHandler.occurred(
-              HTTPStatus.NOT_FOUNT,
-              bcmsResCode('ak001', { id: request.params.id }),
-            );
-          }
-          return { item: key };
+          return {
+            item: await BCMSApiKeyRequestHandler.getById({
+              id: request.params.id,
+              errorHandler,
+            }),
+          };
         },
       }),
 

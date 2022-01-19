@@ -18,6 +18,22 @@ export class BCMSApiKeyRequestHandler {
   static async getAll(): Promise<BCMSApiKey[]> {
     return await BCMSRepo.apiKey.findAll();
   }
+  static async getById({
+    id,
+    errorHandler,
+  }: {
+    id: string;
+    errorHandler: HTTPError;
+  }): Promise<BCMSApiKey> {
+    const key = await BCMSRepo.apiKey.findById(id);
+    if (!key) {
+      throw errorHandler.occurred(
+        HTTPStatus.NOT_FOUNT,
+        bcmsResCode('ak001', { id }),
+      );
+    }
+    return key;
+  }
   static async create({
     accessToken,
     errorHandler,
