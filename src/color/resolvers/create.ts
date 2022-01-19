@@ -29,7 +29,7 @@ export const BCMSColorCreateResolver = createGraphqlResolver<
   type: GraphqlResolverType.MUTATION,
   args: {
     ...BCMSGraphqlSecurityArgs,
-    DataTransfer: 'BCMSColorCreateData!',
+    data: 'BCMSColorCreateData!',
   },
   async resolve({ accessToken, errorHandler, data }) {
     const jwt = securityVerifyJWT({
