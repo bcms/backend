@@ -119,4 +119,33 @@ export class BCMSApiKeyRequestHandler {
     });
     return updatedKey;
   }
+  static async delete({
+    errorHandler,
+    id,
+    accessToken,
+  }: {
+    id: string;
+    accessToken: JWT<BCMSUserCustomPool>;
+    errorHandler: HTTPError;
+  }): Promise<void> {
+    const key = await BCMSRepo.apiKey.findById(id);
+    if (!key) {
+      throw errorHandler.occurred(
+        HTTPStatus.NOT_FOUNT,
+        bcmsResCode('ak001', { id }),
+      );
+    }
+    if (!(await BCMSRepo.apiKey.deleteById(id))) {
+      throw errorHandler.occurred(
+        HTTPStatus.INTERNAL_SERVER_ERROR,
+        bcmsResCode('ak006'),
+      );
+    }
+    await BCMSSocketManager.emit.apiKey({
+      apiKeyId: key._id,
+      type: BCMSSocketEventType.REMOVE,
+      userIds: 'all',
+      excludeUserId: [accessToken.payload.userId],
+    });
+  }
 }

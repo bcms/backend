@@ -10,20 +10,17 @@ import {
   JWTPreRequestHandlerResult,
   JWTRoleName,
 } from '@becomes/purple-cheetah-mod-jwt/types';
-import { HTTPStatus, ObjectUtility } from '@becomes/purple-cheetah/types';
+import type { ObjectUtility } from '@becomes/purple-cheetah/types';
 import {
   BCMSApiKeyAddData,
   BCMSApiKeyAddDataSchema,
   BCMSApiKeyUpdateData,
   BCMSApiKeyUpdateDataSchema,
-  BCMSSocketEventType,
   BCMSUserCustomPool,
   BCMSApiKey,
   BCMSFunctionManager,
   BCMSJWTAndBodyCheckerRouteProtectionResult,
 } from '../types';
-import { bcmsResCode } from '@bcms/response-code';
-import { BCMSSocketManager } from '@bcms/socket';
 import { BCMSRepo } from '@bcms/repo';
 import { useBcmsFunctionManger } from '@bcms/function';
 import { createJwtAndBodyCheckRouteProtection } from '@bcms/util';
@@ -180,24 +177,10 @@ export const BCMSApiKeyController = createController<Setup>({
           JWTPermissionName.DELETE,
         ),
         async handler({ request, errorHandler, accessToken }) {
-          const key = await BCMSRepo.apiKey.findById(request.params.id);
-          if (!key) {
-            throw errorHandler.occurred(
-              HTTPStatus.NOT_FOUNT,
-              bcmsResCode('ak001', { id: request.params.id }),
-            );
-          }
-          if (!(await BCMSRepo.apiKey.deleteById(request.params.id))) {
-            throw errorHandler.occurred(
-              HTTPStatus.INTERNAL_SERVER_ERROR,
-              bcmsResCode('ak006'),
-            );
-          }
-          await BCMSSocketManager.emit.apiKey({
-            apiKeyId: key._id,
-            type: BCMSSocketEventType.REMOVE,
-            userIds: 'all',
-            excludeUserId: [accessToken.payload.userId],
+          await BCMSApiKeyRequestHandler.delete({
+            id: request.params.id,
+            errorHandler,
+            accessToken,
           });
           return {
             message: 'Success.',

@@ -17,6 +17,7 @@ import {
 import {
   BCMSApiKeyCountResolver,
   BCMSApiKeyCreateResolver,
+  BCMSApiKeyDeleteResolver,
   BCMSApiKeyGetAllResolver,
   BCMSApiKeyGetByIdResolver,
   BCMSApiKeyUpdateResolver,
@@ -43,6 +44,7 @@ export const BCMSApiKeyCollection = createGraphqlCollection({
   resolvers: [
     BCMSApiKeyCreateResolver,
     BCMSApiKeyCountResolver,
+    BCMSApiKeyDeleteResolver,
     BCMSApiKeyGetAllResolver,
     BCMSApiKeyGetByIdResolver,
     BCMSApiKeyUpdateResolver,
