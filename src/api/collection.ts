@@ -13,7 +13,11 @@ import {
   BCMSUserPolicyCRUDObject,
   BCMSUserPolicyCRUDWithIdObject,
 } from './objects';
-import { BCMSApiKeyCountResolver, BCMSApiKeyCreateResolver } from './resolvers';
+import {
+  BCMSApiKeyCountResolver,
+  BCMSApiKeyCreateResolver,
+  BCMSApiKeyGetAllResolver,
+} from './resolvers';
 
 export const BCMSApiKeyCollection = createGraphqlCollection({
   name: 'apiKey',
@@ -32,5 +36,9 @@ export const BCMSApiKeyCollection = createGraphqlCollection({
     BCMSUserPolicyCRUDWithIdDataInput,
     BCMSFunctionNameDataInput,
   ],
-  resolvers: [BCMSApiKeyCreateResolver, BCMSApiKeyCountResolver],
+  resolvers: [
+    BCMSApiKeyCreateResolver,
+    BCMSApiKeyCountResolver,
+    BCMSApiKeyGetAllResolver,
+  ],
 });

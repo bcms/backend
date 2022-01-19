@@ -15,6 +15,9 @@ export class BCMSApiKeyRequestHandler {
   static async count(): Promise<number> {
     return await BCMSRepo.apiKey.count();
   }
+  static async getAll(): Promise<BCMSApiKey[]> {
+    return await BCMSRepo.apiKey.findAll();
+  }
   static async create({
     accessToken,
     errorHandler,
