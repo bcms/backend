@@ -57,7 +57,7 @@ export const BCMSLanguageController = createController({
         ),
         async handler() {
           return {
-            count: await BCMSRepo.language.count(),
+            count: await BCMSLanguageRequestHandler.count(),
           };
         },
       }),

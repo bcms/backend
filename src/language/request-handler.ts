@@ -15,6 +15,9 @@ export class BCMSLanguageRequestHandler {
   static async getAll(): Promise<BCMSLanguage[]> {
     return await BCMSRepo.language.findAll();
   }
+  static async count(): Promise<number> {
+    return await BCMSRepo.language.count();
+  }
   static async create({
     accessToken,
     errorHandler,
