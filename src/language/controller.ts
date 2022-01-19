@@ -40,7 +40,7 @@ export const BCMSLanguageController = createController({
         ),
         async handler() {
           return {
-            items: await BCMSRepo.language.findAll(),
+            items: await BCMSLanguageRequestHandler.getAll(),
           };
         },
       }),
