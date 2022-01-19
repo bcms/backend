@@ -12,6 +12,9 @@ import type { JWT } from '@becomes/purple-cheetah-mod-jwt/types';
 import { HTTPError, HTTPStatus } from '@becomes/purple-cheetah/types';
 
 export class BCMSApiKeyRequestHandler {
+  static async count(): Promise<number> {
+    return await BCMSRepo.apiKey.count();
+  }
   static async create({
     accessToken,
     errorHandler,

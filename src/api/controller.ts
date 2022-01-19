@@ -86,7 +86,9 @@ export const BCMSApiKeyController = createController<Setup>({
           JWTPermissionName.READ,
         ),
         async handler() {
-          return { count: await BCMSRepo.apiKey.count() };
+          return {
+            count: await BCMSApiKeyRequestHandler.count(),
+          };
         },
       }),
 
