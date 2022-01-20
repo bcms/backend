@@ -15,7 +15,7 @@ import {
   JWTSecurity as JWTSecurityPC,
   JWTConfigService,
 } from '@becomes/purple-cheetah';
-import { Router, Request } from 'express';
+import { Router, Request, Response, NextFunction } from 'express';
 import { Media, FSMedia, MediaType } from './models';
 import { MediaRequestHandler } from './request-handler';
 import { MediaAggregate } from './interfaces';
@@ -263,6 +263,10 @@ export class MediaController implements ControllerPrototype {
   async addFile(
     ...data: ControllerMethodData<JWT<UserCustomPool>>
   ): Promise<{ media: Media | FSMedia }> {
+    const error = HttpErrorFactory.instance('addFile', this.logger);
+    if (!data[3].payload.customPool.policy.media.post) {
+      throw error.occurred(HttpStatus.FORBIDDEN, ResponseCode.get('g011'));
+    }
     return {
       media: await MediaRequestHandler.addFile(
         data[3],
@@ -283,6 +287,10 @@ export class MediaController implements ControllerPrototype {
   async addDir(
     ...data: ControllerMethodData<JWT<UserCustomPool>>
   ): Promise<{ media: Media | FSMedia }> {
+    const error = HttpErrorFactory.instance('addDir', this.logger);
+    if (!data[3].payload.customPool.policy.media.post) {
+      throw error.occurred(HttpStatus.FORBIDDEN, ResponseCode.get('g011'));
+    }
     return {
       media: await MediaRequestHandler.addDir(
         data[3],
@@ -299,7 +307,16 @@ export class MediaController implements ControllerPrototype {
       PermissionName.WRITE,
     ),
   )
-  async update(request: Request): Promise<{ media: Media | FSMedia }> {
+  async update(
+    request: Request,
+    _: Response,
+    __: NextFunction,
+    jwt: JWT<UserCustomPool>,
+  ): Promise<{ media: Media | FSMedia }> {
+    const error = HttpErrorFactory.instance('update', this.logger);
+    if (!jwt.payload.customPool.policy.media.put) {
+      throw error.occurred(HttpStatus.FORBIDDEN, ResponseCode.get('g011'));
+    }
     return {
       media: await MediaRequestHandler.update(
         request.body,
@@ -315,7 +332,16 @@ export class MediaController implements ControllerPrototype {
       PermissionName.DELETE,
     ),
   )
-  async deleteById(request: Request): Promise<{ message: string }> {
+  async deleteById(
+    request: Request,
+    _: Response,
+    __: NextFunction,
+    jwt: JWT<UserCustomPool>,
+  ): Promise<{ message: string }> {
+    const error = HttpErrorFactory.instance('deleteById', this.logger);
+    if (!jwt.payload.customPool.policy.media.delete) {
+      throw error.occurred(HttpStatus.FORBIDDEN, ResponseCode.get('g011'));
+    }
     await MediaRequestHandler.deleteById(
       request.params.id,
       request.headers.sid as string,

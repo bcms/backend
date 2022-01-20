@@ -18,3 +18,5 @@ g009:
   msg: 'Failed to update props. %msg%'
 g010:
   msg: Missing parameter "%param%".
+g011:
+  msg: Missing permissions for this actions.
