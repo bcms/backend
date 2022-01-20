@@ -116,7 +116,8 @@ export function createBcmsApiKeySecurity(): Module {
         method = method.toLowerCase();
         if (
           path.startsWith('/api/key/access/list') ||
-          path.startsWith('/api/type-converter')
+          path.startsWith('/api/type-converter') ||
+          path.startsWith('/api/changes/info')
         ) {
           return true;
         } else if (path.startsWith('/api/media') && method === 'get') {

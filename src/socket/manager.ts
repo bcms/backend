@@ -9,6 +9,7 @@ import {
   BCMSSocketGroupEvent,
   BCMSSocketLanguageEvent,
   BCMSSocketManager as BCMSSocketManagerType,
+  BCMSSocketManagerScope,
   BCMSSocketMediaEvent,
   BCMSSocketStatusEvent,
   BCMSSocketTagEvent,
@@ -20,19 +21,36 @@ import {
 
 let soc: Socket;
 
-async function emit<Data>(
-  socket: Socket,
-  name: BCMSSocketEventName,
-  data: Data,
-  userIds: string[] | 'all',
-  excludeUserId?: string[],
-): Promise<void> {
+async function emit<Data>({
+  socket,
+  name,
+  data,
+  userIds,
+  excludeUserId,
+  scopes,
+}: {
+  socket: Socket;
+  name: BCMSSocketEventName;
+  data: Data;
+  userIds: string[] | 'all';
+  excludeUserId?: string[];
+  scopes?: BCMSSocketManagerScope[];
+}): Promise<void> {
   if (userIds === 'all') {
-    socket.emitToScope<Data>({
-      eventName: name,
-      eventData: data,
-      scope: 'global',
-    });
+    let toScopes: BCMSSocketManagerScope[];
+    if (scopes) {
+      toScopes = scopes;
+    } else {
+      toScopes = ['global', 'client'];
+    }
+    for (let i = 0; i < toScopes.length; i++) {
+      const scope = toScopes[i];
+      socket.emitToScope<Data>({
+        eventName: name,
+        eventData: data,
+        scope: scope,
+      });
+    }
   } else {
     for (let i = 0; i < userIds.length; i++) {
       const userId = userIds[i];
@@ -51,137 +69,149 @@ async function emit<Data>(
 export const BCMSSocketManager: BCMSSocketManagerType = {
   emit: {
     async apiKey(data) {
-      await emit<BCMSSocketApiKeyEvent>(
-        soc,
-        BCMSSocketEventName.API_KEY,
-        {
+      await emit<BCMSSocketApiKeyEvent>({
+        socket: soc,
+        name: BCMSSocketEventName.API_KEY,
+        data: {
           a: data.apiKeyId,
           t: data.type,
         },
-        data.userIds,
-      );
+        userIds: data.userIds,
+        scopes: data.scopes,
+      });
     },
     async entry(data) {
-      await emit<BCMSSocketEntryEvent>(
-        soc,
-        BCMSSocketEventName.ENTRY,
-        {
+      await emit<BCMSSocketEntryEvent>({
+        socket: soc,
+        name: BCMSSocketEventName.ENTRY,
+        data: {
           e: data.entryId,
           tm: data.templateId,
           t: data.type,
         },
-        data.userIds,
-      );
+        userIds: data.userIds,
+        scopes: data.scopes,
+      });
     },
     async group(data) {
-      await emit<BCMSSocketGroupEvent>(
-        soc,
-        BCMSSocketEventName.GROUP,
-        {
+      await emit<BCMSSocketGroupEvent>({
+        socket: soc,
+        name: BCMSSocketEventName.GROUP,
+        data: {
           g: data.groupId,
           t: data.type,
         },
-        data.userIds,
-      );
+        userIds: data.userIds,
+        scopes: data.scopes,
+      });
     },
     async language(data) {
-      await emit<BCMSSocketLanguageEvent>(
-        soc,
-        BCMSSocketEventName.LANGUAGE,
-        {
+      await emit<BCMSSocketLanguageEvent>({
+        socket: soc,
+        name: BCMSSocketEventName.LANGUAGE,
+        data: {
           l: data.languageId,
           t: data.type,
         },
-        data.userIds,
-      );
+        userIds: data.userIds,
+        scopes: data.scopes,
+      });
     },
     async media(data) {
-      await emit<BCMSSocketMediaEvent>(
-        soc,
-        BCMSSocketEventName.MEDIA,
-        {
+      await emit<BCMSSocketMediaEvent>({
+        socket: soc,
+        name: BCMSSocketEventName.MEDIA,
+        data: {
           m: data.mediaId,
           t: data.type,
         },
-        data.userIds,
-      );
+        userIds: data.userIds,
+        scopes: data.scopes,
+      });
     },
     async status(data) {
-      await emit<BCMSSocketStatusEvent>(
-        soc,
-        BCMSSocketEventName.STATUS,
-        {
+      await emit<BCMSSocketStatusEvent>({
+        socket: soc,
+        name: BCMSSocketEventName.STATUS,
+        data: {
           s: data.statusId,
           t: data.type,
         },
-        data.userIds,
-      );
+        userIds: data.userIds,
+        scopes: data.scopes,
+      });
     },
     async template(data) {
-      await emit<BCMSSocketTemplateEvent>(
-        soc,
-        BCMSSocketEventName.TEMPLATE,
-        {
+      await emit<BCMSSocketTemplateEvent>({
+        socket: soc,
+        name: BCMSSocketEventName.TEMPLATE,
+        data: {
           tm: data.templateId,
           t: data.type,
         },
-        data.userIds,
-      );
+        userIds: data.userIds,
+        scopes: data.scopes,
+      });
     },
     async templateOrganizer(data) {
-      await emit<BCMSSocketTemplateOrganizerEvent>(
-        soc,
-        BCMSSocketEventName.TEMPLATE_ORGANIZER,
-        {
+      await emit<BCMSSocketTemplateOrganizerEvent>({
+        socket: soc,
+        name: BCMSSocketEventName.TEMPLATE_ORGANIZER,
+        data: {
           to: data.templateOrganizerId,
           t: data.type,
         },
-        data.userIds,
-      );
+        userIds: data.userIds,
+        scopes: data.scopes,
+      });
     },
     async user(data) {
-      await emit<BCMSSocketUserEvent>(
-        soc,
-        BCMSSocketEventName.USER,
-        {
+      await emit<BCMSSocketUserEvent>({
+        socket: soc,
+        name: BCMSSocketEventName.USER,
+        data: {
           u: data.userId,
           t: data.type,
         },
-        data.userIds,
-      );
+        userIds: data.userIds,
+        scopes: data.scopes,
+      });
     },
     async widget(data) {
-      await emit<BCMSSocketWidgetEvent>(
-        soc,
-        BCMSSocketEventName.WIDGET,
-        {
+      await emit<BCMSSocketWidgetEvent>({
+        socket: soc,
+        name: BCMSSocketEventName.WIDGET,
+        data: {
           w: data.widgetId,
           t: data.type,
         },
-        data.userIds,
-      );
+        userIds: data.userIds,
+        scopes: data.scopes,
+      });
     },
     async color(data) {
-      await emit<BCMSSocketColorEvent>(
-        soc,
-        BCMSSocketEventName.COLOR,
-        {
+      await emit<BCMSSocketColorEvent>({
+        socket: soc,
+        name: BCMSSocketEventName.COLOR,
+        data: {
           c: data.colorId,
           t: data.type,
         },
-        data.userIds,
-      );
+        userIds: data.userIds,
+        scopes: data.scopes,
+      });
     },
     async tag(data) {
-      await emit<BCMSSocketTagEvent>(
-        soc,
-        BCMSSocketEventName.TAG,
-        {
+      await emit<BCMSSocketTagEvent>({
+        socket: soc,
+        name: BCMSSocketEventName.TAG,
+        data: {
           tg: data.tagId,
           t: data.type,
         },
-        data.userIds,
-      );
+        userIds: data.userIds,
+        scopes: data.scopes,
+      });
     },
   },
 };

@@ -150,7 +150,7 @@ async function initialize() {
         return {
           id,
           createdAt: Date.now(),
-          scope: 'global',
+          scope: socket.handshake.query.at ? 'global' : 'client',
           socket,
         };
       },
