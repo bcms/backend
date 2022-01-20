@@ -26,6 +26,25 @@ export class BCMSWidgetRequestHandler {
   static async count(): Promise<number> {
     return await BCMSRepo.widget.count();
   }
+  static async getById({
+    id,
+    errorHandler,
+  }: {
+    id: string;
+    errorHandler: HTTPError;
+  }): Promise<BCMSWidget> {
+    const widget =
+      id.length === 24
+        ? await BCMSRepo.widget.findById(id)
+        : await BCMSRepo.widget.methods.findByCid(id);
+    if (!widget) {
+      throw errorHandler.occurred(
+        HTTPStatus.NOT_FOUNT,
+        bcmsResCode('wid001', { id }),
+      );
+    }
+    return widget;
+  }
   static async create({
     accessToken,
     errorHandler,

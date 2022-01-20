@@ -138,21 +138,11 @@ export const BCMSWidgetController = createController<Setup>({
           JWTPermissionName.READ,
         ),
         async handler({ request, errorHandler }) {
-          const id = request.params.id;
-          let widget: BCMSWidget | null = null;
-          if (id.length === 24) {
-            widget = await BCMSRepo.widget.findById(id);
-          } else {
-            widget = await BCMSRepo.widget.methods.findByCid(id);
-          }
-          if (!widget) {
-            throw errorHandler.occurred(
-              HTTPStatus.NOT_FOUNT,
-              bcmsResCode('wid001', { id }),
-            );
-          }
           return {
-            item: widget,
+            item: await BCMSWidgetRequestHandler.getById({
+              id: request.params.id,
+              errorHandler,
+            }),
           };
         },
       }),
