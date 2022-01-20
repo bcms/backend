@@ -72,4 +72,35 @@ export class BCMSLanguageRequestHandler {
     await BCMSRepo.change.methods.updateAndIncByName('language');
     return addedLanguage;
   }
+  static async delete({
+    errorHandler,
+    id,
+    accessToken,
+  }: {
+    id: string;
+    accessToken: JWT<BCMSUserCustomPool>;
+    errorHandler: HTTPError;
+  }): Promise<void> {
+    const lang = await BCMSRepo.language.findById(id);
+    if (!lang) {
+      throw errorHandler.occurred(
+        HTTPStatus.NOT_FOUNT,
+        bcmsResCode('lng001', { id }),
+      );
+    }
+    const deleteResult = await BCMSRepo.language.deleteById(id);
+    if (!deleteResult) {
+      throw errorHandler.occurred(
+        HTTPStatus.INTERNAL_SERVER_ERROR,
+        bcmsResCode('lng006'),
+      );
+    }
+    await BCMSSocketManager.emit.language({
+      languageId: lang._id,
+      type: BCMSSocketEventType.REMOVE,
+      userIds: 'all',
+      excludeUserId: [accessToken.payload.userId],
+    });
+    await BCMSRepo.change.methods.updateAndIncByName('language');
+  }
 }
