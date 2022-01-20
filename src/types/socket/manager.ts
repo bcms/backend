@@ -1,5 +1,7 @@
 import type { BCMSSocketEventType } from './models';
 
+export type BCMSSocketManagerScope = 'global' | 'client';
+
 export interface BCMSSocketManager {
   emit: {
     apiKey(data: {
@@ -10,6 +12,7 @@ export interface BCMSSocketManager {
        */
       userIds: string[] | 'all';
       excludeUserId?: string[];
+      scopes?: BCMSSocketManagerScope[];
     }): Promise<void>;
     entry(data: {
       type: BCMSSocketEventType;
@@ -20,6 +23,7 @@ export interface BCMSSocketManager {
        */
       userIds: string[] | 'all';
       excludeUserId?: string[];
+      scopes?: BCMSSocketManagerScope[];
     }): Promise<void>;
     group(data: {
       type: BCMSSocketEventType;
@@ -29,6 +33,7 @@ export interface BCMSSocketManager {
        */
       userIds: string[] | 'all';
       excludeUserId?: string[];
+      scopes?: BCMSSocketManagerScope[];
     }): Promise<void>;
     language(data: {
       type: BCMSSocketEventType;
@@ -38,6 +43,7 @@ export interface BCMSSocketManager {
        */
       userIds: string[] | 'all';
       excludeUserId?: string[];
+      scopes?: BCMSSocketManagerScope[];
     }): Promise<void>;
     media(data: {
       type: BCMSSocketEventType;
@@ -47,6 +53,7 @@ export interface BCMSSocketManager {
        */
       userIds: string[] | 'all';
       excludeUserId?: string[];
+      scopes?: BCMSSocketManagerScope[];
     }): Promise<void>;
     status(data: {
       type: BCMSSocketEventType;
@@ -56,6 +63,7 @@ export interface BCMSSocketManager {
        */
       userIds: string[] | 'all';
       excludeUserId?: string[];
+      scopes?: BCMSSocketManagerScope[];
     }): Promise<void>;
     template(data: {
       type: BCMSSocketEventType;
@@ -65,6 +73,7 @@ export interface BCMSSocketManager {
        */
       userIds: string[] | 'all';
       excludeUserId?: string[];
+      scopes?: BCMSSocketManagerScope[];
     }): Promise<void>;
     templateOrganizer(data: {
       type: BCMSSocketEventType;
@@ -74,6 +83,7 @@ export interface BCMSSocketManager {
        */
       userIds: string[] | 'all';
       excludeUserId?: string[];
+      scopes?: BCMSSocketManagerScope[];
     }): Promise<void>;
     user(data: {
       type: BCMSSocketEventType;
@@ -83,6 +93,7 @@ export interface BCMSSocketManager {
        */
       userIds: string[] | 'all';
       excludeUserId?: string[];
+      scopes?: BCMSSocketManagerScope[];
     }): Promise<void>;
     widget(data: {
       type: BCMSSocketEventType;
@@ -92,6 +103,7 @@ export interface BCMSSocketManager {
        */
       userIds: string[] | 'all';
       excludeUserId?: string[];
+      scopes?: BCMSSocketManagerScope[];
     }): Promise<void>;
     color(data: {
       type: BCMSSocketEventType;
@@ -101,6 +113,7 @@ export interface BCMSSocketManager {
        */
       userIds: string[] | 'all';
       excludeUserId?: string[];
+      scopes?: BCMSSocketManagerScope[];
     }): Promise<void>;
     tag(data: {
       type: BCMSSocketEventType;
@@ -110,6 +123,7 @@ export interface BCMSSocketManager {
        */
       userIds: string[] | 'all';
       excludeUserId?: string[];
+      scopes?: BCMSSocketManagerScope[];
     }): Promise<void>;
   };
 }
