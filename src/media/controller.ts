@@ -264,7 +264,10 @@ export class MediaController implements ControllerPrototype {
     ...data: ControllerMethodData<JWT<UserCustomPool>>
   ): Promise<{ media: Media | FSMedia }> {
     const error = HttpErrorFactory.instance('addFile', this.logger);
-    if (!data[3].payload.customPool.policy.media.post) {
+    if (
+      data[3].payload.roles[0].name !== RoleName.ADMIN &&
+      !data[3].payload.customPool.policy.media.post
+    ) {
       throw error.occurred(HttpStatus.FORBIDDEN, ResponseCode.get('g011'));
     }
     return {
@@ -288,7 +291,10 @@ export class MediaController implements ControllerPrototype {
     ...data: ControllerMethodData<JWT<UserCustomPool>>
   ): Promise<{ media: Media | FSMedia }> {
     const error = HttpErrorFactory.instance('addDir', this.logger);
-    if (!data[3].payload.customPool.policy.media.post) {
+    if (
+      data[3].payload.roles[0].name !== RoleName.ADMIN &&
+      !data[3].payload.customPool.policy.media.post
+    ) {
       throw error.occurred(HttpStatus.FORBIDDEN, ResponseCode.get('g011'));
     }
     return {
@@ -314,7 +320,10 @@ export class MediaController implements ControllerPrototype {
     jwt: JWT<UserCustomPool>,
   ): Promise<{ media: Media | FSMedia }> {
     const error = HttpErrorFactory.instance('update', this.logger);
-    if (!jwt.payload.customPool.policy.media.put) {
+    if (
+      jwt.payload.roles[0].name !== RoleName.ADMIN &&
+      !jwt.payload.customPool.policy.media.put
+    ) {
       throw error.occurred(HttpStatus.FORBIDDEN, ResponseCode.get('g011'));
     }
     return {
@@ -339,7 +348,10 @@ export class MediaController implements ControllerPrototype {
     jwt: JWT<UserCustomPool>,
   ): Promise<{ message: string }> {
     const error = HttpErrorFactory.instance('deleteById', this.logger);
-    if (!jwt.payload.customPool.policy.media.delete) {
+    if (
+      jwt.payload.roles[0].name !== RoleName.ADMIN &&
+      !jwt.payload.customPool.policy.media.delete
+    ) {
       throw error.occurred(HttpStatus.FORBIDDEN, ResponseCode.get('g011'));
     }
     await MediaRequestHandler.deleteById(
