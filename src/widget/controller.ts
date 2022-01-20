@@ -23,9 +23,9 @@ import {
 } from '../types';
 import { BCMSRepo } from '@bcms/repo';
 import { bcmsResCode } from '@bcms/response-code';
-import { BCMSFactory } from '@bcms/factory';
 import { BCMSSocketManager } from '@bcms/socket';
 import { BCMSPropHandler } from '@bcms/prop';
+import { BCMSWidgetRequestHandler } from './request-handler';
 
 interface Setup {
   stringUtil: StringUtility;
@@ -174,53 +174,12 @@ export const BCMSWidgetController = createController<Setup>({
           bodySchema: BCMSWidgetCreateDataSchema,
         }),
         async handler({ body, errorHandler, accessToken }) {
-          let idc = await BCMSRepo.idc.methods.findAndIncByForId('widgets');
-          if (!idc) {
-            const widgetIdc = BCMSFactory.idc.create({
-              count: 2,
-              forId: 'widgets',
-              name: 'Widgets',
-            });
-            const addIdcResult = await BCMSRepo.idc.add(widgetIdc);
-            if (!addIdcResult) {
-              throw errorHandler.occurred(
-                HTTPStatus.INTERNAL_SERVER_ERROR,
-                'Failed to add IDC to the database.',
-              );
-            }
-            idc = 1;
-          }
-          const widget = BCMSFactory.widget.create({
-            cid: idc.toString(16),
-            desc: body.desc,
-            label: body.label,
-            name: stringUtil.toSlugUnderscore(body.label),
-            previewImage: body.previewImage,
-            previewScript: body.previewScript,
-            previewStyle: body.previewStyle,
-          });
-          if (await BCMSRepo.widget.methods.findByName(widget.name)) {
-            throw errorHandler.occurred(
-              HTTPStatus.FORBIDDEN,
-              bcmsResCode('wid002', { name: widget.name }),
-            );
-          }
-          const addedWidget = await BCMSRepo.widget.add(widget);
-          if (!addedWidget) {
-            throw errorHandler.occurred(
-              HTTPStatus.INTERNAL_SERVER_ERROR,
-              bcmsResCode('wid003'),
-            );
-          }
-          await BCMSSocketManager.emit.widget({
-            widgetId: addedWidget._id,
-            type: BCMSSocketEventType.UPDATE,
-            userIds: 'all',
-            excludeUserId: [accessToken.payload.userId],
-          });
-          await BCMSRepo.change.methods.updateAndIncByName('widget');
           return {
-            item: widget,
+            item: await BCMSWidgetRequestHandler.create({
+              body,
+              errorHandler,
+              accessToken,
+            }),
           };
         },
       }),
