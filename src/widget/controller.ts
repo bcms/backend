@@ -122,7 +122,7 @@ export const BCMSWidgetController = createController<Setup>({
         ),
         async handler() {
           return {
-            count: await BCMSRepo.widget.count(),
+            count: await BCMSWidgetRequestHandler.count(),
           };
         },
       }),

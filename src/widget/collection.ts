@@ -2,6 +2,7 @@ import { createGraphqlCollection } from '@becomes/purple-cheetah-mod-graphql';
 import { BCMSWidgetCreateDataInput } from './inputs';
 import { BCMSWidgetObject } from './objects';
 import {
+  BCMSWidgetCountResolver,
   BCMSWidgetCreateResolver,
   BCMSWidgetGetAllResolver,
   BCMSWidgetManyResolver,
@@ -12,6 +13,7 @@ export const BCMSWidgetCollection = createGraphqlCollection({
   inputs: [BCMSWidgetCreateDataInput],
   objects: [BCMSWidgetObject],
   resolvers: [
+    BCMSWidgetCountResolver,
     BCMSWidgetCreateResolver,
     BCMSWidgetGetAllResolver,
     BCMSWidgetManyResolver,

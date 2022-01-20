@@ -23,6 +23,9 @@ export class BCMSWidgetRequestHandler {
       return await BCMSRepo.widget.methods.findAllByCid(ids);
     }
   }
+  static async count(): Promise<number> {
+    return await BCMSRepo.widget.count();
+  }
   static async create({
     accessToken,
     errorHandler,
