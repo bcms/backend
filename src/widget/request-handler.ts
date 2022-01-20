@@ -12,7 +12,7 @@ import {
 } from '@bcms/types';
 import { StringUtility } from '@becomes/purple-cheetah';
 import type { JWT } from '@becomes/purple-cheetah-mod-jwt/types';
-import { HTTPError, HTTPStatus } from '@becomes/purple-cheetah/types';
+import { HTTPError, HTTPStatus, Logger } from '@becomes/purple-cheetah/types';
 
 export class BCMSWidgetRequestHandler {
   static async getAll(): Promise<BCMSWidget[]> {
@@ -223,5 +223,46 @@ export class BCMSWidgetRequestHandler {
     });
     await BCMSRepo.change.methods.updateAndIncByName('widget');
     return updatedWidget;
+  }
+  static async delete({
+    errorHandler,
+    id,
+    logger,
+    name,
+    accessToken,
+  }: {
+    id: string;
+    accessToken: JWT<BCMSUserCustomPool>;
+    errorHandler: HTTPError;
+    logger: Logger;
+    name: string;
+  }): Promise<void> {
+    const widget = await BCMSRepo.widget.findById(id);
+    if (!widget) {
+      throw errorHandler.occurred(
+        HTTPStatus.NOT_FOUNT,
+        bcmsResCode('wid001', { id }),
+      );
+    }
+    const deleteResult = await BCMSRepo.widget.deleteById(id);
+    if (!deleteResult) {
+      throw errorHandler.occurred(
+        HTTPStatus.INTERNAL_SERVER_ERROR,
+        bcmsResCode('wid006'),
+      );
+    }
+    const errors = await BCMSPropHandler.removeWidget({
+      widgetId: widget._id,
+    });
+    if (errors) {
+      logger.error(name, errors);
+    }
+    await BCMSSocketManager.emit.widget({
+      widgetId: widget._id,
+      type: BCMSSocketEventType.REMOVE,
+      userIds: 'all',
+      excludeUserId: [accessToken.payload.userId],
+    });
+    await BCMSRepo.change.methods.updateAndIncByName('widget');
   }
 }

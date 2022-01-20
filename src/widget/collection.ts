@@ -4,6 +4,7 @@ import { BCMSWidgetObject } from './objects';
 import {
   BCMSWidgetCountResolver,
   BCMSWidgetCreateResolver,
+  BCMSWidgetDeleteResolver,
   BCMSWidgetGetAllResolver,
   BCMSWidgetGetByIdResolver,
   BCMSWidgetManyResolver,
@@ -17,6 +18,7 @@ export const BCMSWidgetCollection = createGraphqlCollection({
   resolvers: [
     BCMSWidgetCountResolver,
     BCMSWidgetCreateResolver,
+    BCMSWidgetDeleteResolver,
     BCMSWidgetGetAllResolver,
     BCMSWidgetManyResolver,
     BCMSWidgetGetByIdResolver,

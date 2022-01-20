@@ -13,7 +13,6 @@ import { HTTPStatus } from '@becomes/purple-cheetah/types';
 import { createJwtAndBodyCheckRouteProtection } from '../util';
 import {
   BCMSJWTAndBodyCheckerRouteProtectionResult,
-  BCMSSocketEventType,
   BCMSUserCustomPool,
   BCMSWidget,
   BCMSWidgetCreateData,
@@ -23,8 +22,6 @@ import {
 } from '../types';
 import { BCMSRepo } from '@bcms/repo';
 import { bcmsResCode } from '@bcms/response-code';
-import { BCMSSocketManager } from '@bcms/socket';
-import { BCMSPropHandler } from '@bcms/prop';
 import { BCMSWidgetRequestHandler } from './request-handler';
 
 export const BCMSWidgetController = createController({
@@ -196,34 +193,13 @@ export const BCMSWidgetController = createController({
           JWTPermissionName.DELETE,
         ),
         async handler({ request, errorHandler, accessToken, logger, name }) {
-          const id = request.params.id;
-          const widget = await BCMSRepo.widget.findById(id);
-          if (!widget) {
-            throw errorHandler.occurred(
-              HTTPStatus.NOT_FOUNT,
-              bcmsResCode('wid001', { id }),
-            );
-          }
-          const deleteResult = await BCMSRepo.widget.deleteById(id);
-          if (!deleteResult) {
-            throw errorHandler.occurred(
-              HTTPStatus.INTERNAL_SERVER_ERROR,
-              bcmsResCode('wid006'),
-            );
-          }
-          const errors = await BCMSPropHandler.removeWidget({
-            widgetId: widget._id,
+          await BCMSWidgetRequestHandler.delete({
+            id: request.params.id,
+            errorHandler,
+            accessToken,
+            logger,
+            name,
           });
-          if (errors) {
-            logger.error(name, errors);
-          }
-          await BCMSSocketManager.emit.widget({
-            widgetId: widget._id,
-            type: BCMSSocketEventType.REMOVE,
-            userIds: 'all',
-            excludeUserId: [accessToken.payload.userId],
-          });
-          await BCMSRepo.change.methods.updateAndIncByName('widget');
           return {
             message: 'Success.',
           };
