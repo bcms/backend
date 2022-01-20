@@ -1,6 +1,6 @@
 version: '3.9'
 services:
-  backend:
+  cms_backend_v2:
     build: ''
     ports:
       - '1280:1280'
