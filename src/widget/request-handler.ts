@@ -13,6 +13,9 @@ import type { JWT } from '@becomes/purple-cheetah-mod-jwt/types';
 import { HTTPError, HTTPStatus } from '@becomes/purple-cheetah/types';
 
 export class BCMSWidgetRequestHandler {
+  static async getAll(): Promise<BCMSWidget[]> {
+    return await BCMSRepo.widget.findAll();
+  }
   static async create({
     accessToken,
     errorHandler,

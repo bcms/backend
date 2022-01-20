@@ -87,7 +87,7 @@ export const BCMSWidgetController = createController<Setup>({
         ),
         async handler() {
           return {
-            items: await BCMSRepo.widget.findAll(),
+            items: await BCMSWidgetRequestHandler.getAll(),
           };
         },
       }),
