@@ -9,7 +9,7 @@ import {
   JWTPreRequestHandlerResult,
   JWTRoleName,
 } from '@becomes/purple-cheetah-mod-jwt/types';
-import { HTTPStatus, StringUtility } from '@becomes/purple-cheetah/types';
+import { HTTPStatus } from '@becomes/purple-cheetah/types';
 import { createJwtAndBodyCheckRouteProtection } from '../util';
 import {
   BCMSJWTAndBodyCheckerRouteProtectionResult,
@@ -27,11 +27,7 @@ import { BCMSSocketManager } from '@bcms/socket';
 import { BCMSPropHandler } from '@bcms/prop';
 import { BCMSWidgetRequestHandler } from './request-handler';
 
-interface Setup {
-  stringUtil: StringUtility;
-}
-
-export const BCMSWidgetController = createController<Setup>({
+export const BCMSWidgetController = createController({
   name: 'Widget controller',
   path: '/api/widget',
   setup() {
@@ -39,7 +35,7 @@ export const BCMSWidgetController = createController<Setup>({
       stringUtil: useStringUtility(),
     };
   },
-  methods({ stringUtil }) {
+  methods() {
     return {
       whereIsItUsed: createControllerMethod({
         path: '/:id/where-is-it-used',
@@ -179,121 +175,12 @@ export const BCMSWidgetController = createController<Setup>({
           bodySchema: BCMSWidgetUpdateDataSchema,
         }),
         async handler({ body, errorHandler, accessToken }) {
-          const id = body._id;
-          const widget = await BCMSRepo.widget.findById(id);
-          if (!widget) {
-            throw errorHandler.occurred(
-              HTTPStatus.NOT_FOUNT,
-              bcmsResCode('wid001', { id }),
-            );
-          }
-          let changeDetected = false;
-          if (typeof body.label === 'string' && body.label !== widget.label) {
-            const name = stringUtil.toSlugUnderscore(body.label);
-            if (widget.name !== name) {
-              if (await BCMSRepo.widget.methods.findByName(name)) {
-                throw errorHandler.occurred(
-                  HTTPStatus.FORBIDDEN,
-                  bcmsResCode('wid002', { name: widget.name }),
-                );
-              }
-            }
-            changeDetected = true;
-            widget.label = body.label;
-            widget.name = name;
-          }
-          if (typeof body.desc !== 'undefined' && body.desc !== widget.desc) {
-            changeDetected = true;
-            widget.desc = body.desc;
-          }
-          if (
-            typeof body.previewImage === 'string' &&
-            body.previewImage !== widget.previewImage
-          ) {
-            changeDetected = true;
-            widget.previewImage = body.previewImage;
-          }
-          if (
-            typeof body.previewScript === 'string' &&
-            body.previewScript !== widget.previewScript
-          ) {
-            changeDetected = true;
-            widget.previewScript = body.previewScript;
-          }
-          if (
-            typeof body.previewStyle === 'string' &&
-            body.previewStyle !== widget.previewStyle
-          ) {
-            changeDetected = true;
-            widget.previewStyle = body.previewStyle;
-          }
-          if (
-            typeof body.propChanges !== 'undefined' &&
-            body.propChanges.length > 0
-          ) {
-            changeDetected = true;
-            const changes = await BCMSPropHandler.applyPropChanges(
-              widget.props,
-              body.propChanges,
-              'widget.props',
-            );
-            if (changes instanceof Error) {
-              throw errorHandler.occurred(
-                HTTPStatus.BAD_REQUEST,
-                bcmsResCode('g009', {
-                  msg: changes.message,
-                }),
-              );
-            }
-            widget.props = changes;
-          }
-          if (!changeDetected) {
-            throw errorHandler.occurred(
-              HTTPStatus.FORBIDDEN,
-              bcmsResCode('g003'),
-            );
-          }
-          const hasInfiniteLoop = await BCMSPropHandler.testInfiniteLoop(
-            widget.props,
-          );
-          if (hasInfiniteLoop instanceof Error) {
-            throw errorHandler.occurred(
-              HTTPStatus.BAD_REQUEST,
-              bcmsResCode('g008', {
-                msg: hasInfiniteLoop.message,
-              }),
-            );
-          }
-          const checkProps = await BCMSPropHandler.propsChecker(
-            widget.props,
-            widget.props,
-            'widget.props',
-            true,
-          );
-          if (checkProps instanceof Error) {
-            throw errorHandler.occurred(
-              HTTPStatus.BAD_REQUEST,
-              bcmsResCode('g007', {
-                msg: checkProps.message,
-              }),
-            );
-          }
-          const updatedWidget = await BCMSRepo.widget.update(widget);
-          if (!updatedWidget) {
-            throw errorHandler.occurred(
-              HTTPStatus.INTERNAL_SERVER_ERROR,
-              bcmsResCode('wid005'),
-            );
-          }
-          await BCMSSocketManager.emit.widget({
-            widgetId: updatedWidget._id,
-            type: BCMSSocketEventType.UPDATE,
-            userIds: 'all',
-            excludeUserId: [accessToken.payload.userId],
-          });
-          await BCMSRepo.change.methods.updateAndIncByName('widget');
           return {
-            item: widget,
+            item: await BCMSWidgetRequestHandler.update({
+              body,
+              errorHandler,
+              accessToken,
+            }),
           };
         },
       }),
