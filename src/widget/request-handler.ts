@@ -16,6 +16,13 @@ export class BCMSWidgetRequestHandler {
   static async getAll(): Promise<BCMSWidget[]> {
     return await BCMSRepo.widget.findAll();
   }
+  static async getMany(ids: string[]): Promise<BCMSWidget[]> {
+    if (ids[0] && ids[0].length === 24) {
+      return await BCMSRepo.widget.findAllById(ids);
+    } else {
+      return await BCMSRepo.widget.methods.findAllByCid(ids);
+    }
+  }
   static async create({
     accessToken,
     errorHandler,
