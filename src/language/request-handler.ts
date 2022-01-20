@@ -18,6 +18,22 @@ export class BCMSLanguageRequestHandler {
   static async count(): Promise<number> {
     return await BCMSRepo.language.count();
   }
+  static async getById({
+    id,
+    errorHandler,
+  }: {
+    id: string;
+    errorHandler: HTTPError;
+  }): Promise<BCMSLanguage> {
+    const lang = await BCMSRepo.language.findById(id);
+    if (!lang) {
+      throw errorHandler.occurred(
+        HTTPStatus.NOT_FOUNT,
+        bcmsResCode('lng001', { id }),
+      );
+    }
+    return lang;
+  }
   static async create({
     accessToken,
     errorHandler,

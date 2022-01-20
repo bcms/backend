@@ -73,15 +73,11 @@ export const BCMSLanguageController = createController({
           JWTPermissionName.READ,
         ),
         async handler({ request, errorHandler }) {
-          const lang = await BCMSRepo.language.findById(request.params.id);
-          if (!lang) {
-            throw errorHandler.occurred(
-              HTTPStatus.NOT_FOUNT,
-              bcmsResCode('lng001', { id: request.params.id }),
-            );
-          }
           return {
-            item: lang,
+            item: await BCMSLanguageRequestHandler.getById({
+              id: request.params.id,
+              errorHandler,
+            }),
           };
         },
       }),
