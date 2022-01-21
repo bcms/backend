@@ -104,6 +104,7 @@ import { loadBcmsResponseCodes } from './response-code';
 import { createGraphql } from '@becomes/purple-cheetah-mod-graphql';
 import { BCMSTemplateOrganizerCollection } from './template-organizer/collection';
 import { BCMSMediaCollection } from './media/collection';
+import { BCMSWidgetCollection } from './widget/collection';
 
 const backend: BCMSBackend = {
   app: undefined as never,
@@ -329,6 +330,7 @@ async function initialize() {
         BCMSTagCollection,
         BCMSTemplateCollection,
         BCMSTemplateOrganizerCollection,
+        BCMSWidgetCollection,
       ],
     }),
   );

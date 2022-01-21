@@ -8,19 +8,14 @@ import {
   JWTPreRequestHandlerResult,
   JWTRoleName,
 } from '@becomes/purple-cheetah-mod-jwt/types';
-import { HTTPStatus } from '@becomes/purple-cheetah/types';
 import { createJwtAndBodyCheckRouteProtection } from '../util';
 import {
   BCMSJWTAndBodyCheckerRouteProtectionResult,
   BCMSLanguage,
   BCMSLanguageAddData,
   BCMSLanguageAddDataSchema,
-  BCMSSocketEventType,
   BCMSUserCustomPool,
 } from '../types';
-import { BCMSRepo } from '@bcms/repo';
-import { bcmsResCode } from '@bcms/response-code';
-import { BCMSSocketManager } from '@bcms/socket';
 import { BCMSLanguageRequestHandler } from './request-handler';
 
 export const BCMSLanguageController = createController({
@@ -73,15 +68,11 @@ export const BCMSLanguageController = createController({
           JWTPermissionName.READ,
         ),
         async handler({ request, errorHandler }) {
-          const lang = await BCMSRepo.language.findById(request.params.id);
-          if (!lang) {
-            throw errorHandler.occurred(
-              HTTPStatus.NOT_FOUNT,
-              bcmsResCode('lng001', { id: request.params.id }),
-            );
-          }
           return {
-            item: lang,
+            item: await BCMSLanguageRequestHandler.getById({
+              id: request.params.id,
+              errorHandler,
+            }),
           };
         },
       }),
@@ -118,29 +109,11 @@ export const BCMSLanguageController = createController({
           JWTPermissionName.DELETE,
         ),
         async handler({ request, errorHandler, accessToken }) {
-          const lang = await BCMSRepo.language.findById(request.params.id);
-          if (!lang) {
-            throw errorHandler.occurred(
-              HTTPStatus.NOT_FOUNT,
-              bcmsResCode('lng001', { id: request.params.id }),
-            );
-          }
-          const deleteResult = await BCMSRepo.language.deleteById(
-            request.params.id,
-          );
-          if (!deleteResult) {
-            throw errorHandler.occurred(
-              HTTPStatus.INTERNAL_SERVER_ERROR,
-              bcmsResCode('lng006'),
-            );
-          }
-          await BCMSSocketManager.emit.language({
-            languageId: lang._id,
-            type: BCMSSocketEventType.REMOVE,
-            userIds: 'all',
-            excludeUserId: [accessToken.payload.userId],
+          await BCMSLanguageRequestHandler.delete({
+            id: request.params.id,
+            errorHandler,
+            accessToken,
           });
-          await BCMSRepo.change.methods.updateAndIncByName('language');
           return {
             message: 'Success.',
           };

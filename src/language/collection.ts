@@ -4,7 +4,9 @@ import { BCMSLanguageObject } from './objects';
 import {
   BCMSLanguageCountResolver,
   BCMSLanguageCreateResolver,
+  BCMSLanguageDeleteResolver,
   BCMSLanguageGetAllResolver,
+  BCMSLanguageGetByIdResolver,
 } from './resolvers';
 
 export const BCMSLanguageCollection = createGraphqlCollection({
@@ -14,6 +16,8 @@ export const BCMSLanguageCollection = createGraphqlCollection({
   resolvers: [
     BCMSLanguageCountResolver,
     BCMSLanguageCreateResolver,
+    BCMSLanguageDeleteResolver,
     BCMSLanguageGetAllResolver,
+    BCMSLanguageGetByIdResolver,
   ],
 });
