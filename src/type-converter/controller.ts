@@ -40,7 +40,7 @@ export const BCMSTypeConverterController = createController({
           const widgets = await BCMSRepo.widget.findAll();
           if (
             request.params.languageType !== 'typescript' &&
-            request.params.languageType !== 'JSDoc'
+            request.params.languageType !== 'jsDoc'
           ) {
             throw errorHandler.occurred(
               HTTPStatus.BAD_REQUEST,
