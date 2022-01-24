@@ -25,6 +25,15 @@ export function createBcmsEntryRepository(): Module {
             schema: BCMSEntryFSDBSchema,
             methods({ repo }) {
               return {
+                async findByTemplateIdAndRef(tempId, ref) {
+                  return await repo.findBy(
+                    (e) =>
+                      e.templateId === tempId &&
+                      (e._id === ref ||
+                        e.cid === ref ||
+                        (e.meta[0].props[1].data as string[])[0] === ref),
+                  );
+                },
                 async findByTemplateIdAndCid(templateId, entryCid) {
                   return await repo.findBy(
                     (e) => e.cid === entryCid && e.templateId === templateId,
@@ -101,6 +110,43 @@ export function createBcmsEntryRepository(): Module {
                 widget: {},
               };
               return {
+                async findByTemplateIdAndRef(tempId, ref) {
+                  const cacheHit = cacheHandler.findOne(
+                    (e) =>
+                      e.templateId === tempId &&
+                      (e._id === ref ||
+                        e.cid === ref ||
+                        (e.meta[0].props[1].data as string[])[0] === ref),
+                  );
+                  if (cacheHit) {
+                    return cacheHit;
+                  }
+                  let item = await mongoDBInterface.findOne({
+                    _id: ref,
+                    templateId: tempId,
+                  });
+                  if (item) {
+                    cacheHandler.set(item._id, item);
+                    return item;
+                  }
+                  item = await mongoDBInterface.findOne({
+                    cid: ref,
+                    templateId: tempId,
+                  });
+                  if (item) {
+                    cacheHandler.set(item._id, item);
+                    return item;
+                  }
+                  item = await mongoDBInterface.findOne({
+                    'meta.props.data': ref,
+                    templateId: tempId,
+                  });
+                  if (item) {
+                    cacheHandler.set(item._id, item);
+                    return item;
+                  }
+                  return null;
+                },
                 async findByTemplateIdAndCid(templateId, entryCid) {
                   const cacheHit = cacheHandler.findOne(
                     (e) => e.cid === entryCid && e.templateId === templateId,
@@ -119,8 +165,7 @@ export function createBcmsEntryRepository(): Module {
                 },
                 async findByTemplateIdAndId(templateId, entryId) {
                   const cacheHit = cacheHandler.findOne(
-                    (e) =>
-                      e._id === entryId && e.templateId === templateId,
+                    (e) => e._id === entryId && e.templateId === templateId,
                   );
                   if (cacheHit) {
                     return cacheHit;
@@ -174,11 +219,9 @@ export function createBcmsEntryRepository(): Module {
                         ),
                     );
                   }
-                  const items = await mongoDBInterface.find(
-                    {
-                      'content.nodes.attrs._id': widgetId,
-                    },
-                  );
+                  const items = await mongoDBInterface.find({
+                    'content.nodes.attrs._id': widgetId,
+                  });
                   for (let i = 0; i < items.length; i++) {
                     const item = items[i];
                     cacheHandler.set(item._id, item);

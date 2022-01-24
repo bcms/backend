@@ -87,9 +87,18 @@ export const BCMSEntryController = createController<Setup>({
           roleNames: [JWTRoleName.ADMIN, JWTRoleName.USER],
           permissionName: JWTPermissionName.READ,
         }),
-        async handler({ request }) {
-          const entries = await BCMSRepo.entry.methods.findAllByTemplateId(
+        async handler({ request, errorHandler }) {
+          const template = await BCMSRepo.template.methods.findByRef(
             request.params.tid,
+          );
+          if (!template) {
+            throw errorHandler.occurred(
+              HTTPStatus.NOT_FOUNT,
+              bcmsResCode('tmp001', { id: request.params.tid }),
+            );
+          }
+          const entries = await BCMSRepo.entry.methods.findAllByTemplateId(
+            template._id,
           );
           const entriesParsed: BCMSEntryParsed[] = [];
           for (let i = 0; i < entries.length; i++) {
@@ -147,26 +156,19 @@ export const BCMSEntryController = createController<Setup>({
           permissionName: JWTPermissionName.READ,
         }),
         async handler({ request, errorHandler }) {
-          const template =
-            request.params.tid.length === 24
-              ? await BCMSRepo.template.findById(request.params.tid)
-              : await BCMSRepo.template.methods.findByCid(request.params.tid);
+          const template = await BCMSRepo.template.methods.findByRef(
+            request.params.tid,
+          );
           if (!template) {
             throw errorHandler.occurred(
               HTTPStatus.NOT_FOUNT,
               bcmsResCode('tmp001', { id: request.params.tid }),
             );
           }
-          const entry =
-            request.params.eid.length === 24
-              ? await BCMSRepo.entry.methods.findByTemplateIdAndId(
-                  template._id,
-                  request.params.eid,
-                )
-              : await BCMSRepo.entry.methods.findByTemplateIdAndCid(
-                  template._id,
-                  request.params.eid,
-                );
+          const entry = await BCMSRepo.entry.methods.findByTemplateIdAndRef(
+            template._id,
+            request.params.eid,
+          );
           if (!entry) {
             throw errorHandler.occurred(
               HTTPStatus.NOT_FOUNT,
@@ -187,19 +189,23 @@ export const BCMSEntryController = createController<Setup>({
           permissionName: JWTPermissionName.READ,
         }),
         async handler({ request, errorHandler }) {
-          const eid = request.params.eid;
-          const entry = await BCMSRepo.entry.findById(eid);
-          if (!entry) {
-            throw errorHandler.occurred(
-              HTTPStatus.NOT_FOUNT,
-              bcmsResCode('etr001', { eid }),
-            );
-          }
-          const template = await BCMSRepo.template.findById(entry.templateId);
+          const template = await BCMSRepo.template.methods.findByRef(
+            request.params.tid,
+          );
           if (!template) {
             throw errorHandler.occurred(
               HTTPStatus.NOT_FOUNT,
-              bcmsResCode('etr001', { eid }),
+              bcmsResCode('tmp001', { id: request.params.tid }),
+            );
+          }
+          const entry = await BCMSRepo.entry.methods.findByTemplateIdAndRef(
+            template._id,
+            request.params.eid,
+          );
+          if (!entry) {
+            throw errorHandler.occurred(
+              HTTPStatus.NOT_FOUNT,
+              bcmsResCode('etr001', { id: request.params.eid }),
             );
           }
           return {

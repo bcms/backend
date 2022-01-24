@@ -30,6 +30,11 @@ export function createBcmsTemplateRepository(): Module {
             schema: BCMSTemplateFSDBSchema,
             methods({ repo }) {
               return {
+                async findByRef(id) {
+                  return await repo.findBy(
+                    (e) => e._id === id || e.cid === id || e.name === id,
+                  );
+                },
                 async findByName(name) {
                   return await repo.findBy((e) => e.name === name);
                 },
@@ -107,6 +112,30 @@ export function createBcmsTemplateRepository(): Module {
             schema: BCMSTemplateMongoDBSchema,
             methods({ mongoDBInterface, cacheHandler }) {
               return {
+                async findByRef(id) {
+                  const cacheHit = cacheHandler.findOne(
+                    (e) => e._id === id || e.cid === id || e.name === id,
+                  );
+                  if (cacheHit) {
+                    return cacheHit;
+                  }
+                  let temp = await mongoDBInterface.findOne({ _id: id });
+                  if (temp) {
+                    cacheHandler.set(temp._id, temp);
+                    return temp;
+                  }
+                  temp = await mongoDBInterface.findOne({ cid: id });
+                  if (temp) {
+                    cacheHandler.set(temp._id, temp);
+                    return temp;
+                  }
+                  temp = await mongoDBInterface.findOne({ name: id });
+                  if (temp) {
+                    cacheHandler.set(temp._id, temp);
+                    return temp;
+                  }
+                  return null;
+                },
                 async findByName(name) {
                   const cacheHit = cacheHandler.findOne((e) => e.name === name);
                   if (cacheHit) {

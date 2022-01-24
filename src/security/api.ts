@@ -137,7 +137,7 @@ export function createBcmsApiKeySecurity(): Module {
               // GET: /:templateId
               const templateId = params[0];
               const accessPolicy = key.access.templates.find(
-                (e) => e._id === templateId,
+                (e) => e._id === templateId || e.name === templateId,
               );
               if (accessPolicy) {
                 return true;
@@ -157,7 +157,7 @@ export function createBcmsApiKeySecurity(): Module {
                       // GET: /all/:templateId/lite
                       const templateId = params[1];
                       const accessPolicy = key.access.templates.find(
-                        (e) => e._id === templateId,
+                        (e) => e._id === templateId || e.name === templateId,
                       );
                       if (accessPolicy && accessPolicy[method] === true) {
                         return true;
@@ -166,7 +166,7 @@ export function createBcmsApiKeySecurity(): Module {
                       // GET: /count/:templateId
                       const templateId = params[1];
                       const accessPolicy = key.access.templates.find(
-                        (e) => e._id === templateId,
+                        (e) => e._id === templateId || e.name === templateId,
                       );
                       if (accessPolicy && accessPolicy[method] === true) {
                         return true;
@@ -175,7 +175,7 @@ export function createBcmsApiKeySecurity(): Module {
                       // GET: /:templateId/:entryId
                       const templateId = params[0];
                       const accessPolicy = key.access.templates.find(
-                        (e) => e._id === templateId,
+                        (e) => e._id === templateId || e.name === templateId,
                       );
                       if (accessPolicy && accessPolicy[method] === true) {
                         return true;

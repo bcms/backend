@@ -3,6 +3,7 @@ import type { MongoDBCachedRepository } from '@becomes/purple-cheetah-mod-mongod
 import type { BCMSTemplate } from './models';
 
 export interface BCMSTemplateRepositoryMethods {
+  findByRef(ref: string): Promise<BCMSTemplate | null>;
   findByName(name: string): Promise<BCMSTemplate | null>;
   findByCid(cid: string): Promise<BCMSTemplate | null>;
   findAllByCid(cids: string[]): Promise<BCMSTemplate[]>;
