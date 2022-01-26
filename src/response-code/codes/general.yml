@@ -19,4 +19,4 @@ g009:
 g010:
   msg: Missing parameter "%param%".
 g011:
-  msg: Missing permissions for this actions.
+  msg: Missing permissions for this action.
