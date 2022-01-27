@@ -10,5 +10,5 @@ module.exports = {
     prefix: 'bcms',
     fs: true,
   },
-  plugins: [],
+  plugins: ['bane-test'],
 };

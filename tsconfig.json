@@ -18,7 +18,7 @@
       "@becomes/cms-backend/*": ["./*"]
     }
   },
-  "include": ["src/**/*", "plugins/**/*", "functions/**/*"],
+  "include": ["src/**/*", "plugins/**/*"],
   "exclude": ["node_modules", "dist", "src/node_modules"],
   "typedocOptions": {
     "entryPoints": ["src"],

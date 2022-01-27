@@ -1,5 +1,9 @@
 import type { ObjectSchema } from '@becomes/purple-cheetah/types';
-import { Schema } from 'mongoose';
+import type { SchemaDefinitionProperty } from 'mongoose';
+
+interface MongoSchema {
+  [name: string]: SchemaDefinitionProperty
+}
 
 export interface BCMSUserPolicyCRUD {
   get: boolean;
@@ -25,11 +29,11 @@ export const BCMSUserPolicyCRUDFSDBSchema: ObjectSchema = {
     __required: true,
   },
 };
-export const BCMSUserPolicyCRUDMongoDBSchema = new Schema({
-  // get: {
-  //   type: Boolean,
-  //   required: true,
-  // },
+export const BCMSUserPolicyCRUDMongoDBSchema: MongoSchema = {
+  get: {
+    type: Boolean,
+    required: true,
+  },
   post: {
     type: Boolean,
     required: true,
@@ -42,12 +46,95 @@ export const BCMSUserPolicyCRUDMongoDBSchema = new Schema({
     type: Boolean,
     required: true,
   },
-});
+};
+
+export interface BCMSUserPolicyTemplate extends BCMSUserPolicyCRUD {
+  _id: string;
+}
+export const BCMSUserPolicyTemplateFSDBSchema: ObjectSchema = {
+  ...BCMSUserPolicyCRUDFSDBSchema,
+  _id: {
+    __type: 'string',
+    __required: true,
+  },
+};
+export const BCMSUserPolicyTemplateMongoDBSchema: MongoSchema = {
+  ...BCMSUserPolicyCRUDMongoDBSchema,
+  _id: {
+    type: String,
+    required: true,
+  },
+};
+
+export interface BCMSUserPolicyPluginOption {
+  name: string;
+  value: string[];
+}
+export const BCMSUserPolicyPluginOptionFSDBSchema: ObjectSchema = {
+  name: {
+    __type: 'string',
+    __required: true,
+  },
+  value: {
+    __type: 'array',
+    __required: true,
+    __child: {
+      __type: 'string',
+    },
+  },
+};
+export const BCMSUserPolicyPluginOptionMongoDBSchema: MongoSchema = {
+  name: {
+    type: String,
+    required: true,
+  },
+  value: {
+    type: [String],
+    required: true,
+  },
+};
+export interface BCMSUserPolicyPlugin {
+  name: string;
+  allowed: boolean;
+  options: BCMSUserPolicyPluginOption[];
+}
+export const BCMSUserPolicyPluginFSDBSchema: ObjectSchema = {
+  name: {
+    __type: 'string',
+    __required: true,
+  },
+  allowed: {
+    __type: 'boolean',
+    __required: true,
+  },
+  options: {
+    __type: 'array',
+    __required: true,
+    __child: {
+      __type: 'object',
+      __content: BCMSUserPolicyPluginOptionFSDBSchema,
+    },
+  },
+};
+export const BCMSUserPolicyPluginMongoDBSchema: MongoSchema = {
+  name: {
+    type: String,
+    required: true,
+  },
+  allowed: {
+    type: Boolean,
+    required: true,
+  },
+  options: {
+    type: [BCMSUserPolicyPluginOptionMongoDBSchema],
+    required: true,
+  },
+};
 
 export interface BCMSUserPolicy {
   media: BCMSUserPolicyCRUD;
-  templates: Array<{ _id: string } & BCMSUserPolicyCRUD>;
-  plugins?: Array<{ name: string } & BCMSUserPolicyCRUD>;
+  templates: BCMSUserPolicyTemplate[];
+  plugins?: BCMSUserPolicyPlugin[];
 }
 export const BCMSUserPolicyFSDBSchema: ObjectSchema = {
   media: {
@@ -60,13 +147,7 @@ export const BCMSUserPolicyFSDBSchema: ObjectSchema = {
     __required: true,
     __child: {
       __type: 'object',
-      __content: {
-        _id: {
-          __type: 'string',
-          __required: true,
-        },
-        ...BCMSUserPolicyCRUDFSDBSchema,
-      },
+      __content: BCMSUserPolicyTemplateFSDBSchema,
     },
   },
   plugins: {
@@ -84,13 +165,14 @@ export const BCMSUserPolicyFSDBSchema: ObjectSchema = {
     },
   },
 };
-export const BCMSUserPolicyMongoDBSchema = new Schema({
+export const BCMSUserPolicyMongoDBSchema: MongoSchema = {
   media: {
     type: BCMSUserPolicyCRUDMongoDBSchema,
     required: true,
   },
   templates: {
-    type: [Object],
+    type: [BCMSUserPolicyTemplateMongoDBSchema],
+    required: true,
   },
-  plugins: [Object],
-});
+  plugins: [BCMSUserPolicyPluginMongoDBSchema],
+};

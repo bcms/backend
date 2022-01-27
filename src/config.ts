@@ -14,6 +14,7 @@ export const BCMSConfig: BCMSConfigType = {
     prefix: 'bcms',
     fs: true,
   },
+  plugins: []
 };
 
 export function createBcmsConfig(config: BCMSConfigType): BCMSConfigType {

@@ -2,8 +2,8 @@ import * as sharp from 'sharp';
 import type { FS, Module } from '@becomes/purple-cheetah/types';
 import { BCMSFfmpeg as BCMSFfmpegType, BCMSMediaType } from '../types';
 import { useFS } from '@becomes/purple-cheetah';
-import { BCMSChildProcess } from '.';
 import { BCMSMediaService } from '@bcms/media';
+import { ChildProcess } from '@banez/child_process';
 
 let fs: FS;
 
@@ -19,7 +19,7 @@ export const BCMSFfmpeg: BCMSFfmpegType = {
       process.cwd() +
       '/uploads' +
       pathParts.slice(0, pathParts.length - 1).join('/');
-    await BCMSChildProcess.spawn('ffmpeg', [
+    await ChildProcess.spawn('ffmpeg', [
       '-i',
       `${path}/${media.name}`,
       '-ss',
@@ -50,7 +50,7 @@ export const BCMSFfmpeg: BCMSFfmpegType = {
       process.cwd() +
       '/uploads' +
       pathParts.slice(0, pathParts.length - 1).join('/');
-    await BCMSChildProcess.spawn('ffmpeg', [
+    await ChildProcess.spawn('ffmpeg', [
       '-i',
       `${path}/${media.name}`,
       '-ss',

@@ -1,9 +1,9 @@
+import { ChildProcess } from '@banez/child_process';
 import { useFS } from '@becomes/purple-cheetah';
 import type { Module } from '@becomes/purple-cheetah/types';
 import { initBcmsChangeRepository } from './change';
 import { initBcmsLanguageRepository } from './language';
 import { initBcmsStatusRepository } from './status';
-import { BCMSChildProcess } from './util';
 
 async function init() {
   const fs = useFS({
@@ -19,7 +19,7 @@ async function init() {
         customPackageJson.dependencies[depName];
     }
     await fs.save('package.json', JSON.stringify(packageJson, null, '  '));
-    await BCMSChildProcess.spawn('npm', ['i']);
+    await ChildProcess.spawn('npm', ['i']);
   }
 }
 

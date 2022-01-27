@@ -1,23 +1,20 @@
 import type { ObjectSchema } from '@becomes/purple-cheetah/types';
-import { BCMSUserPolicyCRUD, BCMSUserPolicyCRUDFSDBSchema } from './models';
+import {
+  BCMSUserPolicyCRUD,
+  BCMSUserPolicyCRUDFSDBSchema,
+  BCMSUserPolicyTemplate,
+  BCMSUserPolicyPlugin,
+  BCMSUserPolicyTemplateFSDBSchema,
+  BCMSUserPolicyPluginFSDBSchema,
+} from './models';
 
 export interface BCMSUserUpdateData {
   _id: string;
   customPool?: {
     policy?: {
       media?: BCMSUserPolicyCRUD;
-      customPortal?: BCMSUserPolicyCRUD;
-      templates?: Array<BCMSUserPolicyCRUD & { _id: string }>;
-      webhooks?: Array<
-        BCMSUserPolicyCRUD & {
-          _id: string;
-        }
-      >;
-      plugins?: Array<
-        BCMSUserPolicyCRUD & {
-          name: string;
-        }
-      >;
+      templates?: BCMSUserPolicyTemplate[];
+      plugins?: BCMSUserPolicyPlugin[];
     };
   };
 }
@@ -40,37 +37,20 @@ export const BCMSUserUpdateDataSchema: ObjectSchema = {
             __required: false,
             __child: BCMSUserPolicyCRUDFSDBSchema,
           },
-          customPortal: {
-            __type: 'object',
-            __required: false,
-            __child: BCMSUserPolicyCRUDFSDBSchema,
-          },
-          entries: {
+          templates: {
             __type: 'array',
             __required: false,
             __child: {
               __type: 'object',
-              __content: {
-                _id: {
-                  __type: 'string',
-                  __required: true,
-                },
-                ...BCMSUserPolicyCRUDFSDBSchema,
-              },
+              __content: BCMSUserPolicyTemplateFSDBSchema,
             },
           },
-          webhooks: {
+          plugins: {
             __type: 'array',
             __required: false,
             __child: {
               __type: 'object',
-              __content: {
-                _id: {
-                  __type: 'string',
-                  __required: true,
-                },
-                ...BCMSUserPolicyCRUDFSDBSchema,
-              },
+              __content: BCMSUserPolicyPluginFSDBSchema,
             },
           },
         },

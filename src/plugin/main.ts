@@ -24,9 +24,12 @@ import {
   BCMSPluginConfigSchema,
   BCMSPluginManager,
   BCMSPluginInfo,
+  BCMSUserPolicyPlugin,
 } from '../types';
-import { bcmsGetDirFileTree, BCMSChildProcess } from '@bcms/util';
+import { bcmsGetDirFileTree } from '@bcms/util';
 import { BCMSShimService } from '@bcms/shim';
+import { ChildProcess } from '@banez/child_process';
+import { BCMSRepo } from '@bcms/repo';
 
 export function createBcmsPlugin(config: BCMSPluginConfig): BCMSPlugin {
   const objectUtil = useObjectUtility();
@@ -40,6 +43,11 @@ export function createBcmsPlugin(config: BCMSPluginConfig): BCMSPlugin {
   }
   return {
     name: config.name,
+    policy: config.policy
+      ? config.policy
+      : async () => {
+          return [];
+        },
     controllers: config.controllers ? config.controllers : [],
     middleware: config.middleware ? config.middleware : [],
   };
@@ -149,6 +157,7 @@ export function createBcmsPluginModule(bcmsConfig: BCMSConfig): Module {
     data.addedPlugins.push({
       name: plugin.default.name,
       dirPath: pluginDirPath,
+      policy: plugin.default.policy,
     });
     const verifyResult: { ok: boolean } = await BCMSShimService.send({
       uri: `/instance/plugin/verify/${plugin.default.name}`,
@@ -209,13 +218,59 @@ export function createBcmsPluginModule(bcmsConfig: BCMSConfig): Module {
     for (let i = 0; i < files.length; i++) {
       const file = files[i];
       if (file.endsWith('.tgz')) {
-        await BCMSChildProcess.spawn(
-          'npm',
-          ['i', '--save', `./plugins/${file}`],
-          {
-            stdio: 'ignore',
-          },
-        );
+        await ChildProcess.spawn('npm', ['i', '--save', `./plugins/${file}`], {
+          stdio: 'ignore',
+        });
+      }
+    }
+  }
+  async function setupUsers(plugins: BCMSPluginInfo[]): Promise<void> {
+    const users = await BCMSRepo.user.findAll();
+    for (let i = 0; i < users.length; i++) {
+      const user = users[i];
+      let modified = false;
+      const pluginsToRemove: string[] = [];
+      if (user.customPool.policy.plugins) {
+        for (let j = 0; j < user.customPool.policy.plugins.length; j++) {
+          const userPlugin = user.customPool.policy.plugins[j];
+          if (!plugins.find((e) => e.name === userPlugin.name)) {
+            pluginsToRemove.push(userPlugin.name);
+          }
+        }
+      }
+      if (pluginsToRemove.length > 0) {
+        modified = true;
+        user.customPool.policy.plugins = (
+          user.customPool.policy.plugins as BCMSUserPolicyPlugin[]
+        ).filter((e) => !pluginsToRemove.includes(e.name));
+      }
+      for (let j = 0; j < plugins.length; j++) {
+        const plugin = plugins[j];
+        if (user.customPool.policy.plugins) {
+          const userPlugin = user.customPool.policy.plugins.find(
+            (e) => e.name === plugin.name,
+          );
+          if (userPlugin) {
+            modified = true;
+            user.customPool.policy.plugins.push({
+              allowed: false,
+              name: plugin.name,
+              options: [],
+            });
+          }
+        } else {
+          modified = true;
+          user.customPool.policy.plugins = [
+            {
+              allowed: false,
+              name: plugin.name,
+              options: [],
+            },
+          ];
+        }
+      }
+      if (modified) {
+        await BCMSRepo.user.update(user);
       }
     }
   }
@@ -249,6 +304,7 @@ export function createBcmsPluginModule(bcmsConfig: BCMSConfig): Module {
                 return addedPlugins;
               },
             };
+            await setupUsers(addedPlugins);
             next(undefined, {
               controllers: result.controllers,
               middleware: result.middleware,
@@ -266,7 +322,9 @@ export function createBcmsPluginModule(bcmsConfig: BCMSConfig): Module {
             return addedPlugins;
           },
         };
-        next();
+        setupUsers(addedPlugins)
+          .then(() => next())
+          .catch((err) => next(err));
       }
     },
   };
