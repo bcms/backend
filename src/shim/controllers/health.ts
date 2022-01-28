@@ -2,7 +2,7 @@ import {
   createController,
   createControllerMethod,
 } from '@becomes/purple-cheetah';
-import { BCMSShimService } from '..';
+import { BCMSShimService } from '../service';
 
 export const BCMSShimHealthController = createController({
   name: 'Shim health controller',

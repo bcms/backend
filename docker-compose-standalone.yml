@@ -11,11 +11,14 @@ services:
       context: ''
       dockerfile: Dockerfile.dev
     ports:
-      - '1280:1280'
+      - '1280:8080'
     volumes:
       - type: bind
         source: ./bcms.config.js
         target: /app/bcms.config.js
+      - type: bind
+        source: ./shim.json
+        target: /app/shim.json
       - type: bind
         source: ./src
         target: /app/src
@@ -25,3 +28,9 @@ services:
       - type: bind
         source: ./uploads
         target: /app/uploads
+      - type: bind
+        source: ./functions
+        target: /app/functions
+      - type: bind
+        source: ./plugins
+        target: /app/plugins

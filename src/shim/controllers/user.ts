@@ -24,6 +24,8 @@ import { bcmsResCode } from '@bcms/response-code';
 import { BCMSRepo } from '@bcms/repo';
 import { BCMSFactory } from '@bcms/factory';
 import type { BCMSCloudUser } from '@bcms/types/shim';
+import { BCMSSocketManager } from '@bcms/socket';
+import { BCMSSocketEventType } from '@bcms/types';
 
 export const BCMSShimUserController = createController<{
   refreshTokenService: RefreshTokenService;
@@ -78,48 +80,73 @@ export const BCMSShimUserController = createController<{
               bcmsResCode('a003'),
             );
           }
-          let user = await BCMSRepo.user.findById(result.user._id);
-          let createUser = false;
-          if (!user) {
-            createUser = true;
-            if (result.user.roles[0].name === JWTRoleName.ADMIN) {
-              user = BCMSFactory.user.create({
-                admin: true,
-                options: {
-                  email: result.user.email,
-                  avatarUri: '',
-                  firstName: result.user.personal.firstName,
-                  lastName: result.user.personal.lastName,
-                },
-              });
-            } else {
-              user = BCMSFactory.user.create({
-                admin: false,
-                options: {
-                  email: result.user.email,
-                  avatarUri: '',
-                  firstName: result.user.personal.firstName,
-                  lastName: result.user.personal.lastName,
-                },
-              });
+          const cloudUsers = (
+            await BCMSShimService.send<
+              {
+                users: BCMSCloudUser[];
+              },
+              unknown
+            >({
+              uri: '/instance/user/all',
+              payload: {},
+              errorHandler,
+            })
+          ).users;
+          const users = await BCMSRepo.user.findAll();
+          // let user = await BCMSRepo.user.findById(result.user._id);
+          // const createUser = !user;
+          // user = BCMSFactory.user.cloudUserToUser(
+          //   result.user,
+          //   user ? user.customPool.policy : undefined,
+          // );
+
+          // if (createUser) {
+          //   user = await BCMSRepo.user.add(user);
+          //   if (!user) {
+          //     throw errorHandler.occurred(
+          //       HTTPStatus.INTERNAL_SERVER_ERROR,
+          //       'Failed to add user to the database.',
+          //     );
+          //   }
+          //   // TODO: Trigger socket event
+          // } else {
+          //   await BCMSRepo.user.update(user);
+          // }
+          const usersToRemove: string[] = [];
+          for (let i = 0; i < users.length; i++) {
+            const usr = users[i];
+            if (!cloudUsers.find((e) => e._id === usr._id)) {
+              usersToRemove.push(usr._id);
             }
           }
-          user._id = result.user._id;
-          user.password = await bcrypt.hash(
-            crypto.randomBytes(64).toString(),
-            10,
-          );
-
-          if (createUser) {
-            user = await BCMSRepo.user.add(user);
-            if (!user) {
-              throw errorHandler.occurred(
-                HTTPStatus.INTERNAL_SERVER_ERROR,
-                'Failed to add user to the database.',
+          await BCMSRepo.user.deleteAllById(usersToRemove);
+          for (let i = 0; i < cloudUsers.length; i++) {
+            const cloudUser = cloudUsers[i];
+            const usr = await BCMSRepo.user.findById(cloudUser._id);
+            if (usr) {
+              await BCMSRepo.user.update(
+                BCMSFactory.user.cloudUserToUser(
+                  cloudUser,
+                  usr.customPool.policy,
+                ),
+              );
+            } else {
+              await BCMSRepo.user.add(
+                BCMSFactory.user.cloudUserToUser(cloudUser),
               );
             }
             // TODO: Trigger socket event
+            BCMSSocketManager.emit.user({
+              type: BCMSSocketEventType.UPDATE,
+              userId: cloudUser._id,
+              userIds: 'all',
+            });
           }
+          let user = await BCMSRepo.user.findById(result.user._id);
+          user = BCMSFactory.user.cloudUserToUser(
+            result.user,
+            user ? user.customPool.policy : undefined,
+          );
           const accessToken = jwtManager.create({
             userId: user._id,
             roles: user.roles,
