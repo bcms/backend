@@ -24,7 +24,7 @@ import type { BCMSBackend, BCMSUserCustomPool } from './types';
 import { BCMSConfig, loadBcmsConfig } from './config';
 import { BCMSCypressController } from './cypress';
 import {
-  BCMSShimHealthController,
+  BCMSShimCallsController,
   BCMSShimUserController,
   createBcmsShimService,
   ShimConfig,
@@ -233,7 +233,7 @@ async function initialize() {
   const controllers: Controller[] = [
     BCMSAuthController,
     BCMSUserController,
-    BCMSShimHealthController,
+    BCMSShimCallsController,
     BCMSShimUserController,
     BCMSApiKeyController,
     BCMSPluginController,
@@ -299,7 +299,6 @@ async function initialize() {
   } else {
     throw Error('No database configuration detected.');
   }
-  console.log(ShimConfig);
   if (ShimConfig.local) {
     middleware.push(createRequestLoggerMiddleware());
     controllers.push(BCMSCypressController);

@@ -1,5 +1,3 @@
-import * as crypto from 'crypto';
-import * as bcrypt from 'bcrypt';
 import {
   createController,
   createControllerMethod,
@@ -93,25 +91,6 @@ export const BCMSShimUserController = createController<{
             })
           ).users;
           const users = await BCMSRepo.user.findAll();
-          // let user = await BCMSRepo.user.findById(result.user._id);
-          // const createUser = !user;
-          // user = BCMSFactory.user.cloudUserToUser(
-          //   result.user,
-          //   user ? user.customPool.policy : undefined,
-          // );
-
-          // if (createUser) {
-          //   user = await BCMSRepo.user.add(user);
-          //   if (!user) {
-          //     throw errorHandler.occurred(
-          //       HTTPStatus.INTERNAL_SERVER_ERROR,
-          //       'Failed to add user to the database.',
-          //     );
-          //   }
-          //   // TODO: Trigger socket event
-          // } else {
-          //   await BCMSRepo.user.update(user);
-          // }
           const usersToRemove: string[] = [];
           for (let i = 0; i < users.length; i++) {
             const usr = users[i];
