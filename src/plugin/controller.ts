@@ -3,10 +3,7 @@ import {
   createControllerMethod,
 } from '@becomes/purple-cheetah';
 import { useBcmsPluginManager } from './main';
-import type {
-  BCMSPluginManager,
-  BCMSPluginPolicy,
-} from '../types';
+import type { BCMSPluginManager, BCMSPluginPolicy } from '../types';
 import {
   JWTPermissionName,
   JWTRoleName,
@@ -18,7 +15,7 @@ interface Setup {
 }
 interface GetPolicyItem {
   name: string;
-  policy: BCMSPluginPolicy[];
+  policies: BCMSPluginPolicy[];
 }
 
 export const BCMSPluginController = createController<Setup>({
@@ -66,10 +63,34 @@ export const BCMSPluginController = createController<Setup>({
             const plugin = plugins[i];
             items.push({
               name: plugin.name,
-              policy: await plugin.policy(), 
-            })
+              policies: [
+                {
+                  type: 'checkbox',
+                  name: 'can_edit_projects',
+                  default: [''],
+                },
+                {
+                  type: 'input',
+                  name: 'build_limit',
+                },
+                {
+                  type: 'inputArray',
+                  name: 'roles',
+                },
+                {
+                  type: 'select',
+                  name: 'primary_build',
+                  options: ['Productions', 'Staging'],
+                },
+                {
+                  type: 'selectArray',
+                  name: 'allowed_to_build',
+                  options: ['Production', 'Staging', 'Preview'],
+                },
+              ], //await plugin.policy(),
+            });
           }
-          return {items}
+          return { items };
         },
       }),
     };
