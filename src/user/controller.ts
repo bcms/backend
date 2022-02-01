@@ -203,6 +203,9 @@ export const BCMSUserController = createController<Setup>({
             userIds: 'all',
             excludeUserId: [accessToken.payload.userId],
           });
+          await BCMSSocketManager.emit.refresh({
+            userId: user._id,
+          });
           return {
             item: BCMSFactory.user.toProtected(updatedUser),
           };
