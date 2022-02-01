@@ -2,7 +2,7 @@ import type { ObjectSchema } from '@becomes/purple-cheetah/types';
 import type { SchemaDefinitionProperty } from 'mongoose';
 
 interface MongoSchema {
-  [name: string]: SchemaDefinitionProperty
+  [name: string]: SchemaDefinitionProperty;
 }
 
 export interface BCMSUserPolicyCRUD {
@@ -96,6 +96,7 @@ export const BCMSUserPolicyPluginOptionMongoDBSchema: MongoSchema = {
 export interface BCMSUserPolicyPlugin {
   name: string;
   allowed: boolean;
+  fullAccess: boolean;
   options: BCMSUserPolicyPluginOption[];
 }
 export const BCMSUserPolicyPluginFSDBSchema: ObjectSchema = {
@@ -104,6 +105,10 @@ export const BCMSUserPolicyPluginFSDBSchema: ObjectSchema = {
     __required: true,
   },
   allowed: {
+    __type: 'boolean',
+    __required: true,
+  },
+  fullAccess: {
     __type: 'boolean',
     __required: true,
   },
@@ -122,6 +127,10 @@ export const BCMSUserPolicyPluginMongoDBSchema: MongoSchema = {
     required: true,
   },
   allowed: {
+    type: Boolean,
+    required: true,
+  },
+  fullAccess: {
     type: Boolean,
     required: true,
   },
@@ -155,13 +164,7 @@ export const BCMSUserPolicyFSDBSchema: ObjectSchema = {
     __required: false,
     __child: {
       __type: 'object',
-      __content: {
-        name: {
-          __type: 'string',
-          __required: true,
-        },
-        ...BCMSUserPolicyCRUDFSDBSchema,
-      },
+      __content: BCMSUserPolicyPluginFSDBSchema,
     },
   },
 };

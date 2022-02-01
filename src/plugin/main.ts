@@ -254,6 +254,7 @@ export function createBcmsPluginModule(bcmsConfig: BCMSConfig): Module {
             modified = true;
             user.customPool.policy.plugins.push({
               allowed: false,
+              fullAccess: false,
               name: plugin.name,
               options: [],
             });
@@ -263,6 +264,7 @@ export function createBcmsPluginModule(bcmsConfig: BCMSConfig): Module {
           user.customPool.policy.plugins = [
             {
               allowed: false,
+              fullAccess: false,
               name: plugin.name,
               options: [],
             },
