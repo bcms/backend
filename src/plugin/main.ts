@@ -256,7 +256,12 @@ export function createBcmsPluginModule(bcmsConfig: BCMSConfig): Module {
               allowed: false,
               fullAccess: false,
               name: plugin.name,
-              options: [],
+              options: (await plugin.policy()).map((e) => {
+                return {
+                  name: e.name,
+                  value: e.default ? e.default : [],
+                };
+              }),
             });
           }
         } else {
