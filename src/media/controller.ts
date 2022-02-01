@@ -55,7 +55,7 @@ export const BCMSMediaController = createController<Setup>({
         path: '/all',
         type: 'get',
         preRequestHandler: createJwtApiProtectionPreRequestHandler({
-          roleNames: [JWTRoleName.ADMIN, JWTRoleName.DEV],
+          roleNames: [JWTRoleName.ADMIN, JWTRoleName.USER],
           permissionName: JWTPermissionName.READ,
         }),
         async handler() {
@@ -72,7 +72,7 @@ export const BCMSMediaController = createController<Setup>({
         path: '/all/aggregate',
         type: 'get',
         preRequestHandler: createJwtProtectionPreRequestHandler(
-          [JWTRoleName.ADMIN, JWTRoleName.DEV],
+          [JWTRoleName.ADMIN, JWTRoleName.USER],
           JWTPermissionName.READ,
         ),
         async handler() {
@@ -89,7 +89,7 @@ export const BCMSMediaController = createController<Setup>({
         path: '/all/parent/:id',
         type: 'get',
         preRequestHandler: createJwtProtectionPreRequestHandler(
-          [JWTRoleName.ADMIN, JWTRoleName.DEV],
+          [JWTRoleName.ADMIN, JWTRoleName.USER],
           JWTPermissionName.READ,
         ),
         async handler({ request, errorHandler }) {
@@ -109,7 +109,7 @@ export const BCMSMediaController = createController<Setup>({
         path: '/many',
         type: 'get',
         preRequestHandler: createJwtProtectionPreRequestHandler(
-          [JWTRoleName.ADMIN, JWTRoleName.DEV],
+          [JWTRoleName.ADMIN, JWTRoleName.USER],
           JWTPermissionName.READ,
         ),
         async handler({ request }) {
@@ -127,7 +127,7 @@ export const BCMSMediaController = createController<Setup>({
         path: '/count',
         type: 'get',
         preRequestHandler: createJwtProtectionPreRequestHandler(
-          [JWTRoleName.ADMIN, JWTRoleName.DEV],
+          [JWTRoleName.ADMIN, JWTRoleName.USER],
           JWTPermissionName.READ,
         ),
         async handler() {
@@ -141,7 +141,7 @@ export const BCMSMediaController = createController<Setup>({
         path: '/:id',
         type: 'get',
         preRequestHandler: createJwtApiProtectionPreRequestHandler({
-          roleNames: [JWTRoleName.ADMIN, JWTRoleName.DEV],
+          roleNames: [JWTRoleName.ADMIN, JWTRoleName.USER],
           permissionName: JWTPermissionName.READ,
         }),
         async handler({ request, errorHandler }) {
@@ -159,7 +159,7 @@ export const BCMSMediaController = createController<Setup>({
         type: 'get',
         preRequestHandler:
           createJwtProtectionPreRequestHandler<BCMSUserCustomPool>(
-            [JWTRoleName.ADMIN, JWTRoleName.DEV],
+            [JWTRoleName.ADMIN, JWTRoleName.USER],
             JWTPermissionName.READ,
           ),
         async handler({ request, errorHandler }) {
@@ -176,7 +176,7 @@ export const BCMSMediaController = createController<Setup>({
         path: '/:id/bin',
         type: 'get',
         preRequestHandler: createJwtApiProtectionPreRequestHandler({
-          roleNames: [JWTRoleName.ADMIN, JWTRoleName.DEV],
+          roleNames: [JWTRoleName.ADMIN, JWTRoleName.USER],
           permissionName: JWTPermissionName.READ,
         }),
         async handler({ request, errorHandler }) {
@@ -255,7 +255,7 @@ export const BCMSMediaController = createController<Setup>({
         path: '/:id/bin/:size',
         type: 'get',
         preRequestHandler: createJwtProtectionPreRequestHandler(
-          [JWTRoleName.ADMIN, JWTRoleName.DEV],
+          [JWTRoleName.ADMIN, JWTRoleName.USER],
           JWTPermissionName.READ,
         ),
         async handler({ request, errorHandler }) {
@@ -383,7 +383,7 @@ export const BCMSMediaController = createController<Setup>({
         path: '/file',
         type: 'post',
         preRequestHandler: createJwtProtectionPreRequestHandler(
-          [JWTRoleName.ADMIN, JWTRoleName.DEV],
+          [JWTRoleName.ADMIN, JWTRoleName.USER],
           JWTPermissionName.WRITE,
         ),
         async handler({ request, errorHandler, accessToken, logger, name }) {
@@ -495,7 +495,7 @@ export const BCMSMediaController = createController<Setup>({
         path: '/:id',
         type: 'delete',
         preRequestHandler: createJwtProtectionPreRequestHandler(
-          [JWTRoleName.ADMIN, JWTRoleName.DEV],
+          [JWTRoleName.ADMIN, JWTRoleName.USER],
           JWTPermissionName.DELETE,
         ),
         async handler({ request, errorHandler, accessToken, logger, name }) {
