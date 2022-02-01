@@ -68,7 +68,9 @@ export const BCMSShimUserController = createController<{
             ok: boolean;
             user?: BCMSCloudUser;
           } = await BCMSShimService.send({
-            uri: '/instance/user/verify/otp',
+            uri: `/instance/user/verify/otp${
+              request.query.user ? '?user=true' : ''
+            }`,
             payload: { otp: request.body.otp },
             errorHandler,
           });
