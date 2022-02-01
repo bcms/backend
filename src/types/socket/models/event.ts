@@ -13,6 +13,7 @@ export enum BCMSSocketEventName {
   COLOR = 'COLOR',
   TAG = 'TAG',
   CHANGE = 'CHANGE',
+  REFRESH = 'REFRESH',
 }
 
 // eslint-disable-next-line no-shadow
@@ -149,6 +150,16 @@ export interface BCMSSocketTagEvent {
    * Tag ID.
    */
   tg: string;
+  /**
+   * Event type.
+   */
+  t: BCMSSocketEventType;
+}
+export interface BCMSSocketRefreshEvent {
+  /**
+   * User ID.
+   */
+  u: string;
   /**
    * Event type.
    */

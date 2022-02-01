@@ -125,5 +125,6 @@ export interface BCMSSocketManager {
       excludeUserId?: string[];
       scopes?: BCMSSocketManagerScope[];
     }): Promise<void>;
+    refresh(data: { userId: string }): Promise<void>;
   };
 }

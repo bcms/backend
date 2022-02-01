@@ -6,11 +6,13 @@ import {
   BCMSSocketColorEvent,
   BCMSSocketEntryEvent,
   BCMSSocketEventName,
+  BCMSSocketEventType,
   BCMSSocketGroupEvent,
   BCMSSocketLanguageEvent,
   BCMSSocketManager as BCMSSocketManagerType,
   BCMSSocketManagerScope,
   BCMSSocketMediaEvent,
+  BCMSSocketRefreshEvent,
   BCMSSocketStatusEvent,
   BCMSSocketTagEvent,
   BCMSSocketTemplateEvent,
@@ -68,6 +70,17 @@ async function emit<Data>({
 
 export const BCMSSocketManager: BCMSSocketManagerType = {
   emit: {
+    async refresh(data) {
+      await emit<BCMSSocketRefreshEvent>({
+        socket: soc,
+        name: BCMSSocketEventName.REFRESH,
+        data: {
+          t: BCMSSocketEventType.UPDATE,
+          u: data.userId,
+        },
+        userIds: [data.userId],
+      });
+    },
     async apiKey(data) {
       await emit<BCMSSocketApiKeyEvent>({
         socket: soc,
