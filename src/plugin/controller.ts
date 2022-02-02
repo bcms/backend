@@ -8,7 +8,7 @@ import {
   JWTPermissionName,
   JWTRoleName,
 } from '@becomes/purple-cheetah-mod-jwt/types';
-import { createJwtProtectionPreRequestHandler } from '@becomes/purple-cheetah-mod-jwt';
+import { BCMSRouteProtection } from '@bcms/util';
 
 interface Setup {
   pluginManager: BCMSPluginManager;
@@ -36,7 +36,7 @@ export const BCMSPluginController = createController<Setup>({
       >({
         path: '/list',
         type: 'get',
-        preRequestHandler: createJwtProtectionPreRequestHandler(
+        preRequestHandler: BCMSRouteProtection.createJwtPreRequestHandler(
           [JWTRoleName.ADMIN, JWTRoleName.USER],
           JWTPermissionName.READ,
         ),
@@ -52,7 +52,7 @@ export const BCMSPluginController = createController<Setup>({
       >({
         path: '/list/policy',
         type: 'get',
-        preRequestHandler: createJwtProtectionPreRequestHandler(
+        preRequestHandler: BCMSRouteProtection.createJwtPreRequestHandler(
           [JWTRoleName.ADMIN, JWTRoleName.USER],
           JWTPermissionName.READ,
         ),

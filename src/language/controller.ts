@@ -2,15 +2,14 @@ import {
   createController,
   createControllerMethod,
 } from '@becomes/purple-cheetah';
-import { createJwtProtectionPreRequestHandler } from '@becomes/purple-cheetah-mod-jwt';
 import {
   JWTPermissionName,
   JWTPreRequestHandlerResult,
   JWTRoleName,
 } from '@becomes/purple-cheetah-mod-jwt/types';
-import { createJwtAndBodyCheckRouteProtection } from '../util';
+import { BCMSRouteProtection } from '../util';
 import {
-  BCMSJWTAndBodyCheckerRouteProtectionResult,
+  BCMSRouteProtectionJwtAndBodyCheckResult,
   BCMSLanguage,
   BCMSLanguageAddData,
   BCMSLanguageAddDataSchema,
@@ -29,7 +28,7 @@ export const BCMSLanguageController = createController({
       >({
         path: '/all',
         type: 'get',
-        preRequestHandler: createJwtProtectionPreRequestHandler(
+        preRequestHandler: BCMSRouteProtection.createJwtPreRequestHandler(
           [JWTRoleName.ADMIN, JWTRoleName.USER],
           JWTPermissionName.READ,
         ),
@@ -46,7 +45,7 @@ export const BCMSLanguageController = createController({
       >({
         path: '/count',
         type: 'get',
-        preRequestHandler: createJwtProtectionPreRequestHandler(
+        preRequestHandler: BCMSRouteProtection.createJwtPreRequestHandler(
           [JWTRoleName.ADMIN, JWTRoleName.USER],
           JWTPermissionName.READ,
         ),
@@ -63,7 +62,7 @@ export const BCMSLanguageController = createController({
       >({
         path: '/:id',
         type: 'get',
-        preRequestHandler: createJwtProtectionPreRequestHandler(
+        preRequestHandler: BCMSRouteProtection.createJwtPreRequestHandler(
           [JWTRoleName.ADMIN, JWTRoleName.USER],
           JWTPermissionName.READ,
         ),
@@ -78,15 +77,16 @@ export const BCMSLanguageController = createController({
       }),
 
       create: createControllerMethod<
-        BCMSJWTAndBodyCheckerRouteProtectionResult<BCMSLanguageAddData>,
+        BCMSRouteProtectionJwtAndBodyCheckResult<BCMSLanguageAddData>,
         { item: BCMSLanguage }
       >({
         type: 'post',
-        preRequestHandler: createJwtAndBodyCheckRouteProtection({
-          roleNames: [JWTRoleName.ADMIN, JWTRoleName.USER],
-          permissionName: JWTPermissionName.WRITE,
-          bodySchema: BCMSLanguageAddDataSchema,
-        }),
+        preRequestHandler:
+          BCMSRouteProtection.createJwtAndBodyCheckPreRequestHandler({
+            roleNames: [JWTRoleName.ADMIN, JWTRoleName.USER],
+            permissionName: JWTPermissionName.WRITE,
+            bodySchema: BCMSLanguageAddDataSchema,
+          }),
         async handler({ body, accessToken, errorHandler }) {
           return {
             item: await BCMSLanguageRequestHandler.create({
@@ -104,7 +104,7 @@ export const BCMSLanguageController = createController({
       >({
         path: '/:id',
         type: 'delete',
-        preRequestHandler: createJwtProtectionPreRequestHandler(
+        preRequestHandler: BCMSRouteProtection.createJwtPreRequestHandler(
           [JWTRoleName.ADMIN, JWTRoleName.USER],
           JWTPermissionName.DELETE,
         ),

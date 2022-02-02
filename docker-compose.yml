@@ -6,7 +6,7 @@ networks:
 services:
   proxy:
     hostname: 'bcms-proxy'
-    image: 'becomes/cms-proxy-local:1.0.4'
+    image: 'becomes/cms-proxy-local:1.0.5'
     ports:
       - '8080:8080'
     logging:
@@ -15,7 +15,7 @@ services:
     hostname: 'bcms-shim'
     depends_on:
       - proxy
-    image: 'becomes/cms-shim-local:1.0.2'
+    image: 'becomes/cms-shim-local:1.0.4'
     ports:
       - '1279:1279'
     logging:

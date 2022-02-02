@@ -3,16 +3,17 @@ import {
   createControllerMethod,
   useStringUtility,
 } from '@becomes/purple-cheetah';
-import { createJwtProtectionPreRequestHandler } from '@becomes/purple-cheetah-mod-jwt';
 import {
   JWTPermissionName,
   JWTPreRequestHandlerResult,
   JWTRoleName,
 } from '@becomes/purple-cheetah-mod-jwt/types';
 import { HTTPStatus } from '@becomes/purple-cheetah/types';
-import { createJwtAndBodyCheckRouteProtection } from '../util';
 import {
-  BCMSJWTAndBodyCheckerRouteProtectionResult,
+  BCMSRouteProtection,
+} from '../util';
+import {
+  BCMSRouteProtectionJwtAndBodyCheckResult,
   BCMSUserCustomPool,
   BCMSWidget,
   BCMSWidgetCreateData,
@@ -37,11 +38,10 @@ export const BCMSWidgetController = createController({
       whereIsItUsed: createControllerMethod({
         path: '/:id/where-is-it-used',
         type: 'get',
-        preRequestHandler:
-          createJwtProtectionPreRequestHandler<BCMSUserCustomPool>(
-            [JWTRoleName.ADMIN, JWTRoleName.USER],
-            JWTPermissionName.READ,
-          ),
+        preRequestHandler: BCMSRouteProtection.createJwtPreRequestHandler(
+          [JWTRoleName.ADMIN, JWTRoleName.USER],
+          JWTPermissionName.READ,
+        ),
         async handler({ request, errorHandler }) {
           const id = request.params.id;
           let widget: BCMSWidget | null = null;
@@ -74,7 +74,7 @@ export const BCMSWidgetController = createController({
       >({
         path: '/all',
         type: 'get',
-        preRequestHandler: createJwtProtectionPreRequestHandler(
+        preRequestHandler: BCMSRouteProtection.createJwtPreRequestHandler(
           [JWTRoleName.ADMIN, JWTRoleName.USER],
           JWTPermissionName.READ,
         ),
@@ -91,7 +91,7 @@ export const BCMSWidgetController = createController({
       >({
         path: '/many',
         type: 'get',
-        preRequestHandler: createJwtProtectionPreRequestHandler(
+        preRequestHandler: BCMSRouteProtection.createJwtPreRequestHandler(
           [JWTRoleName.ADMIN, JWTRoleName.USER],
           JWTPermissionName.READ,
         ),
@@ -109,7 +109,7 @@ export const BCMSWidgetController = createController({
       >({
         path: '/count',
         type: 'get',
-        preRequestHandler: createJwtProtectionPreRequestHandler(
+        preRequestHandler: BCMSRouteProtection.createJwtPreRequestHandler(
           [JWTRoleName.ADMIN, JWTRoleName.USER],
           JWTPermissionName.READ,
         ),
@@ -126,7 +126,7 @@ export const BCMSWidgetController = createController({
       >({
         path: '/:id',
         type: 'get',
-        preRequestHandler: createJwtProtectionPreRequestHandler(
+        preRequestHandler: BCMSRouteProtection.createJwtPreRequestHandler(
           [JWTRoleName.ADMIN, JWTRoleName.USER],
           JWTPermissionName.READ,
         ),
@@ -141,11 +141,11 @@ export const BCMSWidgetController = createController({
       }),
 
       create: createControllerMethod<
-        BCMSJWTAndBodyCheckerRouteProtectionResult<BCMSWidgetCreateData>,
+        BCMSRouteProtectionJwtAndBodyCheckResult<BCMSWidgetCreateData>,
         { item: BCMSWidget }
       >({
         type: 'post',
-        preRequestHandler: createJwtAndBodyCheckRouteProtection({
+        preRequestHandler: BCMSRouteProtection.createJwtAndBodyCheckPreRequestHandler({
           roleNames: [JWTRoleName.ADMIN],
           permissionName: JWTPermissionName.WRITE,
           bodySchema: BCMSWidgetCreateDataSchema,
@@ -162,11 +162,11 @@ export const BCMSWidgetController = createController({
       }),
 
       update: createControllerMethod<
-        BCMSJWTAndBodyCheckerRouteProtectionResult<BCMSWidgetUpdateData>,
+        BCMSRouteProtectionJwtAndBodyCheckResult<BCMSWidgetUpdateData>,
         { item: BCMSWidget }
       >({
         type: 'put',
-        preRequestHandler: createJwtAndBodyCheckRouteProtection({
+        preRequestHandler: BCMSRouteProtection.createJwtAndBodyCheckPreRequestHandler({
           roleNames: [JWTRoleName.ADMIN],
           permissionName: JWTPermissionName.WRITE,
           bodySchema: BCMSWidgetUpdateDataSchema,
@@ -188,7 +188,7 @@ export const BCMSWidgetController = createController({
       >({
         path: '/:id',
         type: 'delete',
-        preRequestHandler: createJwtProtectionPreRequestHandler(
+        preRequestHandler: BCMSRouteProtection.createJwtPreRequestHandler(
           [JWTRoleName.ADMIN],
           JWTPermissionName.DELETE,
         ),

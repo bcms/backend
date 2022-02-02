@@ -7,7 +7,7 @@ import type {
   BCMSTypeConverterTarget,
   BCMSWidget,
 } from '@bcms/types';
-import { createJwtApiProtectionPreRequestHandler } from '@bcms/util';
+import { BCMSRouteProtection } from '@bcms/util';
 import { BCMSTypeConverter } from '@bcms/util/type-converter';
 import {
   createController,
@@ -30,7 +30,7 @@ export const BCMSTypeConverterController = createController({
       >({
         path: '/:languageType/all',
         type: 'get',
-        preRequestHandler: createJwtApiProtectionPreRequestHandler({
+        preRequestHandler: BCMSRouteProtection.createJwtApiPreRequestHandler({
           roleNames: [JWTRoleName.ADMIN, JWTRoleName.USER],
           permissionName: JWTPermissionName.READ,
         }),
@@ -92,7 +92,7 @@ export const BCMSTypeConverterController = createController({
       >({
         path: '/:itemId/:itemType/:languageType',
         type: 'get',
-        preRequestHandler: createJwtApiProtectionPreRequestHandler({
+        preRequestHandler: BCMSRouteProtection.createJwtApiPreRequestHandler({
           roleNames: [JWTRoleName.ADMIN, JWTRoleName.USER],
           permissionName: JWTPermissionName.READ,
         }),

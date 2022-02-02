@@ -12,7 +12,6 @@ import {
   JWTRoleName,
 } from '@becomes/purple-cheetah-mod-jwt/types';
 import {
-  createJwtProtectionPreRequestHandler,
   useJwt,
   useJwtEncoding,
 } from '@becomes/purple-cheetah-mod-jwt';
@@ -24,6 +23,7 @@ import { BCMSFactory } from '@bcms/factory';
 import type { BCMSCloudUser } from '@bcms/types/shim';
 import { BCMSSocketManager } from '@bcms/socket';
 import { BCMSSocketEventType } from '@bcms/types';
+import { BCMSRouteProtection } from '@bcms/util';
 
 export const BCMSShimUserController = createController<{
   refreshTokenService: RefreshTokenService;
@@ -44,7 +44,7 @@ export const BCMSShimUserController = createController<{
       getAll: createControllerMethod({
         path: '/all',
         type: 'get',
-        preRequestHandler: createJwtProtectionPreRequestHandler(
+        preRequestHandler: BCMSRouteProtection.createJwtPreRequestHandler(
           [JWTRoleName.ADMIN, JWTRoleName.USER],
           JWTPermissionName.READ,
         ),

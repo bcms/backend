@@ -1,5 +1,6 @@
 import { bcmsResCode } from '@bcms/response-code';
 import { BCMSApiKeySecurity } from '@bcms/security';
+import { BCMSRouteProtection } from '@bcms/util';
 import {
   createController,
   createControllerMethod,
@@ -7,7 +8,6 @@ import {
   useLogger,
 } from '@becomes/purple-cheetah';
 import {
-  createJwtProtectionPreRequestHandler,
   useJwt,
 } from '@becomes/purple-cheetah-mod-jwt';
 import {
@@ -47,7 +47,7 @@ export const BCMSFunctionController = createController<Setup>({
         path: '/available',
         type: 'get',
         preRequestHandler:
-          createJwtProtectionPreRequestHandler<BCMSUserCustomPool>(
+          BCMSRouteProtection.createJwtPreRequestHandler(
             [JWTRoleName.ADMIN, JWTRoleName.USER],
             JWTPermissionName.READ,
           ),
@@ -68,7 +68,7 @@ export const BCMSFunctionController = createController<Setup>({
       >({
         path: '/all',
         type: 'get',
-        preRequestHandler: createJwtProtectionPreRequestHandler(
+        preRequestHandler: BCMSRouteProtection.createJwtPreRequestHandler(
           [JWTRoleName.ADMIN],
           JWTPermissionName.READ,
         ),

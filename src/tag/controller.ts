@@ -1,5 +1,5 @@
 import type {
-  BCMSJWTAndBodyCheckerRouteProtectionResult,
+  BCMSRouteProtectionJwtAndBodyCheckResult,
   BCMSUserCustomPool,
 } from '@bcms/types';
 import {
@@ -9,12 +9,11 @@ import {
   BCMSTagUpdateData,
   BCMSTagUpdateDataSchema,
 } from '@bcms/types/tag';
-import { createJwtAndBodyCheckRouteProtection } from '@bcms/util';
+import { BCMSRouteProtection } from '@bcms/util';
 import {
   createController,
   createControllerMethod,
 } from '@becomes/purple-cheetah';
-import { createJwtProtectionPreRequestHandler } from '@becomes/purple-cheetah-mod-jwt';
 import {
   JWTPermissionName,
   JWTPreRequestHandlerResult,
@@ -33,7 +32,7 @@ export const BCMSTagController = createController({
       >({
         path: '/all',
         type: 'get',
-        preRequestHandler: createJwtProtectionPreRequestHandler(
+        preRequestHandler: BCMSRouteProtection.createJwtPreRequestHandler(
           [JWTRoleName.ADMIN, JWTRoleName.USER],
           JWTPermissionName.READ,
         ),
@@ -49,7 +48,7 @@ export const BCMSTagController = createController({
       >({
         path: '/many',
         type: 'get',
-        preRequestHandler: createJwtProtectionPreRequestHandler(
+        preRequestHandler: BCMSRouteProtection.createJwtPreRequestHandler(
           [JWTRoleName.ADMIN, JWTRoleName.USER],
           JWTPermissionName.READ,
         ),
@@ -66,7 +65,7 @@ export const BCMSTagController = createController({
       >({
         path: '/:id',
         type: 'get',
-        preRequestHandler: createJwtProtectionPreRequestHandler(
+        preRequestHandler: BCMSRouteProtection.createJwtPreRequestHandler(
           [JWTRoleName.ADMIN, JWTRoleName.USER],
           JWTPermissionName.READ,
         ),
@@ -85,7 +84,7 @@ export const BCMSTagController = createController({
       >({
         path: '/value/:value',
         type: 'get',
-        preRequestHandler: createJwtProtectionPreRequestHandler(
+        preRequestHandler: BCMSRouteProtection.createJwtPreRequestHandler(
           [JWTRoleName.ADMIN, JWTRoleName.USER],
           JWTPermissionName.READ,
         ),
@@ -99,15 +98,16 @@ export const BCMSTagController = createController({
         },
       }),
       create: createControllerMethod<
-        BCMSJWTAndBodyCheckerRouteProtectionResult<BCMSTagCreateData>,
+        BCMSRouteProtectionJwtAndBodyCheckResult<BCMSTagCreateData>,
         { item: BCMSTag }
       >({
         type: 'post',
-        preRequestHandler: createJwtAndBodyCheckRouteProtection({
-          roleNames: [JWTRoleName.ADMIN, JWTRoleName.USER],
-          permissionName: JWTPermissionName.WRITE,
-          bodySchema: BCMSTagCreateDataSchema,
-        }),
+        preRequestHandler:
+          BCMSRouteProtection.createJwtAndBodyCheckPreRequestHandler({
+            roleNames: [JWTRoleName.ADMIN, JWTRoleName.USER],
+            permissionName: JWTPermissionName.WRITE,
+            bodySchema: BCMSTagCreateDataSchema,
+          }),
         async handler({ errorHandler, body, accessToken }) {
           return {
             item: await BCMSTagRequestHandler.create({
@@ -119,15 +119,16 @@ export const BCMSTagController = createController({
         },
       }),
       update: createControllerMethod<
-        BCMSJWTAndBodyCheckerRouteProtectionResult<BCMSTagUpdateData>,
+        BCMSRouteProtectionJwtAndBodyCheckResult<BCMSTagUpdateData>,
         { item: BCMSTag }
       >({
         type: 'put',
-        preRequestHandler: createJwtAndBodyCheckRouteProtection({
-          roleNames: [JWTRoleName.ADMIN, JWTRoleName.USER],
-          permissionName: JWTPermissionName.WRITE,
-          bodySchema: BCMSTagUpdateDataSchema,
-        }),
+        preRequestHandler:
+          BCMSRouteProtection.createJwtAndBodyCheckPreRequestHandler({
+            roleNames: [JWTRoleName.ADMIN, JWTRoleName.USER],
+            permissionName: JWTPermissionName.WRITE,
+            bodySchema: BCMSTagUpdateDataSchema,
+          }),
         async handler({ errorHandler, body, accessToken }) {
           return {
             item: await BCMSTagRequestHandler.update({
@@ -144,7 +145,7 @@ export const BCMSTagController = createController({
       >({
         path: '/:id',
         type: 'delete',
-        preRequestHandler: createJwtProtectionPreRequestHandler(
+        preRequestHandler: BCMSRouteProtection.createJwtPreRequestHandler(
           [JWTRoleName.ADMIN, JWTRoleName.USER],
           JWTPermissionName.DELETE,
         ),

@@ -33,17 +33,12 @@ import {
 } from './shim';
 import { BCMSUserController, createBcmsUserRepository } from './user';
 import { BCMSApiKeySecurity, createBcmsApiKeySecurity } from './security';
-import {
-  BCMSApiKeyCollection,
-  BCMSApiKeyController,
-  createBcmsApiKeyRepository,
-} from './api';
+import { BCMSApiKeyController, createBcmsApiKeyRepository } from './api';
 import { BCMSFunctionController, createBcmsFunctionModule } from './function';
 import { BCMSPluginController, createBcmsPluginModule } from './plugin';
 import { createBcmsEventModule } from './event';
 import { createBcmsJobModule } from './job';
 import {
-  BCMSLanguageCollection,
   BCMSLanguageController,
   createBcmsLanguageRepository,
 } from './language';
@@ -53,24 +48,15 @@ import {
   createBcmsMediaRepository,
   createBcmsMediaService,
 } from './media';
+import { BCMSStatusController, createBcmsStatusRepository } from './status';
 import {
-  BCMSStatusCollection,
-  BCMSStatusController,
-  createBcmsStatusRepository,
-} from './status';
-import {
-  BCMSTemplateCollection,
   BCMSTemplateController,
   createBcmsTemplateRepository,
 } from './template';
 import { BCMSWidgetController, createBcmsWidgetRepository } from './widget';
 import { createSocket } from '@becomes/purple-cheetah-mod-socket';
-import {
-  BCMSGroupCollection,
-  BCMSGroupController,
-  createBcmsGroupRepository,
-} from './group';
-import { BCMSPropCollection, createBcmsPropHandler } from './prop';
+import { BCMSGroupController, createBcmsGroupRepository } from './group';
+import { createBcmsPropHandler } from './prop';
 import {
   createBcmsEntryParser,
   BCMSEntryController,
@@ -87,24 +73,12 @@ import { createBcmsIdCounterRepository } from './id-counter';
 import { createBcmsFactories } from './factory';
 import { BCMSAuthController } from './auth';
 import { bcmsPostSetup, bcmsSetup } from './setup';
-import {
-  BCMSColorCollection,
-  BCMSColorController,
-  createBcmsColorRepository,
-} from './color';
-import {
-  BCMSTagCollection,
-  BCMSTagController,
-  createBcmsTagRepository,
-} from './tag';
+import { BCMSColorController, createBcmsColorRepository } from './color';
+import { BCMSTagController, createBcmsTagRepository } from './tag';
 import { BCMSTypeConverterController } from './type-converter';
 import { BCMSSearchController } from './search';
 import { BCMSChangeController, createBcmsChangeRepository } from './change';
 import { loadBcmsResponseCodes } from './response-code';
-import { createGraphql } from '@becomes/purple-cheetah-mod-graphql';
-import { BCMSTemplateOrganizerCollection } from './template-organizer/collection';
-import { BCMSMediaCollection } from './media/collection';
-import { BCMSWidgetCollection } from './widget/collection';
 
 const backend: BCMSBackend = {
   app: undefined as never,
@@ -312,27 +286,27 @@ async function initialize() {
 
   modules.push(createBcmsPluginModule(BCMSConfig));
 
-  modules.push(
-    createGraphql({
-      uri: '/api/gql',
-      // TODO: Disable in production
-      graphiql: true,
-      rootName: 'BCMS',
-      collections: [
-        BCMSApiKeyCollection,
-        BCMSPropCollection,
-        BCMSGroupCollection,
-        BCMSLanguageCollection,
-        BCMSMediaCollection,
-        BCMSColorCollection,
-        BCMSStatusCollection,
-        BCMSTagCollection,
-        BCMSTemplateCollection,
-        BCMSTemplateOrganizerCollection,
-        BCMSWidgetCollection,
-      ],
-    }),
-  );
+  // modules.push(
+  //   createGraphql({
+  //     uri: '/api/gql',
+  //     // TODO: Disable in production
+  //     graphiql: true,
+  //     rootName: 'BCMS',
+  //     collections: [
+  //       BCMSApiKeyCollection,
+  //       BCMSPropCollection,
+  //       BCMSGroupCollection,
+  //       BCMSLanguageCollection,
+  //       BCMSMediaCollection,
+  //       BCMSColorCollection,
+  //       BCMSStatusCollection,
+  //       BCMSTagCollection,
+  //       BCMSTemplateCollection,
+  //       BCMSTemplateOrganizerCollection,
+  //       BCMSWidgetCollection,
+  //     ],
+  //   }),
+  // );
 
   modules.push(bcmsPostSetup());
 

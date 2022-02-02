@@ -4,7 +4,7 @@ module.exports = {
   jwt: {
     scope: 'localhost',
     secret: 'secret',
-    expireIn: 600000000,
+    expireIn: 5000,
   },
   database: {
     prefix: 'bcms',

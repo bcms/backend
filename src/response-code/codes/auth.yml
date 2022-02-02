@@ -10,3 +10,5 @@ a005:
   msg: Invalid authorization.
 a006:
   msg: No permission to access "%path%".
+a007:
+  msg: You do not have permission to access "%resource%".

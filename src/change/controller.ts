@@ -1,6 +1,6 @@
 import { BCMSRepo } from '@bcms/repo';
-import type { BCMSJwtApiRouteProtectionPreRequestHandlerResult } from '@bcms/types';
-import { createJwtApiProtectionPreRequestHandler } from '@bcms/util';
+import type { BCMSRouteProtectionJwtApiResult } from '@bcms/types';
+import { BCMSRouteProtection } from '@bcms/util';
 import {
   createController,
   createControllerMethod,
@@ -34,12 +34,12 @@ export const BCMSChangeController = createController({
   methods() {
     return {
       getInfo: createControllerMethod<
-        BCMSJwtApiRouteProtectionPreRequestHandlerResult,
+        BCMSRouteProtectionJwtApiResult,
         GetInfoData
       >({
         path: '/info',
         type: 'get',
-        preRequestHandler: createJwtApiProtectionPreRequestHandler({
+        preRequestHandler: BCMSRouteProtection.createJwtApiPreRequestHandler({
           roleNames: [JWTRoleName.ADMIN, JWTRoleName.USER],
           permissionName: JWTPermissionName.READ,
         }),

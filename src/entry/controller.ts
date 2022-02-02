@@ -8,7 +8,6 @@ import {
   createControllerMethod,
   useObjectUtility,
 } from '@becomes/purple-cheetah';
-import { createJwtProtectionPreRequestHandler } from '@becomes/purple-cheetah-mod-jwt';
 import {
   JWTPermissionName,
   JWTRoleName,
@@ -27,9 +26,8 @@ import {
   BCMSEntryUpdateData,
   BCMSEntryUpdateDataSchema,
   BCMSSocketEventType,
-  BCMSUserCustomPool,
 } from '../types';
-import { createJwtApiProtectionPreRequestHandler } from '../util';
+import { BCMSRouteProtection } from '../util';
 import { useBcmsEntryParser } from './parser';
 
 interface Setup {
@@ -52,7 +50,7 @@ export const BCMSEntryController = createController<Setup>({
         path: '/many/lite',
         type: 'get',
         preRequestHandler:
-          createJwtProtectionPreRequestHandler<BCMSUserCustomPool>(
+          BCMSRouteProtection.createJwtPreRequestHandler(
             [JWTRoleName.ADMIN, JWTRoleName.USER],
             JWTPermissionName.READ,
           ),
@@ -67,7 +65,7 @@ export const BCMSEntryController = createController<Setup>({
       getAllByTemplateId: createControllerMethod({
         path: '/all/:tid',
         type: 'get',
-        preRequestHandler: createJwtApiProtectionPreRequestHandler({
+        preRequestHandler: BCMSRouteProtection.createJwtApiPreRequestHandler({
           roleNames: [JWTRoleName.ADMIN, JWTRoleName.USER],
           permissionName: JWTPermissionName.READ,
         }),
@@ -83,7 +81,7 @@ export const BCMSEntryController = createController<Setup>({
       getAllByTemplateIdParsed: createControllerMethod({
         path: '/all/:tid/parse',
         type: 'get',
-        preRequestHandler: createJwtApiProtectionPreRequestHandler({
+        preRequestHandler: BCMSRouteProtection.createJwtApiPreRequestHandler({
           roleNames: [JWTRoleName.ADMIN, JWTRoleName.USER],
           permissionName: JWTPermissionName.READ,
         }),
@@ -121,7 +119,7 @@ export const BCMSEntryController = createController<Setup>({
       getAllByTemplateIdLite: createControllerMethod({
         path: '/all/:tid/lite',
         type: 'get',
-        preRequestHandler: createJwtApiProtectionPreRequestHandler({
+        preRequestHandler: BCMSRouteProtection.createJwtApiPreRequestHandler({
           roleNames: [JWTRoleName.ADMIN, JWTRoleName.USER],
           permissionName: JWTPermissionName.READ,
         }),
@@ -138,7 +136,7 @@ export const BCMSEntryController = createController<Setup>({
       countByTemplateId: createControllerMethod({
         path: '/count/:tid',
         type: 'get',
-        preRequestHandler: createJwtApiProtectionPreRequestHandler({
+        preRequestHandler: BCMSRouteProtection.createJwtApiPreRequestHandler({
           roleNames: [JWTRoleName.ADMIN, JWTRoleName.USER],
           permissionName: JWTPermissionName.READ,
         }),
@@ -151,7 +149,7 @@ export const BCMSEntryController = createController<Setup>({
       getById: createControllerMethod({
         path: '/:tid/:eid',
         type: 'get',
-        preRequestHandler: createJwtApiProtectionPreRequestHandler({
+        preRequestHandler: BCMSRouteProtection.createJwtApiPreRequestHandler({
           roleNames: [JWTRoleName.ADMIN, JWTRoleName.USER],
           permissionName: JWTPermissionName.READ,
         }),
@@ -184,7 +182,7 @@ export const BCMSEntryController = createController<Setup>({
       getByIdParsed: createControllerMethod({
         path: '/:tid/:eid/parse',
         type: 'get',
-        preRequestHandler: createJwtApiProtectionPreRequestHandler({
+        preRequestHandler: BCMSRouteProtection.createJwtApiPreRequestHandler({
           roleNames: [JWTRoleName.ADMIN, JWTRoleName.USER],
           permissionName: JWTPermissionName.READ,
         }),
@@ -221,7 +219,7 @@ export const BCMSEntryController = createController<Setup>({
       getByIdLite: createControllerMethod({
         path: '/:tid/:eid/lite',
         type: 'get',
-        preRequestHandler: createJwtApiProtectionPreRequestHandler({
+        preRequestHandler: BCMSRouteProtection.createJwtApiPreRequestHandler({
           roleNames: [JWTRoleName.ADMIN, JWTRoleName.USER],
           permissionName: JWTPermissionName.READ,
         }),
@@ -243,7 +241,7 @@ export const BCMSEntryController = createController<Setup>({
       create: createControllerMethod({
         path: '/:tid',
         type: 'post',
-        preRequestHandler: createJwtApiProtectionPreRequestHandler({
+        preRequestHandler: BCMSRouteProtection.createJwtApiPreRequestHandler({
           roleNames: [JWTRoleName.ADMIN, JWTRoleName.USER],
           permissionName: JWTPermissionName.WRITE,
         }),
@@ -358,7 +356,7 @@ export const BCMSEntryController = createController<Setup>({
       update: createControllerMethod({
         path: '/:tid',
         type: 'put',
-        preRequestHandler: createJwtApiProtectionPreRequestHandler({
+        preRequestHandler: BCMSRouteProtection.createJwtApiPreRequestHandler({
           roleNames: [JWTRoleName.ADMIN, JWTRoleName.USER],
           permissionName: JWTPermissionName.WRITE,
         }),
@@ -455,7 +453,7 @@ export const BCMSEntryController = createController<Setup>({
       deleteById: createControllerMethod({
         path: '/:tid/:eid',
         type: 'delete',
-        preRequestHandler: createJwtApiProtectionPreRequestHandler({
+        preRequestHandler: BCMSRouteProtection.createJwtApiPreRequestHandler({
           roleNames: [JWTRoleName.ADMIN, JWTRoleName.USER],
           permissionName: JWTPermissionName.DELETE,
         }),

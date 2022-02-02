@@ -6,11 +6,11 @@ import type {
   BCMSGetAllSearchResultItem,
   BCMSSearchResultType,
 } from '@bcms/types';
+import { BCMSRouteProtection } from '@bcms/util';
 import {
   createController,
   createControllerMethod,
 } from '@becomes/purple-cheetah';
-import { createJwtProtectionPreRequestHandler } from '@becomes/purple-cheetah-mod-jwt';
 import {
   JWTPermissionName,
   JWTPreRequestHandlerResult,
@@ -28,7 +28,7 @@ export const BCMSSearchController = createController({
       >({
         path: '/all',
         type: 'get',
-        preRequestHandler: createJwtProtectionPreRequestHandler(
+        preRequestHandler: BCMSRouteProtection.createJwtPreRequestHandler(
           [JWTRoleName.ADMIN, JWTRoleName.USER],
           JWTPermissionName.READ,
         ),

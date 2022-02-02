@@ -4,7 +4,6 @@ import {
   useObjectUtility,
 } from '@becomes/purple-cheetah';
 import { createBcmsApiKeySecurityPreRequestHandler } from '../security';
-import { createJwtProtectionPreRequestHandler } from '@becomes/purple-cheetah-mod-jwt';
 import {
   JWTPermissionName,
   JWTPreRequestHandlerResult,
@@ -19,11 +18,11 @@ import {
   BCMSUserCustomPool,
   BCMSApiKey,
   BCMSFunctionManager,
-  BCMSJWTAndBodyCheckerRouteProtectionResult,
+  BCMSRouteProtectionJwtAndBodyCheckResult,
 } from '../types';
 import { BCMSRepo } from '@bcms/repo';
 import { useBcmsFunctionManger } from '@bcms/function';
-import { createJwtAndBodyCheckRouteProtection } from '@bcms/util';
+import { BCMSRouteProtection } from '@bcms/util';
 import { BCMSApiKeyRequestHandler } from './request-handler';
 
 interface Setup {
@@ -74,7 +73,7 @@ export const BCMSApiKeyController = createController<Setup>({
       >({
         path: '/count',
         type: 'get',
-        preRequestHandler: createJwtProtectionPreRequestHandler(
+        preRequestHandler: BCMSRouteProtection.createJwtPreRequestHandler(
           [JWTRoleName.ADMIN],
           JWTPermissionName.READ,
         ),
@@ -91,7 +90,7 @@ export const BCMSApiKeyController = createController<Setup>({
       >({
         path: '/all',
         type: 'get',
-        preRequestHandler: createJwtProtectionPreRequestHandler(
+        preRequestHandler: BCMSRouteProtection.createJwtPreRequestHandler(
           [JWTRoleName.ADMIN],
           JWTPermissionName.READ,
         ),
@@ -108,7 +107,7 @@ export const BCMSApiKeyController = createController<Setup>({
       >({
         path: '/:id',
         type: 'get',
-        preRequestHandler: createJwtProtectionPreRequestHandler(
+        preRequestHandler: BCMSRouteProtection.createJwtPreRequestHandler(
           [JWTRoleName.ADMIN],
           JWTPermissionName.READ,
         ),
@@ -123,11 +122,11 @@ export const BCMSApiKeyController = createController<Setup>({
       }),
 
       create: createControllerMethod<
-        BCMSJWTAndBodyCheckerRouteProtectionResult<BCMSApiKeyAddData>,
+        BCMSRouteProtectionJwtAndBodyCheckResult<BCMSApiKeyAddData>,
         { item: BCMSApiKey }
       >({
         type: 'post',
-        preRequestHandler: createJwtAndBodyCheckRouteProtection({
+        preRequestHandler: BCMSRouteProtection.createJwtAndBodyCheckPreRequestHandler({
           roleNames: [JWTRoleName.ADMIN],
           permissionName: JWTPermissionName.WRITE,
           bodySchema: BCMSApiKeyAddDataSchema,
@@ -146,11 +145,11 @@ export const BCMSApiKeyController = createController<Setup>({
       }),
 
       update: createControllerMethod<
-        BCMSJWTAndBodyCheckerRouteProtectionResult<BCMSApiKeyUpdateData>,
+        BCMSRouteProtectionJwtAndBodyCheckResult<BCMSApiKeyUpdateData>,
         { item: BCMSApiKey }
       >({
         type: 'put',
-        preRequestHandler: createJwtAndBodyCheckRouteProtection({
+        preRequestHandler: BCMSRouteProtection.createJwtAndBodyCheckPreRequestHandler({
           roleNames: [JWTRoleName.ADMIN],
           permissionName: JWTPermissionName.WRITE,
           bodySchema: BCMSApiKeyUpdateDataSchema,
@@ -172,7 +171,7 @@ export const BCMSApiKeyController = createController<Setup>({
       >({
         path: '/:id',
         type: 'delete',
-        preRequestHandler: createJwtProtectionPreRequestHandler(
+        preRequestHandler: BCMSRouteProtection.createJwtPreRequestHandler(
           [JWTRoleName.ADMIN],
           JWTPermissionName.DELETE,
         ),

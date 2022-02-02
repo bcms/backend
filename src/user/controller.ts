@@ -16,7 +16,6 @@ import {
   BCMSUser,
   BCMSSocketEventType,
 } from '../types';
-import { createJwtProtectionPreRequestHandler } from '@becomes/purple-cheetah-mod-jwt';
 import {
   JWT,
   JWTPermissionName,
@@ -26,6 +25,7 @@ import { BCMSRepo } from '@bcms/repo';
 import { BCMSFactory } from '@bcms/factory';
 import { bcmsResCode } from '@bcms/response-code';
 import { BCMSSocketManager } from '@bcms/socket';
+import { BCMSRouteProtection } from '@bcms/util';
 
 interface Setup {
   objectUtil: ObjectUtility;
@@ -44,11 +44,10 @@ export const BCMSUserController = createController<Setup>({
       count: createControllerMethod<unknown, { count: number }>({
         path: '/count',
         type: 'get',
-        preRequestHandler:
-          createJwtProtectionPreRequestHandler<BCMSUserCustomPool>(
-            [JWTRoleName.ADMIN, JWTRoleName.USER],
-            JWTPermissionName.READ,
-          ),
+        preRequestHandler: BCMSRouteProtection.createJwtPreRequestHandler(
+          [JWTRoleName.ADMIN, JWTRoleName.USER],
+          JWTPermissionName.READ,
+        ),
         async handler() {
           return {
             count: await BCMSRepo.user.count(),
@@ -58,11 +57,10 @@ export const BCMSUserController = createController<Setup>({
       getAll: createControllerMethod<unknown, { items: BCMSProtectedUser[] }>({
         path: '/all',
         type: 'get',
-        preRequestHandler:
-          createJwtProtectionPreRequestHandler<BCMSUserCustomPool>(
-            [JWTRoleName.ADMIN, JWTRoleName.USER],
-            JWTPermissionName.READ,
-          ),
+        preRequestHandler: BCMSRouteProtection.createJwtPreRequestHandler(
+          [JWTRoleName.ADMIN, JWTRoleName.USER],
+          JWTPermissionName.READ,
+        ),
         async handler() {
           return {
             items: (await BCMSRepo.user.findAll()).map((e: BCMSUser) => {
@@ -77,11 +75,10 @@ export const BCMSUserController = createController<Setup>({
       >({
         path: '',
         type: 'get',
-        preRequestHandler:
-          createJwtProtectionPreRequestHandler<BCMSUserCustomPool>(
-            [JWTRoleName.ADMIN, JWTRoleName.USER],
-            JWTPermissionName.READ,
-          ),
+        preRequestHandler: BCMSRouteProtection.createJwtPreRequestHandler(
+          [JWTRoleName.ADMIN, JWTRoleName.USER],
+          JWTPermissionName.READ,
+        ),
         async handler({ accessToken, errorHandler }) {
           const user = await BCMSRepo.user.findById(accessToken.payload.userId);
           if (!user) {
@@ -98,11 +95,10 @@ export const BCMSUserController = createController<Setup>({
       getById: createControllerMethod<unknown, { item: BCMSProtectedUser }>({
         path: '/:id',
         type: 'get',
-        preRequestHandler:
-          createJwtProtectionPreRequestHandler<BCMSUserCustomPool>(
-            [JWTRoleName.ADMIN, JWTRoleName.USER],
-            JWTPermissionName.READ,
-          ),
+        preRequestHandler: BCMSRouteProtection.createJwtPreRequestHandler(
+          [JWTRoleName.ADMIN, JWTRoleName.USER],
+          JWTPermissionName.READ,
+        ),
         async handler({ request, errorHandler }) {
           const user = await BCMSRepo.user.findById(request.params.id);
           if (!user) {
@@ -122,11 +118,10 @@ export const BCMSUserController = createController<Setup>({
       >({
         path: '',
         type: 'put',
-        preRequestHandler:
-          createJwtProtectionPreRequestHandler<BCMSUserCustomPool>(
-            [JWTRoleName.ADMIN, JWTRoleName.USER],
-            JWTPermissionName.READ,
-          ),
+        preRequestHandler: BCMSRouteProtection.createJwtPreRequestHandler(
+          [JWTRoleName.ADMIN, JWTRoleName.USER],
+          JWTPermissionName.READ,
+        ),
         async handler({ request, errorHandler, accessToken }) {
           const data: BCMSUserUpdateData = request.body;
           {

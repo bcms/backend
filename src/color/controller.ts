@@ -4,21 +4,20 @@ import {
   BCMSColorCreateDataSchema,
   BCMSColorUpdateData,
   BCMSColorUpdateDataSchema,
-  BCMSJWTAndBodyCheckerRouteProtectionResult,
+  BCMSRouteProtectionJwtAndBodyCheckResult,
   BCMSUserCustomPool,
 } from '@bcms/types';
 import {
   createController,
   createControllerMethod,
 } from '@becomes/purple-cheetah';
-import { createJwtProtectionPreRequestHandler } from '@becomes/purple-cheetah-mod-jwt';
 
 import {
   JWTPermissionName,
   JWTPreRequestHandlerResult,
   JWTRoleName,
 } from '@becomes/purple-cheetah-mod-jwt/types';
-import { createJwtAndBodyCheckRouteProtection } from '../util';
+import { BCMSRouteProtection } from '../util';
 import { BCMSColorRequestHandler } from './request-handler';
 
 export const BCMSColorController = createController({
@@ -32,7 +31,7 @@ export const BCMSColorController = createController({
       >({
         path: '/all',
         type: 'get',
-        preRequestHandler: createJwtProtectionPreRequestHandler(
+        preRequestHandler: BCMSRouteProtection.createJwtPreRequestHandler(
           [JWTRoleName.ADMIN, JWTRoleName.USER],
           JWTPermissionName.READ,
         ),
@@ -48,7 +47,7 @@ export const BCMSColorController = createController({
       >({
         path: '/many',
         type: 'get',
-        preRequestHandler: createJwtProtectionPreRequestHandler(
+        preRequestHandler: BCMSRouteProtection.createJwtPreRequestHandler(
           [JWTRoleName.ADMIN, JWTRoleName.USER],
           JWTPermissionName.READ,
         ),
@@ -65,7 +64,7 @@ export const BCMSColorController = createController({
       >({
         path: '/count',
         type: 'get',
-        preRequestHandler: createJwtProtectionPreRequestHandler(
+        preRequestHandler: BCMSRouteProtection.createJwtPreRequestHandler(
           [JWTRoleName.ADMIN, JWTRoleName.USER],
           JWTPermissionName.READ,
         ),
@@ -81,7 +80,7 @@ export const BCMSColorController = createController({
       >({
         path: '/:id',
         type: 'get',
-        preRequestHandler: createJwtProtectionPreRequestHandler(
+        preRequestHandler: BCMSRouteProtection.createJwtPreRequestHandler(
           [JWTRoleName.ADMIN, JWTRoleName.USER],
           JWTPermissionName.READ,
         ),
@@ -95,15 +94,16 @@ export const BCMSColorController = createController({
         },
       }),
       create: createControllerMethod<
-        BCMSJWTAndBodyCheckerRouteProtectionResult<BCMSColorCreateData>,
+        BCMSRouteProtectionJwtAndBodyCheckResult<BCMSColorCreateData>,
         { item: BCMSColor }
       >({
         type: 'post',
-        preRequestHandler: createJwtAndBodyCheckRouteProtection({
-          roleNames: [JWTRoleName.ADMIN],
-          permissionName: JWTPermissionName.WRITE,
-          bodySchema: BCMSColorCreateDataSchema,
-        }),
+        preRequestHandler:
+          BCMSRouteProtection.createJwtAndBodyCheckPreRequestHandler({
+            roleNames: [JWTRoleName.ADMIN],
+            permissionName: JWTPermissionName.WRITE,
+            bodySchema: BCMSColorCreateDataSchema,
+          }),
         async handler({ errorHandler, body, accessToken }) {
           return {
             item: await BCMSColorRequestHandler.create({
@@ -115,15 +115,16 @@ export const BCMSColorController = createController({
         },
       }),
       update: createControllerMethod<
-        BCMSJWTAndBodyCheckerRouteProtectionResult<BCMSColorUpdateData>,
+        BCMSRouteProtectionJwtAndBodyCheckResult<BCMSColorUpdateData>,
         { item: BCMSColor }
       >({
         type: 'put',
-        preRequestHandler: createJwtAndBodyCheckRouteProtection({
-          roleNames: [JWTRoleName.ADMIN, JWTRoleName.USER],
-          permissionName: JWTPermissionName.WRITE,
-          bodySchema: BCMSColorUpdateDataSchema,
-        }),
+        preRequestHandler:
+          BCMSRouteProtection.createJwtAndBodyCheckPreRequestHandler({
+            roleNames: [JWTRoleName.ADMIN, JWTRoleName.USER],
+            permissionName: JWTPermissionName.WRITE,
+            bodySchema: BCMSColorUpdateDataSchema,
+          }),
         async handler({ errorHandler, body, accessToken }) {
           return {
             item: await BCMSColorRequestHandler.update({
@@ -140,7 +141,7 @@ export const BCMSColorController = createController({
       >({
         path: '/:id',
         type: 'delete',
-        preRequestHandler: createJwtProtectionPreRequestHandler(
+        preRequestHandler: BCMSRouteProtection.createJwtPreRequestHandler(
           [JWTRoleName.ADMIN],
           JWTPermissionName.DELETE,
         ),

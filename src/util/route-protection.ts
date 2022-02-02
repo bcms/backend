@@ -1,5 +1,6 @@
+import { bcmsResCode } from '@bcms/response-code';
 import { BCMSApiKeySecurity } from '@bcms/security';
-import { useObjectUtility } from '@becomes/purple-cheetah';
+import { ObjectUtility } from '@becomes/purple-cheetah';
 import { useJwt } from '@becomes/purple-cheetah-mod-jwt';
 import {
   JWT,
@@ -9,85 +10,225 @@ import {
 } from '@becomes/purple-cheetah-mod-jwt/types';
 import {
   ControllerMethodPreRequestHandler,
+  HTTPError,
   HTTPStatus,
   ObjectSchema,
   ObjectUtilityError,
 } from '@becomes/purple-cheetah/types';
 import type {
   BCMSApiKey,
-  BCMSJWTAndBodyCheckerRouteProtectionResult,
+  BCMSRouteProtectionApiConfig,
+  BCMSRouteProtectionGQLRequest,
+  BCMSRouteProtectionJWTAndBodyCheckConfig,
+  BCMSRouteProtectionJwtAndBodyCheckResult,
+  BCMSRouteProtectionJWTConfig,
+  BCMSRouteProtectionRestRequest,
   BCMSUserCustomPool,
+  BCMSUserPolicy,
 } from '../types';
 
-export function createJwtAndBodyCheckRouteProtection<Body>(config: {
-  roleNames: JWTRoleName[];
-  permissionName: JWTPermissionName;
-  bodySchema: ObjectSchema;
-}): ControllerMethodPreRequestHandler<
-  BCMSJWTAndBodyCheckerRouteProtectionResult<Body>
-> {
-  const jwt = useJwt();
-  const objectUtil = useObjectUtility();
-
-  return async ({ request, errorHandler }) => {
-    const accessToken = jwt.get<BCMSUserCustomPool>({
-      jwtString: request.headers.authorization as string,
+export class BCMSRouteProtection {
+  static routeProtectionCheckPolicy({
+    errorHandler,
+    policy,
+    gql,
+    rest,
+  }: {
+    rest?: BCMSRouteProtectionRestRequest;
+    gql?: BCMSRouteProtectionGQLRequest;
+    policy: BCMSUserPolicy;
+    errorHandler: HTTPError;
+  }): void {
+    function restError(r: { path: string; method: string }) {
+      return errorHandler.occurred(
+        HTTPStatus.FORBIDDEN,
+        bcmsResCode('a007', { resource: `${r.method}: ${r.path}` }),
+      );
+    }
+    if (rest) {
+      rest.method = rest.method.toLowerCase();
+      const pathParts = rest.path.split('/').slice(1);
+      if (pathParts[0] === 'api') {
+        if (pathParts[1] === 'media') {
+          if (rest.method === 'get' && !policy.media.get) {
+            throw restError(rest);
+          } else if (rest.method === 'post' && !policy.media.post) {
+            throw restError(rest);
+          } else if (rest.method === 'put' && !policy.media.put) {
+            throw restError(rest);
+          } else if (rest.method === 'delete' && !policy.media.delete) {
+            throw restError(rest);
+          }
+        } else if (pathParts[1] === 'entry') {
+          const tPolicy = policy.templates.find(
+            (e) => e._id === rest.params.tid,
+          );
+          if (!tPolicy) {
+            throw restError(rest);
+          }
+          if (rest.method === 'get' && !tPolicy.get) {
+            throw restError(rest);
+          } else if (rest.method === 'post' && !tPolicy.post) {
+            throw restError(rest);
+          } else if (rest.method === 'put' && !tPolicy.put) {
+            throw restError(rest);
+          } else if (rest.method === 'delete' && !tPolicy.delete) {
+            throw restError(rest);
+          }
+        }
+      }
+    } else if (gql) {
+      // TODO
+    }
+  }
+  static jwt(config: BCMSRouteProtectionJWTConfig): JWT<BCMSUserCustomPool> {
+    const jwt = useJwt();
+    const token = jwt.get<BCMSUserCustomPool>({
+      jwtString: config.tokenString,
       roleNames: config.roleNames,
       permissionName: config.permissionName,
     });
-    if (accessToken instanceof JWTError) {
-      throw errorHandler.occurred(HTTPStatus.UNAUTHORIZED, accessToken.message);
+    if (token instanceof JWTError) {
+      throw config.errorHandler.occurred(
+        HTTPStatus.UNAUTHORIZED,
+        token.message,
+      );
     }
-    const checkBody = objectUtil.compareWithSchema(
-      request.body,
-      config.bodySchema,
-      'body',
-    );
-    if (checkBody instanceof ObjectUtilityError) {
-      throw errorHandler.occurred(HTTPStatus.BAD_REQUEST, checkBody.message);
+    if (token.payload.rls[0].name !== JWTRoleName.ADMIN) {
+      BCMSRouteProtection.routeProtectionCheckPolicy({
+        errorHandler: config.errorHandler,
+        policy: token.payload.props.policy,
+        gql: config.gql,
+        rest: config.rest,
+      });
     }
-
-    return {
-      accessToken,
-      body: request.body,
-    };
-  };
-}
-
-export function createJwtApiProtectionPreRequestHandler(config: {
-  roleNames: JWTRoleName[];
-  permissionName: JWTPermissionName;
-}): ControllerMethodPreRequestHandler<{
-  token?: JWT<BCMSUserCustomPool>;
-  key?: BCMSApiKey;
-}> {
-  const jwt = useJwt();
-
-  return async ({ request, errorHandler }) => {
-    if (request.query.signature) {
+    return token;
+  }
+  static async jwtApi({
+    j,
+    a,
+  }: {
+    j?: BCMSRouteProtectionJWTConfig;
+    a?: BCMSRouteProtectionApiConfig;
+  }): Promise<{
+    token?: JWT<BCMSUserCustomPool>;
+    key?: BCMSApiKey;
+  }> {
+    if (a) {
       try {
         const key = await BCMSApiKeySecurity.verify(
-          BCMSApiKeySecurity.httpRequestToApiKeyRequest(request),
+          BCMSApiKeySecurity.httpRequestToApiKeyRequest(a.request),
         );
         return {
           key,
         };
       } catch (err) {
         const error = err as Error;
-        throw errorHandler.occurred(HTTPStatus.UNAUTHORIZED, error.message);
+        throw a.errorHandler.occurred(HTTPStatus.UNAUTHORIZED, error.message);
       }
+    } else if (j) {
+      return { token: BCMSRouteProtection.jwt(j) };
     } else {
-      const token = jwt.get<BCMSUserCustomPool>({
-        jwtString: request.headers.authorization as string,
-        roleNames: config.roleNames,
-        permissionName: config.permissionName,
-      });
-      if (token instanceof JWTError) {
-        throw errorHandler.occurred(HTTPStatus.UNAUTHORIZED, token.message);
-      }
-      return {
-        token,
-      };
+      throw Error('JWT and Api are NULL.');
     }
-  };
+  }
+  static jwtBodyCheck<Body = unknown>(
+    config: BCMSRouteProtectionJWTAndBodyCheckConfig,
+  ): BCMSRouteProtectionJwtAndBodyCheckResult<Body> {
+    const token = BCMSRouteProtection.jwt(config);
+    const checkBody = ObjectUtility.compareWithSchema(
+      config.body,
+      config.bodySchema,
+      'body',
+    );
+    if (checkBody instanceof ObjectUtilityError) {
+      throw config.errorHandler.occurred(
+        HTTPStatus.BAD_REQUEST,
+        checkBody.message,
+      );
+    }
+
+    return {
+      accessToken: token,
+      body: config.body as Body,
+    };
+  }
+  static createJwtPreRequestHandler(
+    roleNames: JWTRoleName[],
+    permissionName: JWTPermissionName,
+  ): ControllerMethodPreRequestHandler<{
+    accessToken: JWT<BCMSUserCustomPool>;
+  }> {
+    return async ({ request, errorHandler }) => {
+      const accessToken = BCMSRouteProtection.jwt({
+        errorHandler,
+        permissionName: permissionName,
+        roleNames: roleNames,
+        tokenString: request.headers.authorization as string,
+        rest: {
+          path: request.originalUrl,
+          method: request.method,
+          params: request.params,
+        },
+      });
+
+      return {
+        accessToken,
+      };
+    };
+  }
+  static createJwtApiPreRequestHandler(config: {
+    roleNames: JWTRoleName[];
+    permissionName: JWTPermissionName;
+  }): ControllerMethodPreRequestHandler<{
+    token?: JWT<BCMSUserCustomPool>;
+    key?: BCMSApiKey;
+  }> {
+    return async ({ request, errorHandler }) => {
+      return await BCMSRouteProtection.jwtApi({
+        a: request.query.signature
+          ? {
+              errorHandler,
+              request,
+            }
+          : undefined,
+        j: !request.query.signature
+          ? {
+              errorHandler,
+              permissionName: config.permissionName,
+              roleNames: config.roleNames,
+              tokenString: request.headers.authorization as string,
+              rest: {
+                method: request.method,
+                params: request.params,
+                path: request.originalUrl,
+              },
+            }
+          : undefined,
+      });
+    };
+  }
+  static createJwtAndBodyCheckPreRequestHandler<Body>(config: {
+    roleNames: JWTRoleName[];
+    permissionName: JWTPermissionName;
+    bodySchema: ObjectSchema;
+  }): ControllerMethodPreRequestHandler<
+    BCMSRouteProtectionJwtAndBodyCheckResult<Body>
+  > {
+    return async ({ request, errorHandler }) => {
+      return BCMSRouteProtection.jwtBodyCheck({
+        body: request.body,
+        bodySchema: config.bodySchema,
+        errorHandler: errorHandler,
+        permissionName: config.permissionName,
+        roleNames: config.roleNames,
+        tokenString: request.headers.authorization as string,
+        rest: {
+          path: request.originalUrl,
+          method: request.method,
+          params: request.params,
+        },
+      });
+    };
+  }
 }
