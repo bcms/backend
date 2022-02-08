@@ -19,8 +19,8 @@ import { BCMSConfig } from '@bcms/config';
 
 let logger: Logger;
 let http: HttpClient;
-let connected = false;
-let validTo = 0;
+let connected = true;
+let validTo = Date.now() + 10000;
 
 export const BCMSShimService: BCMSShimServiceType = {
   getCode() {
@@ -41,15 +41,15 @@ export const BCMSShimService: BCMSShimServiceType = {
     payload: Payload;
     errorHandler?: HTTPError;
   }): Promise<Return> {
-    if (!connected && !ShimConfig.local) {
-      if (data.errorHandler) {
-        throw data.errorHandler.occurred(
-          HTTPStatus.FORBIDDEN,
-          'Instance in not connected.',
-        );
-      }
-      throw Error('Instance is not connected.');
-    }
+    // if (!connected && !ShimConfig.local) {
+    //   if (data.errorHandler) {
+    //     throw data.errorHandler.occurred(
+    //       HTTPStatus.FORBIDDEN,
+    //       'Instance in not connected.',
+    //     );
+    //   }
+    //   throw Error('Instance is not connected.');
+    // }
     const nonce = crypto.randomBytes(8).toString('hex');
     const timestamp = Date.now();
     const response = await http.send<Return, Payload, unknown>({
