@@ -1,4 +1,5 @@
-const { createConfig, createTasks, Proc } = require('@banez/npm-tool');
+const { ChildProcess } = require('@banez/child_process');
+const { createConfig, createTasks } = require('@banez/npm-tool');
 const path = require('path');
 const util = require('util');
 const fs = require('fs');
@@ -91,7 +92,12 @@ async function createImage() {
     {
       title: 'Create docker image',
       task: async () => {
-        await Proc.spawn('docker', ['build', '.', '-t', 'becomes/cms-backend']);
+        await ChildProcess.spawn('docker', [
+          'build',
+          '.',
+          '-t',
+          'becomes/cms-backend',
+        ]);
       },
     },
     {
@@ -220,7 +226,7 @@ module.exports = createConfig({
       await tasks.run();
     },
     '--local-dev-pack': async () => {
-      await Proc.spawn('npm', ['pack'], {
+      await ChildProcess.spawn('npm', ['pack'], {
         cwd: path.join(process.cwd(), 'local-dev-dist'),
         stdio: 'inherit',
       });
