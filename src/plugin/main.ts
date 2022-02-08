@@ -54,14 +54,15 @@ export function createBcmsPlugin(config: BCMSPluginConfig): BCMSPlugin {
 }
 
 export function createBcmsPluginModule(bcmsConfig: BCMSConfig): Module {
+  const logger = useLogger({ name: 'Plugin loader' });
   async function injectPaths(fs: FS, location: string) {
     const filesData = await bcmsGetDirFileTree(location, '');
     for (let i = 0; i < filesData.length; i++) {
       const fileData = filesData[i];
-      if (fileData.abs.endsWith('.js')) {
+      if (fileData.abs.endsWith('.js') || fileData.abs.endsWith('.ts')) {
         let file = (await fs.read(fileData.abs)).toString();
         file = file.replace(
-          '@becomes/cms-backend',
+          /@becomes\/cms-backend/g,
           path.join(process.cwd(), 'src'),
         );
         await util.promisify(fileSystem.writeFile)(fileData.abs, file);
@@ -159,16 +160,31 @@ export function createBcmsPluginModule(bcmsConfig: BCMSConfig): Module {
       dirPath: pluginDirPath,
       policy: plugin.default.policy,
     });
-    const verifyResult: { ok: boolean } = await BCMSShimService.send({
-      uri: `/instance/plugin/verify/${plugin.default.name}`,
-      payload: {},
-    });
+    try {
+      const verifyResult: { ok: boolean } = await BCMSShimService.send({
+        uri: `/instance/plugin/verify/${plugin.default.name}`,
+        payload: {},
+      });
 
-    if (!verifyResult.ok) {
-      data.logger.error(
-        '',
-        `Plugin "${plugin.default.name}" is denied by the BCMS Cloud.`,
-      );
+      if (!verifyResult.ok) {
+        data.logger.error(
+          '',
+          `Plugin "${plugin.default.name}" is denied by the BCMS Cloud.`,
+        );
+        return {
+          controllers: data.controllers,
+          middleware: data.middleware,
+        };
+      }
+    } catch (error) {
+      const err = error as Error;
+      data.logger.error('', {
+        message: `Plugin "${plugin.default.name}".`,
+        error: {
+          message: err.message,
+          stack: err.stack ? err.stack.split('\n') : '',
+        },
+      });
       return {
         controllers: data.controllers,
         middleware: data.middleware,
@@ -221,6 +237,7 @@ export function createBcmsPluginModule(bcmsConfig: BCMSConfig): Module {
         await ChildProcess.spawn('npm', ['i', '--save', `./plugins/${file}`], {
           stdio: 'ignore',
         });
+        logger.info('installed', `    ---- ${file}`);
       }
     }
   }
@@ -288,7 +305,6 @@ export function createBcmsPluginModule(bcmsConfig: BCMSConfig): Module {
       const addedPlugins: BCMSPluginInfo[] = [];
       const stringUtil = useStringUtility();
       const fs = useFS();
-      const logger = useLogger({ name: 'Plugin loader' });
 
       if (bcmsConfig.plugins && bcmsConfig.plugins.length > 0) {
         installLocalPlugins(fs)
