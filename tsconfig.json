@@ -12,13 +12,14 @@
     "outDir": "./dist/src",
     "baseUrl": "src",
     "rootDir": "src",
+    "skipLibCheck": true,
     "importsNotUsedAsValues": "error",
     "paths": {
       "@bcms/*": ["./*"],
       "@becomes/cms-backend/*": ["./*"]
     }
   },
-  "include": ["src/**/*", "plugins/**/*"],
+  "include": ["src/**/*"],
   "exclude": ["node_modules", "dist", "src/node_modules"],
   "typedocOptions": {
     "entryPoints": ["src"],
