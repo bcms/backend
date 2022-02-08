@@ -63,31 +63,7 @@ export const BCMSPluginController = createController<Setup>({
             const plugin = plugins[i];
             items.push({
               name: plugin.name,
-              policies: [
-                {
-                  type: 'checkbox',
-                  name: 'can_edit_projects',
-                  default: [''],
-                },
-                {
-                  type: 'input',
-                  name: 'build_limit',
-                },
-                {
-                  type: 'inputArray',
-                  name: 'roles',
-                },
-                {
-                  type: 'select',
-                  name: 'primary_build',
-                  options: ['Productions', 'Staging'],
-                },
-                {
-                  type: 'selectArray',
-                  name: 'allowed_to_build',
-                  options: ['Production', 'Staging', 'Preview'],
-                },
-              ], //await plugin.policy(),
+              policies: await plugin.policy(),
             });
           }
           return { items };
