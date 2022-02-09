@@ -1,3 +1,4 @@
+import { BCMSRepo } from '@bcms/repo';
 import { bcmsResCode } from '@bcms/response-code';
 import { BCMSApiKeySecurity } from '@bcms/security';
 import { ObjectUtility } from '@becomes/purple-cheetah';
@@ -28,7 +29,7 @@ import type {
 } from '../types';
 
 export class BCMSRouteProtection {
-  static routeProtectionCheckPolicy({
+  static async routeProtectionCheckPolicy({
     errorHandler,
     policy,
     gql,
@@ -38,7 +39,7 @@ export class BCMSRouteProtection {
     gql?: BCMSRouteProtectionGQLRequest;
     policy: BCMSUserPolicy;
     errorHandler: HTTPError;
-  }): void {
+  }): Promise<void> {
     function restError(r: { path: string; method: string }) {
       return errorHandler.occurred(
         HTTPStatus.FORBIDDEN,
@@ -60,20 +61,25 @@ export class BCMSRouteProtection {
             throw restError(rest);
           }
         } else if (pathParts[1] === 'entry') {
-          const tPolicy = policy.templates.find(
-            (e) => e._id === rest.params.tid,
+          const template = await BCMSRepo.template.methods.findByRef(
+            rest.params.tid,
           );
-          if (!tPolicy) {
-            throw restError(rest);
-          }
-          if (rest.method === 'get' && !tPolicy.get) {
-            throw restError(rest);
-          } else if (rest.method === 'post' && !tPolicy.post) {
-            throw restError(rest);
-          } else if (rest.method === 'put' && !tPolicy.put) {
-            throw restError(rest);
-          } else if (rest.method === 'delete' && !tPolicy.delete) {
-            throw restError(rest);
+          if (template) {
+            const tPolicy = policy.templates.find(
+              (e) => e._id === template._id,
+            );
+            if (!tPolicy) {
+              throw restError(rest);
+            }
+            if (rest.method === 'get' && !tPolicy.get) {
+              throw restError(rest);
+            } else if (rest.method === 'post' && !tPolicy.post) {
+              throw restError(rest);
+            } else if (rest.method === 'put' && !tPolicy.put) {
+              throw restError(rest);
+            } else if (rest.method === 'delete' && !tPolicy.delete) {
+              throw restError(rest);
+            }
           }
         }
       }
@@ -81,7 +87,9 @@ export class BCMSRouteProtection {
       // TODO
     }
   }
-  static jwt(config: BCMSRouteProtectionJWTConfig): JWT<BCMSUserCustomPool> {
+  static async jwt(
+    config: BCMSRouteProtectionJWTConfig,
+  ): Promise<JWT<BCMSUserCustomPool>> {
     const jwt = useJwt();
     const token = jwt.get<BCMSUserCustomPool>({
       jwtString: config.tokenString,
@@ -95,7 +103,7 @@ export class BCMSRouteProtection {
       );
     }
     if (token.payload.rls[0].name !== JWTRoleName.ADMIN) {
-      BCMSRouteProtection.routeProtectionCheckPolicy({
+      await BCMSRouteProtection.routeProtectionCheckPolicy({
         errorHandler: config.errorHandler,
         policy: token.payload.props.policy,
         gql: config.gql,
@@ -127,15 +135,15 @@ export class BCMSRouteProtection {
         throw a.errorHandler.occurred(HTTPStatus.UNAUTHORIZED, error.message);
       }
     } else if (j) {
-      return { token: BCMSRouteProtection.jwt(j) };
+      return { token: await BCMSRouteProtection.jwt(j) };
     } else {
       throw Error('JWT and Api are NULL.');
     }
   }
-  static jwtBodyCheck<Body = unknown>(
+  static async jwtBodyCheck<Body = unknown>(
     config: BCMSRouteProtectionJWTAndBodyCheckConfig,
-  ): BCMSRouteProtectionJwtAndBodyCheckResult<Body> {
-    const token = BCMSRouteProtection.jwt(config);
+  ): Promise<BCMSRouteProtectionJwtAndBodyCheckResult<Body>> {
+    const token = await BCMSRouteProtection.jwt(config);
     const checkBody = ObjectUtility.compareWithSchema(
       config.body,
       config.bodySchema,
@@ -160,7 +168,7 @@ export class BCMSRouteProtection {
     accessToken: JWT<BCMSUserCustomPool>;
   }> {
     return async ({ request, errorHandler }) => {
-      const accessToken = BCMSRouteProtection.jwt({
+      const accessToken = await BCMSRouteProtection.jwt({
         errorHandler,
         permissionName: permissionName,
         roleNames: roleNames,
@@ -216,7 +224,7 @@ export class BCMSRouteProtection {
     BCMSRouteProtectionJwtAndBodyCheckResult<Body>
   > {
     return async ({ request, errorHandler }) => {
-      return BCMSRouteProtection.jwtBodyCheck({
+      return await BCMSRouteProtection.jwtBodyCheck({
         body: request.body,
         bodySchema: config.bodySchema,
         errorHandler: errorHandler,
