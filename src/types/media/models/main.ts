@@ -114,14 +114,8 @@ export const BCMSMediaMongoDBSchema = new Schema({
     type: Boolean,
     required: true,
   },
-  altText: {
-    type: String,
-    required: true,
-  },
-  caption: {
-    type: String,
-    required: true,
-  },
+  altText: String,
+  caption: String,
   width: {
     type: Number,
     required: true,
