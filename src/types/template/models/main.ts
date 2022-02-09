@@ -69,10 +69,7 @@ export const BCMSTemplateMongoDBSchema = new Schema({
     type: String,
     required: true,
   },
-  desc: {
-    type: String,
-    required: true,
-  },
+  desc: String,
   userId: {
     type: String,
     required: true,

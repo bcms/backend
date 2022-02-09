@@ -74,10 +74,7 @@ export const BCMSWidgetMongoDBSchema = new Schema({
     type: String,
     required: true,
   },
-  desc: {
-    type: String,
-    required: true,
-  },
+  desc: String,
   previewImage: {
     type: String,
     required: true,
