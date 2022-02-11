@@ -13,6 +13,7 @@ import {
   BCMSSocketManagerScope,
   BCMSSocketMediaEvent,
   BCMSSocketRefreshEvent,
+  BCMSSocketSignOutEvent,
   BCMSSocketStatusEvent,
   BCMSSocketTagEvent,
   BCMSSocketTemplateEvent,
@@ -70,6 +71,17 @@ async function emit<Data>({
 
 export const BCMSSocketManager: BCMSSocketManagerType = {
   emit: {
+    async signOut(data) {
+      await emit<BCMSSocketSignOutEvent>({
+        socket: soc,
+        name: BCMSSocketEventName.SIGN_OUT,
+        data: {
+          t: BCMSSocketEventType.REMOVE,
+          u: data.userId,
+        },
+        userIds: [data.userId],
+      });
+    },
     async refresh(data) {
       await emit<BCMSSocketRefreshEvent>({
         socket: soc,

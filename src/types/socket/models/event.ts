@@ -14,6 +14,7 @@ export enum BCMSSocketEventName {
   TAG = 'TAG',
   CHANGE = 'CHANGE',
   REFRESH = 'REFRESH',
+  SIGN_OUT = 'SIGN_OUT',
 }
 
 // eslint-disable-next-line no-shadow
@@ -156,6 +157,16 @@ export interface BCMSSocketTagEvent {
   t: BCMSSocketEventType;
 }
 export interface BCMSSocketRefreshEvent {
+  /**
+   * User ID.
+   */
+  u: string;
+  /**
+   * Event type.
+   */
+  t: BCMSSocketEventType;
+}
+export interface BCMSSocketSignOutEvent {
   /**
    * User ID.
    */
