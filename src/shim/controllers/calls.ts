@@ -49,36 +49,56 @@ export const BCMSShimCallsController = createController({
               bodyCheck.message,
             );
           }
-          const cloudUser = (
-            await BCMSShimService.send<
-              {
-                user: BCMSCloudUser;
-              },
-              unknown
-            >({
-              uri: `/instance/user/${request.body._id}`,
-              payload: {},
-              errorHandler,
-            })
-          ).user;
-          const user = await BCMSRepo.user.findById(body._id);
-          if (user) {
-            await BCMSRepo.user.update(
-              BCMSFactory.user.cloudUserToUser(
-                cloudUser,
-                user.customPool.policy,
-              ),
-            );
-          } else {
-            await BCMSRepo.user.add(
-              BCMSFactory.user.cloudUserToUser(cloudUser),
-            );
+          let cloudUser: BCMSCloudUser | null = null;
+          try {
+            cloudUser = (
+              await BCMSShimService.send<
+                {
+                  user: BCMSCloudUser;
+                },
+                unknown
+              >({
+                uri: `/instance/user/${request.body._id}`,
+                payload: {},
+                errorHandler,
+              })
+            ).user;
+          } catch (err) {
+            cloudUser = null;
           }
-          BCMSSocketManager.emit.user({
-            type: BCMSSocketEventType.UPDATE,
-            userId: cloudUser._id,
-            userIds: 'all',
-          });
+          // Update user
+          if (cloudUser) {
+            const user = await BCMSRepo.user.findById(body._id);
+            if (user) {
+              await BCMSRepo.user.update(
+                BCMSFactory.user.cloudUserToUser(
+                  cloudUser,
+                  user.customPool.policy,
+                ),
+              );
+            } else {
+              await BCMSRepo.user.add(
+                BCMSFactory.user.cloudUserToUser(cloudUser),
+              );
+            }
+            BCMSSocketManager.emit.user({
+              type: BCMSSocketEventType.UPDATE,
+              userId: cloudUser._id,
+              userIds: 'all',
+            });
+          }
+          // Remove user
+          else {
+            await BCMSRepo.user.deleteById(body._id);
+            BCMSSocketManager.emit.user({
+              type: BCMSSocketEventType.REMOVE,
+              userId: body._id,
+              userIds: 'all',
+            });
+            BCMSSocketManager.emit.signOut({
+              userId: body._id,
+            });
+          }
 
           return {
             ok: true,
