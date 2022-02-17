@@ -47,7 +47,7 @@
   "devDependencies": {
     "@banez/npm-tool": "^1.0.1",
     "@becomes/cms-sdk": "^3.0.0-alpha.1",
-    "@becomes/cms-ui": "^3.0.0-alpha.1",
+    "@becomes/cms-ui": "^3.0.0-alpha.2",
     "@types/bcrypt": "^5.0.0",
     "@types/cron": "^1.7.2",
     "@types/express": "^4.17.9",
