@@ -176,15 +176,15 @@ module.exports = createConfig({
                 path.join(__dirname, 'local-dev-dist', file),
               );
             }
-          },
-        },
-        {
-          // TODO: Remove this set when prod is ready
-          title: 'Copy packs - DEV ONLY',
-          task: async () => {
             await fse.copy(
-              path.join(__dirname, 'packs'),
-              path.join(__dirname, 'local-dev-dist', 'packs'),
+              path.join(
+                process.cwd(),
+                'node_modules',
+                '@becomes',
+                'cms-ui',
+                'public',
+              ),
+              path.join(process.cwd(), 'local-dev-dist', 'public'),
             );
           },
         },
