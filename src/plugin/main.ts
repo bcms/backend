@@ -59,7 +59,7 @@ export function createBcmsPluginModule(bcmsConfig: BCMSConfig): Module {
     const filesData = await bcmsGetDirFileTree(location, '');
     for (let i = 0; i < filesData.length; i++) {
       const fileData = filesData[i];
-      if (fileData.abs.endsWith('.js') || fileData.abs.endsWith('.ts')) {
+      if (fileData.abs.endsWith('.js')) {
         let file = (await fs.read(fileData.abs)).toString();
         file = file.replace(
           /@becomes\/cms-backend/g,
