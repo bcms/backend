@@ -5,22 +5,46 @@ import {
   BCMSEvent,
   BCMSEventConfigMethod,
   BCMSEventConfigScope,
-  BCMSEventManager,
+  BCMSEventManager as BCMSEventManagerType,
   BCMSEventSchema,
 } from '../types';
 
-let eventManager: BCMSEventManager;
+export const BCMSEventManager: BCMSEventManagerType = {
+  async emit(scope, method, data) {
+    for (let i = 0; i < events.length; i++) {
+      const event = events[i];
+      if (
+        event.config.scope === BCMSEventConfigScope.ALL ||
+        event.config.scope === scope
+      ) {
+        if (
+          event.config.method === method ||
+          event.config.method === BCMSEventConfigMethod.ALL
+        ) {
+          try {
+            await event.handler({ scope, method, payload: data });
+          } catch (error) {
+            logger.error('emit', {
+              event,
+              error,
+            });
+          }
+        }
+      }
+    }
+  },
+};
+const events: BCMSEvent[] = [];
+const logger = useLogger({ name: 'Event manager' });
 
-export function useBcmsEventManager(): BCMSEventManager {
-  return eventManager;
+export function useBcmsEventManager(): BCMSEventManagerType {
+  return BCMSEventManager;
 }
 
 export function createBcmsEventModule(): Module {
   return {
     name: 'Event',
     initialize(moduleConfig) {
-      const events: BCMSEvent[] = [];
-      const logger = useLogger({ name: 'Event manager' });
       const fs = useFS();
       const objectUtil = useObjectUtility();
       const eventsPath = path.join(process.cwd(), 'events');
@@ -64,32 +88,6 @@ export function createBcmsEventModule(): Module {
                 events.push(event);
               }
             }
-
-            eventManager = {
-              async emit(scope, method, data) {
-                for (let i = 0; i < events.length; i++) {
-                  const event = events[i];
-                  if (
-                    event.config.scope === BCMSEventConfigScope.ALL ||
-                    event.config.scope === scope
-                  ) {
-                    if (
-                      event.config.method === method ||
-                      event.config.method === BCMSEventConfigMethod.ALL
-                    ) {
-                      try {
-                        await event.handler({ scope, method, payload: data });
-                      } catch (error) {
-                        logger.error('emit', {
-                          event,
-                          error,
-                        });
-                      }
-                    }
-                  }
-                }
-              },
-            };
           }
           moduleConfig.next();
         })
