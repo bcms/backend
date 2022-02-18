@@ -1,9 +1,12 @@
+import { BCMSEventManager } from '@bcms/event';
 import { BCMSFactory } from '@bcms/factory';
 import { BCMSPropHandler } from '@bcms/prop';
 import { BCMSRepo } from '@bcms/repo';
 import { bcmsResCode } from '@bcms/response-code';
 import { BCMSSocketManager } from '@bcms/socket';
 import {
+  BCMSEventConfigMethod,
+  BCMSEventConfigScope,
   BCMSGroup,
   BCMSGroupAddData,
   BCMSGroupLite,
@@ -93,6 +96,11 @@ export class BCMSGroupRequestHandler {
         bcmsResCode('grp003'),
       );
     }
+    BCMSEventManager.emit(
+      BCMSEventConfigScope.GROUP,
+      BCMSEventConfigMethod.ADD,
+      group,
+    );
     await BCMSSocketManager.emit.group({
       groupId: addedGroup._id,
       type: BCMSSocketEventType.UPDATE,
@@ -201,6 +209,11 @@ export class BCMSGroupRequestHandler {
         bcmsResCode('grp005'),
       );
     }
+    BCMSEventManager.emit(
+      BCMSEventConfigScope.GROUP,
+      BCMSEventConfigMethod.UPDATE,
+      group,
+    );
     await BCMSSocketManager.emit.group({
       groupId: updatedGroup._id,
       type: BCMSSocketEventType.UPDATE,
@@ -243,6 +256,11 @@ export class BCMSGroupRequestHandler {
     if (errors) {
       logger.error(name, errors);
     }
+    BCMSEventManager.emit(
+      BCMSEventConfigScope.GROUP,
+      BCMSEventConfigMethod.UPDATE,
+      group,
+    );
     await BCMSSocketManager.emit.group({
       groupId: group._id,
       type: BCMSSocketEventType.REMOVE,

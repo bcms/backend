@@ -3,14 +3,18 @@ import type { ObjectSchema } from '@becomes/purple-cheetah/types';
 // eslint-disable-next-line no-shadow
 export enum BCMSEventConfigScope {
   ALL = 'ALL',
+  API_KEY = 'API_KEY',
+  COLOR = 'COLOR',
   ENTRY = 'ENTRY',
   GROUP = 'GROUP',
   LANGUAGE = 'LANGUAGE',
   MEDIA = 'MEDIA',
+  STATUS = 'STATUS',
+  TAG = 'TAG',
   TEMPLATE = 'TEMPLATE',
+  TEMPLATE_ORGANIZER = 'TEMPLATE_ORGANIZER',
   USER = 'USER',
   WIDGET = 'WIDGET',
-  API_KEY = 'API_KEY',
 }
 
 // eslint-disable-next-line no-shadow

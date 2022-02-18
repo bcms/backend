@@ -1,3 +1,4 @@
+import { BCMSEventManager } from '@bcms/event';
 import { BCMSFactory } from '@bcms/factory';
 import { BCMSRepo } from '@bcms/repo';
 import { bcmsResCode } from '@bcms/response-code';
@@ -6,6 +7,8 @@ import {
   BCMSApiKey,
   BCMSApiKeyAddData,
   BCMSApiKeyUpdateData,
+  BCMSEventConfigMethod,
+  BCMSEventConfigScope,
   BCMSSocketEventType,
   BCMSUserCustomPool,
 } from '@bcms/types';
@@ -60,6 +63,11 @@ export class BCMSApiKeyRequestHandler {
         bcmsResCode('ak003'),
       );
     }
+    BCMSEventManager.emit(
+      BCMSEventConfigScope.API_KEY,
+      BCMSEventConfigMethod.ADD,
+      key,
+    );
     await BCMSSocketManager.emit.apiKey({
       apiKeyId: key._id,
       type: BCMSSocketEventType.UPDATE,
@@ -111,6 +119,11 @@ export class BCMSApiKeyRequestHandler {
         bcmsResCode('ak005'),
       );
     }
+    BCMSEventManager.emit(
+      BCMSEventConfigScope.API_KEY,
+      BCMSEventConfigMethod.UPDATE,
+      key,
+    );
     await BCMSSocketManager.emit.apiKey({
       apiKeyId: updatedKey._id,
       type: BCMSSocketEventType.UPDATE,
@@ -141,6 +154,11 @@ export class BCMSApiKeyRequestHandler {
         bcmsResCode('ak006'),
       );
     }
+    BCMSEventManager.emit(
+      BCMSEventConfigScope.API_KEY,
+      BCMSEventConfigMethod.DELETE,
+      key,
+    );
     await BCMSSocketManager.emit.apiKey({
       apiKeyId: key._id,
       type: BCMSSocketEventType.REMOVE,

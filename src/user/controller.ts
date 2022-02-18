@@ -15,6 +15,8 @@ import {
   BCMSUserUpdateData,
   BCMSUser,
   BCMSSocketEventType,
+  BCMSEventConfigScope,
+  BCMSEventConfigMethod,
 } from '../types';
 import {
   JWT,
@@ -26,6 +28,7 @@ import { BCMSFactory } from '@bcms/factory';
 import { bcmsResCode } from '@bcms/response-code';
 import { BCMSSocketManager } from '@bcms/socket';
 import { BCMSRouteProtection } from '@bcms/util';
+import { BCMSEventManager } from '@bcms/event';
 
 interface Setup {
   objectUtil: ObjectUtility;
@@ -192,6 +195,11 @@ export const BCMSUserController = createController<Setup>({
             );
           }
           const updatedUser = await BCMSRepo.user.update(user);
+          BCMSEventManager.emit(
+            BCMSEventConfigScope.USER,
+            BCMSEventConfigMethod.UPDATE,
+            updatedUser,
+          );
           await BCMSSocketManager.emit.user({
             userId: updatedUser._id,
             type: BCMSSocketEventType.UPDATE,

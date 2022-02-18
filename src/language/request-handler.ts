@@ -1,8 +1,11 @@
+import { BCMSEventManager } from '@bcms/event';
 import { BCMSFactory } from '@bcms/factory';
 import { BCMSRepo } from '@bcms/repo';
 import { bcmsResCode } from '@bcms/response-code';
 import { BCMSSocketManager } from '@bcms/socket';
 import {
+  BCMSEventConfigMethod,
+  BCMSEventConfigScope,
   BCMSLanguage,
   BCMSLanguageAddData,
   BCMSSocketEventType,
@@ -63,6 +66,11 @@ export class BCMSLanguageRequestHandler {
         bcmsResCode('lng003'),
       );
     }
+    BCMSEventManager.emit(
+      BCMSEventConfigScope.LANGUAGE,
+      BCMSEventConfigMethod.ADD,
+      addedLanguage,
+    );
     await BCMSSocketManager.emit.language({
       languageId: addedLanguage._id,
       type: BCMSSocketEventType.UPDATE,
@@ -95,6 +103,11 @@ export class BCMSLanguageRequestHandler {
         bcmsResCode('lng006'),
       );
     }
+    BCMSEventManager.emit(
+      BCMSEventConfigScope.LANGUAGE,
+      BCMSEventConfigMethod.DELETE,
+      lang,
+    );
     await BCMSSocketManager.emit.language({
       languageId: lang._id,
       type: BCMSSocketEventType.REMOVE,

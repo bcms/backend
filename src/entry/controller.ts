@@ -1,3 +1,4 @@
+import { BCMSEventManager } from '@bcms/event';
 import { BCMSFactory } from '@bcms/factory';
 import { BCMSPropHandler } from '@bcms/prop';
 import { BCMSRepo } from '@bcms/repo';
@@ -25,6 +26,8 @@ import {
   BCMSEntryParser,
   BCMSEntryUpdateData,
   BCMSEntryUpdateDataSchema,
+  BCMSEventConfigMethod,
+  BCMSEventConfigScope,
   BCMSSocketEventType,
 } from '../types';
 import { BCMSRouteProtection } from '../util';
@@ -49,11 +52,10 @@ export const BCMSEntryController = createController<Setup>({
       getManyLiteById: createControllerMethod({
         path: '/many/lite',
         type: 'get',
-        preRequestHandler:
-          BCMSRouteProtection.createJwtPreRequestHandler(
-            [JWTRoleName.ADMIN, JWTRoleName.USER],
-            JWTPermissionName.READ,
-          ),
+        preRequestHandler: BCMSRouteProtection.createJwtPreRequestHandler(
+          [JWTRoleName.ADMIN, JWTRoleName.USER],
+          JWTPermissionName.READ,
+        ),
         async handler({ request }) {
           const ids = (request.headers['x-bcms-ids'] as string).split('-');
           return {
@@ -339,6 +341,11 @@ export const BCMSEntryController = createController<Setup>({
               bcmsResCode('etr004'),
             );
           }
+          BCMSEventManager.emit(
+            BCMSEventConfigScope.ENTRY,
+            BCMSEventConfigMethod.ADD,
+            entry,
+          );
           await BCMSSocketManager.emit.entry({
             entryId: addedEntry._id,
             templateId: addedEntry.templateId,
@@ -436,6 +443,11 @@ export const BCMSEntryController = createController<Setup>({
               bcmsResCode('etr004'),
             );
           }
+          BCMSEventManager.emit(
+            BCMSEventConfigScope.ENTRY,
+            BCMSEventConfigMethod.UPDATE,
+            entry,
+          );
           await BCMSSocketManager.emit.entry({
             entryId: updatedEntry._id,
             templateId: updatedEntry.templateId,
@@ -473,6 +485,11 @@ export const BCMSEntryController = createController<Setup>({
               bcmsResCode('etr006'),
             );
           }
+          BCMSEventManager.emit(
+            BCMSEventConfigScope.ENTRY,
+            BCMSEventConfigMethod.DELETE,
+            entry,
+          );
           await BCMSSocketManager.emit.entry({
             entryId: entry._id,
             templateId: entry.templateId,

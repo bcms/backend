@@ -1,8 +1,11 @@
+import { BCMSEventManager } from '@bcms/event';
 import { BCMSFactory } from '@bcms/factory';
 import { BCMSRepo } from '@bcms/repo';
 import { bcmsResCode } from '@bcms/response-code';
 import { BCMSSocketManager } from '@bcms/socket';
 import {
+  BCMSEventConfigMethod,
+  BCMSEventConfigScope,
   BCMSSocketEventType,
   BCMSTemplateOrganizer,
   BCMSTemplateOrganizerCreateData,
@@ -58,6 +61,11 @@ export class BCMSTemplateOrganizerRequestHandler {
         bcmsResCode('tpo003'),
       );
     }
+    BCMSEventManager.emit(
+      BCMSEventConfigScope.TEMPLATE_ORGANIZER,
+      BCMSEventConfigMethod.ADD,
+      addedOrg,
+    );
     await BCMSSocketManager.emit.templateOrganizer({
       templateOrganizerId: addedOrg._id,
       type: BCMSSocketEventType.UPDATE,
@@ -118,6 +126,11 @@ export class BCMSTemplateOrganizerRequestHandler {
         bcmsResCode('tpo002'),
       );
     }
+    BCMSEventManager.emit(
+      BCMSEventConfigScope.TEMPLATE_ORGANIZER,
+      BCMSEventConfigMethod.UPDATE,
+      updatedTempOrg,
+    );
     await BCMSSocketManager.emit.templateOrganizer({
       templateOrganizerId: updatedTempOrg._id,
       type: BCMSSocketEventType.UPDATE,
@@ -149,6 +162,11 @@ export class BCMSTemplateOrganizerRequestHandler {
         bcmsResCode('tpo004'),
       );
     }
+    BCMSEventManager.emit(
+      BCMSEventConfigScope.TEMPLATE_ORGANIZER,
+      BCMSEventConfigMethod.DELETE,
+      tempOrg,
+    );
     await BCMSSocketManager.emit.templateOrganizer({
       templateOrganizerId: tempOrg._id,
       type: BCMSSocketEventType.REMOVE,

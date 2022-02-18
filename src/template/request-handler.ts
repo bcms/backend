@@ -1,3 +1,4 @@
+import { BCMSEventManager } from '@bcms/event';
 import { BCMSFactory } from '@bcms/factory';
 import { BCMSPropHandler } from '@bcms/prop';
 import { BCMSRepo } from '@bcms/repo';
@@ -5,6 +6,8 @@ import { bcmsResCode } from '@bcms/response-code';
 import { BCMSSocketManager } from '@bcms/socket';
 import {
   BCMSApiKey,
+  BCMSEventConfigMethod,
+  BCMSEventConfigScope,
   BCMSSocketEventType,
   BCMSTemplate,
   BCMSTemplateCreateData,
@@ -97,6 +100,11 @@ export class BCMSTemplateRequestHandler {
         bcmsResCode('tmp003'),
       );
     }
+    BCMSEventManager.emit(
+      BCMSEventConfigScope.TEMPLATE,
+      BCMSEventConfigMethod.ADD,
+      template,
+    );
     await BCMSSocketManager.emit.template({
       templateId: addedTemplate._id,
       type: BCMSSocketEventType.UPDATE,
@@ -238,6 +246,11 @@ export class BCMSTemplateRequestHandler {
         bcmsResCode('tmp005'),
       );
     }
+    BCMSEventManager.emit(
+      BCMSEventConfigScope.TEMPLATE,
+      BCMSEventConfigMethod.UPDATE,
+      template,
+    );
     await BCMSSocketManager.emit.template({
       templateId: updatedTemplate._id,
       type: BCMSSocketEventType.UPDATE,
@@ -302,6 +315,11 @@ export class BCMSTemplateRequestHandler {
         userIds: 'all',
       });
     }
+    BCMSEventManager.emit(
+      BCMSEventConfigScope.TEMPLATE,
+      BCMSEventConfigMethod.DELETE,
+      template,
+    );
     await BCMSSocketManager.emit.template({
       templateId: template._id,
       type: BCMSSocketEventType.REMOVE,

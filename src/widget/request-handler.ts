@@ -1,9 +1,12 @@
+import { BCMSEventManager } from '@bcms/event';
 import { BCMSFactory } from '@bcms/factory';
 import { BCMSPropHandler } from '@bcms/prop';
 import { BCMSRepo } from '@bcms/repo';
 import { bcmsResCode } from '@bcms/response-code';
 import { BCMSSocketManager } from '@bcms/socket';
 import {
+  BCMSEventConfigMethod,
+  BCMSEventConfigScope,
   BCMSSocketEventType,
   BCMSUserCustomPool,
   BCMSWidget,
@@ -94,6 +97,11 @@ export class BCMSWidgetRequestHandler {
         bcmsResCode('wid003'),
       );
     }
+    BCMSEventManager.emit(
+      BCMSEventConfigScope.WIDGET,
+      BCMSEventConfigMethod.ADD,
+      addedWidget,
+    );
     await BCMSSocketManager.emit.widget({
       widgetId: addedWidget._id,
       type: BCMSSocketEventType.UPDATE,
@@ -215,6 +223,11 @@ export class BCMSWidgetRequestHandler {
         bcmsResCode('wid005'),
       );
     }
+    BCMSEventManager.emit(
+      BCMSEventConfigScope.WIDGET,
+      BCMSEventConfigMethod.UPDATE,
+      updatedWidget,
+    );
     await BCMSSocketManager.emit.widget({
       widgetId: updatedWidget._id,
       type: BCMSSocketEventType.UPDATE,
@@ -257,6 +270,11 @@ export class BCMSWidgetRequestHandler {
     if (errors) {
       logger.error(name, errors);
     }
+    BCMSEventManager.emit(
+      BCMSEventConfigScope.WIDGET,
+      BCMSEventConfigMethod.DELETE,
+      widget,
+    );
     await BCMSSocketManager.emit.widget({
       widgetId: widget._id,
       type: BCMSSocketEventType.REMOVE,

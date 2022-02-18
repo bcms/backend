@@ -1,9 +1,12 @@
+import { BCMSEventManager } from '@bcms/event';
 import { BCMSFactory } from '@bcms/factory';
 import { BCMSPropHandler } from '@bcms/prop';
 import { BCMSRepo } from '@bcms/repo';
 import { bcmsResCode } from '@bcms/response-code';
 import { BCMSSocketManager } from '@bcms/socket';
 import {
+  BCMSEventConfigMethod,
+  BCMSEventConfigScope,
   BCMSSocketEventType,
   BCMSTag,
   BCMSTagCreateData,
@@ -108,6 +111,11 @@ export class BCMSTagRequestHandler {
         bcmsResCode('tag003'),
       );
     }
+    BCMSEventManager.emit(
+      BCMSEventConfigScope.TAG,
+      BCMSEventConfigMethod.ADD,
+      addedTag,
+    );
     await BCMSSocketManager.emit.tag({
       tagId: addedTag._id,
       type: BCMSSocketEventType.UPDATE,
@@ -161,6 +169,11 @@ export class BCMSTagRequestHandler {
         bcmsResCode('tag005'),
       );
     }
+    BCMSEventManager.emit(
+      BCMSEventConfigScope.TAG,
+      BCMSEventConfigMethod.UPDATE,
+      updatedTag,
+    );
     await BCMSSocketManager.emit.tag({
       tagId: updatedTag._id,
       type: BCMSSocketEventType.UPDATE,
@@ -203,6 +216,11 @@ export class BCMSTagRequestHandler {
     if (errors) {
       logger.error(name, errors);
     }
+    BCMSEventManager.emit(
+      BCMSEventConfigScope.TAG,
+      BCMSEventConfigMethod.DELETE,
+      tag,
+    );
     await BCMSSocketManager.emit.tag({
       tagId: tag._id,
       type: BCMSSocketEventType.REMOVE,

@@ -1,9 +1,12 @@
 import { BCMSColorService } from '@bcms/color';
+import { BCMSEventManager } from '@bcms/event';
 import { BCMSFactory } from '@bcms/factory';
 import { BCMSRepo } from '@bcms/repo';
 import { bcmsResCode } from '@bcms/response-code';
 import { BCMSSocketManager } from '@bcms/socket';
 import {
+  BCMSEventConfigMethod,
+  BCMSEventConfigScope,
   BCMSSocketEventType,
   BCMSStatus,
   BCMSStatusCreateData,
@@ -77,6 +80,11 @@ export class BCMSStatusRequestHandler {
         bcmsResCode('sts003'),
       );
     }
+    BCMSEventManager.emit(
+      BCMSEventConfigScope.STATUS,
+      BCMSEventConfigMethod.ADD,
+      addedStatus,
+    );
     await BCMSSocketManager.emit.status({
       statusId: addedStatus._id,
       type: BCMSSocketEventType.UPDATE,
@@ -143,6 +151,11 @@ export class BCMSStatusRequestHandler {
         bcmsResCode('sts004'),
       );
     }
+    BCMSEventManager.emit(
+      BCMSEventConfigScope.STATUS,
+      BCMSEventConfigMethod.UPDATE,
+      updatedStatus,
+    );
     await BCMSSocketManager.emit.status({
       statusId: updatedStatus._id,
       type: BCMSSocketEventType.UPDATE,
@@ -177,6 +190,11 @@ export class BCMSStatusRequestHandler {
         bcmsResCode('sts005'),
       );
     }
+    BCMSEventManager.emit(
+      BCMSEventConfigScope.STATUS,
+      BCMSEventConfigMethod.DELETE,
+      status,
+    );
     await BCMSSocketManager.emit.status({
       statusId: status._id,
       type: BCMSSocketEventType.REMOVE,

@@ -5,6 +5,8 @@ import { BCMSFactory } from '@bcms/factory';
 import { BCMSRepo } from '@bcms/repo';
 import { bcmsResCode } from '@bcms/response-code';
 import {
+  BCMSEventConfigMethod,
+  BCMSEventConfigScope,
   BCMSMedia,
   BCMSMediaAddDirData,
   BCMSMediaAggregate,
@@ -21,6 +23,7 @@ import { HTTPError, HTTPStatus, Logger } from '@becomes/purple-cheetah/types';
 import { BCMSMediaService } from './service';
 import { BCMSSocketManager } from '@bcms/socket';
 import { BCMSPropHandler } from '@bcms/prop';
+import { BCMSEventManager } from '@bcms/event';
 export class BCMSMediaRequestHandler {
   static async getAll(): Promise<BCMSMedia[]> {
     return await BCMSRepo.media.findAll();
@@ -183,6 +186,11 @@ export class BCMSMediaRequestHandler {
         bcmsResCode('mda003'),
       );
     }
+    BCMSEventManager.emit(
+      BCMSEventConfigScope.MEDIA,
+      BCMSEventConfigMethod.ADD,
+      addedMedia,
+    );
 
     await BCMSSocketManager.emit.media({
       mediaId: addedMedia._id,
@@ -242,6 +250,11 @@ export class BCMSMediaRequestHandler {
       );
     }
     await BCMSMediaService.storage.mkdir(addedMedia);
+    BCMSEventManager.emit(
+      BCMSEventConfigScope.MEDIA,
+      BCMSEventConfigMethod.ADD,
+      addedMedia,
+    );
     await BCMSSocketManager.emit.media({
       mediaId: addedMedia._id,
       type: BCMSSocketEventType.UPDATE,
@@ -313,6 +326,11 @@ export class BCMSMediaRequestHandler {
         bcmsResCode('mda005'),
       );
     }
+    BCMSEventManager.emit(
+      BCMSEventConfigScope.MEDIA,
+      BCMSEventConfigMethod.UPDATE,
+      updateMedia,
+    );
     await BCMSSocketManager.emit.media({
       mediaId: updateMedia._id,
       type: BCMSSocketEventType.UPDATE,
@@ -406,6 +424,11 @@ export class BCMSMediaRequestHandler {
         bcmsResCode('mda003'),
       );
     }
+    BCMSEventManager.emit(
+      BCMSEventConfigScope.MEDIA,
+      BCMSEventConfigMethod.ADD,
+      duplicateMedia,
+    );
     await BCMSSocketManager.emit.media({
       mediaId: duplicateMedia._id,
       type: BCMSSocketEventType.UPDATE,
@@ -449,6 +472,11 @@ export class BCMSMediaRequestHandler {
     }
     const moveMedia = await BCMSRepo.media.update(media);
 
+    BCMSEventManager.emit(
+      BCMSEventConfigScope.MEDIA,
+      BCMSEventConfigMethod.UPDATE,
+      moveMedia,
+    );
     await BCMSSocketManager.emit.media({
       mediaId: media._id,
       type: BCMSSocketEventType.UPDATE,
@@ -505,6 +533,11 @@ export class BCMSMediaRequestHandler {
     if (errors) {
       logger.error(name, errors);
     }
+    BCMSEventManager.emit(
+      BCMSEventConfigScope.MEDIA,
+      BCMSEventConfigMethod.DELETE,
+      media,
+    );
     await BCMSSocketManager.emit.media({
       mediaId: media._id,
       type: BCMSSocketEventType.REMOVE,

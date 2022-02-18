@@ -1,3 +1,4 @@
+import { BCMSEventManager } from '@bcms/event';
 import { BCMSFactory } from '@bcms/factory';
 import { BCMSRepo } from '@bcms/repo';
 import { bcmsResCode } from '@bcms/response-code';
@@ -6,6 +7,8 @@ import {
   BCMSColor,
   BCMSColorCreateData,
   BCMSColorUpdateData,
+  BCMSEventConfigMethod,
+  BCMSEventConfigScope,
   BCMSSocketEventType,
   BCMSUserCustomPool,
 } from '@bcms/types';
@@ -133,6 +136,11 @@ export class BCMSColorRequestHandler {
         bcmsResCode('grp003'),
       );
     }
+    BCMSEventManager.emit(
+      BCMSEventConfigScope.COLOR,
+      BCMSEventConfigMethod.ADD,
+      color,
+    );
     await BCMSSocketManager.emit.color({
       colorId: addedColor._id,
       type: BCMSSocketEventType.UPDATE,
@@ -184,6 +192,11 @@ export class BCMSColorRequestHandler {
         bcmsResCode('col005'),
       );
     }
+    BCMSEventManager.emit(
+      BCMSEventConfigScope.COLOR,
+      BCMSEventConfigMethod.UPDATE,
+      color,
+    );
     await BCMSSocketManager.emit.color({
       colorId: updatedColor._id,
       type: BCMSSocketEventType.UPDATE,
@@ -217,6 +230,11 @@ export class BCMSColorRequestHandler {
         bcmsResCode('col006'),
       );
     }
+    BCMSEventManager.emit(
+      BCMSEventConfigScope.COLOR,
+      BCMSEventConfigMethod.DELETE,
+      color,
+    );
     await BCMSSocketManager.emit.color({
       colorId: color._id,
       type: BCMSSocketEventType.REMOVE,
