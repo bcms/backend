@@ -56,16 +56,18 @@ export function createBcmsPlugin(config: BCMSPluginConfig): BCMSPlugin {
 export function createBcmsPluginModule(bcmsConfig: BCMSConfig): Module {
   const logger = useLogger({ name: 'Plugin loader' });
   async function injectPaths(fs: FS, location: string) {
-    const filesData = await bcmsGetDirFileTree(location, '');
-    for (let i = 0; i < filesData.length; i++) {
-      const fileData = filesData[i];
-      if (fileData.abs.endsWith('.js')) {
-        let file = (await fs.read(fileData.abs)).toString();
-        file = file.replace(
-          /@becomes\/cms-backend/g,
-          path.join(process.cwd(), 'src'),
-        );
-        await util.promisify(fileSystem.writeFile)(fileData.abs, file);
+    if (await fs.exist(location)) {
+      const filesData = await bcmsGetDirFileTree(location, '');
+      for (let i = 0; i < filesData.length; i++) {
+        const fileData = filesData[i];
+        if (fileData.abs.endsWith('.js')) {
+          let file = (await fs.read(fileData.abs)).toString();
+          file = file.replace(
+            /@becomes\/cms-backend/g,
+            path.join(process.cwd(), 'src'),
+          );
+          await util.promisify(fileSystem.writeFile)(fileData.abs, file);
+        }
       }
     }
   }
@@ -230,14 +232,20 @@ export function createBcmsPluginModule(bcmsConfig: BCMSConfig): Module {
     });
   }
   async function installLocalPlugins(fs: FS) {
-    const files = await fs.readdir(path.join(process.cwd(), 'plugins'));
-    for (let i = 0; i < files.length; i++) {
-      const file = files[i];
-      if (file.endsWith('.tgz')) {
-        await ChildProcess.spawn('npm', ['i', '--save', `./plugins/${file}`], {
-          stdio: 'ignore',
-        });
-        logger.info('installed', `    ---- ${file}`);
+    if (await fs.exist(path.join(process.cwd(), 'plugins'))) {
+      const files = await fs.readdir(path.join(process.cwd(), 'plugins'));
+      for (let i = 0; i < files.length; i++) {
+        const file = files[i];
+        if (file.endsWith('.tgz')) {
+          await ChildProcess.spawn(
+            'npm',
+            ['i', '--save', `./plugins/${file}`],
+            {
+              stdio: 'ignore',
+            },
+          );
+          logger.info('installed', `    ---- ${file}`);
+        }
       }
     }
   }
