@@ -87,6 +87,7 @@ export class BCMSRouteProtection {
       // TODO
     }
   }
+
   static async jwt(
     config: BCMSRouteProtectionJWTConfig,
   ): Promise<JWT<BCMSUserCustomPool>> {
@@ -112,6 +113,7 @@ export class BCMSRouteProtection {
     }
     return token;
   }
+
   static async jwtApi({
     j,
     a,
@@ -140,6 +142,7 @@ export class BCMSRouteProtection {
       throw Error('JWT and Api are NULL.');
     }
   }
+
   static async jwtBodyCheck<Body = unknown>(
     config: BCMSRouteProtectionJWTAndBodyCheckConfig,
   ): Promise<BCMSRouteProtectionJwtAndBodyCheckResult<Body>> {
@@ -161,6 +164,7 @@ export class BCMSRouteProtection {
       body: config.body as Body,
     };
   }
+
   static createJwtPreRequestHandler(
     roleNames: JWTRoleName[],
     permissionName: JWTPermissionName,
@@ -185,6 +189,7 @@ export class BCMSRouteProtection {
       };
     };
   }
+
   static createJwtApiPreRequestHandler(config: {
     roleNames: JWTRoleName[];
     permissionName: JWTPermissionName;
@@ -216,6 +221,7 @@ export class BCMSRouteProtection {
       });
     };
   }
+
   static createJwtAndBodyCheckPreRequestHandler<Body>(config: {
     roleNames: JWTRoleName[];
     permissionName: JWTPermissionName;

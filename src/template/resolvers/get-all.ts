@@ -33,7 +33,7 @@ export const BCMSTemplateGetAllResolver = createGraphqlResolver<
       permission: JWTPermissionName.READ,
       roles: [JWTRoleName.ADMIN, JWTRoleName.USER],
     });
-    return (await BCMSTemplateRequestHandler.getAll()).map((template) => {
+    return (await BCMSTemplateRequestHandler.getAll({})).map((template) => {
       return {
         ...template,
         props: BCMSFactory.prop.toGql(template.props),

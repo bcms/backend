@@ -117,7 +117,8 @@ export function createBcmsApiKeySecurity(): Module {
         if (
           path.startsWith('/api/key/access/list') ||
           path.startsWith('/api/type-converter') ||
-          path.startsWith('/api/changes/info')
+          path.startsWith('/api/changes/info') ||
+          path.startsWith('/api/template/all')
         ) {
           return true;
         } else if (path.startsWith('/api/media') && method === 'get') {
@@ -156,6 +157,7 @@ export function createBcmsApiKeySecurity(): Module {
                       // GET: /all/:templateId
                       // GET: /all/:templateId/lite
                       const templateId = params[1];
+                      console.log('HERE', templateId)
                       const accessPolicy = key.access.templates.find(
                         (e) => e._id === templateId || e.name === templateId,
                       );

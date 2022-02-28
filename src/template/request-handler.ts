@@ -19,7 +19,13 @@ import type { JWT } from '@becomes/purple-cheetah-mod-jwt/types';
 import { HTTPError, HTTPStatus, Logger } from '@becomes/purple-cheetah/types';
 
 export class BCMSTemplateRequestHandler {
-  static async getAll(): Promise<BCMSTemplate[]> {
+  static async getAll({ key }: { key?: BCMSApiKey }): Promise<BCMSTemplate[]> {
+    if (key) {
+      const templateIds = key.access.templates
+        .filter((e) => e.get)
+        .map((e) => e._id);
+      return await BCMSRepo.template.findAllById(templateIds);
+    }
     return await BCMSRepo.template.findAll();
   }
   static async getMany(ids: string[]): Promise<BCMSTemplate[]> {

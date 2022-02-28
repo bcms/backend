@@ -55,13 +55,22 @@ export const BCMSApiKeyController = createController<Setup>({
           }
           const templates = await BCMSRepo.template.findAll();
           let i = 0;
+          let update = false;
           while (i < apiKey.access.templates.length) {
             const tempAccess = apiKey.access.templates[i];
-            if (!templates.find((e) => e._id === tempAccess._id)) {
+            const template = templates.find((e) => e._id === tempAccess._id);
+            if (!template) {
               apiKey.access.templates.splice(i, 1);
             } else {
+              if (!tempAccess.name || tempAccess.name !== template.name) {
+                tempAccess.name = template.name;
+                update = true;
+              }
               i++;
             }
+          }
+          if (update) {
+            await BCMSRepo.apiKey.update(apiKey);
           }
           return apiKey.access;
         },
@@ -126,11 +135,12 @@ export const BCMSApiKeyController = createController<Setup>({
         { item: BCMSApiKey }
       >({
         type: 'post',
-        preRequestHandler: BCMSRouteProtection.createJwtAndBodyCheckPreRequestHandler({
-          roleNames: [JWTRoleName.ADMIN],
-          permissionName: JWTPermissionName.WRITE,
-          bodySchema: BCMSApiKeyAddDataSchema,
-        }),
+        preRequestHandler:
+          BCMSRouteProtection.createJwtAndBodyCheckPreRequestHandler({
+            roleNames: [JWTRoleName.ADMIN],
+            permissionName: JWTPermissionName.WRITE,
+            bodySchema: BCMSApiKeyAddDataSchema,
+          }),
         async handler({ body, errorHandler, accessToken }) {
           {
             return {
@@ -149,11 +159,12 @@ export const BCMSApiKeyController = createController<Setup>({
         { item: BCMSApiKey }
       >({
         type: 'put',
-        preRequestHandler: BCMSRouteProtection.createJwtAndBodyCheckPreRequestHandler({
-          roleNames: [JWTRoleName.ADMIN],
-          permissionName: JWTPermissionName.WRITE,
-          bodySchema: BCMSApiKeyUpdateDataSchema,
-        }),
+        preRequestHandler:
+          BCMSRouteProtection.createJwtAndBodyCheckPreRequestHandler({
+            roleNames: [JWTRoleName.ADMIN],
+            permissionName: JWTPermissionName.WRITE,
+            bodySchema: BCMSApiKeyUpdateDataSchema,
+          }),
         async handler({ body, errorHandler, accessToken }) {
           return {
             item: await BCMSApiKeyRequestHandler.update({

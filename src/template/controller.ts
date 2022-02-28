@@ -16,6 +16,7 @@ import {
   BCMSTemplateUpdateDataSchema,
   BCMSTemplate,
   BCMSRouteProtectionJwtAndBodyCheckResult,
+  BCMSApiKey,
 } from '../types';
 import { BCMSTemplateRequestHandler } from './request-handler';
 
@@ -25,18 +26,18 @@ export const BCMSTemplateController = createController({
   methods() {
     return {
       getAll: createControllerMethod<
-        JWTPreRequestHandlerResult<BCMSUserCustomPool>,
+        { key?: BCMSApiKey },
         { items: BCMSTemplate[] }
       >({
         path: '/all',
         type: 'get',
-        preRequestHandler: BCMSRouteProtection.createJwtPreRequestHandler(
-          [JWTRoleName.ADMIN, JWTRoleName.USER],
-          JWTPermissionName.READ,
-        ),
-        async handler() {
+        preRequestHandler: BCMSRouteProtection.createJwtApiPreRequestHandler({
+          roleNames: [JWTRoleName.ADMIN, JWTRoleName.USER],
+          permissionName: JWTPermissionName.READ,
+        }),
+        async handler({ key }) {
           return {
-            items: await BCMSTemplateRequestHandler.getAll(),
+            items: await BCMSTemplateRequestHandler.getAll({ key }),
           };
         },
       }),
