@@ -45,6 +45,3 @@ services:
       - type: bind
         source: ./functions
         target: /app/functions
-      - type: bind
-        source: ./plugins
-        target: /app/plugins
