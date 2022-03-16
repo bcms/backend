@@ -206,6 +206,8 @@ export class BCMSTemplateRequestHandler {
       const result = await BCMSPropHandler.applyPropChanges(
         template.props,
         body.propChanges,
+        undefined,
+        true,
       );
       if (result instanceof Error) {
         throw errorHandler.occurred(

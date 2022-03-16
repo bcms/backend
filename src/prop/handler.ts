@@ -470,7 +470,7 @@ export const BCMSPropHandler: BCMSPropHandlerType = {
     // TODO: Implement logic
     return;
   },
-  async applyPropChanges(_props, changes, level) {
+  async applyPropChanges(_props, changes, level, inTemplate) {
     if (!level) {
       level = 'props';
     }
@@ -704,7 +704,10 @@ export const BCMSPropHandler: BCMSPropHandlerType = {
       } else if (typeof change.update === 'object') {
         const update = change.update as BCMSPropChangeUpdate;
         const propToUpdateIndex = props.findIndex((e) => e.id === update.id);
-        if (propToUpdateIndex > 1) {
+        if (
+          (inTemplate && propToUpdateIndex > 1) ||
+          (!inTemplate && propToUpdateIndex !== -1)
+        ) {
           const propBuffer = props[propToUpdateIndex];
           if (propBuffer.label !== update.label) {
             const newName = stringUtil.toSlugUnderscore(update.label);
@@ -1099,16 +1102,17 @@ export const BCMSPropHandler: BCMSPropHandlerType = {
                   const entryId = valueData[j];
                   const entry = await BCMSRepo.entry.findById(entryId);
                   if (entry) {
-                    const parsedIndex = parsedProp.push({
-                      _id: '',
-                      createdAt: -1,
-                      updatedAt: -1,
-                      cid: '',
-                      templateId: '',
-                      userId: '',
-                      meta: {},
-                      content: {},
-                    }) - 1;
+                    const parsedIndex =
+                      parsedProp.push({
+                        _id: '',
+                        createdAt: -1,
+                        updatedAt: -1,
+                        cid: '',
+                        templateId: '',
+                        userId: '',
+                        meta: {},
+                        content: {},
+                      }) - 1;
                     for (let k = 0; k < entry.meta.length; k++) {
                       const entryMeta = entry.meta[k];
                       const lng = await BCMSRepo.language.methods.findByCode(
@@ -1225,13 +1229,14 @@ export const BCMSPropHandler: BCMSPropHandlerType = {
                         (e) => e.lng === lng.code,
                       );
                       if (entryContent) {
-                        parsedProp.content[lng.code] = await entryParser.parseContent({
-                          nodes: entryContent.nodes,
-                          maxDepth: 1,
-                          depth: 0,
-                          justLng: lng.code,
-                          level: `${level}.content`,
-                        });
+                        parsedProp.content[lng.code] =
+                          await entryParser.parseContent({
+                            nodes: entryContent.nodes,
+                            maxDepth: 1,
+                            depth: 0,
+                            justLng: lng.code,
+                            level: `${level}.content`,
+                          });
                       }
                       parsed[prop.name] = parsedProp;
                     }

@@ -33,6 +33,7 @@ export interface BCMSPropHandler {
     props: BCMSProp[],
     changes: BCMSPropChange[],
     level?: string,
+    inTemplate?: boolean,
   ): Promise<BCMSProp[] | Error>;
   parse(data: {
     meta: BCMSProp[];
