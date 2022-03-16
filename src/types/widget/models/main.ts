@@ -77,15 +77,12 @@ export const BCMSWidgetMongoDBSchema = new Schema({
   desc: String,
   previewImage: {
     type: String,
-    required: true,
   },
   previewScript: {
     type: String,
-    required: true,
   },
   previewStyle: {
     type: String,
-    required: true,
   },
   props: { type: [Object], required: true },
 });
