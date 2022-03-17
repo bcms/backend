@@ -116,7 +116,7 @@ export class BCMSTypeConverter {
       output = 'BCMSMediaParsed';
       imports.set(output, '@becomes/cms-client/types');
     } else if (prop.type === BCMSPropType.RICH_TEXT) {
-      output = 'BCMSRichTextParsed';
+      output = 'BCMSPropRichTextDataParsed';
       imports.set(output, '@becomes/cms-client/types');
     } else if (prop.type === BCMSPropType.TAG) {
       output = 'string';
