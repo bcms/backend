@@ -780,7 +780,7 @@ export const BCMSPropHandler: BCMSPropHandlerType = {
               props[propToUpdateIndex] = temp;
             } else if (update.move < 0 && propToUpdateIndex > 0) {
               if (propToUpdateIndex < 3) {
-                if (props[0].name !== 'title') {
+                if ((inTemplate && props[0].name !== 'title') || !inTemplate) {
                   const temp = JSON.parse(
                     JSON.stringify(props[propToUpdateIndex - 1]),
                   );
