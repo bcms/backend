@@ -185,10 +185,9 @@ export class BCMSTypeConverter {
           if (target.type === 'entry') {
             const languages = await BCMSRepo.language.findAll();
             typescriptProps = [
-              '  id: string;',
+              '  _id: string;',
               '  createdAt: number;',
               '  updatedAt: number;',
-              '  cid: string;',
               '  templateId: string;',
               '  userId: string;',
               '  status?: string;',
