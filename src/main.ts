@@ -79,6 +79,7 @@ import { BCMSTypeConverterController } from './type-converter';
 import { BCMSSearchController } from './search';
 import { BCMSChangeController, createBcmsChangeRepository } from './change';
 import { loadBcmsResponseCodes } from './response-code';
+import { BCMSBackupController } from './backup';
 
 const backend: BCMSBackend = {
   app: undefined as never,
@@ -225,6 +226,7 @@ async function initialize() {
     BCMSTypeConverterController,
     BCMSChangeController,
     BCMSSearchController,
+    BCMSBackupController,
   ];
   if (BCMSConfig.database.fs) {
     modules.push(
