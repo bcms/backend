@@ -19,6 +19,8 @@ import {
 } from '@becomes/purple-cheetah-mod-jwt/types';
 import { HTTPStatus, ObjectSchema } from '@becomes/purple-cheetah/types';
 import { BCMSRepo } from '../repo';
+import type { FSDBEntity } from '@becomes/purple-cheetah-mod-fsdb/types';
+import { BCMSMediaService } from '@bcms/media';
 
 interface CreateBackupBody {
   media?: boolean;
@@ -36,6 +38,16 @@ const DeleteBackupBodySchema: ObjectSchema = {
   hash: {
     __type: 'string',
     __required: false,
+  },
+};
+interface RestoreEntitiesBody {
+  type: keyof BCMSRepoType;
+  items: FSDBEntity[];
+}
+const RestoreEntitiesBodySchema: ObjectSchema = {
+  type: {
+    __type: 'string',
+    __required: true,
   },
 };
 
@@ -178,6 +190,63 @@ export const BCMSBackupController = createController({
               await fs.deleteFile(file);
             }
           }
+          return {
+            ok: true,
+          };
+        },
+      }),
+
+      restoreEntities: createControllerMethod<
+        BCMSRouteProtectionJwtAndBodyCheckResult<RestoreEntitiesBody>,
+        { ok: boolean }
+      >({
+        path: '/restore-entities',
+        type: 'post',
+        preRequestHandler:
+          BCMSRouteProtection.createJwtAndBodyCheckPreRequestHandler({
+            roleNames: [JWTRoleName.ADMIN],
+            permissionName: JWTPermissionName.WRITE,
+            bodySchema: RestoreEntitiesBodySchema,
+          }),
+        async handler({ body }) {
+          const itemsToAdd: FSDBEntity[] = [];
+          const dbItems = (await BCMSRepo[body.type].findAll()) as FSDBEntity[];
+          for (let i = 0; i < body.items.length; i++) {
+            const item = body.items[i];
+            if (!dbItems.find((e) => e._id === item._id)) {
+              itemsToAdd.push(item);
+            }
+          }
+          await BCMSRepo[body.type].addMany(itemsToAdd as never[]);
+          return {
+            ok: true,
+          };
+        },
+      }),
+
+      restoreMediaFile: createControllerMethod<unknown, { ok: boolean }>({
+        path: '/restore-media-file/:id',
+        type: 'post',
+        preRequestHandler: BCMSRouteProtection.createJwtPreRequestHandler(
+          [JWTRoleName.ADMIN],
+          JWTPermissionName.WRITE,
+        ),
+        async handler({ request, errorHandler }) {
+          const file = request.file as Express.Multer.File;
+          if (!file) {
+            throw errorHandler.occurred(
+              HTTPStatus.BAD_REQUEST,
+              'Missing file.',
+            );
+          }
+          const media = await BCMSRepo.media.findById(request.params.id);
+          if (!media) {
+            throw errorHandler.occurred(
+              HTTPStatus.BAD_REQUEST,
+              `Missing media index for "${request.params.id}"`,
+            );
+          }
+          await BCMSMediaService.storage.save(media, file.buffer);
           return {
             ok: true,
           };

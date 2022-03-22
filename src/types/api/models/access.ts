@@ -9,7 +9,7 @@ import {
  * Defines what specific Key can do with Template/Templates.
  */
 export interface BCMSApiKeyAccess {
-  templates: Array<BCMSUserPolicyCRUD & { _id: string; name: string }>;
+  templates: Array<BCMSUserPolicyCRUD & { _id: string; name?: string }>;
   functions: Array<{
     name: string;
   }>;
@@ -28,7 +28,7 @@ export const BCMSApiKeyAccessFSDBSchema: ObjectSchema = {
         },
         name: {
           __type: 'string',
-          __required: true,
+          __required: false,
         },
       },
     },

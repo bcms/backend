@@ -11,4 +11,5 @@ module.exports = {
     fs: true,
   },
   plugins: [],
+  bodySizeLimit: 102400000000
 };

@@ -79,7 +79,7 @@ import { BCMSTypeConverterController } from './type-converter';
 import { BCMSSearchController } from './search';
 import { BCMSChangeController, createBcmsChangeRepository } from './change';
 import { loadBcmsResponseCodes } from './response-code';
-import { BCMSBackupController } from './backup';
+import { BCMSBackupController, BCMSBackupMediaFileMiddleware } from './backup';
 
 const backend: BCMSBackend = {
   app: undefined as never,
@@ -198,12 +198,13 @@ async function initialize() {
   const middleware: Middleware[] = [
     createCorsMiddleware(),
     createBodyParserMiddleware({
-      limit: BCMSConfig.bodySizeLimit ? BCMSConfig.bodySizeLimit : undefined,
+      limit: BCMSConfig.bodySizeLimit ? BCMSConfig.bodySizeLimit : 1024000000,
     }),
     BCMSShimSecurityMiddleware,
     BCMSShimConnectionAccess,
     BCMSMediaMiddleware,
     BCMSUiAssetMiddleware,
+    BCMSBackupMediaFileMiddleware,
   ];
   const controllers: Controller[] = [
     BCMSAuthController,
