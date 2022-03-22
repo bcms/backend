@@ -72,7 +72,6 @@ export const BCMSTemplateMongoDBSchema = new Schema({
   desc: String,
   userId: {
     type: String,
-    required: true,
   },
   singleEntry: {
     type: Boolean,
