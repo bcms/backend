@@ -369,20 +369,36 @@ export const BCMSMediaController = createController<Setup>({
         },
       }),
 
-      createFile: createControllerMethod<
+      requestUploadToken: createControllerMethod<
         JWTPreRequestHandlerResult<BCMSUserCustomPool>,
-        { item: BCMSMedia }
+        { token: string }
       >({
-        path: '/file',
+        path: '/request-upload-token',
         type: 'post',
         preRequestHandler: BCMSRouteProtection.createJwtPreRequestHandler(
           [JWTRoleName.ADMIN, JWTRoleName.USER],
           JWTPermissionName.WRITE,
         ),
-        async handler({ request, errorHandler, accessToken, logger, name }) {
+        async handler({ accessToken }) {
+          return BCMSMediaRequestHandler.requestUploadToken({ accessToken });
+        },
+      }),
+
+      createFile: createControllerMethod<
+        // JWTPreRequestHandlerResult<BCMSUserCustomPool>,
+        void,
+        { item: BCMSMedia }
+      >({
+        path: '/file',
+        type: 'post',
+        // preRequestHandler: BCMSRouteProtection.createJwtPreRequestHandler(
+        //   [JWTRoleName.ADMIN, JWTRoleName.USER],
+        //   JWTPermissionName.WRITE,
+        // ),
+        async handler({ request, errorHandler, logger, name }) {
           return {
             item: await BCMSMediaRequestHandler.createFile({
-              accessToken,
+              uploadToken: request.headers['x-bcms-upload-token'] as string,
               errorHandler,
               logger,
               name,

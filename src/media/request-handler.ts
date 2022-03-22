@@ -25,6 +25,9 @@ import { BCMSSocketManager } from '@bcms/socket';
 import { BCMSPropHandler } from '@bcms/prop';
 import { BCMSEventManager } from '@bcms/event';
 export class BCMSMediaRequestHandler {
+  private static uploadTokens: {
+    [token: string]: JWT<BCMSUserCustomPool>;
+  } = {};
   static async getAll(): Promise<BCMSMedia[]> {
     return await BCMSRepo.media.findAll();
   }
@@ -104,21 +107,40 @@ export class BCMSMediaRequestHandler {
       parent: media,
     });
   }
-  static async createFile({
+  static async requestUploadToken({
     accessToken,
+  }: {
+    accessToken: JWT<BCMSUserCustomPool>;
+  }): Promise<{ token: string }> {
+    const token = crypto
+      .createHash('sha256')
+      .update(Date.now() + crypto.randomBytes(16).toString('hex'))
+      .digest('hex');
+    this.uploadTokens[token] = accessToken;
+    return { token };
+  }
+  static async createFile({
     errorHandler,
     parentId,
     file,
     logger,
     name,
+    uploadToken,
   }: {
-    accessToken: JWT<BCMSUserCustomPool>;
     errorHandler: HTTPError;
     name: string;
     logger: Logger;
     parentId: string;
+    uploadToken: string;
     file: Express.Multer.File | undefined;
   }): Promise<BCMSMedia> {
+    const accessToken = this.uploadTokens[uploadToken];
+    if (!accessToken) {
+      throw errorHandler.occurred(
+        HTTPStatus.UNAUTHORIZED,
+        'Missing or invalid token.',
+      );
+    }
     if (!file) {
       throw errorHandler.occurred(
         HTTPStatus.BAD_REQUEST,
@@ -199,6 +221,7 @@ export class BCMSMediaRequestHandler {
       excludeUserId: [accessToken.payload.userId],
     });
     await BCMSRepo.change.methods.updateAndIncByName('media');
+    delete this.uploadTokens[uploadToken];
     return addedMedia;
   }
   static async createDir({
