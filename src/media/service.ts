@@ -350,7 +350,7 @@ export const BCMSMediaService: BCMSMediaServiceType = {
           .slice(0, mediaPathParts.length - 1)
           .join('/');
         if (nameParts.ext === 'png') {
-          const output = await sharp(binary)
+          await sharp(binary)
             .resize({
               width: 300,
               withoutEnlargement: true,
@@ -358,13 +358,21 @@ export const BCMSMediaService: BCMSMediaServiceType = {
             .png({
               quality: 50,
             })
-            .toBuffer();
-          await fs.save(
-            path.join(process.cwd(), 'uploads', pathOnly, `300-${media.name}`),
-            output,
-          );
+            .toFile(
+              path.join(
+                process.cwd(),
+                'uploads',
+                pathOnly,
+                `300-${media.name}`,
+              ),
+            );
+          // .toBuffer();
+          // await fs.save(
+          //   path.join(process.cwd(), 'uploads', pathOnly, `300-${media.name}`),
+          //   output,
+          // );
         } else if (nameParts.ext === 'jpg' || nameParts.ext === 'jpeg') {
-          const output = await sharp(binary)
+          await sharp(binary)
             .resize({
               width: 300,
               withoutEnlargement: true,
@@ -372,11 +380,19 @@ export const BCMSMediaService: BCMSMediaServiceType = {
             .jpeg({
               quality: 50,
             })
-            .toBuffer();
-          await fs.save(
-            path.join(process.cwd(), 'uploads', pathOnly, `300-${media.name}`),
-            output,
-          );
+            .toFile(
+              path.join(
+                process.cwd(),
+                'uploads',
+                pathOnly,
+                `300-${media.name}`,
+              ),
+            );
+          // .toBuffer();
+          // await fs.save(
+          //   path.join(process.cwd(), 'uploads', pathOnly, `300-${media.name}`),
+          //   output,
+          // );
         }
       } else if (media.type === BCMSMediaType.VID) {
         try {
