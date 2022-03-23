@@ -107,11 +107,21 @@ export class BCMSMediaRequestHandler {
       parent: media,
     });
   }
-  static async requestUploadToken({
+  static validateUploadToken(
+    uploadToke: string,
+  ): JWT<BCMSUserCustomPool> | null {
+    if (this.uploadTokens[uploadToke]) {
+      const jwt = JSON.parse(JSON.stringify(this.uploadTokens[uploadToke]));
+      delete this.uploadTokens[uploadToke];
+      return jwt;
+    }
+    return null;
+  }
+  static requestUploadToken({
     accessToken,
   }: {
     accessToken: JWT<BCMSUserCustomPool>;
-  }): Promise<{ token: string }> {
+  }): { token: string } {
     const token = crypto
       .createHash('sha256')
       .update(Date.now() + crypto.randomBytes(16).toString('hex'))

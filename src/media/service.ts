@@ -1,4 +1,3 @@
-import * as sharp from 'sharp';
 import * as path from 'path';
 import { copyFile } from 'fs/promises';
 import { move as fseMove } from 'fs-extra';
@@ -345,55 +344,62 @@ export const BCMSMediaService: BCMSMediaServiceType = {
           name: media.name.split('.')[0],
           ext: media.name.split('.')[1].toLowerCase(),
         };
-        const mediaPathParts = pathToMedia.split('/');
-        const pathOnly = mediaPathParts
-          .slice(0, mediaPathParts.length - 1)
-          .join('/');
-        if (nameParts.ext === 'png') {
-          await sharp(binary)
-            .resize({
-              width: 300,
-              withoutEnlargement: true,
-            })
-            .png({
-              quality: 50,
-            })
-            .toFile(
-              path.join(
-                process.cwd(),
-                'uploads',
-                pathOnly,
-                `300-${media.name}`,
-              ),
-            );
-          // .toBuffer();
-          // await fs.save(
-          //   path.join(process.cwd(), 'uploads', pathOnly, `300-${media.name}`),
-          //   output,
-          // );
-        } else if (nameParts.ext === 'jpg' || nameParts.ext === 'jpeg') {
-          await sharp(binary)
-            .resize({
-              width: 300,
-              withoutEnlargement: true,
-            })
-            .jpeg({
-              quality: 50,
-            })
-            .toFile(
-              path.join(
-                process.cwd(),
-                'uploads',
-                pathOnly,
-                `300-${media.name}`,
-              ),
-            );
-          // .toBuffer();
-          // await fs.save(
-          //   path.join(process.cwd(), 'uploads', pathOnly, `300-${media.name}`),
-          //   output,
-          // );
+        if (
+          nameParts.ext === 'jpg' ||
+          nameParts.ext === 'jpeg' ||
+          nameParts.ext === 'png'
+        ) {
+          await BCMSFfmpeg.createImageThumbnail({ media });
         }
+        // const mediaPathParts = pathToMedia.split('/');
+        // const pathOnly = mediaPathParts
+        //   .slice(0, mediaPathParts.length - 1)
+        //   .join('/');
+        // if (nameParts.ext === 'png') {
+        //   await sharp(binary)
+        //     .resize({
+        //       width: 300,
+        //       withoutEnlargement: true,
+        //     })
+        //     .png({
+        //       quality: 50,
+        //     })
+        //     .toFile(
+        //       path.join(
+        //         process.cwd(),
+        //         'uploads',
+        //         pathOnly,
+        //         `300-${media.name}`,
+        //       ),
+        //     );
+        //   // .toBuffer();
+        //   // await fs.save(
+        //   //   path.join(process.cwd(), 'uploads', pathOnly, `300-${media.name}`),
+        //   //   output,
+        //   // );
+        // } else if (nameParts.ext === 'jpg' || nameParts.ext === 'jpeg') {
+        //   await sharp(binary)
+        //     .resize({
+        //       width: 300,
+        //       withoutEnlargement: true,
+        //     })
+        //     .jpeg({
+        //       quality: 50,
+        //     })
+        //     .toFile(
+        //       path.join(
+        //         process.cwd(),
+        //         'uploads',
+        //         pathOnly,
+        //         `300-${media.name}`,
+        //       ),
+        //     );
+        //   // .toBuffer();
+        //   // await fs.save(
+        //   //   path.join(process.cwd(), 'uploads', pathOnly, `300-${media.name}`),
+        //   //   output,
+        //   // );
+        // }
       } else if (media.type === BCMSMediaType.VID) {
         try {
           await BCMSFfmpeg.createVideoThumbnail({ media });

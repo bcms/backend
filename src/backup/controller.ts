@@ -20,7 +20,7 @@ import {
 import { HTTPStatus, ObjectSchema } from '@becomes/purple-cheetah/types';
 import { BCMSRepo } from '../repo';
 import type { FSDBEntity } from '@becomes/purple-cheetah-mod-fsdb/types';
-import { BCMSMediaService } from '@bcms/media';
+import { BCMSMediaRequestHandler, BCMSMediaService } from '@bcms/media';
 
 interface CreateBackupBody {
   media?: boolean;
@@ -224,13 +224,21 @@ export const BCMSBackupController = createController({
         },
       }),
 
-      restoreMediaFile: createControllerMethod<unknown, { ok: boolean }>({
+      restoreMediaFile: createControllerMethod<void, { ok: boolean }>({
         path: '/restore-media-file/:id',
         type: 'post',
-        preRequestHandler: BCMSRouteProtection.createJwtPreRequestHandler(
-          [JWTRoleName.ADMIN],
-          JWTPermissionName.WRITE,
-        ),
+        async preRequestHandler({ errorHandler, request }) {
+          if (
+            !BCMSMediaRequestHandler.validateUploadToken(
+              request.headers['x-bcms-upload-token'] as string,
+            )
+          ) {
+            throw errorHandler.occurred(
+              HTTPStatus.FORBIDDEN,
+              'Missing or invalid upload token.',
+            );
+          }
+        },
         async handler({ request, errorHandler }) {
           const file = request.file as Express.Multer.File;
           if (!file) {
