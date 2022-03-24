@@ -121,17 +121,24 @@ export class BCMSTypeConverter {
     } else if (prop.type === BCMSPropType.TAG) {
       output = 'string';
     } else if (prop.type === BCMSPropType.ENTRY_POINTER) {
-      const data = prop.defaultData as BCMSPropEntryPointerData;
-      const template = await BCMSRepo.template.findById(data.templateId);
-      if (template) {
-        output = toCamelCase(template.name) + 'Entry';
-        const path = `../entry/${template.name}`;
-        imports.set(output, path);
-        imports.addMetadata(output, path, {
-          name: template.name,
-          type: 'entry',
-          props: template.props,
-        });
+      const data = prop.defaultData as BCMSPropEntryPointerData[];
+      const outputTypes: string[] = [];
+      for (let j = 0; j < data.length; j++) {
+        const info = data[j];
+        const template = await BCMSRepo.template.findById(info.templateId);
+        if (template) {
+          outputTypes.push(toCamelCase(template.name) + 'Entry');
+          const path = `../entry/${template.name}`;
+          imports.set(output, path);
+          imports.addMetadata(output, path, {
+            name: template.name,
+            type: 'entry',
+            props: template.props,
+          });
+        }
+      }
+      if (outputTypes.length > 0) {
+        output = outputTypes.join(' | ');
       }
     }
     return { type: prop.array ? output + '[]' : output, imports };

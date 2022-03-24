@@ -21,6 +21,7 @@ import {
 import {
   BCMSEntryCreateData,
   BCMSEntryCreateDataSchema,
+  BCMSEntryLite,
   BCMSEntryMeta,
   BCMSEntryParsed,
   BCMSEntryParser,
@@ -129,8 +130,13 @@ export const BCMSEntryController = createController<Setup>({
           const entries = await BCMSRepo.entry.methods.findAllByTemplateId(
             request.params.tid,
           );
+          const items: BCMSEntryLite[] = [];
+          for (let i = 0; i < entries.length; i++) {
+            const item = entries[i];
+            items.push(BCMSFactory.entry.toLite(item));
+          }
           return {
-            items: entries.map((e) => BCMSFactory.entry.toLite(e)),
+            items,
           };
         },
       }),

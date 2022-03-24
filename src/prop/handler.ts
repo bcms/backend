@@ -40,6 +40,8 @@ import {
   BCMSEntryContentParsedItem,
   BCMSPropChangeTransform,
   BCMSEntryContentNode,
+  BCMSPropValueEntryPointer,
+  BCMSPropEntryPointerDataSchema,
 } from '../types';
 
 let objectUtil: ObjectUtility;
@@ -273,7 +275,17 @@ export const BCMSPropHandler: BCMSPropHandlerType = {
                   __type: 'array',
                   __required: true,
                   __child: {
-                    __type: 'string',
+                    __type: 'object',
+                    __content: {
+                      tid: {
+                        __type: 'string',
+                        __required: true,
+                      },
+                      eid: {
+                        __type: 'string',
+                        __required: true,
+                      },
+                    },
                   },
                 },
               },
@@ -282,10 +294,20 @@ export const BCMSPropHandler: BCMSPropHandlerType = {
             if (checkData instanceof ObjectUtilityError) {
               return Error(`[${level}.${prop.name}] -> ` + checkData.message);
             }
-            const propData = prop.defaultData as BCMSPropEntryPointerData;
-            const valueData = value.data as string[];
+            const propData = prop.defaultData as BCMSPropEntryPointerData[];
+            const valueData = value.data as BCMSPropValueEntryPointer[];
             for (let j = 0; j < valueData.length; j++) {
-              const entryId = valueData[j];
+              const valueInfo = valueData[j];
+              const propInfo = propData.find(
+                (e) => e.templateId === valueInfo.tid,
+              );
+              if (!propInfo) {
+                return Error(
+                  `[${level}.${prop.name}.${j}.templateId] -> ` +
+                    `Template ID "${valueInfo.tid}" is not allowed for this property.`,
+                );
+              }
+              const entryId = valueInfo.eid;
               if (entryId) {
                 const entry = await BCMSRepo.entry.findById(entryId);
                 if (!entry) {
@@ -294,11 +316,11 @@ export const BCMSPropHandler: BCMSPropHandlerType = {
                       `Entry with ID ${entryId} does not exist.`,
                   );
                 }
-                if (entry.templateId !== propData.templateId) {
+                if (entry.templateId !== propInfo.templateId) {
                   return Error(
                     `[${level}.${prop.name}.${j}] -> ` +
                       `Entry with ID ${entryId} does not belong` +
-                      ` to template "${propData.templateId}" but to` +
+                      ` to template "${propInfo.templateId}" but to` +
                       ` template "${entry.templateId}".`,
                   );
                 }
@@ -613,27 +635,49 @@ export const BCMSPropHandler: BCMSPropHandlerType = {
             _id: changeData._id,
           };
         } else if (prop.type === BCMSPropType.ENTRY_POINTER) {
-          const changeData = change.add.defaultData as BCMSPropEntryPointerData;
-          if (!changeData || !changeData.templateId) {
+          const changeData = change.add
+            .defaultData as BCMSPropEntryPointerData[];
+          if (!changeData) {
             return Error(
-              `[${level}.change.${i}.add.defaultData] ->` +
-                ` Missing prop "templateId".`,
+              `[${level}.change.${i}.add] ->` + ` Missing prop "defaultData".`,
             );
           }
-          const template = await BCMSRepo.template.findById(
-            changeData.templateId,
-          );
-          if (!template) {
-            return Error(
-              `[${level}.change.${i}.add.defaultData.templateId] ->` +
-                ` Template with ID "${changeData.templateId}" does not exist.`,
-            );
+          let defaultData = prop.defaultData as BCMSPropEntryPointerData[];
+          if (!defaultData) {
+            (prop.defaultData as BCMSPropEntryPointerData[]) = [];
+            defaultData = prop.defaultData as BCMSPropEntryPointerData[];
           }
-          (prop.defaultData as BCMSPropEntryPointerData) = {
-            displayProp: 'title',
-            entryIds: [],
-            templateId: changeData.templateId,
-          };
+          for (let j = 0; j < changeData.length; j++) {
+            const changeInfo = changeData[j];
+            if (!changeInfo || !changeInfo.templateId) {
+              return Error(
+                `[${level}.change.${i}.add.defaultData.${j}] ->` +
+                  ` Missing prop "templateId".`,
+              );
+            }
+            if (
+              defaultData.find((e) => e.templateId === changeInfo.templateId)
+            ) {
+              return Error(
+                `[${level}.change.${i}.add.defaultData.${j}.templateId] ->` +
+                  ` Template ID "${changeInfo.templateId}" is already added.`,
+              );
+            }
+            const template = await BCMSRepo.template.findById(
+              changeInfo.templateId,
+            );
+            if (!template) {
+              return Error(
+                `[${level}.change.${i}.add.defaultData.${j}.templateId] ->` +
+                  ` Template with ID "${changeInfo.templateId}" does not exist.`,
+              );
+            }
+            defaultData.push({
+              displayProp: 'title',
+              templateId: template._id,
+              entryIds: changeInfo.entryIds || [],
+            });
+          }
         } else if (prop.type === BCMSPropType.COLOR_PICKER) {
           const changeData = change.add.defaultData as BCMSPropColorPickerData;
           if (!changeData.options.length) {
@@ -797,6 +841,32 @@ export const BCMSPropHandler: BCMSPropHandlerType = {
             }
           } else {
             props[propToUpdateIndex] = propBuffer;
+          }
+          if (update.entryPointer) {
+            const check = objectUtil.compareWithSchema(
+              {
+                entryPointer: update.entryPointer,
+              },
+              {
+                entryPointer: {
+                  __type: 'array',
+                  __required: true,
+                  __child: {
+                    __type: 'object',
+                    __content: BCMSPropEntryPointerDataSchema,
+                  },
+                },
+              },
+            );
+            if (check instanceof ObjectUtilityError) {
+              return Error(`[${level}] -> ${check.message}`);
+            }
+            propBuffer.defaultData = update.entryPointer;
+          }
+          if (typeof update.array === 'boolean') {
+            if (propBuffer.type !== BCMSPropType.ENUMERATION) {
+              propBuffer.array = update.array;
+            }
           }
         }
       } else if (typeof change.transform === 'object') {
@@ -1085,115 +1155,34 @@ export const BCMSPropHandler: BCMSPropHandlerType = {
             }
           }
         } else if (prop.type === BCMSPropType.ENTRY_POINTER) {
-          const data = prop.defaultData as BCMSPropEntryPointerData;
-          const valueData = value.data as string[];
-          const template = await BCMSRepo.template.findById(data.templateId);
-          if (template) {
-            if (prop.array) {
-              if (depth === maxDepth) {
-                (parsed[prop.name] as BCMSPropEntryPointerData) = {
-                  displayProp: 'title',
-                  entryIds: valueData,
-                  templateId: template._id,
-                };
-              } else {
-                const parsedProp: BCMSPropEntryPointerDataParsed[] = [];
-                for (let j = 0; j < valueData.length; j++) {
-                  const entryId = valueData[j];
-                  const entry = await BCMSRepo.entry.findById(entryId);
-                  if (entry) {
-                    const parsedIndex =
-                      parsedProp.push({
-                        _id: '',
-                        createdAt: -1,
-                        updatedAt: -1,
-                        cid: '',
-                        templateId: '',
-                        userId: '',
-                        meta: {},
-                        content: {},
-                      }) - 1;
-                    for (let k = 0; k < entry.meta.length; k++) {
-                      const entryMeta = entry.meta[k];
-                      const lng = await BCMSRepo.language.methods.findByCode(
-                        entryMeta.lng,
-                      );
-                      if (lng && (!onlyLng || onlyLng === lng.code)) {
-                        parsedProp[parsedIndex].meta[lng.code] =
-                          await BCMSPropHandler.parse({
-                            maxDepth,
-                            meta: template.props,
-                            values: entryMeta.props,
-                            depth: depth + 1,
-                            level: `${level}.${prop.name}.${k}`,
-                          });
-                        parsedProp[parsedIndex]._id = entry._id;
-                        parsedProp[parsedIndex].cid = entry.cid;
-                        parsedProp[parsedIndex].createdAt = entry.createdAt;
-                        parsedProp[parsedIndex].updatedAt = entry.updatedAt;
-                        parsedProp[parsedIndex].templateId = entry.templateId;
-                        parsedProp[parsedIndex].userId = entry.userId;
-                        parsedProp[parsedIndex].status = entry.status;
-
-                        const entryParser = useBcmsEntryParser();
-                        const entryContent = entry.content.find(
-                          (e) => e.lng === lng.code,
-                        );
-                        if (entryContent) {
-                          parsedProp[parsedIndex].content[lng.code] =
-                            await entryParser.parseContent({
-                              nodes: entryContent.nodes,
-                              maxDepth: 1,
-                              depth: 0,
-                              justLng: lng.code,
-                              level: `${level}.content`,
-                            });
-                        }
-                      }
-                    }
-                  }
-                }
-                (parsed[prop.name] as BCMSPropEntryPointerDataParsed[]) =
-                  parsedProp;
-
-                // else {
-                //   const parsedProp: BCMSPropEntryPointerDataParsed = {
-                //     meta: {},
-                //     content: [],
-                //   };
-                //   const entryId = valueData[0];
-                //   const entry = await BCMSRepo.entry.findById(entryId);
-                //   if (entry) {
-                //     for (let k = 0; k < entry.meta.length; k++) {
-                //       const entryMeta = entry.meta[k];
-                //       const lng = await BCMSRepo.language.methods.findByCode(
-                //         entryMeta.lng,
-                //       );
-                //       if (lng && (!onlyLng || onlyLng === lng.code)) {
-                //         parsedProp.meta = await BCMSPropHandler.parse({
-                //           maxDepth,
-                //           meta: template.props,
-                //           values: entryMeta.props,
-                //           depth: depth + 1,
-                //           level: `${level}.${prop.name}.0`,
-                //         });
-                //         parsedProp.meta._id = entryId;
-                //       }
-                //     }
-                //   }
-                //   parsed[prop.name] = parsedProp;
-                // }
+          const valueData = value.data as BCMSPropValueEntryPointer[];
+          if (depth === maxDepth) {
+            const templateMap: {
+              [tid: string]: string[];
+            } = {};
+            for (let j = 0; j < valueData.length; j++) {
+              const valueInfo = valueData[j];
+              if (!templateMap[valueInfo.tid]) {
+                templateMap[valueInfo.tid] = [];
               }
-            } else {
-              if (depth === maxDepth) {
-                (parsed[prop.name] as BCMSPropEntryPointerData) = {
-                  displayProp: 'title',
-                  entryIds: [valueData[0]],
-                  templateId: template._id,
-                };
-              } else {
-                const entry = await BCMSRepo.entry.findById(valueData[0]);
-                if (entry) {
+              templateMap[valueInfo.tid].push(valueInfo.eid);
+            }
+            (parsed[prop.name] as BCMSPropEntryPointerData[]) = Object.keys(
+              templateMap,
+            ).map((tid) => {
+              return {
+                displayProp: 'title',
+                templateId: tid,
+                entryIds: templateMap[tid],
+              };
+            });
+          } else {
+            (parsed[prop.name] as BCMSPropEntryPointerDataParsed[]) = [];
+            for (let j = 0; j < valueData.length; j++) {
+              const valueInfo = valueData[j];
+              const template = await BCMSRepo.template.findById(valueInfo.tid);
+              if (template) {
+                if (prop.array) {
                   const parsedProp: BCMSPropEntryPointerDataParsed = {
                     _id: '',
                     createdAt: -1,
@@ -1204,43 +1193,134 @@ export const BCMSPropHandler: BCMSPropHandlerType = {
                     meta: {},
                     content: {},
                   };
-                  for (let j = 0; j < entry.meta.length; j++) {
-                    const entryMeta = entry.meta[j];
-                    const lng = await BCMSRepo.language.methods.findByCode(
-                      entryMeta.lng,
-                    );
-                    if (lng) {
-                      parsedProp.meta[lng.code] = await BCMSPropHandler.parse({
-                        maxDepth,
-                        meta: template.props,
-                        values: entryMeta.props,
-                        depth: depth + 1,
-                        level: `${level}.${prop.name}`,
-                      });
-                      parsedProp.cid = entry.cid;
-                      parsedProp._id = entry._id;
-                      parsedProp.createdAt = entry.createdAt;
-                      parsedProp.updatedAt = entry.updatedAt;
-                      parsedProp.templateId = entry.templateId;
-                      parsedProp.userId = entry.userId;
-                      parsedProp.status = entry.status;
-                      const entryParser = useBcmsEntryParser();
-                      const entryContent = entry.content.find(
-                        (e) => e.lng === lng.code,
+                  const entryId = valueInfo.eid;
+                  const entry = await BCMSRepo.entry.findById(entryId);
+                  if (entry) {
+                    for (let k = 0; k < entry.meta.length; k++) {
+                      const entryMeta = entry.meta[k];
+                      const lng = await BCMSRepo.language.methods.findByCode(
+                        entryMeta.lng,
                       );
-                      if (entryContent) {
-                        parsedProp.content[lng.code] =
-                          await entryParser.parseContent({
-                            nodes: entryContent.nodes,
-                            maxDepth: 1,
-                            depth: 0,
-                            justLng: lng.code,
-                            level: `${level}.content`,
-                          });
+                      if (lng && (!onlyLng || onlyLng === lng.code)) {
+                        parsedProp.meta[lng.code] = await BCMSPropHandler.parse(
+                          {
+                            maxDepth,
+                            meta: template.props,
+                            values: entryMeta.props,
+                            depth: depth + 1,
+                            level: `${level}.${prop.name}.${k}`,
+                          },
+                        );
+                        parsedProp._id = entry._id;
+                        parsedProp.cid = entry.cid;
+                        parsedProp.createdAt = entry.createdAt;
+                        parsedProp.updatedAt = entry.updatedAt;
+                        parsedProp.templateId = entry.templateId;
+                        parsedProp.userId = entry.userId;
+                        parsedProp.status = entry.status;
+
+                        const entryParser = useBcmsEntryParser();
+                        const entryContent = entry.content.find(
+                          (e) => e.lng === lng.code,
+                        );
+                        if (entryContent) {
+                          parsedProp.content[lng.code] =
+                            await entryParser.parseContent({
+                              nodes: entryContent.nodes,
+                              maxDepth: 1,
+                              depth: 0,
+                              justLng: lng.code,
+                              level: `${level}.content`,
+                            });
+                        }
                       }
-                      parsed[prop.name] = parsedProp;
+                    }
+                    (
+                      parsed[prop.name] as BCMSPropEntryPointerDataParsed[]
+                    ).push(parsedProp);
+
+                    // else {
+                    //   const parsedProp: BCMSPropEntryPointerDataParsed = {
+                    //     meta: {},
+                    //     content: [],
+                    //   };
+                    //   const entryId = valueData[0];
+                    //   const entry = await BCMSRepo.entry.findById(entryId);
+                    //   if (entry) {
+                    //     for (let k = 0; k < entry.meta.length; k++) {
+                    //       const entryMeta = entry.meta[k];
+                    //       const lng = await BCMSRepo.language.methods.findByCode(
+                    //         entryMeta.lng,
+                    //       );
+                    //       if (lng && (!onlyLng || onlyLng === lng.code)) {
+                    //         parsedProp.meta = await BCMSPropHandler.parse({
+                    //           maxDepth,
+                    //           meta: template.props,
+                    //           values: entryMeta.props,
+                    //           depth: depth + 1,
+                    //           level: `${level}.${prop.name}.0`,
+                    //         });
+                    //         parsedProp.meta._id = entryId;
+                    //       }
+                    //     }
+                    //   }
+                    //   parsed[prop.name] = parsedProp;
+                    // }
+                  }
+                } else {
+                  const entry = await BCMSRepo.entry.findById(valueInfo.eid);
+                  if (entry) {
+                    const parsedProp: BCMSPropEntryPointerDataParsed = {
+                      _id: '',
+                      createdAt: -1,
+                      updatedAt: -1,
+                      cid: '',
+                      templateId: '',
+                      userId: '',
+                      meta: {},
+                      content: {},
+                    };
+                    for (let k = 0; k < entry.meta.length; k++) {
+                      const entryMeta = entry.meta[k];
+                      const lng = await BCMSRepo.language.methods.findByCode(
+                        entryMeta.lng,
+                      );
+                      if (lng) {
+                        parsedProp.meta[lng.code] = await BCMSPropHandler.parse(
+                          {
+                            maxDepth,
+                            meta: template.props,
+                            values: entryMeta.props,
+                            depth: depth + 1,
+                            level: `${level}.${prop.name}`,
+                          },
+                        );
+                        parsedProp.cid = entry.cid;
+                        parsedProp._id = entry._id;
+                        parsedProp.createdAt = entry.createdAt;
+                        parsedProp.updatedAt = entry.updatedAt;
+                        parsedProp.templateId = entry.templateId;
+                        parsedProp.userId = entry.userId;
+                        parsedProp.status = entry.status;
+                        const entryParser = useBcmsEntryParser();
+                        const entryContent = entry.content.find(
+                          (e) => e.lng === lng.code,
+                        );
+                        if (entryContent) {
+                          parsedProp.content[lng.code] =
+                            await entryParser.parseContent({
+                              nodes: entryContent.nodes,
+                              maxDepth: 1,
+                              depth: 0,
+                              justLng: lng.code,
+                              level: `${level}.content`,
+                            });
+                          parsed[prop.name] = parsedProp;
+                        }
+                      }
                     }
                   }
+                  break;
                 }
               }
             }
@@ -1378,8 +1458,9 @@ export const BCMSPropHandler: BCMSPropHandlerType = {
         (prop) =>
           !(
             prop.type === BCMSPropType.ENTRY_POINTER &&
-            (prop.defaultData as BCMSPropEntryPointerData).templateId ===
-              templateId
+            (prop.defaultData as BCMSPropEntryPointerData[]).find(
+              (e) => e.templateId === templateId,
+            )
           ),
       );
     }

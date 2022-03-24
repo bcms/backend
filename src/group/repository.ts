@@ -50,8 +50,9 @@ export function createBcmsGroupRepository(): Module {
                       !!e.props.find(
                         (p) =>
                           p.type === BCMSPropType.ENTRY_POINTER &&
-                          (p.defaultData as BCMSPropEntryPointerData)
-                            .templateId === templateId,
+                          (p.defaultData as BCMSPropEntryPointerData[]).find(
+                            (d) => d.templateId === templateId,
+                          ),
                       ),
                   );
                 },

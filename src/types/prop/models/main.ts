@@ -9,6 +9,7 @@ import type { BCMSPropDateData } from './date';
 import type {
   BCMSPropEntryPointerData,
   BCMSPropEntryPointerDataParsed,
+  BCMSPropValueEntryPointer,
 } from './entry-pointer';
 import type { BCMSPropEnumData } from './enum';
 import type {
@@ -96,7 +97,7 @@ export type BCMSPropData =
   | number[]
   | BCMSPropDateData
   | BCMSPropEnumData
-  | BCMSPropEntryPointerData
+  | BCMSPropEntryPointerData[]
   | BCMSPropGroupPointerData[]
   | BCMSPropMediaData[]
   | BCMSPropWidgetData
@@ -120,7 +121,7 @@ export type BCMSPropDataGql =
   | BCMSPropDataGqlValueBoolean
   | BCMSPropDataGqlValueRichText
   | BCMSPropEnumData
-  | BCMSPropEntryPointerData
+  | BCMSPropEntryPointerData[]
   | BCMSPropGroupPointerData
   | BCMSPropWidgetData
   | BCMSPropColorPickerData
@@ -135,7 +136,7 @@ export interface BCMSPropDataInputGql {
   number?: number[];
   colorPicker?: BCMSPropColorPickerData;
   boolean?: boolean[];
-  entryPointer?: BCMSPropEntryPointerData;
+  entryPointer?: BCMSPropEntryPointerData[];
   enum?: BCMSPropEnumData;
   groupPointer?: BCMSPropGroupPointerData[];
   media?: BCMSPropMediaData[];
@@ -151,7 +152,7 @@ export type BCMSPropDataParsed =
   | number
   | number[]
   | BCMSPropEnumData
-  | BCMSPropEntryPointerData
+  | BCMSPropEntryPointerData[]
   | BCMSPropEntryPointerDataParsed
   | BCMSPropEntryPointerDataParsed[]
   | BCMSPropGroupPointerDataParsed
@@ -178,4 +179,5 @@ export type BCMSPropValueData =
   | BCMSPropValueGroupPointerData
   | BCMSPropMediaData[]
   | BCMSPropValueWidgetData
-  | BCMSPropValueRichTextData[];
+  | BCMSPropValueRichTextData[]
+  | BCMSPropValueEntryPointer[];

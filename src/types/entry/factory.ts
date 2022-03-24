@@ -1,3 +1,4 @@
+import type { BCMSTemplate } from '../template';
 import type {
   BCMSEntry,
   BCMSEntryContent,
@@ -14,5 +15,5 @@ export interface BCMSEntryFactory {
     meta?: BCMSEntryMeta[];
     content?: BCMSEntryContent[];
   }): BCMSEntry;
-  toLite(entry: BCMSEntry): BCMSEntryLite;
+  toLite(entry: BCMSEntry, template?: BCMSTemplate): BCMSEntryLite;
 }

@@ -1,5 +1,10 @@
 import { Types } from 'mongoose';
-import type { BCMSEntryFactory } from '../types';
+import {
+  BCMSEntryFactory,
+  BCMSEntryMeta,
+  BCMSPropType,
+  BCMSPropValue,
+} from '../types';
 
 export function createBcmsEntryFactory(): BCMSEntryFactory {
   return {
@@ -16,7 +21,26 @@ export function createBcmsEntryFactory(): BCMSEntryFactory {
         content: data.content ? data.content : [],
       };
     },
-    toLite(entry) {
+    toLite(entry, template) {
+      const entryMeta: BCMSEntryMeta[] = [];
+      for (let k = 0; k < entry.meta.length; k++) {
+        const meta = entry.meta[k];
+        let imageProp: BCMSPropValue | undefined;
+        if (template) {
+          const tProp = template.props.find(
+            (e) => e.type === BCMSPropType.MEDIA,
+          );
+          if (tProp) {
+            imageProp = meta.props.find((e) => e.id === tProp.id);
+          }
+        }
+        entryMeta.push({
+          lng: meta.lng,
+          props: imageProp
+            ? [...meta.props.slice(0, 2), imageProp]
+            : meta.props.slice(0, 2),
+        });
+      }
       return {
         _id: entry._id,
         createdAt: entry.createdAt,
@@ -24,12 +48,7 @@ export function createBcmsEntryFactory(): BCMSEntryFactory {
         cid: entry.cid,
         templateId: entry.templateId,
         userId: entry.userId,
-        meta: entry.meta.map((meta) => {
-          return {
-            lng: meta.lng,
-            props: meta.props.slice(0, 2),
-          };
-        }),
+        meta: entryMeta,
       };
     },
   };

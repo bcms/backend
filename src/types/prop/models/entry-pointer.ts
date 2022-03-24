@@ -41,3 +41,8 @@ export const BCMSPropEntryPointerDataSchema: ObjectSchema = {
     __required: true,
   },
 };
+
+export interface BCMSPropValueEntryPointer {
+  tid: string;
+  eid: string;
+}

@@ -191,11 +191,7 @@ export function createBcmsPropFactory(): BCMSPropFactory {
         array: array ? array : false,
         required: true,
         type: BCMSPropType.ENTRY_POINTER,
-        defaultData: {
-          templateId: '',
-          entryIds: [],
-          displayProp: 'title',
-        },
+        defaultData: [],
       };
     },
     richText(array) {
