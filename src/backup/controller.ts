@@ -209,15 +209,18 @@ export const BCMSBackupController = createController({
             bodySchema: RestoreEntitiesBodySchema,
           }),
         async handler({ body }) {
-          const itemsToAdd: FSDBEntity[] = [];
+          const itemsToDelete: string[] = [];
           const dbItems = (await BCMSRepo[body.type].findAll()) as FSDBEntity[];
           for (let i = 0; i < body.items.length; i++) {
             const item = body.items[i];
-            if (!dbItems.find((e) => e._id === item._id)) {
-              itemsToAdd.push(item);
+            if (dbItems.find((e) => e._id === item._id)) {
+              itemsToDelete.push(item._id);
             }
           }
-          await BCMSRepo[body.type].addMany(itemsToAdd as never[]);
+          if (itemsToDelete.length > 0) {
+            await BCMSRepo[body.type].deleteAllById(itemsToDelete);
+          }
+          await BCMSRepo[body.type].addMany(body.items as never);
           return {
             ok: true,
           };
