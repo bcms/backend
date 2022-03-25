@@ -68,9 +68,7 @@ export const BCMSSearchController = createController({
                       set: items.map((item) => {
                         return {
                           id: `${searchItem}_${item._id}`,
-                          data: [
-                            JSON.stringify({ ...item, secret: undefined }),
-                          ],
+                          data: [item.name, item.desc.toLowerCase()],
                         };
                       }),
                       searchTerm: term,
@@ -86,7 +84,7 @@ export const BCMSSearchController = createController({
                       set: items.map((item) => {
                         return {
                           id: `${searchItem}_${item._id}`,
-                          data: [JSON.stringify(item)],
+                          data: [item.name, item.label.toLowerCase()],
                         };
                       }),
                       searchTerm: term,
@@ -102,7 +100,12 @@ export const BCMSSearchController = createController({
                       set: items.map((item) => {
                         return {
                           id: `${searchItem}_${item._id}`,
-                          data: [JSON.stringify(item)],
+                          data: [
+                            item.label.toLocaleLowerCase(),
+                            item.name,
+                            item.desc.toLocaleLowerCase(),
+                            JSON.stringify(item.props),
+                          ],
                         };
                       }),
                       searchTerm: term,
@@ -118,7 +121,7 @@ export const BCMSSearchController = createController({
                       set: items.map((item) => {
                         return {
                           id: `${searchItem}_${item._id}`,
-                          data: [JSON.stringify(item)],
+                          data: [item.value.toLowerCase()],
                         };
                       }),
                       searchTerm: term,
@@ -134,9 +137,7 @@ export const BCMSSearchController = createController({
                       set: items.map((item) => {
                         return {
                           id: `${searchItem}_${item._id}`,
-                          data: [
-                            JSON.stringify({ ...item, password: undefined }),
-                          ],
+                          data: [item.username.toLocaleLowerCase(), item.email],
                         };
                       }),
                       searchTerm: term,
@@ -152,7 +153,11 @@ export const BCMSSearchController = createController({
                       set: items.map((item) => {
                         return {
                           id: `${searchItem}_${item._id}`,
-                          data: [JSON.stringify(item)],
+                          data: [
+                            item.name,
+                            item.altText.toLowerCase(),
+                            item.caption.toLowerCase(),
+                          ],
                         };
                       }),
                       searchTerm: term,
@@ -168,7 +173,12 @@ export const BCMSSearchController = createController({
                       set: items.map((item) => {
                         return {
                           id: `${searchItem}_${item._id}`,
-                          data: [JSON.stringify(item)],
+                          data: [
+                            item.label.toLocaleLowerCase(),
+                            item.name,
+                            item.desc.toLocaleLowerCase(),
+                            JSON.stringify(item.props),
+                          ],
                         };
                       }),
                       searchTerm: term,
@@ -184,7 +194,12 @@ export const BCMSSearchController = createController({
                       set: items.map((item) => {
                         return {
                           id: `${searchItem}_${item._id}`,
-                          data: [JSON.stringify(item)],
+                          data: [
+                            item.label.toLocaleLowerCase(),
+                            item.name,
+                            item.desc.toLocaleLowerCase(),
+                            JSON.stringify(item.props),
+                          ],
                         };
                       }),
                       searchTerm: term,
@@ -201,12 +216,19 @@ export const BCMSSearchController = createController({
                     searchSet.push({
                       id: `${searchItem}_${item._id}_${item.templateId}`,
                       data: [
-                        JSON.stringify(item.meta),
+                        item.meta
+                          .map((e) => (e.props[0].data as string[])[0])
+                          .join(' ')
+                          .toLowerCase(),
+                        item.meta
+                          .map((e) => (e.props[1].data as string[])[0])
+                          .join(' '),
                         item.content
                           .map((content) => {
                             return content.plainText;
                           })
-                          .join('\n\n'),
+                          .join('\n\n')
+                          .toLowerCase(),
                       ],
                     });
                   }
