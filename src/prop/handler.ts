@@ -435,13 +435,19 @@ export class PropHandler {
     }
     for (const i in props) {
       const prop = props[i];
+      if (!prop) {
+        return Error(
+          `[ ${level}.${i} ] --> Property is undefined.`,
+        );
+
+      }
       const propToCheck = propsToCheck.find((e) => e.name === prop.name);
       if (!propToCheck && prop.required) {
         return Error(
           `[ ${level}.${prop.name} ] --> Property "${prop.name}" does not exist.`,
         );
       }
-      if (prop.type !== propToCheck.type) {
+      if (propToCheck && prop.type !== propToCheck.type) {
         return Error(
           `[ ${level}.${prop.name} ] --> Type mismatch, expected` +
           ` "${prop.type}" but got "${propToCheck.type}".`,
@@ -453,14 +459,14 @@ export class PropHandler {
           ` "${prop.type}" is not supported.`,
         );
       }
-      if (prop.required !== propToCheck.required) {
+      if (propToCheck && prop.required !== propToCheck.required) {
         return Error(
           `[ ${level}.${prop.name} ] --> expected required` +
           ` property to be "${prop.required}" but got` +
           ` "${propToCheck.required}".`,
         );
       }
-      if (prop.array !== propToCheck.array) {
+      if (propToCheck && prop.array !== propToCheck.array) {
         return Error(
           `[ ${level}.${prop.name} ] --> expected array` +
           ` property to be "${prop.array}" but got` +
@@ -472,7 +478,7 @@ export class PropHandler {
           `[ ${level}.${prop.name} ] --> value property does not exist.`,
         );
       }
-      if (prop.required) {
+      if (prop.required && propToCheck) {
         switch (prop.type) {
           case PropType.STRING: {
             const value = propToCheck.value as string[];
