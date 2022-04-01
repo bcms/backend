@@ -30,6 +30,7 @@ import {
   BCMSEventConfigMethod,
   BCMSEventConfigScope,
   BCMSSocketEventType,
+  BCMSTemplate,
 } from '../types';
 import { BCMSRouteProtection } from '../util';
 import { useBcmsEntryParser } from './parser';
@@ -131,9 +132,14 @@ export const BCMSEntryController = createController<Setup>({
             request.params.tid,
           );
           const items: BCMSEntryLite[] = [];
-          for (let i = 0; i < entries.length; i++) {
-            const item = entries[i];
-            items.push(BCMSFactory.entry.toLite(item));
+          if (entries.length > 0) {
+            const template = (await BCMSRepo.template.findById(
+              entries[0].templateId,
+            )) as BCMSTemplate;
+            for (let i = 0; i < entries.length; i++) {
+              const item = entries[i];
+              items.push(BCMSFactory.entry.toLite(item, template));
+            }
           }
           return {
             items,
