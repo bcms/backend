@@ -88,7 +88,7 @@ export const BCMSEntryController = createController<Setup>({
         preRequestHandler: BCMSRouteProtection.createJwtApiPreRequestHandler({
           roleNames: [JWTRoleName.ADMIN, JWTRoleName.USER],
           permissionName: JWTPermissionName.READ,
-        }),
+        }), 
         async handler({ request, errorHandler }) {
           const template = await BCMSRepo.template.methods.findByRef(
             request.params.tid,
@@ -107,7 +107,7 @@ export const BCMSEntryController = createController<Setup>({
             const entry = entries[i];
             const entryParsed = await entryParser.parse({
               entry,
-              maxDepth: 1,
+              maxDepth: 2,
               depth: 0,
             });
             if (entryParsed) {
