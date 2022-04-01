@@ -191,7 +191,21 @@ export const BCMSPropHandler: BCMSPropHandlerType = {
                   __type: 'array',
                   __required: true,
                   __child: {
-                    __type: 'string',
+                    __type: 'object',
+                    __content: {
+                      _id: {
+                        __type: 'string',
+                        __required: true,
+                      },
+                      alt_text: {
+                        __type: 'string',
+                        __required: false,
+                      },
+                      caption: {
+                        __type: 'string',
+                        __required: false,
+                      },
+                    },
                   },
                 },
               },
