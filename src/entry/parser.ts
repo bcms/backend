@@ -89,7 +89,7 @@ export function createBcmsEntryParser(): Module {
           }
           return entryParsed;
         },
-        async parseContent({ nodes, maxDepth, justLng, level }) {
+        async parseContent({ nodes, maxDepth, justLng, depth, level }) {
           const output: BCMSEntryContentParsedItem[] = [];
           for (let i = 0; i < nodes.length; i++) {
             const node = nodes[i];
@@ -103,7 +103,7 @@ export function createBcmsEntryParser(): Module {
                     meta: widget.props,
                     values: attrs.props,
                     maxDepth,
-                    depth: 0,
+                    depth: depth ? depth + 1 : undefined,
                     level,
                     onlyLng: justLng,
                   }),
@@ -133,12 +133,6 @@ export function createBcmsEntryParser(): Module {
             for (let j = 0; j < item.nodes.length; j++) {
               const node = item.nodes[j];
               output += BCMSContentUtility.nodeToText({ node }) + '\n';
-              // if (node.type === BCMSEntryContentNodeType.widget) {
-              //   const attrs = node.attrs as BCMSPropValueWidgetData;
-              //   output += '__widget' + JSON.stringify(attrs);
-              // } else {
-              //   output += BCMSSearch.searchText({ node });
-              // }
             }
             contentsNew.push({
               lng: item.lng,

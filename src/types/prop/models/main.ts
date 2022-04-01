@@ -153,6 +153,7 @@ export type BCMSPropDataParsed =
   | number[]
   | BCMSPropEnumData
   | BCMSPropEntryPointerData[]
+  | BCMSPropEntryPointerData
   | BCMSPropEntryPointerDataParsed
   | BCMSPropEntryPointerDataParsed[]
   | BCMSPropGroupPointerDataParsed
