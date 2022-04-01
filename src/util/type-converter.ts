@@ -51,11 +51,14 @@ class BCMSImports {
     const output: string[] = [];
     for (const path in this.state) {
       const names = Object.keys(this.state[path]);
+      if (!names[0]) {
+        console.log(this.state[path][names[0]]);
+      }
       output.push(
         `import type { ${
           names.length > 1
             ? '\n' + names.map((e) => '  ' + e).join(',\n') + '\n'
-            : names.join(', ') + ' '
+            : names[0] + ' pera'
         }} from '${path}';`,
       );
     }
@@ -91,7 +94,7 @@ export class BCMSTypeConverter {
       output = 'number';
     } else if (prop.type === BCMSPropType.ENUMERATION) {
       const data = prop.defaultData as BCMSPropEnumData;
-      output = toCamelCase(prop.name) + 'Enum';
+      output = toCamelCase(prop.name) + 'EnumType';
       const path = `../enum/${prop.name}`;
       imports.set(output, path);
       imports.addMetadata(output, path, {
@@ -179,9 +182,17 @@ export class BCMSTypeConverter {
         loop = false;
       } else {
         if (target.type === 'enum' && target.enumItems) {
+          const baseName = `${toCamelCase(target.name)}Enum`;
           output[`enum/${target.name}.ts`] = [
-            `export type ${toCamelCase(target.name)}Enum =`,
+            `export type ${baseName} =`,
             ...target.enumItems.map((e) => `  | '${e}'`),
+            ';',
+          ].join('\n');
+          output[`enum/${target.name}.ts`] += [
+            `\n\nexport interface ${baseName}Type {`,
+            `  items: ${baseName}[];`,
+            `  selected: ${baseName};`,
+            `}`,
           ].join('\n');
         } else if (target.props) {
           const props = target.props;

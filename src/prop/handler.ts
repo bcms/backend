@@ -42,6 +42,7 @@ import {
   BCMSEntryContentNode,
   BCMSPropValueEntryPointer,
   BCMSPropEntryPointerDataSchema,
+  BCMSPropValueMediaData,
 } from '../types';
 
 let objectUtil: ObjectUtility;
@@ -1054,18 +1055,20 @@ export const BCMSPropHandler: BCMSPropHandlerType = {
             parsed[prop.name] = (value.data as string[])[0];
           }
         } else if (prop.type === BCMSPropType.MEDIA) {
-          const valueData = value.data as BCMSPropMediaData[];
+          const valueData = value.data as BCMSPropValueMediaData[];
           if (prop.array) {
             for (let j = 0; j < valueData.length; j++) {
               const singleValueData = valueData[j];
               if (typeof singleValueData === 'object') {
-                const media = await BCMSRepo.media.findById(singleValueData);
+                const media = await BCMSRepo.media.findById(
+                  singleValueData._id,
+                );
                 if (media) {
                   (parsed[prop.name] as BCMSPropMediaDataParsed) = {
                     src: await BCMSMediaService.getPath(media),
-                    _id: singleValueData,
-                    alt_text: media.altText,
-                    caption: media.caption,
+                    _id: singleValueData._id,
+                    alt_text: singleValueData.alt_text || media.altText,
+                    caption: singleValueData.caption || media.caption,
                     height: media.height,
                     width: media.width,
                     name: media.name,
@@ -1074,14 +1077,14 @@ export const BCMSPropHandler: BCMSPropHandlerType = {
               }
             }
           } else {
-            if (typeof valueData[0] === 'string') {
-              const media = await BCMSRepo.media.findById(valueData[0]);
+            if (valueData[0]) {
+              const media = await BCMSRepo.media.findById(valueData[0]._id);
               if (media) {
                 (parsed[prop.name] as BCMSPropMediaDataParsed) = {
                   src: await BCMSMediaService.getPath(media),
-                  _id: valueData[0],
-                  alt_text: media.altText,
-                  caption: media.caption,
+                  _id: valueData[0]._id,
+                  alt_text: valueData[0].alt_text || media.altText,
+                  caption: valueData[0].caption || media.caption,
                   height: media.height,
                   width: media.width,
                   name: media.name,

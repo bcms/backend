@@ -99,6 +99,7 @@ export function createBcmsEntryParser(): Module {
               if (widget) {
                 output.push({
                   type: node.type,
+                  name: widget.name,
                   value: await BCMSPropHandler.parse({
                     meta: widget.props,
                     values: attrs.props,
