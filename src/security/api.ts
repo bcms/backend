@@ -157,7 +157,6 @@ export function createBcmsApiKeySecurity(): Module {
                       // GET: /all/:templateId
                       // GET: /all/:templateId/lite
                       const templateId = params[1];
-                      console.log('HERE', templateId)
                       const accessPolicy = key.access.templates.find(
                         (e) => e._id === templateId || e.name === templateId,
                       );
