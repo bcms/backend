@@ -51,14 +51,11 @@ class BCMSImports {
     const output: string[] = [];
     for (const path in this.state) {
       const names = Object.keys(this.state[path]);
-      if (!names[0]) {
-        console.log(this.state[path][names[0]]);
-      }
       output.push(
         `import type { ${
           names.length > 1
             ? '\n' + names.map((e) => '  ' + e).join(',\n') + '\n'
-            : names[0] + ' pera'
+            : names[0]
         }} from '${path}';`,
       );
     }
@@ -132,8 +129,8 @@ export class BCMSTypeConverter {
         if (template) {
           outputTypes.push(toCamelCase(template.name) + 'Entry');
           const path = `../entry/${template.name}`;
-          imports.set(output, path);
-          imports.addMetadata(output, path, {
+          imports.set(toCamelCase(template.name) + 'Entry', path);
+          imports.addMetadata(toCamelCase(template.name) + 'Entry', path, {
             name: template.name,
             type: 'entry',
             props: template.props,
