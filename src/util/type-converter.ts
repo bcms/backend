@@ -213,12 +213,12 @@ export class BCMSTypeConverter {
               '  }',
               '  content: {',
               ...languages.map(
-                (lng) => `    ${lng.code}: BCMSEntryContentParsed;`,
+                (lng) => `    ${lng.code}: BCMSEntryContentParsedItem[];`,
               ),
               '  }',
             ];
             result.imports.set(
-              'BCMSEntryContentParsed',
+              'BCMSEntryContentParsedItem',
               '@becomes/cms-client/types',
             );
             additional = [
