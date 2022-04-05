@@ -83,12 +83,12 @@ export const BCMSEntryController = createController<Setup>({
       }),
 
       getAllByTemplateIdParsed: createControllerMethod({
-        path: '/all/:tid/parse',
+        path: '/all/:tid/parse/:maxDepth',
         type: 'get',
         preRequestHandler: BCMSRouteProtection.createJwtApiPreRequestHandler({
           roleNames: [JWTRoleName.ADMIN, JWTRoleName.USER],
           permissionName: JWTPermissionName.READ,
-        }), 
+        }),
         async handler({ request, errorHandler }) {
           const template = await BCMSRepo.template.methods.findByRef(
             request.params.tid,
@@ -103,11 +103,22 @@ export const BCMSEntryController = createController<Setup>({
             template._id,
           );
           const entriesParsed: BCMSEntryParsed[] = [];
+          let maxDepth = 2;
+          if (request.params.maxDepth) {
+            const md = parseInt(request.params.maxDepth);
+            if (!isNaN(md)) {
+              if (md > 10) {
+                maxDepth = 10;
+              } else {
+                maxDepth = md;
+              }
+            }
+          }
           for (let i = 0; i < entries.length; i++) {
             const entry = entries[i];
             const entryParsed = await entryParser.parse({
               entry,
-              maxDepth: 2,
+              maxDepth,
               depth: 0,
             });
             if (entryParsed) {
@@ -194,7 +205,7 @@ export const BCMSEntryController = createController<Setup>({
       }),
 
       getByIdParsed: createControllerMethod({
-        path: '/:tid/:eid/parse',
+        path: '/:tid/:eid/parse/:maxDepth',
         type: 'get',
         preRequestHandler: BCMSRouteProtection.createJwtApiPreRequestHandler({
           roleNames: [JWTRoleName.ADMIN, JWTRoleName.USER],
@@ -220,10 +231,21 @@ export const BCMSEntryController = createController<Setup>({
               bcmsResCode('etr001', { id: request.params.eid }),
             );
           }
+          let maxDepth = 2;
+          if (request.params.maxDepth) {
+            const md = parseInt(request.params.maxDepth);
+            if (!isNaN(md)) {
+              if (md > 10) {
+                maxDepth = 10;
+              } else {
+                maxDepth = md;
+              }
+            }
+          }
           return {
             item: await entryParser.parse({
               entry,
-              maxDepth: 1,
+              maxDepth,
               depth: 0,
             }),
           };
