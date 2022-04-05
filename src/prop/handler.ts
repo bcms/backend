@@ -1057,6 +1057,7 @@ export const BCMSPropHandler: BCMSPropHandlerType = {
         } else if (prop.type === BCMSPropType.MEDIA) {
           const valueData = value.data as BCMSPropValueMediaData[];
           if (prop.array) {
+            (parsed[prop.name] as BCMSPropMediaDataParsed[]) = [];
             for (let j = 0; j < valueData.length; j++) {
               const singleValueData = valueData[j];
               if (typeof singleValueData === 'object') {
@@ -1064,7 +1065,7 @@ export const BCMSPropHandler: BCMSPropHandlerType = {
                   singleValueData._id,
                 );
                 if (media) {
-                  (parsed[prop.name] as BCMSPropMediaDataParsed) = {
+                  (parsed[prop.name] as BCMSPropMediaDataParsed[]).push({
                     src: await BCMSMediaService.getPath(media),
                     _id: singleValueData._id,
                     alt_text: singleValueData.alt_text || media.altText,
@@ -1072,7 +1073,7 @@ export const BCMSPropHandler: BCMSPropHandlerType = {
                     height: media.height,
                     width: media.width,
                     name: media.name,
-                  };
+                  });
                 }
               }
             }
