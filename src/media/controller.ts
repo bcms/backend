@@ -198,6 +198,42 @@ export const BCMSMediaController = createController<Setup>({
         },
       }),
 
+      getBinaryApiKey: createControllerMethod<unknown, { __file: string }>({
+        path: '/:id/bin/:keyId',
+        type: 'get',
+        async handler({ request, errorHandler }) {
+          const apiKey = await BCMSRepo.apiKey.findById(request.params.keyId);
+          if (!apiKey) {
+            throw errorHandler.occurred(
+              HTTPStatus.NOT_FOUNT,
+              bcmsResCode('mda001', { id: request.params.id }),
+            );
+          }
+          const media = await BCMSRepo.media.findById(request.params.id);
+          if (!media) {
+            throw errorHandler.occurred(
+              HTTPStatus.NOT_FOUNT,
+              bcmsResCode('mda001', { id: request.params.id }),
+            );
+          }
+          if (media.type === BCMSMediaType.DIR) {
+            throw errorHandler.occurred(
+              HTTPStatus.FORBIDDEN,
+              bcmsResCode('mda007', { id: request.params.id }),
+            );
+          }
+          if (!(await BCMSMediaService.storage.exist(media))) {
+            throw errorHandler.occurred(
+              HTTPStatus.INTERNAL_SERVER_ERROR,
+              bcmsResCode('mda008', { id: request.params.id }),
+            );
+          }
+          return {
+            __file: await BCMSMediaService.storage.getPath({ media }),
+          };
+        },
+      }),
+
       getBinaryByAccessToken: createControllerMethod<
         unknown,
         { __file: string }
