@@ -92,6 +92,8 @@ export const BCMSContentUtility: BCMSContentUtilityType = {
             BCMSContentUtility.nodeToHtml({ node: childNode }),
           )
           .join('')}</code></pre>`;
+      } else if (node.type === BCMSEntryContentNodeType.hardBreak) {
+        output = '<br />';
       }
     } else {
       throw Error('Node of type widget cannot be converted to HTML.');

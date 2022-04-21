@@ -72,6 +72,7 @@ export enum BCMSEntryContentNodeType {
   orderedList = 'orderedList',
   text = 'text',
   codeBlock = 'codeBlock',
+  hardBreak = 'hardBreak',
 }
 
 // eslint-disable-next-line no-shadow
