@@ -544,12 +544,9 @@ export class BCMSMediaRequestHandler {
       deletedChildrenIds = (await BCMSMediaService.getChildren(media)).map(
         (e) => e._id,
       );
-      for (let i = 0; i < deletedChildrenIds.length; i++) {
-        const childId = deletedChildrenIds[i];
-        await BCMSRepo.media.deleteById(childId);
-      }
-      await BCMSRepo.media.deleteById(media._id);
       await BCMSMediaService.storage.removeDir(media);
+      await BCMSRepo.media.deleteAllById(deletedChildrenIds);
+      await BCMSRepo.media.deleteById(media._id);
     } else {
       const deleteResult = await BCMSRepo.media.deleteById(media._id);
       if (!deleteResult) {

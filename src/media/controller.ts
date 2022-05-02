@@ -1,6 +1,8 @@
+import * as path from 'path';
 import {
   createController,
   createControllerMethod,
+  useFS,
 } from '@becomes/purple-cheetah';
 import { useJwt } from '@becomes/purple-cheetah-mod-jwt';
 import {
@@ -10,7 +12,7 @@ import {
   JWTPreRequestHandlerResult,
   JWTRoleName,
 } from '@becomes/purple-cheetah-mod-jwt/types';
-import { HTTPStatus } from '@becomes/purple-cheetah/types';
+import { FS, HTTPStatus } from '@becomes/purple-cheetah/types';
 import {
   BCMSRouteProtectionJwtAndBodyCheckResult,
   BCMSMedia,
@@ -31,9 +33,11 @@ import { BCMSRepo } from '@bcms/repo';
 import { bcmsResCode } from '@bcms/response-code';
 import { BCMSMediaService } from './service';
 import { BCMSMediaRequestHandler } from './request-handler';
+import { BCMSImageProcessor } from './image-processor';
 
 interface Setup {
   jwt: JWTManager;
+  fs: FS;
 }
 export const BCMSMediaController = createController<Setup>({
   name: 'Media controller',
@@ -41,9 +45,12 @@ export const BCMSMediaController = createController<Setup>({
   setup() {
     return {
       jwt: useJwt(),
+      fs: useFS({
+        base: process.cwd(),
+      }),
     };
   },
-  methods({ jwt }) {
+  methods({ jwt, fs }) {
     return {
       getAll: createControllerMethod<unknown, { items: BCMSMedia[] }>({
         path: '/all',
@@ -221,6 +228,48 @@ export const BCMSMediaController = createController<Setup>({
               HTTPStatus.FORBIDDEN,
               bcmsResCode('mda007', { id: request.params.id }),
             );
+          }
+          if (
+            request.query.ops &&
+            (media.mimetype === 'image/jpeg' ||
+              media.mimetype === 'image/jpg' ||
+              media.mimetype === 'image/png')
+          ) {
+            let idx = parseInt(request.query.idx as string, 10);
+            if (isNaN(idx) || idx < 0) {
+              idx = 0;
+            }
+            const filePath = path.join(
+              process.cwd(),
+              'uploads',
+              media._id,
+              request.query.ops as string,
+              media.name,
+            );
+            const filePathParts = filePath.split('.');
+            const firstPart = filePathParts
+              .slice(0, filePathParts.length - 1)
+              .join('.');
+            const lastPart = filePathParts[filePathParts.length - 1];
+            const outputFilePath = `${firstPart}_${idx}.${lastPart}`;
+            if (!(await fs.exist(outputFilePath, true))) {
+              const options = BCMSImageProcessor.stringToOptions(
+                request.query.ops + '',
+              );
+              const mediaPath = path.join(
+                process.cwd(),
+                'uploads',
+                await BCMSMediaService.getPath(media),
+              );
+              await BCMSImageProcessor.process({
+                media,
+                pathToSrc: mediaPath,
+                options,
+              });
+            }
+            return {
+              __file: outputFilePath,
+            };
           }
           if (!(await BCMSMediaService.storage.exist(media))) {
             throw errorHandler.occurred(

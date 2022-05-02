@@ -511,8 +511,20 @@ export const BCMSMediaService: BCMSMediaServiceType = {
           nameParts.slice(0, nameParts.length - 1).join('.') + '.png';
         await fs.deleteFile(`${dirPath}/thumbnail-${name}`);
       }
+      if (await fs.exist(path.join(process.cwd(), 'uploads', media._id))) {
+        await fs.deleteDir(path.join(process.cwd(), 'uploads', media._id));
+      }
     },
     async removeDir(media) {
+      const childMedia = (await BCMSMediaService.getChildren(media)).filter(
+        (e) => e.type !== BCMSMediaType.DIR,
+      );
+      for (let i = 0; i < childMedia.length; i++) {
+        const child = childMedia[i];
+        if (await fs.exist(path.join(process.cwd(), 'uploads', child._id))) {
+          await fs.deleteDir(path.join(process.cwd(), 'uploads', child._id));
+        }
+      }
       await fs.deleteDir(
         path.join(
           process.cwd(),
