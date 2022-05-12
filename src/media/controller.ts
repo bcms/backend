@@ -251,7 +251,9 @@ export const BCMSMediaController = createController<Setup>({
               .slice(0, filePathParts.length - 1)
               .join('.');
             const lastPart = filePathParts[filePathParts.length - 1];
-            const outputFilePath = `${firstPart}_${idx}.${lastPart}`;
+            const outputFilePath = `${firstPart}_${idx}.${
+              request.query.webp ? 'webp' : lastPart
+            }`;
             if (!(await fs.exist(outputFilePath, true))) {
               const options = BCMSImageProcessor.stringToOptions(
                 request.query.ops + '',
