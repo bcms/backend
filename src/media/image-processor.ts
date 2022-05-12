@@ -180,7 +180,7 @@ export class BCMSImageProcessor {
               fit: options.position ? options.position : 'cover',
               width: size.width,
               height: size.height,
-              withoutEnlargement: true,
+              withoutEnlargement: false,
             })
             .jpeg({
               quality: options.quality ? options.quality : 70,
@@ -203,7 +203,7 @@ export class BCMSImageProcessor {
               fit: options.position ? options.position : 'cover',
               width: size.width,
               height: size.height,
-              withoutEnlargement: true,
+              withoutEnlargement: false,
             })
             .png({
               quality: options.quality ? options.quality : 70,
@@ -226,7 +226,7 @@ export class BCMSImageProcessor {
               fit: options.position ? options.position : 'cover',
               width: size.width,
               height: size.height,
-              withoutEnlargement: true,
+              withoutEnlargement: false,
             })
             .webp({
               quality: options.quality ? options.quality : 70,
