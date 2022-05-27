@@ -235,6 +235,8 @@ async function initialize() {
         output: `db${BCMSConfig.database.prefix.startsWith('/') ? '' : '/'}${
           BCMSConfig.database.prefix
         }`,
+        prettyOutput: true,
+        saveInterval: 2000,
       }),
     );
   } else if (BCMSConfig.database.mongodb) {
