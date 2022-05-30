@@ -236,14 +236,9 @@ export function createBcmsPluginModule(bcmsConfig: BCMSConfig): Module {
       const files = await fs.readdir(path.join(process.cwd(), 'plugins'));
       for (let i = 0; i < files.length; i++) {
         const file = files[i];
-        if (file.endsWith('.tgz')) {
-          await ChildProcess.spawn(
-            'npm',
-            ['i', '--save', `./plugins/${file}`],
-            {
-              stdio: 'ignore',
-            },
-          );
+        if (file.endsWith('.tgz')) { 
+          logger.info('installing', `    ---- ${file}`);
+          await ChildProcess.spawn('npm', ['i', '--save', `./plugins/${file}`]);
           logger.info('installed', `    ---- ${file}`);
         }
       }
