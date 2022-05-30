@@ -36,7 +36,7 @@ export function createBcmsEntryFactory(): BCMSEntryFactory {
             imageProp = meta.props.find((e) => e.id === tProp.id);
           }
           tProp = template.props.find(
-            (e, i) => i > 2 && e.type === BCMSPropType.STRING,
+            (e, i) => i > 1 && e.type === BCMSPropType.STRING,
           ) as BCMSProp;
           if (tProp) {
             textProp = meta.props.find((e) => e.id === tProp.id);
