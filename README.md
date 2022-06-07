@@ -12,7 +12,7 @@ BCMS Backend is written using [Purple Cheetah](https://github.com/becomesco/purp
 
 - [Docker](https://www.docker.com/),
 - [Docker Compose](https://docs.docker.com/compose/),
-- [NodeJS](https://nodejs.org/) and
+- [NodeJS 14+](https://nodejs.org/) and
 - [NPM](https://www.npmjs.com/)
 
 You can use [YARN](https://yarnpkg.com/) but NPM is recommended.
