@@ -40,16 +40,19 @@ export const BCMSTypeConverterController = createController({
           const widgets = await BCMSRepo.widget.findAll();
           if (
             request.params.languageType !== 'typescript' &&
-            request.params.languageType !== 'jsDoc'
+            request.params.languageType !== 'jsDoc' &&
+            request.params.languageType !== 'gql'
           ) {
             throw errorHandler.occurred(
               HTTPStatus.BAD_REQUEST,
               bcmsResCode('tc003', { type: request.params.type }),
             );
           }
-          const converter: 'typescript' | 'jsDoc' =
+          const converter: 'typescript' | 'jsDoc' | 'gql' =
             request.params.languageType === 'typescript'
               ? 'typescript'
+              : request.params.languageType === 'gql'
+              ? 'gql'
               : 'jsDoc';
 
           return {
@@ -99,7 +102,8 @@ export const BCMSTypeConverterController = createController({
         async handler({ request, errorHandler }) {
           if (
             request.params.languageType !== 'typescript' &&
-            request.params.languageType !== 'JSDoc'
+            request.params.languageType !== 'JSDoc' &&
+            request.params.languageType !== 'gql'
           ) {
             throw errorHandler.occurred(
               HTTPStatus.BAD_REQUEST,
@@ -147,9 +151,11 @@ export const BCMSTypeConverterController = createController({
               bcmsResCode('tc002', { itemId: request.params.itemId }),
             );
           }
-          const converter: 'typescript' | 'jsDoc' =
+          const converter: 'typescript' | 'jsDoc' | 'gql' =
             request.params.languageType === 'typescript'
               ? 'typescript'
+              : request.params.languageType === 'gql'
+              ? 'gql'
               : 'jsDoc';
 
           return {
