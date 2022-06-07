@@ -1,6 +1,6 @@
 # BCMS Backend
 
-This is a repository for the BCMS Backend project which is a core module of the [BCMS](https://github.com/becomesco/cms) . It provides REST API for the [BCMS UI](https://github.com/becomesco/cms-ui) securely. This API is currently accessible in 3 ways:
+This is a repository for the BCMS Backend project which is a core module of the [BCMS](https://github.com/becomesco/cms) . It provides a REST API for the [BCMS UI](https://github.com/becomesco/cms-ui) and third party applications (like websites and dashboards). This API is currently accessible in 3 ways:
 
 - Using [BCMS SDK](https://github.com/becomesco/cms-sdk/tree/next) - It provides a lot of features in addition to automated security and Abstracted REST API calls. Some of them are client side caching, error handling, type system and many more.
 - Using [BCMS Client](https://github.com/becomesco/cms-client) - Is subset of BCMS SDK features more oriented for use in websites, in secure or not secure environment.
