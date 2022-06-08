@@ -2,35 +2,63 @@
   "compilerOptions": {
     "module": "commonjs",
     "declaration": true,
-    "removeComments": true,
+    "declarationMap": false,
+    "sourceMap": false,
+    "removeComments": false,
     "emitDecoratorMetadata": true,
     "experimentalDecorators": true,
-    "target": "es5",
-    "sourceMap": true,
-    "outDir": "./dist",
-    "baseUrl": "./",
-    "incremental": true
+    "strict": true,
+    "target": "ES2020",
+    "outDir": "./dist/src",
+    "baseUrl": "src",
+    "rootDir": "src",
+    "skipLibCheck": true,
+    "importsNotUsedAsValues": "error",
+    "paths": {
+      "@bcms/*": ["./*"],
+      "@becomes/cms-backend/*": ["./*"]
+    }
   },
-  "include": ["src"],
-  "exclude": ["node_modules", "dist", "public"],
+  "include": ["src/**/*"],
+  "exclude": ["node_modules", "dist", "src/node_modules"],
   "typedocOptions": {
-    "name": "GetCV | SDK",
-    "theme": "./node_modules/typedoc-neo-theme/bin/default",
-    "plugin": "typedoc-neo-theme",
-    "mode": "file",
-    "out": "doc",
-    "outline": [
-      {
-        "Client SDK": {
-          "Overview": "interfaces/getcvclientprototype",
-          "User": "interfaces/userhandlerprototype",
-          "Company": "interfaces/companyhandlerprototype",
-          "Invitation": "interfaces/invitationhandlerprototype",
-          "Job": "interfaces/jobhandlerprototype",
-          "Candidate": "interfaces/candidatehandlerprototype",
-          "Socket": "interfaces/sockethandlerprototype"
-        }
-      }
-    ]
+    "entryPoints": [
+      "src/api",
+      "src/auth",
+      "src/backup",
+      "src/change",
+      "src/color",
+      "src/cypress",
+      "src/entry",
+      "src/event",
+      "src/function",
+      "src/group",
+      "src/id-counter",
+      "src/job",
+      "src/language",
+      "src/media",
+      "src/plugin",
+      "src/prop",
+      "src/response-code",
+      "src/search",
+      "src/security",
+      "src/shim",
+      "src/socket",
+      "src/status",
+      "src/tag",
+      "src/template",
+      "src/template-organizer",
+      "src/type-converter",
+      "src/types",
+      "src/user",
+      "src/util",
+      "src/widget",
+      "src/main.ts",
+      "src/config.ts",
+      "src/factory.ts",
+      "src/repo.ts"
+    ],
+    "name": "BCMS | Backend",
+    "out": "doc"
   }
 }

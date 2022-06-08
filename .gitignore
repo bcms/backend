@@ -1,7 +1,21 @@
 # compiled output
 /dist
+/lib
 /node_modules
 /doc
+/db
+/uploads
+/functions
+/events
+/jobs
+/ts-plugins
+/plugins
+/dockerfile-local/dist
+/local-dev-dist
+/public
+/_test
+/_jsDoc
+/____backup
 
 # Logs
 /log
@@ -21,8 +35,9 @@ lerna-debug.log*
 
 # IDEs and editors
 .env
-bcms-config.js
+bcms.db.json
 /.idea
+.idea
 .project
 .classpath
 .c9/

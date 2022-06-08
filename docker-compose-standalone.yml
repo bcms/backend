@@ -1,0 +1,33 @@
+version: '3.9'
+networks:
+  default:
+    external: true
+    name: bcms
+services:
+  backend:
+    container_name: bcms-instance-6169756ef956f26df700c2d7
+    hostname: 'bcms-instance-6169756ef956f26df700c2d7'
+    build:
+      context: ''
+      dockerfile: Dockerfile.dev
+    ports:
+      - '1280:8080'
+    volumes:
+      - type: bind
+        source: ./bcms.config.js
+        target: /app/bcms.config.js
+      - type: bind
+        source: ./shim.json
+        target: /app/shim.json
+      - type: bind
+        source: ./src
+        target: /app/src
+      - type: bind
+        source: ./db
+        target: /app/db
+      - type: bind
+        source: ./uploads
+        target: /app/uploads
+      - type: bind
+        source: ./functions
+        target: /app/functions

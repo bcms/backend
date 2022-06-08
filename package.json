@@ -1,68 +1,93 @@
 {
   "name": "@becomes/cms-backend",
-  "version": "2.0.0",
+  "version": "3.0.0",
   "description": "Backend for the BCMS",
   "author": "becomes.co",
   "license": "MIT",
-  "main": "index.js",
+  "main": "src/main.js",
   "scripts": {
-    "start": "node dist/main.js",
-    "dev": "env-cmd nodemon src/main.ts",
-    "build": "tsc -p .",
-    "bundle": "node tools.js --bundle",
-    "link": "node tools.js --link",
-    "unlink": "node tools.js --unlink",
-    "publish": "node tools.js --publish",
-    "generate-doc": "typedoc src"
+    "start": "node dist/src/main.js",
+    "start:local": "node bin/bcms-backend.js --dev",
+    "dev": "nodemon -L -r tsconfig-paths/register src/main.ts",
+    "build:ts": "tsc --project tsconfig.json",
+    "build": "npm-tool --build",
+    "bundle": "npm-tool --bundle",
+    "bundle:local": "npm-tool --local-dev-bundle",
+    "link": "npm-tool --link",
+    "unlink": "npm-tool --unlink",
+    "publish": "npm-tool --publish",
+    "pack": "npm-tool --pack",
+    "pack:local": "npm-tool --local-dev-pack",
+    "create:image": "npm-tool --create-image",
+    "generate-doc": "typedoc",
+    "lint": "eslint . --ext .ts",
+    "build:plugins": "tsc -p tsconfig.plugins.json"
   },
   "dependencies": {
-    "@becomes/purple-cheetah": "^2.0.5",
-    "bcrypt": "^3.0.8",
-    "esm": "^3.2.25",
+    "@banez/child_process": "^1.0.3",
+    "@banez/search": "^1.0.1",
+    "@becomes/purple-cheetah": "^3.5.2",
+    "@becomes/purple-cheetah-mod-fsdb": "^1.3.4",
+    "@becomes/purple-cheetah-mod-graphql": "^1.1.2",
+    "@becomes/purple-cheetah-mod-jwt": "^1.1.0",
+    "@becomes/purple-cheetah-mod-mem-cache": "^1.1.1",
+    "@becomes/purple-cheetah-mod-mongodb": "^1.1.4",
+    "@becomes/purple-cheetah-mod-socket": "^1.1.0",
+    "@types/multer": "^1.4.5",
+    "bcrypt": "^5.0.1",
+    "cron": "^1.8.3",
     "express": "^4.17.1",
-    "mongoose": "^5.9.24",
-    "multer": "^1.4.2",
-    "swagger-ui-express": "^4.1.4",
-    "yamljs": "^0.3.0",
-    "fs-extra": "^8.1.0"
+    "image-size": "^1.0.0",
+    "mongoose": "^6.0.8",
+    "multer": "^1.4.5-lts.1",
+    "sharp": "^0.30.6",
+    "uuid": "^8.3.2",
+    "yamljs": "^0.3.0"
   },
   "devDependencies": {
-    "@types/bcrypt": "^3.0.0",
-    "@types/express": "^4.17.7",
-    "@types/fs-extra": "^8.1.0",
-    "@types/mongoose": "5.5.31",
-    "@types/multer": "^1.4.2",
-    "@types/node": "^12.12.50",
+    "@banez/npm-tool": "^1.0.1",
+    "@becomes/cms-sdk": "^3.0.0",
+    "@becomes/cms-ui": "^3.0.0",
+    "@types/bcrypt": "^5.0.0",
+    "@types/cron": "^1.7.2",
+    "@types/express": "^4.17.9",
+    "@types/fs-extra": "^9.0.13",
+    "@types/node": "^15.6.2",
+    "@types/sharp": "^0.30.2",
     "@types/swagger-ui-express": "^4.1.2",
+    "@types/uuid": "^8.3.0",
     "@types/yamljs": "^0.2.30",
+    "@typescript-eslint/eslint-plugin": "^4.28.2",
+    "@typescript-eslint/parser": "^4.28.2",
     "env-cmd": "^10.1.0",
-    "listr": "^0.14.3",
-    "nodemon": "^2.0.2",
-    "ts-node": "^8.10.2",
-    "tsconfig-paths": "^3.9.0",
-    "tslint": "^5.20.1",
-    "typedoc": "^0.17.8",
-    "typedoc-neo-theme": "^1.0.9",
-    "typescript": "^3.9.6"
+    "eslint": "^7.30.0",
+    "fs-extra": "^10.0.0",
+    "nodemon": "^2.0.15",
+    "prettier": "^2.2.1",
+    "ts-node": "^10.8.0",
+    "tsconfig-paths": "^3.14.1",
+    "typedoc": "^0.22.17",
+    "typescript": "^4.4.4"
   },
   "repository": {
     "type": "git",
     "url": "git+https://github.com/becomesco/cms-backend.git"
   },
-  "bin": {
-    "bcms-backend": "bin/bcms-backend.js"
-  },
-  "keywords": [
-    "bcms-backend"
-  ],
   "bugs": {
     "url": "https://github.com/becomesco/cms-backend/issues"
   },
   "homepage": "https://github.com/becomesco/cms-backend#readme",
   "nodemonConfig": {
     "watch": [
-      "src"
+      "src",
+      "plugins",
+      "functions",
+      "events",
+      "jobs"
     ],
     "ext": "ts"
+  },
+  "_moduleAliases": {
+    "@becomes/cms-backend": "src"
   }
 }

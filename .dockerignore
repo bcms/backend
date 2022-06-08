@@ -1,0 +1,17 @@
+/dist
+/logs
+/node_modules
+/dockerfile-local
+/uploads
+/functions
+/events
+/jobs
+/plugins
+/bcms.config.js
+
+/.env
+/bcms.db.json
+/docker-compose.yml
+/docker-compose-standalone.yml
+/Dockerfile
+/tools.js
