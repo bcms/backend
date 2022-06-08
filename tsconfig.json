@@ -59,7 +59,6 @@
       "src/repo.ts"
     ],
     "name": "BCMS | Backend",
-    "mode": "file",
     "out": "doc"
   }
 }
