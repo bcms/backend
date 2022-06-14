@@ -4,6 +4,12 @@ export type BCMSSocketManagerScope = 'global' | 'client';
 
 export interface BCMSSocketManager {
   emit: {
+    backup(data: {
+      type: BCMSSocketEventType;
+      userIds: string[] | 'all';
+      fileName: string;
+      size: number;
+    }): Promise<void>;
     apiKey(data: {
       type: BCMSSocketEventType;
       apiKeyId: string;

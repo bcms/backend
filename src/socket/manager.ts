@@ -3,6 +3,7 @@ import type { Socket } from '@becomes/purple-cheetah-mod-socket/types';
 import type { Module } from '@becomes/purple-cheetah/types';
 import {
   BCMSSocketApiKeyEvent,
+  BCMSSocketBackupEvent,
   BCMSSocketColorEvent,
   BCMSSocketEntryEvent,
   BCMSSocketEventName,
@@ -71,6 +72,18 @@ async function emit<Data>({
 
 export const BCMSSocketManager: BCMSSocketManagerType = {
   emit: {
+    async backup(data) {
+      await emit<BCMSSocketBackupEvent>({
+        socket: soc,
+        name: BCMSSocketEventName.BACKUP,
+        data: {
+          t: data.type,
+          f: data.fileName,
+          s: data.size,
+        },
+        userIds: data.userIds,
+      });
+    },
     async signOut(data) {
       await emit<BCMSSocketSignOutEvent>({
         socket: soc,
