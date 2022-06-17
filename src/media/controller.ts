@@ -249,7 +249,7 @@ export const BCMSMediaController = createController<Setup>({
       }),
 
       getBinaryApiKey: createControllerMethod<unknown, { __file: string }>({
-        path: '/:id/bin/:keyId',
+        path: '/pip/:id/bin/:keyId/:fileOptions',
         type: 'get',
         async handler({ request, errorHandler }) {
           const apiKey = await BCMSRepo.apiKey.findById(request.params.keyId);
@@ -272,13 +272,28 @@ export const BCMSMediaController = createController<Setup>({
               bcmsResCode('mda007', { id: request.params.id }),
             );
           }
+          const queryParts = Buffer.from(request.params.fileOptions, 'hex')
+            .toString()
+            .split('&');
+          const query: {
+            [name: string]: string;
+          } = {};
+          for (let i = 0; i < queryParts.length; i++) {
+            const part = queryParts[i];
+            const keyValue = part.split('=');
+            if (keyValue.length === 2) {
+              query[keyValue[0]] = keyValue[1];
+            }
+          }
+          console.log(query, request.params.fileOptions);
+
           if (
-            request.query.ops &&
+            query.ops &&
             (media.mimetype === 'image/jpeg' ||
               media.mimetype === 'image/jpg' ||
               media.mimetype === 'image/png')
           ) {
-            let idx = parseInt(request.query.idx as string, 10);
+            let idx = parseInt(query.idx as string, 10);
             if (isNaN(idx) || idx < 0) {
               idx = 0;
             }
@@ -286,7 +301,7 @@ export const BCMSMediaController = createController<Setup>({
               process.cwd(),
               'uploads',
               media._id,
-              request.query.ops as string,
+              query.ops,
               media.name,
             );
             const filePathParts = filePath.split('.');
@@ -295,11 +310,11 @@ export const BCMSMediaController = createController<Setup>({
               .join('.');
             const lastPart = filePathParts[filePathParts.length - 1];
             const outputFilePath = `${firstPart}_${idx}.${
-              request.query.webp ? 'webp' : lastPart
+              query.webp ? 'webp' : lastPart
             }`;
             if (!(await fs.exist(outputFilePath, true))) {
               const options = BCMSImageProcessor.stringToOptions(
-                request.query.ops + '',
+                query.ops + '',
               );
               const mediaPath = path.join(
                 process.cwd(),
