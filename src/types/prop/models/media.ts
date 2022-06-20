@@ -1,3 +1,5 @@
+import type { BCMSMediaType } from "@bcms/types/media";
+
 export type BCMSPropMediaData = string;
 
 export interface BCMSPropMediaDataParsed {
@@ -8,6 +10,8 @@ export interface BCMSPropMediaDataParsed {
   height: number;
   caption: string;
   alt_text: string;
+  svg?: string;
+  type: BCMSMediaType;
 }
 
 export interface BCMSPropValueMediaData {

@@ -1065,6 +1065,18 @@ export const BCMSPropHandler: BCMSPropHandlerType = {
                   singleValueData._id,
                 );
                 if (media) {
+                  let svg =
+                    media.mimetype === 'image/svg+xml'
+                      ? (
+                          await BCMSMediaService.storage.get({ media })
+                        ).toString()
+                      : undefined;
+                  if (svg) {
+                    svg =
+                      '<svg' +
+                      stringUtil.textBetween(svg, '<svg', '</svg>') +
+                      '</svg>';
+                  }
                   (parsed[prop.name] as BCMSPropMediaDataParsed[]).push({
                     src: await BCMSMediaService.getPath(media),
                     _id: singleValueData._id,
@@ -1073,6 +1085,8 @@ export const BCMSPropHandler: BCMSPropHandlerType = {
                     height: media.height,
                     width: media.width,
                     name: media.name,
+                    type: media.type,
+                    svg,
                   });
                 }
               }
@@ -1081,6 +1095,16 @@ export const BCMSPropHandler: BCMSPropHandlerType = {
             if (valueData[0]) {
               const media = await BCMSRepo.media.findById(valueData[0]._id);
               if (media) {
+                let svg =
+                  media.mimetype === 'image/svg+xml'
+                    ? (await BCMSMediaService.storage.get({ media })).toString()
+                    : undefined;
+                if (svg) {
+                  svg =
+                    '<svg' +
+                    stringUtil.textBetween(svg, '<svg', '</svg>') +
+                    '</svg>';
+                }
                 (parsed[prop.name] as BCMSPropMediaDataParsed) = {
                   src: await BCMSMediaService.getPath(media),
                   _id: valueData[0]._id,
@@ -1089,6 +1113,8 @@ export const BCMSPropHandler: BCMSPropHandlerType = {
                   height: media.height,
                   width: media.width,
                   name: media.name,
+                  type: media.type,
+                  svg,
                 };
               }
             }
