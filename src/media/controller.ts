@@ -2,6 +2,7 @@ import * as path from 'path';
 import {
   createController,
   createControllerMethod,
+  createQueue,
   useFS,
 } from '@becomes/purple-cheetah';
 import { useJwt } from '@becomes/purple-cheetah-mod-jwt';
@@ -51,6 +52,7 @@ export const BCMSMediaController = createController<Setup>({
     };
   },
   methods({ jwt, fs }) {
+    const imageProcessQueue = createQueue();
     return {
       getAll: createControllerMethod<unknown, { items: BCMSMedia[] }>({
         path: '/all',
@@ -285,7 +287,6 @@ export const BCMSMediaController = createController<Setup>({
               query[keyValue[0]] = keyValue[1];
             }
           }
-          console.log(query, request.params.fileOptions);
 
           if (
             query.ops &&
@@ -321,11 +322,16 @@ export const BCMSMediaController = createController<Setup>({
                 'uploads',
                 await BCMSMediaService.getPath(media),
               );
-              await BCMSImageProcessor.process({
-                media,
-                pathToSrc: mediaPath,
-                options,
-              });
+              await imageProcessQueue({
+                name: request.originalUrl,
+                handler: async () => {
+                  await BCMSImageProcessor.process({
+                    media,
+                    pathToSrc: mediaPath,
+                    options,
+                  });
+                },
+              }).wait;
             }
             return {
               __file: outputFilePath,
