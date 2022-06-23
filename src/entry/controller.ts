@@ -268,8 +268,12 @@ export const BCMSEntryController = createController<Setup>({
               bcmsResCode('etr001', { eid }),
             );
           }
+          const item = BCMSFactory.entry.toLite(
+            entry,
+            (await BCMSRepo.template.findById(request.params.tid)) || undefined,
+          );
           return {
-            item: BCMSFactory.entry.toLite(entry),
+            item,
           };
         },
       }),

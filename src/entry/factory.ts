@@ -66,6 +66,7 @@ export function createBcmsEntryFactory(): BCMSEntryFactory {
         cid: entry.cid,
         templateId: entry.templateId,
         userId: entry.userId,
+        status: entry.status,
         meta: entryMeta,
       };
     },

@@ -9,6 +9,7 @@ export interface BCMSEntryLite extends FSDBEntity {
   cid: string;
   templateId: string;
   userId: string;
+  status?: string;
   meta: BCMSEntryMeta[];
 }
 
@@ -25,6 +26,10 @@ export const BCMSEntryLiteSchema: ObjectSchema = {
   userId: {
     __type: 'string',
     __required: true,
+  },
+  status: {
+    __type: 'string',
+    __required: false,
   },
   meta: {
     __type: 'array',
