@@ -48,7 +48,10 @@ export function createBcmsEntryFactory(): BCMSEntryFactory {
         }
         if (textProp) {
           textProp = JSON.parse(JSON.stringify(textProp)) as BCMSPropValue;
-          if ((textProp.data as string[])[0].length > 140) {
+          if (
+            (textProp.data as string[])[0] &&
+            (textProp.data as string[])[0].length > 140
+          ) {
             (textProp.data as string[])[0] =
               (textProp.data as string[])[0].slice(0, 140) + ' ...';
           }
