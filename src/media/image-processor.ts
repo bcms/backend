@@ -171,7 +171,7 @@ export class BCMSImageProcessor {
       for (let i = 0; i < sizes.length; i++) {
         const outputFilePath = path.join(
           outputBasePath,
-          `${fileName}_${i}.${fileExt}`,
+          `${fileName.join('.')}_${i}.${fileExt}`,
         );
         if (!(await BCMSImageProcessor.fs.exist(outputFilePath, true))) {
           const size = sizes[i];
@@ -195,7 +195,7 @@ export class BCMSImageProcessor {
         const size = sizes[i];
         const outputFilePath = path.join(
           outputBasePath,
-          `${fileName}_${i}.${fileExt}`,
+          `${fileName.join('.')}_${i}.${fileExt}`,
         );
         if (!(await BCMSImageProcessor.fs.exist(outputFilePath, true))) {
           const file = await sharp(inputFile)
@@ -218,7 +218,7 @@ export class BCMSImageProcessor {
         const size = sizes[i];
         const outputFilePath = path.join(
           outputBasePath,
-          `${fileName}_${i}.webp`,
+          `${fileName.join('.')}_${i}.webp`,
         );
         if (!(await BCMSImageProcessor.fs.exist(outputFilePath, true))) {
           const file = await sharp(inputFile)
