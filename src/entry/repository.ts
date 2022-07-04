@@ -10,6 +10,7 @@ import {
   BCMSEntryRepositoryMethods,
   BCMSPropValueWidgetData,
 } from '../types';
+import { BCMSFactory } from '@bcms/factory';
 
 export function createBcmsEntryRepository(): Module {
   return {
@@ -18,13 +19,42 @@ export function createBcmsEntryRepository(): Module {
       const nm = 'Entry repository';
       const collection = `${BCMSConfig.database.prefix}_entries`;
 
+      async function setCid(
+        throwError: (place: string, message: unknown) => void,
+        entry: BCMSEntry,
+      ) {
+        if (!entry.cid) {
+          let idc = await BCMSRepo.idc.methods.findAndIncByForId('entries');
+          if (!idc) {
+            const entryIdc = BCMSFactory.idc.create({
+              count: 2,
+              forId: 'entries',
+              name: 'Entries',
+            });
+            const addIdcResult = await BCMSRepo.idc.add(entryIdc);
+            if (!addIdcResult) {
+              throw throwError(
+                'methods.add',
+                'Failed to add IDC to the database.',
+              );
+            }
+            idc = 1;
+          }
+          entry.cid = idc.toString(16);
+        }
+      }
+
       BCMSRepo.entry = BCMSConfig.database.fs
         ? createFSDBRepository<BCMSEntry, BCMSEntryRepositoryMethods>({
             name: nm,
             collection,
             schema: BCMSEntryFSDBSchema,
-            methods({ repo }) {
+            methods({ repo, throwError }) {
               return {
+                async add(entry) {
+                  await setCid(throwError, entry);
+                  return await repo.add(entry);
+                },
                 async findByTemplateIdAndRef(tempId, ref) {
                   return await repo.findBy(
                     (e) =>
@@ -93,7 +123,7 @@ export function createBcmsEntryRepository(): Module {
             name: nm,
             collection,
             schema: BCMSEntryMongoDBSchema,
-            methods({ mongoDBInterface, cacheHandler }) {
+            methods({ mongoDBInterface, cacheHandler, logger, repo }) {
               const latches: {
                 status: {
                   [name: string]: boolean;
@@ -110,6 +140,13 @@ export function createBcmsEntryRepository(): Module {
                 widget: {},
               };
               return {
+                async add(entry) {
+                  await setCid((place, message) => {
+                    logger.error(place, message);
+                    return Error(message as string);
+                  }, entry);
+                  return await repo.add(entry);
+                },
                 async findByTemplateIdAndRef(tempId, ref) {
                   const cacheHit = cacheHandler.findOne(
                     (e) =>
