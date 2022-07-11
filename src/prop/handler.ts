@@ -1226,12 +1226,12 @@ export const BCMSPropHandler: BCMSPropHandlerType = {
               )[0];
             }
           } else {
-            (parsed[prop.name] as BCMSPropEntryPointerDataParsed[]) = [];
             for (let j = 0; j < valueData.length; j++) {
               const valueInfo = valueData[j];
               const template = await BCMSRepo.template.findById(valueInfo.tid);
               if (template) {
                 if (prop.array) {
+                  (parsed[prop.name] as BCMSPropEntryPointerDataParsed[]) = [];
                   const parsedProp: BCMSPropEntryPointerDataParsed = {
                     _id: '',
                     createdAt: -1,
