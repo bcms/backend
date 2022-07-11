@@ -220,7 +220,7 @@ export const BCMSGroupController = createController({
           await BCMSGroupRequestHandler.delete({
             accessToken,
             errorHandler,
-            id: request.params._id,
+            id: request.params.id,
             logger,
             name,
           });
