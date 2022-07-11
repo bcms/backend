@@ -28,7 +28,7 @@ const mimetypeMap: {
   jpg: string[];
   png: string[];
 } = {
-  jpg: ['image/jpeg', 'image/pjpeg'],
+  jpg: ['image/jpeg', 'image/pjpeg', 'image/jpg'],
   png: ['image/png'],
 };
 
