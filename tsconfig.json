@@ -16,7 +16,8 @@
     "importsNotUsedAsValues": "error",
     "paths": {
       "@bcms/*": ["./*"],
-      "@becomes/cms-backend/*": ["./*"]
+      "@becomes/cms-backend/*": ["./*"],
+      "@becomes/cms-backend/src/*": ["./*"]
     }
   },
   "include": ["src/**/*"],

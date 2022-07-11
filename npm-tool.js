@@ -61,7 +61,8 @@ async function fixImports() {
       const file = (await util.promisify(fs.readFile)(filePath.abs)).toString();
       const fileFixed = file
         .replace(/@bcms/g, replacer)
-        .replace(/@becomes\/cms-backend/g, replacer);
+        .replace(/@becomes\/cms-backend/g, replacer)
+        .replace(/@becomes\/cms-backend\/src/g, replacer);
       if (file !== fileFixed) {
         await util.promisify(fs.writeFile)(filePath.abs, fileFixed);
       }
