@@ -506,6 +506,7 @@ export const BCMSMediaController = createController<Setup>({
         async handler({ request, errorHandler, logger, name }) {
           return {
             item: await BCMSMediaRequestHandler.createFile({
+              sid: request.headers['x-bcms-sid'] as string,
               uploadToken: request.headers['x-bcms-upload-token'] as string,
               errorHandler,
               logger,
@@ -529,9 +530,10 @@ export const BCMSMediaController = createController<Setup>({
             permissionName: JWTPermissionName.WRITE,
             bodySchema: BCMSMediaAddDirDataSchema,
           }),
-        async handler({ body, errorHandler, accessToken }) {
+        async handler({ body, errorHandler, accessToken, request }) {
           return {
             item: await BCMSMediaRequestHandler.createDir({
+              sid: request.headers['x-bcms-sid'] as string,
               accessToken,
               errorHandler,
               body,
@@ -552,9 +554,10 @@ export const BCMSMediaController = createController<Setup>({
             permissionName: JWTPermissionName.WRITE,
             bodySchema: BCMSMediaUpdateDataSchema,
           }),
-        async handler({ errorHandler, body, accessToken }) {
+        async handler({ errorHandler, body, accessToken, request }) {
           return {
             item: await BCMSMediaRequestHandler.update({
+              sid: request.headers['x-bcms-sid'] as string,
               body,
               accessToken,
               errorHandler,
@@ -575,9 +578,10 @@ export const BCMSMediaController = createController<Setup>({
             permissionName: JWTPermissionName.WRITE,
             bodySchema: BCMSMediaDuplicateDataSchema,
           }),
-        async handler({ body, errorHandler, accessToken }) {
+        async handler({ body, errorHandler, accessToken, request }) {
           return {
             item: await BCMSMediaRequestHandler.duplicateFile({
+              sid: request.headers['x-bcms-sid'] as string,
               body,
               errorHandler,
               accessToken,
@@ -598,9 +602,10 @@ export const BCMSMediaController = createController<Setup>({
             permissionName: JWTPermissionName.WRITE,
             bodySchema: BCMSMediaMoveDataSchema,
           }),
-        async handler({ body, errorHandler, accessToken }) {
+        async handler({ body, errorHandler, accessToken, request }) {
           return {
             item: await BCMSMediaRequestHandler.moveFile({
+              sid: request.headers['x-bcms-sid'] as string,
               body,
               errorHandler,
               accessToken,
@@ -621,6 +626,7 @@ export const BCMSMediaController = createController<Setup>({
         ),
         async handler({ request, errorHandler, accessToken, logger, name }) {
           await BCMSMediaRequestHandler.delete({
+            sid: request.headers['x-bcms-sid'] as string,
             id: request.params.id,
             errorHandler,
             accessToken,

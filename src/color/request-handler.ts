@@ -51,10 +51,12 @@ export class BCMSColorRequestHandler {
     return color;
   }
   static async create({
+    sid,
     accessToken,
     errorHandler,
     body,
   }: {
+    sid?: string;
     accessToken: JWT<BCMSUserCustomPool>;
     errorHandler: HTTPError;
     body: BCMSColorCreateData;
@@ -145,16 +147,18 @@ export class BCMSColorRequestHandler {
       colorId: addedColor._id,
       type: BCMSSocketEventType.UPDATE,
       userIds: 'all',
-      excludeUserId: [accessToken.payload.userId],
+      excludeUserId: [accessToken.payload.userId + '_' + sid],
     });
     await BCMSRepo.change.methods.updateAndIncByName('color');
     return addedColor;
   }
   static async update({
+    sid,
     errorHandler,
     body,
     accessToken,
   }: {
+    sid?: string;
     body: BCMSColorUpdateData;
     accessToken: JWT<BCMSUserCustomPool>;
     errorHandler: HTTPError;
@@ -201,17 +205,19 @@ export class BCMSColorRequestHandler {
       colorId: updatedColor._id,
       type: BCMSSocketEventType.UPDATE,
       userIds: 'all',
-      excludeUserId: [accessToken.payload.userId],
+      excludeUserId: [accessToken.payload.userId + '_' + sid],
     });
     await BCMSRepo.change.methods.updateAndIncByName('color');
 
     return updatedColor;
   }
   static async delete({
+    sid,
     errorHandler,
     id,
     accessToken,
   }: {
+    sid?: string;
     id: string;
     accessToken: JWT<BCMSUserCustomPool>;
     errorHandler: HTTPError;
@@ -239,7 +245,7 @@ export class BCMSColorRequestHandler {
       colorId: color._id,
       type: BCMSSocketEventType.REMOVE,
       userIds: 'all',
-      excludeUserId: [accessToken.payload.userId],
+      excludeUserId: [accessToken.payload.userId + '_' + sid],
     });
     await BCMSRepo.change.methods.updateAndIncByName('color');
   }

@@ -9,9 +9,7 @@ import {
   JWTRoleName,
 } from '@becomes/purple-cheetah-mod-jwt/types';
 import { HTTPStatus } from '@becomes/purple-cheetah/types';
-import {
-  BCMSRouteProtection,
-} from '../util';
+import { BCMSRouteProtection } from '../util';
 import {
   BCMSRouteProtectionJwtAndBodyCheckResult,
   BCMSUserCustomPool,
@@ -145,14 +143,16 @@ export const BCMSWidgetController = createController({
         { item: BCMSWidget }
       >({
         type: 'post',
-        preRequestHandler: BCMSRouteProtection.createJwtAndBodyCheckPreRequestHandler({
-          roleNames: [JWTRoleName.ADMIN],
-          permissionName: JWTPermissionName.WRITE,
-          bodySchema: BCMSWidgetCreateDataSchema,
-        }),
-        async handler({ body, errorHandler, accessToken }) {
+        preRequestHandler:
+          BCMSRouteProtection.createJwtAndBodyCheckPreRequestHandler({
+            roleNames: [JWTRoleName.ADMIN],
+            permissionName: JWTPermissionName.WRITE,
+            bodySchema: BCMSWidgetCreateDataSchema,
+          }),
+        async handler({ body, errorHandler, accessToken, request }) {
           return {
             item: await BCMSWidgetRequestHandler.create({
+              sid: request.headers['x-bcms-sid'] as string,
               body,
               errorHandler,
               accessToken,
@@ -166,14 +166,16 @@ export const BCMSWidgetController = createController({
         { item: BCMSWidget }
       >({
         type: 'put',
-        preRequestHandler: BCMSRouteProtection.createJwtAndBodyCheckPreRequestHandler({
-          roleNames: [JWTRoleName.ADMIN],
-          permissionName: JWTPermissionName.WRITE,
-          bodySchema: BCMSWidgetUpdateDataSchema,
-        }),
-        async handler({ body, errorHandler, accessToken }) {
+        preRequestHandler:
+          BCMSRouteProtection.createJwtAndBodyCheckPreRequestHandler({
+            roleNames: [JWTRoleName.ADMIN],
+            permissionName: JWTPermissionName.WRITE,
+            bodySchema: BCMSWidgetUpdateDataSchema,
+          }),
+        async handler({ body, errorHandler, accessToken, request }) {
           return {
             item: await BCMSWidgetRequestHandler.update({
+              sid: request.headers['x-bcms-sid'] as string,
               body,
               errorHandler,
               accessToken,
@@ -194,6 +196,7 @@ export const BCMSWidgetController = createController({
         ),
         async handler({ request, errorHandler, accessToken, logger, name }) {
           await BCMSWidgetRequestHandler.delete({
+            sid: request.headers['x-bcms-sid'] as string,
             id: request.params.id,
             errorHandler,
             accessToken,

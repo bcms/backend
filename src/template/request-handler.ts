@@ -58,10 +58,12 @@ export class BCMSTemplateRequestHandler {
     return template;
   }
   static async create({
+    sid,
     accessToken,
     errorHandler,
     body,
   }: {
+    sid?: string;
     accessToken: JWT<BCMSUserCustomPool>;
     errorHandler: HTTPError;
     body: BCMSTemplateCreateData;
@@ -115,16 +117,18 @@ export class BCMSTemplateRequestHandler {
       templateId: addedTemplate._id,
       type: BCMSSocketEventType.UPDATE,
       userIds: 'all',
-      excludeUserId: [accessToken.payload.userId],
+      excludeUserId: [accessToken.payload.userId + '_' + sid],
     });
     await BCMSRepo.change.methods.updateAndIncByName('templates');
     return addedTemplate;
   }
   static async update({
+    sid,
     accessToken,
     errorHandler,
     body,
   }: {
+    sid?: string;
     accessToken: JWT<BCMSUserCustomPool>;
     errorHandler: HTTPError;
     body: BCMSTemplateUpdateData;
@@ -263,18 +267,20 @@ export class BCMSTemplateRequestHandler {
       templateId: updatedTemplate._id,
       type: BCMSSocketEventType.UPDATE,
       userIds: 'all',
-      excludeUserId: [accessToken.payload.userId],
+      excludeUserId: [accessToken.payload.userId + '_' + sid],
     });
     await BCMSRepo.change.methods.updateAndIncByName('templates');
     return updatedTemplate;
   }
   static async delete({
+    sid,
     errorHandler,
     id,
     logger,
     name,
     accessToken,
   }: {
+    sid?: string;
     id: string;
     accessToken: JWT<BCMSUserCustomPool>;
     errorHandler: HTTPError;
@@ -332,7 +338,7 @@ export class BCMSTemplateRequestHandler {
       templateId: template._id,
       type: BCMSSocketEventType.REMOVE,
       userIds: 'all',
-      excludeUserId: [accessToken.payload.userId],
+      excludeUserId: [accessToken.payload.userId + '_' + sid],
     });
     await BCMSRepo.change.methods.updateAndIncByName('templates');
   }

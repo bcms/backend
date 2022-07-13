@@ -123,7 +123,7 @@ async function initialize() {
           id = socket.handshake.query.key as string;
         }
         return {
-          id,
+          id: `${id}_${socket.id}`,
           createdAt: Date.now(),
           scope: socket.handshake.query.at ? 'global' : 'client',
           socket,

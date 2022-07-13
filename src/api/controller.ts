@@ -141,10 +141,11 @@ export const BCMSApiKeyController = createController<Setup>({
             permissionName: JWTPermissionName.WRITE,
             bodySchema: BCMSApiKeyAddDataSchema,
           }),
-        async handler({ body, errorHandler, accessToken }) {
+        async handler({ body, errorHandler, accessToken, request }) {
           {
             return {
               item: await BCMSApiKeyRequestHandler.create({
+                sid: request.headers['x-bcms-sid'] as string,
                 accessToken,
                 errorHandler,
                 body,
@@ -165,9 +166,10 @@ export const BCMSApiKeyController = createController<Setup>({
             permissionName: JWTPermissionName.WRITE,
             bodySchema: BCMSApiKeyUpdateDataSchema,
           }),
-        async handler({ body, errorHandler, accessToken }) {
+        async handler({ body, errorHandler, accessToken, request }) {
           return {
             item: await BCMSApiKeyRequestHandler.update({
+              sid: request.headers['x-bcms-sid'] as string,
               body,
               errorHandler,
               accessToken,
@@ -188,6 +190,7 @@ export const BCMSApiKeyController = createController<Setup>({
         ),
         async handler({ request, errorHandler, accessToken }) {
           await BCMSApiKeyRequestHandler.delete({
+            sid: request.headers['x-bcms-sid'] as string,
             id: request.params.id,
             errorHandler,
             accessToken,

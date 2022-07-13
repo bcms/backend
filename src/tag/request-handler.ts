@@ -63,10 +63,12 @@ export class BCMSTagRequestHandler {
     return tag;
   }
   static async create({
+    sid,
     accessToken,
     errorHandler,
     body,
   }: {
+    sid?: string;
     accessToken: JWT<BCMSUserCustomPool>;
     errorHandler: HTTPError;
     body: BCMSTagCreateData;
@@ -120,16 +122,18 @@ export class BCMSTagRequestHandler {
       tagId: addedTag._id,
       type: BCMSSocketEventType.UPDATE,
       userIds: 'all',
-      excludeUserId: [accessToken.payload.userId],
+      excludeUserId: [accessToken.payload.userId + '_' + sid],
     });
     await BCMSRepo.change.methods.updateAndIncByName('tag');
     return addedTag;
   }
   static async update({
+    sid,
     accessToken,
     errorHandler,
     body,
   }: {
+    sid?: string;
     accessToken: JWT<BCMSUserCustomPool>;
     errorHandler: HTTPError;
     body: BCMSTagUpdateData;
@@ -178,18 +182,20 @@ export class BCMSTagRequestHandler {
       tagId: updatedTag._id,
       type: BCMSSocketEventType.UPDATE,
       userIds: 'all',
-      excludeUserId: [accessToken.payload.userId],
+      excludeUserId: [accessToken.payload.userId + '_' + sid],
     });
     await BCMSRepo.change.methods.updateAndIncByName('tag');
     return updatedTag;
   }
   static async delete({
+    sid,
     errorHandler,
     id,
     logger,
     name,
     accessToken,
   }: {
+    sid?: string;
     id: string;
     accessToken: JWT<BCMSUserCustomPool>;
     errorHandler: HTTPError;
@@ -225,7 +231,7 @@ export class BCMSTagRequestHandler {
       tagId: tag._id,
       type: BCMSSocketEventType.REMOVE,
       userIds: 'all',
-      excludeUserId: [accessToken.payload.userId],
+      excludeUserId: [accessToken.payload.userId + '_' + sid],
     });
     await BCMSRepo.change.methods.updateAndIncByName('tag');
   }

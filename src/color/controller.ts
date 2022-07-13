@@ -104,9 +104,10 @@ export const BCMSColorController = createController({
             permissionName: JWTPermissionName.WRITE,
             bodySchema: BCMSColorCreateDataSchema,
           }),
-        async handler({ errorHandler, body, accessToken }) {
+        async handler({ errorHandler, body, accessToken, request }) {
           return {
             item: await BCMSColorRequestHandler.create({
+              sid: request.headers['x-bcms-sid'] as string,
               accessToken,
               errorHandler,
               body,
@@ -125,9 +126,10 @@ export const BCMSColorController = createController({
             permissionName: JWTPermissionName.WRITE,
             bodySchema: BCMSColorUpdateDataSchema,
           }),
-        async handler({ errorHandler, body, accessToken }) {
+        async handler({ errorHandler, body, accessToken, request }) {
           return {
             item: await BCMSColorRequestHandler.update({
+              sid: request.headers['x-bcms-sid'] as string,
               errorHandler,
               body,
               accessToken,
@@ -147,6 +149,7 @@ export const BCMSColorController = createController({
         ),
         async handler({ request, errorHandler, accessToken }) {
           await BCMSColorRequestHandler.delete({
+            sid: request.headers['x-bcms-sid'] as string,
             id: request.params.id,
             errorHandler,
             accessToken,

@@ -47,18 +47,34 @@ async function emit<Data>({
     } else {
       toScopes = ['global', 'client'];
     }
-    for (let i = 0; i < toScopes.length; i++) {
-      const scope = toScopes[i];
-      socket.emitToScope<Data>({
-        eventName: name,
-        eventData: data,
-        scope: scope,
-      });
+    const connections = socket.findConnections(() => true);
+    if (excludeUserId && excludeUserId.length > 0) {
+      for (let i = 0; i < connections.length; i++) {
+        const connection = connections[i];
+        if (!excludeUserId.includes(connection.id)) {
+          socket.emit<Data>({
+            eventName: name,
+            eventData: data,
+            connectionId: connection.id,
+          });
+        }
+      }
+    } else {
+      for (let i = 0; i < toScopes.length; i++) {
+        const scope = toScopes[i];
+        socket.emitToScope<Data>({
+          eventName: name,
+          eventData: data,
+          scope: scope,
+        });
+      }
     }
   } else {
     for (let i = 0; i < userIds.length; i++) {
       const userId = userIds[i];
-      const connection = socket.findConnectionById(userId);
+      const connection = socket.findConnection(
+        (e) => e.id === userId || e.id.startsWith(userId),
+      );
       if (connection && (!excludeUserId || !excludeUserId.includes(userId))) {
         socket.emit<Data>({
           eventName: name,
@@ -116,6 +132,7 @@ export const BCMSSocketManager: BCMSSocketManagerType = {
         },
         userIds: data.userIds,
         scopes: data.scopes,
+        excludeUserId: data.excludeUserId,
       });
     },
     async entry(data) {
@@ -129,6 +146,7 @@ export const BCMSSocketManager: BCMSSocketManagerType = {
         },
         userIds: data.userIds,
         scopes: data.scopes,
+        excludeUserId: data.excludeUserId,
       });
     },
     async group(data) {
@@ -141,6 +159,7 @@ export const BCMSSocketManager: BCMSSocketManagerType = {
         },
         userIds: data.userIds,
         scopes: data.scopes,
+        excludeUserId: data.excludeUserId,
       });
     },
     async language(data) {
@@ -153,6 +172,7 @@ export const BCMSSocketManager: BCMSSocketManagerType = {
         },
         userIds: data.userIds,
         scopes: data.scopes,
+        excludeUserId: data.excludeUserId,
       });
     },
     async media(data) {
@@ -165,6 +185,7 @@ export const BCMSSocketManager: BCMSSocketManagerType = {
         },
         userIds: data.userIds,
         scopes: data.scopes,
+        excludeUserId: data.excludeUserId,
       });
     },
     async status(data) {
@@ -177,6 +198,7 @@ export const BCMSSocketManager: BCMSSocketManagerType = {
         },
         userIds: data.userIds,
         scopes: data.scopes,
+        excludeUserId: data.excludeUserId,
       });
     },
     async template(data) {
@@ -189,6 +211,7 @@ export const BCMSSocketManager: BCMSSocketManagerType = {
         },
         userIds: data.userIds,
         scopes: data.scopes,
+        excludeUserId: data.excludeUserId,
       });
     },
     async templateOrganizer(data) {
@@ -201,6 +224,7 @@ export const BCMSSocketManager: BCMSSocketManagerType = {
         },
         userIds: data.userIds,
         scopes: data.scopes,
+        excludeUserId: data.excludeUserId,
       });
     },
     async user(data) {
@@ -213,6 +237,7 @@ export const BCMSSocketManager: BCMSSocketManagerType = {
         },
         userIds: data.userIds,
         scopes: data.scopes,
+        excludeUserId: data.excludeUserId,
       });
     },
     async widget(data) {
@@ -225,6 +250,7 @@ export const BCMSSocketManager: BCMSSocketManagerType = {
         },
         userIds: data.userIds,
         scopes: data.scopes,
+        excludeUserId: data.excludeUserId,
       });
     },
     async color(data) {
@@ -237,6 +263,7 @@ export const BCMSSocketManager: BCMSSocketManagerType = {
         },
         userIds: data.userIds,
         scopes: data.scopes,
+        excludeUserId: data.excludeUserId,
       });
     },
     async tag(data) {
@@ -249,6 +276,7 @@ export const BCMSSocketManager: BCMSSocketManagerType = {
         },
         userIds: data.userIds,
         scopes: data.scopes,
+        excludeUserId: data.excludeUserId,
       });
     },
   },

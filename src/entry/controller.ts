@@ -286,6 +286,7 @@ export const BCMSEntryController = createController<Setup>({
           permissionName: JWTPermissionName.WRITE,
         }),
         async handler({ request, errorHandler, token, key }) {
+          const sid = request.headers['x-bcms-sid'] as string;
           const checkBody = objectUtil.compareWithSchema(
             request.body,
             BCMSEntryCreateDataSchema,
@@ -389,7 +390,9 @@ export const BCMSEntryController = createController<Setup>({
             templateId: addedEntry.templateId,
             type: BCMSSocketEventType.UPDATE,
             userIds: 'all',
-            excludeUserId: token ? [token.payload.userId] : undefined,
+            excludeUserId: token
+              ? [token.payload.userId + '_' + sid]
+              : undefined,
           });
           await BCMSRepo.change.methods.updateAndIncByName('entry');
           return {
@@ -486,12 +489,15 @@ export const BCMSEntryController = createController<Setup>({
             BCMSEventConfigMethod.UPDATE,
             entry,
           );
+          const sid = request.headers['x-bcms-sid'] as string;
           await BCMSSocketManager.emit.entry({
             entryId: updatedEntry._id,
             templateId: updatedEntry.templateId,
             type: BCMSSocketEventType.UPDATE,
             userIds: 'all',
-            excludeUserId: token ? [token.payload.userId] : undefined,
+            excludeUserId: token
+              ? [token.payload.userId + '_' + sid]
+              : undefined,
           });
           await BCMSRepo.change.methods.updateAndIncByName('entry');
           return {
@@ -528,12 +534,15 @@ export const BCMSEntryController = createController<Setup>({
             BCMSEventConfigMethod.DELETE,
             entry,
           );
+          const sid = request.headers['x-bcms-sid'] as string;
           await BCMSSocketManager.emit.entry({
             entryId: entry._id,
             templateId: entry.templateId,
             type: BCMSSocketEventType.REMOVE,
             userIds: 'all',
-            excludeUserId: token ? [token.payload.userId] : undefined,
+            excludeUserId: token
+              ? [token.payload.userId + '_' + sid]
+              : undefined,
           });
           await BCMSRepo.change.methods.updateAndIncByName('entry');
           return {

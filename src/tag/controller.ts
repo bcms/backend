@@ -108,9 +108,10 @@ export const BCMSTagController = createController({
             permissionName: JWTPermissionName.WRITE,
             bodySchema: BCMSTagCreateDataSchema,
           }),
-        async handler({ errorHandler, body, accessToken }) {
+        async handler({ errorHandler, body, accessToken, request }) {
           return {
             item: await BCMSTagRequestHandler.create({
+              sid: request.headers['x-bcms-sid'] as string,
               accessToken,
               errorHandler,
               body,
@@ -129,9 +130,10 @@ export const BCMSTagController = createController({
             permissionName: JWTPermissionName.WRITE,
             bodySchema: BCMSTagUpdateDataSchema,
           }),
-        async handler({ errorHandler, body, accessToken }) {
+        async handler({ errorHandler, body, accessToken, request }) {
           return {
             item: await BCMSTagRequestHandler.update({
+              sid: request.headers['x-bcms-sid'] as string,
               accessToken,
               body,
               errorHandler,
@@ -151,6 +153,7 @@ export const BCMSTagController = createController({
         ),
         async handler({ request, errorHandler, accessToken, logger, name }) {
           await BCMSTagRequestHandler.delete({
+            sid: request.headers['x-bcms-sid'] as string,
             errorHandler,
             id: request.params.id,
             name,

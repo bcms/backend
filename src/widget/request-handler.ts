@@ -51,10 +51,12 @@ export class BCMSWidgetRequestHandler {
     return widget;
   }
   static async create({
+    sid,
     accessToken,
     errorHandler,
     body,
   }: {
+    sid?: string;
     accessToken: JWT<BCMSUserCustomPool>;
     errorHandler: HTTPError;
     body: BCMSWidgetCreateData;
@@ -106,16 +108,18 @@ export class BCMSWidgetRequestHandler {
       widgetId: addedWidget._id,
       type: BCMSSocketEventType.UPDATE,
       userIds: 'all',
-      excludeUserId: [accessToken.payload.userId],
+      excludeUserId: [accessToken.payload.userId + '_' + sid],
     });
     await BCMSRepo.change.methods.updateAndIncByName('widget');
     return addedWidget;
   }
   static async update({
+    sid,
     accessToken,
     errorHandler,
     body,
   }: {
+    sid?: string;
     accessToken: JWT<BCMSUserCustomPool>;
     errorHandler: HTTPError;
     body: BCMSWidgetUpdateData;
@@ -232,18 +236,20 @@ export class BCMSWidgetRequestHandler {
       widgetId: updatedWidget._id,
       type: BCMSSocketEventType.UPDATE,
       userIds: 'all',
-      excludeUserId: [accessToken.payload.userId],
+      excludeUserId: [accessToken.payload.userId + '_' + sid],
     });
     await BCMSRepo.change.methods.updateAndIncByName('widget');
     return updatedWidget;
   }
   static async delete({
+    sid,
     errorHandler,
     id,
     logger,
     name,
     accessToken,
   }: {
+    sid?: string;
     id: string;
     accessToken: JWT<BCMSUserCustomPool>;
     errorHandler: HTTPError;
@@ -279,7 +285,7 @@ export class BCMSWidgetRequestHandler {
       widgetId: widget._id,
       type: BCMSSocketEventType.REMOVE,
       userIds: 'all',
-      excludeUserId: [accessToken.payload.userId],
+      excludeUserId: [accessToken.payload.userId + '_' + sid],
     });
     await BCMSRepo.change.methods.updateAndIncByName('widget');
   }

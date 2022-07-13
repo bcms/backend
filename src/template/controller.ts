@@ -105,9 +105,10 @@ export const BCMSTemplateController = createController({
             permissionName: JWTPermissionName.WRITE,
             bodySchema: BCMSTemplateCreateDataSchema,
           }),
-        async handler({ body, errorHandler, accessToken }) {
+        async handler({ body, errorHandler, accessToken, request }) {
           return {
             item: await BCMSTemplateRequestHandler.create({
+              sid: request.headers['x-bcms-sid'] as string,
               accessToken,
               errorHandler,
               body,
@@ -127,9 +128,10 @@ export const BCMSTemplateController = createController({
             permissionName: JWTPermissionName.WRITE,
             bodySchema: BCMSTemplateUpdateDataSchema,
           }),
-        async handler({ body, errorHandler, accessToken }) {
+        async handler({ body, errorHandler, accessToken, request }) {
           return {
             item: await BCMSTemplateRequestHandler.update({
+              sid: request.headers['x-bcms-sid'] as string,
               accessToken,
               errorHandler,
               body,
@@ -150,6 +152,7 @@ export const BCMSTemplateController = createController({
         ),
         async handler({ request, errorHandler, logger, name, accessToken }) {
           await BCMSTemplateRequestHandler.delete({
+            sid: request.headers['x-bcms-sid'] as string,
             errorHandler,
             id: request.params.id,
             logger,

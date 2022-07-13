@@ -200,11 +200,12 @@ export const BCMSUserController = createController<Setup>({
             BCMSEventConfigMethod.UPDATE,
             updatedUser,
           );
+          const sid = request.headers['x-bcms-sid'] as string;
           await BCMSSocketManager.emit.user({
             userId: updatedUser._id,
             type: BCMSSocketEventType.UPDATE,
             userIds: 'all',
-            excludeUserId: [accessToken.payload.userId],
+            excludeUserId: [accessToken.payload.userId + '_' + sid],
           });
           await BCMSSocketManager.emit.refresh({
             userId: user._id,

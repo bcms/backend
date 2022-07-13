@@ -53,10 +53,12 @@ export class BCMSGroupRequestHandler {
     return group;
   }
   static async create({
+    sid,
     accessToken,
     errorHandler,
     body,
   }: {
+    sid?: string;
     accessToken: JWT<BCMSUserCustomPool>;
     errorHandler: HTTPError;
     body: BCMSGroupAddData;
@@ -105,16 +107,18 @@ export class BCMSGroupRequestHandler {
       groupId: addedGroup._id,
       type: BCMSSocketEventType.UPDATE,
       userIds: 'all',
-      excludeUserId: [accessToken.payload.userId],
+      excludeUserId: [accessToken.payload.userId + '_' + sid],
     });
     await BCMSRepo.change.methods.updateAndIncByName('group');
     return addedGroup;
   }
   static async update({
+    sid,
     accessToken,
     errorHandler,
     body,
   }: {
+    sid?: string;
     accessToken: JWT<BCMSUserCustomPool>;
     errorHandler: HTTPError;
     body: BCMSGroupUpdateData;
@@ -218,18 +222,20 @@ export class BCMSGroupRequestHandler {
       groupId: updatedGroup._id,
       type: BCMSSocketEventType.UPDATE,
       userIds: 'all',
-      excludeUserId: [accessToken.payload.userId],
+      excludeUserId: [accessToken.payload.userId + '_' + sid],
     });
     await BCMSRepo.change.methods.updateAndIncByName('group');
     return updatedGroup;
   }
   static async delete({
+    sid,
     errorHandler,
     id,
     logger,
     name,
     accessToken,
   }: {
+    sid?: string;
     id: string;
     accessToken: JWT<BCMSUserCustomPool>;
     errorHandler: HTTPError;
@@ -265,7 +271,7 @@ export class BCMSGroupRequestHandler {
       groupId: group._id,
       type: BCMSSocketEventType.REMOVE,
       userIds: 'all',
-      excludeUserId: [accessToken.payload.userId],
+      excludeUserId: [accessToken.payload.userId + '_' + sid],
     });
     await BCMSRepo.change.methods.updateAndIncByName('group');
   }

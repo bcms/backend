@@ -40,10 +40,12 @@ export class BCMSTemplateOrganizerRequestHandler {
     return tempOrg;
   }
   static async create({
+    sid,
     accessToken,
     errorHandler,
     body,
   }: {
+    sid?: string;
     accessToken: JWT<BCMSUserCustomPool>;
     errorHandler: HTTPError;
     body: BCMSTemplateOrganizerCreateData;
@@ -70,15 +72,17 @@ export class BCMSTemplateOrganizerRequestHandler {
       templateOrganizerId: addedOrg._id,
       type: BCMSSocketEventType.UPDATE,
       userIds: 'all',
-      excludeUserId: [accessToken.payload.userId],
+      excludeUserId: [accessToken.payload.userId + '_' + sid],
     });
     return addedOrg;
   }
   static async update({
+    sid,
     accessToken,
     errorHandler,
     body,
   }: {
+    sid?: string;
     accessToken: JWT<BCMSUserCustomPool>;
     errorHandler: HTTPError;
     body: BCMSTemplateOrganizerUpdateData;
@@ -135,15 +139,17 @@ export class BCMSTemplateOrganizerRequestHandler {
       templateOrganizerId: updatedTempOrg._id,
       type: BCMSSocketEventType.UPDATE,
       userIds: 'all',
-      excludeUserId: [accessToken.payload.userId],
+      excludeUserId: [accessToken.payload.userId + '_' + sid],
     });
     return updatedTempOrg;
   }
   static async delete({
+    sid,
     errorHandler,
     id,
     accessToken,
   }: {
+    sid?: string;
     id: string;
     accessToken: JWT<BCMSUserCustomPool>;
     errorHandler: HTTPError;
@@ -171,7 +177,7 @@ export class BCMSTemplateOrganizerRequestHandler {
       templateOrganizerId: tempOrg._id,
       type: BCMSSocketEventType.REMOVE,
       userIds: 'all',
-      excludeUserId: [accessToken.payload.userId],
+      excludeUserId: [accessToken.payload.userId + '_' + sid],
     });
   }
 }

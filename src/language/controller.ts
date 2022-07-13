@@ -87,9 +87,10 @@ export const BCMSLanguageController = createController({
             permissionName: JWTPermissionName.WRITE,
             bodySchema: BCMSLanguageAddDataSchema,
           }),
-        async handler({ body, accessToken, errorHandler }) {
+        async handler({ body, accessToken, errorHandler, request }) {
           return {
             item: await BCMSLanguageRequestHandler.create({
+              sid: request.headers['x-bcms-sid'] as string,
               body,
               accessToken,
               errorHandler,
@@ -110,6 +111,7 @@ export const BCMSLanguageController = createController({
         ),
         async handler({ request, errorHandler, accessToken }) {
           await BCMSLanguageRequestHandler.delete({
+            sid: request.headers['x-bcms-sid'] as string,
             id: request.params.id,
             errorHandler,
             accessToken,

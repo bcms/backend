@@ -130,6 +130,7 @@ export class BCMSMediaRequestHandler {
     return { token };
   }
   static async createFile({
+    sid,
     errorHandler,
     parentId,
     file,
@@ -137,6 +138,7 @@ export class BCMSMediaRequestHandler {
     name,
     uploadToken,
   }: {
+    sid?: string;
     errorHandler: HTTPError;
     name: string;
     logger: Logger;
@@ -228,17 +230,19 @@ export class BCMSMediaRequestHandler {
       mediaId: addedMedia._id,
       type: BCMSSocketEventType.UPDATE,
       userIds: 'all',
-      excludeUserId: [accessToken.payload.userId],
+      excludeUserId: [accessToken.payload.userId + '_' + sid],
     });
     await BCMSRepo.change.methods.updateAndIncByName('media');
     delete this.uploadTokens[uploadToken];
     return addedMedia;
   }
   static async createDir({
+    sid,
     accessToken,
     errorHandler,
     body,
   }: {
+    sid?: string;
     accessToken: JWT<BCMSUserCustomPool>;
     errorHandler: HTTPError;
     body: BCMSMediaAddDirData;
@@ -292,16 +296,18 @@ export class BCMSMediaRequestHandler {
       mediaId: addedMedia._id,
       type: BCMSSocketEventType.UPDATE,
       userIds: 'all',
-      excludeUserId: [accessToken.payload.userId],
+      excludeUserId: [accessToken.payload.userId + '_' + sid],
     });
     await BCMSRepo.change.methods.updateAndIncByName('media');
     return addedMedia;
   }
   static async update({
+    sid,
     accessToken,
     errorHandler,
     body,
   }: {
+    sid?: string;
     accessToken: JWT<BCMSUserCustomPool>;
     errorHandler: HTTPError;
     body: BCMSMediaUpdateData;
@@ -368,16 +374,18 @@ export class BCMSMediaRequestHandler {
       mediaId: updateMedia._id,
       type: BCMSSocketEventType.UPDATE,
       userIds: 'all',
-      excludeUserId: [accessToken.payload.userId],
+      excludeUserId: [accessToken.payload.userId + '_' + sid],
     });
     await BCMSRepo.change.methods.updateAndIncByName('media');
     return updateMedia;
   }
   static async duplicateFile({
+    sid,
     accessToken,
     errorHandler,
     body,
   }: {
+    sid?: string;
     accessToken: JWT<BCMSUserCustomPool>;
     errorHandler: HTTPError;
     body: BCMSMediaDuplicateData;
@@ -466,16 +474,18 @@ export class BCMSMediaRequestHandler {
       mediaId: duplicateMedia._id,
       type: BCMSSocketEventType.UPDATE,
       userIds: 'all',
-      excludeUserId: [accessToken.payload.userId],
+      excludeUserId: [accessToken.payload.userId + '_' + sid],
     });
     await BCMSRepo.change.methods.updateAndIncByName('media');
     return duplicateMedia;
   }
   static async moveFile({
+    sid,
     accessToken,
     errorHandler,
     body,
   }: {
+    sid?: string;
     accessToken: JWT<BCMSUserCustomPool>;
     errorHandler: HTTPError;
     body: BCMSMediaMoveData;
@@ -514,18 +524,20 @@ export class BCMSMediaRequestHandler {
       mediaId: media._id,
       type: BCMSSocketEventType.UPDATE,
       userIds: 'all',
-      excludeUserId: [accessToken.payload.userId],
+      excludeUserId: [accessToken.payload.userId + '_' + sid],
     });
     await BCMSRepo.change.methods.updateAndIncByName('media');
     return moveMedia;
   }
   static async delete({
+    sid,
     errorHandler,
     id,
     logger,
     name,
     accessToken,
   }: {
+    sid?: string;
     id: string;
     accessToken: JWT<BCMSUserCustomPool>;
     errorHandler: HTTPError;
@@ -572,7 +584,7 @@ export class BCMSMediaRequestHandler {
       mediaId: media._id,
       type: BCMSSocketEventType.REMOVE,
       userIds: 'all',
-      excludeUserId: [accessToken.payload.userId],
+      excludeUserId: [accessToken.payload.userId + '_' + sid],
     });
     await BCMSRepo.change.methods.updateAndIncByName('media');
   }

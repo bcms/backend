@@ -87,9 +87,10 @@ export const BCMSTemplateOrganizerController = createController({
             permissionName: JWTPermissionName.WRITE,
             roleNames: [JWTRoleName.ADMIN],
           }),
-        async handler({ errorHandler, body, accessToken }) {
+        async handler({ errorHandler, body, accessToken, request }) {
           return {
             item: await BCMSTemplateOrganizerRequestHandler.create({
+              sid: request.headers['x-bcms-sid'] as string,
               errorHandler,
               body,
               accessToken,
@@ -108,9 +109,10 @@ export const BCMSTemplateOrganizerController = createController({
             permissionName: JWTPermissionName.WRITE,
             roleNames: [JWTRoleName.ADMIN],
           }),
-        async handler({ errorHandler, body, accessToken }) {
+        async handler({ errorHandler, body, accessToken, request }) {
           return {
             item: await BCMSTemplateOrganizerRequestHandler.update({
+              sid: request.headers['x-bcms-sid'] as string,
               accessToken,
               errorHandler,
               body,
@@ -130,6 +132,7 @@ export const BCMSTemplateOrganizerController = createController({
         ),
         async handler({ request, errorHandler, accessToken }) {
           await BCMSTemplateOrganizerRequestHandler.delete({
+            sid: request.headers['x-bcms-sid'] as string,
             id: request.params.id,
             errorHandler,
             accessToken,
