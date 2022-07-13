@@ -15,6 +15,7 @@ interface BCMSTypeConverterPropsResult {
   props: Array<{
     name: string;
     type: string;
+    required: boolean;
   }>;
   imports: BCMSImports;
 }
@@ -185,6 +186,7 @@ export class BCMSTypeConverter {
       output.props.push({
         name: prop.name,
         type: typeResult.type,
+        required: prop.required,
       });
     }
     return output;
@@ -205,78 +207,84 @@ export class BCMSTypeConverter {
       if (!target) {
         loop = false;
       } else {
-        if (target.type === 'enum' && target.enumItems) {
-          const baseName = `${toCamelCase(target.name)}Enum`;
-          output[`enum/${target.name}.ts`] = [
-            `export type ${baseName} =`,
-            ...target.enumItems.map((e) => `  | '${e}'`),
-            ';',
-          ].join('\n');
-          output[`enum/${target.name}.ts`] += [
-            `\n\nexport interface ${baseName}Type {`,
-            `  items: ${baseName}[];`,
-            `  selected: ${baseName};`,
-            `}`,
-          ].join('\n');
-        } else if (target.props) {
-          const props = target.props;
-          const result = await this.toConvertProps({ props });
-          const interfaceName = toCamelCase(target.name + '_' + target.type);
-          let typescriptProps: string[] = [];
-          let additional: string[] = [''];
-          if (target.type === 'entry') {
-            const languages = await BCMSRepo.language.findAll();
-            typescriptProps = [
-              '  _id: string;',
-              '  createdAt: number;',
-              '  updatedAt: number;',
-              '  templateId: string;',
-              '  userId: string;',
-              '  status?: string;',
-              '  meta: {',
-              ...languages.map(
-                (lng) => `    ${lng.code}: ${interfaceName}Meta;`,
-              ),
-              '  }',
-              '  content: {',
-              ...languages.map(
-                (lng) => `    ${lng.code}: BCMSEntryContentParsedItem[];`,
-              ),
-              '  }',
-            ];
-            result.imports.set(
-              'BCMSEntryContentParsedItem',
-              '@becomes/cms-client/types',
-            );
-            additional = [
-              '',
-              `export interface ${interfaceName}Meta {`,
-              ...result.props.map((prop) => `  ${prop.name}: ${prop.type};`),
+        if (!output[`${target.type}/${target.name}.d.ts`]) {
+          if (target.type === 'enum' && target.enumItems) {
+            const baseName = `${toCamelCase(target.name)}Enum`;
+            output[`enum/${target.name}.d.ts`] = [
+              `export type ${baseName} =`,
+              ...target.enumItems.map((e) => `  | '${e}'`),
+              ';',
+            ].join('\n');
+            output[`enum/${target.name}.d.ts`] += [
+              `\n\nexport interface ${baseName}Type {`,
+              `  items: ${baseName}[];`,
+              `  selected: ${baseName};`,
+              `}`,
+            ].join('\n');
+          } else if (target.props) {
+            const props = target.props;
+            const result = await this.toConvertProps({ props });
+            const interfaceName = toCamelCase(target.name + '_' + target.type);
+            let typescriptProps: string[] = [];
+            let additional: string[] = [''];
+            if (target.type === 'entry') {
+              const languages = await BCMSRepo.language.findAll();
+              typescriptProps = [
+                '  _id: string;',
+                '  createdAt: number;',
+                '  updatedAt: number;',
+                '  templateId: string;',
+                '  userId: string;',
+                '  status?: string;',
+                '  meta: {',
+                ...languages.map(
+                  (lng) => `    ${lng.code}: ${interfaceName}Meta;`,
+                ),
+                '  }',
+                '  content: {',
+                ...languages.map(
+                  (lng) => `    ${lng.code}: BCMSEntryContentParsedItem[];`,
+                ),
+                '  }',
+              ];
+              result.imports.set(
+                'BCMSEntryContentParsedItem',
+                '@becomes/cms-client/types',
+              );
+              additional = [
+                '',
+                `export interface ${interfaceName}Meta {`,
+                ...result.props.map(
+                  (prop) =>
+                    `  ${prop.name}${prop.required ? '' : '?'}: ${prop.type};`,
+                ),
+                '}',
+                '',
+              ];
+            } else {
+              typescriptProps = result.props.map(
+                (prop) =>
+                  `  ${prop.name}${prop.required ? '' : '?'}: ${prop.type};`,
+              );
+            }
+            output[`${target.type}/${target.name}.d.ts`] = [
+              ...result.imports.flatten(),
+              ...additional,
+              `export ${
+                target.type === 'enum' ? 'type' : 'interface'
+              } ${toCamelCase(target.name + '_' + target.type)} {`,
+              ...typescriptProps,
               '}',
-              '',
-            ];
-          } else {
-            typescriptProps = result.props.map(
-              (prop) => `  ${prop.name}: ${prop.type};`,
-            );
-          }
-          output[`${target.type}/${target.name}.ts`] = [
-            ...result.imports.flatten(),
-            ...additional,
-            `export ${
-              target.type === 'enum' ? 'type' : 'interface'
-            } ${toCamelCase(target.name + '_' + target.type)} {`,
-            ...typescriptProps,
-            '}',
-          ].join('\n');
+            ].join('\n');
 
-          const importsState = result.imports.state;
-          for (const path in importsState) {
-            if (!path.startsWith('@becomes')) {
-              for (const name in importsState[path]) {
-                const metadata = importsState[path][name].metadata;
-                if (metadata && !parsedItems[name]) {
-                  data.push(metadata);
+            const importsState = result.imports.state;
+            for (const path in importsState) {
+              if (!path.startsWith('@becomes')) {
+                for (const name in importsState[path]) {
+                  const metadata = importsState[path][name].metadata;
+                  if (metadata && !parsedItems[name]) {
+                    data.push(metadata);
+                  }
                 }
               }
             }
@@ -308,77 +316,79 @@ export class BCMSTypeConverter {
       if (!target) {
         loop = false;
       } else {
-        if (target.type === 'enum' && target.enumItems) {
-          output[`enum/${target.name}.js`] = [
-            `/** `,
-            ' *  @typedef {(',
-            ...target.enumItems.map((e) => ` *              | '${e}'`),
-            ` *           )} ${toCamelCase(target.name)}Enum `,
-            ' */',
-          ].join('\n');
-        } else if (target.props) {
-          const props = target.props;
-          const result = await this.toConvertProps({ props });
-          const interfaceName = toCamelCase(target.name + '_' + target.type);
-          let jsDocProps: string[] = [];
-          let additional: string[] = [''];
-          if (target.type === 'entry') {
-            const languages = await BCMSRepo.language.findAll();
-            jsDocProps = [
-              ' *  @property { string } id',
-              ' *  @property { number } createdAt',
-              ' *  @property { number } updatedAt',
-              ' *  @property { string } cid',
-              ' *  @property { string } templateId',
-              ' *  @property { string } userId',
-              ' *  @property { string } status',
-              ' *  @property {{  ',
-              ...languages.map(
-                (lng) => ` *              ${lng.code}: ${interfaceName}Meta `,
-              ),
-              ' *            }} meta',
-              ' *  @property {{  ',
-              ...languages.map(
-                (lng) =>
-                  ` *               ${lng.code}: BCMSEntryContentParsed `,
-              ),
-              ' *            }} content',
-            ];
+        if (!output[`${target.type}/${target.name}.js`]) {
+          if (target.type === 'enum' && target.enumItems) {
+            output[`enum/${target.name}.js`] = [
+              `/** `,
+              ' *  @typedef {(',
+              ...target.enumItems.map((e) => ` *              | '${e}'`),
+              ` *           )} ${toCamelCase(target.name)}Enum `,
+              ' */',
+            ].join('\n');
+          } else if (target.props) {
+            const props = target.props;
+            const result = await this.toConvertProps({ props });
+            const interfaceName = toCamelCase(target.name + '_' + target.type);
+            let jsDocProps: string[] = [];
+            let additional: string[] = [''];
+            if (target.type === 'entry') {
+              const languages = await BCMSRepo.language.findAll();
+              jsDocProps = [
+                ' *  @property { string } id',
+                ' *  @property { number } createdAt',
+                ' *  @property { number } updatedAt',
+                ' *  @property { string } cid',
+                ' *  @property { string } templateId',
+                ' *  @property { string } userId',
+                ' *  @property { string } status',
+                ' *  @property {{  ',
+                ...languages.map(
+                  (lng) => ` *              ${lng.code}: ${interfaceName}Meta `,
+                ),
+                ' *            }} meta',
+                ' *  @property {{  ',
+                ...languages.map(
+                  (lng) =>
+                    ` *               ${lng.code}: BCMSEntryContentParsed `,
+                ),
+                ' *            }} content',
+              ];
 
-            result.imports.set(
-              'BCMSEntryContentParsed',
-              '@becomes/cms-client/types',
-            );
-            additional = [
-              ' *',
-              ` *  @typedef { Object } ${interfaceName}Meta`,
-              ...result.props.map(
+              result.imports.set(
+                'BCMSEntryContentParsed',
+                '@becomes/cms-client/types',
+              );
+              additional = [
+                ' *',
+                ` *  @typedef { Object } ${interfaceName}Meta`,
+                ...result.props.map(
+                  (prop) => ` *  @property { ${prop.type} } ${prop.name}`,
+                ),
+                ' *',
+              ];
+            } else {
+              jsDocProps = result.props.map(
                 (prop) => ` *  @property { ${prop.type} } ${prop.name}`,
-              ),
-              ' *',
-            ];
-          } else {
-            jsDocProps = result.props.map(
-              (prop) => ` *  @property { ${prop.type} } ${prop.name}`,
-            );
-          }
-          output[`${target.type}/${target.name}.js`] = [
-            `/**`,
-            ...result.imports.flattenForJSDoc(),
-            ...additional,
-            ` *  @typedef { Object } ${toCamelCase(
-              target.name + '_' + target.type,
-            )}`,
-            ...jsDocProps,
-            ` */`,
-          ].join('\n');
-          const importsState = result.imports.state;
-          for (const path in importsState) {
-            if (!path.startsWith('@becomes')) {
-              for (const name in importsState[path]) {
-                const metadata = importsState[path][name].metadata;
-                if (metadata && !parsedItems[name]) {
-                  data.push(metadata);
+              );
+            }
+            output[`${target.type}/${target.name}.js`] = [
+              `/**`,
+              ...result.imports.flattenForJSDoc(),
+              ...additional,
+              ` *  @typedef { Object } ${toCamelCase(
+                target.name + '_' + target.type,
+              )}`,
+              ...jsDocProps,
+              ` */`,
+            ].join('\n');
+            const importsState = result.imports.state;
+            for (const path in importsState) {
+              if (!path.startsWith('@becomes')) {
+                for (const name in importsState[path]) {
+                  const metadata = importsState[path][name].metadata;
+                  if (metadata && !parsedItems[name]) {
+                    data.push(metadata);
+                  }
                 }
               }
             }
@@ -407,75 +417,81 @@ export class BCMSTypeConverter {
     while (loop) {
       const target = data.pop();
       if (target) {
-        if (target.type === 'enum' && target.enumItems) {
-          const baseName = `${toCamelCase(target.name)}Enum`;
-          output[`enum/${target.name}.gql`] = [
-            `enum ${baseName} {`,
-            ...target.enumItems,
-            `}`,
-          ].join('\n');
-          output[`enum/${target.name}.gql`] += [
-            `\n\ntype ${baseName}Type {`,
-            `  items: [${baseName}!]!`,
-            `  selected: String`,
-            `}`,
-          ].join('\n');
-        } else if (target.props) {
-          const props = target.props;
-          const result = await this.toConvertProps({
-            props,
-            converterType: 'gql',
-          });
-          const interfaceName = toCamelCase(target.name + '_' + target.type);
-          let mainObjectProps: string[] = [];
-          let metaObject = '';
-          let metaItem = '';
-
-          if (target.type === 'entry') {
-            const languages = await BCMSRepo.language.findAll();
-            metaItem = [
-              `type ${interfaceName}Meta {`,
-              ...result.props.map((prop) => `  ${prop.name}: ${prop.type}`),
-              '}',
-              '',
+        if (!output[`${target.type}/${target.name}.gql`]) {
+          if (target.type === 'enum' && target.enumItems) {
+            const baseName = `${toCamelCase(target.name)}Enum`;
+            output[`enum/${target.name}.gql`] = [
+              `enum ${baseName} {`,
+              ...target.enumItems,
+              `}`,
             ].join('\n');
-            metaObject = [
-              `type ${interfaceName}MetaType {`,
-              languages.map((lng) => `  ${lng.code}: ${interfaceName}Meta!`),
-              '}',
-              '',
+            output[`enum/${target.name}.gql`] += [
+              `\n\ntype ${baseName}Type {`,
+              `  items: [${baseName}!]!`,
+              `  selected: String`,
+              `}`,
             ].join('\n');
-            mainObjectProps = [
-              '  _id: String!',
-              '  createdAt: Float!',
-              '  updatedAt: Float!',
-              '  templateId: String!',
-              '  userId: String!',
-              '  status: String',
-              `  meta: ${interfaceName}MetaType!`,
-              '  content: BCMSEntryContentType!',
-            ];
-          } else {
-            mainObjectProps = result.props.map(
-              (prop) => `  ${prop.name}: ${prop.type}`,
-            );
-          }
-          output[`${target.type}/${target.name}.gql`] = [
-            // ...result.imports.flatten(),
-            metaItem,
-            metaObject,
-            `type ${interfaceName} {`,
-            ...mainObjectProps,
-            '}',
-          ].join('\n');
+          } else if (target.props) {
+            const props = target.props;
+            const result = await this.toConvertProps({
+              props,
+              converterType: 'gql',
+            });
+            const interfaceName = toCamelCase(target.name + '_' + target.type);
+            let mainObjectProps: string[] = [];
+            let metaObject = '';
+            let metaItem = '';
 
-          const importsState = result.imports.state;
-          for (const path in importsState) {
-            if (!path.startsWith('@becomes')) {
-              for (const name in importsState[path]) {
-                const metadata = importsState[path][name].metadata;
-                if (metadata && !parsedItems[name]) {
-                  data.push(metadata);
+            if (target.type === 'entry') {
+              const languages = await BCMSRepo.language.findAll();
+              metaItem = [
+                `type ${interfaceName}Meta {`,
+                ...result.props.map(
+                  (prop) =>
+                    `  ${prop.name}: ${prop.type}${prop.required ? '!' : ''}`,
+                ),
+                '}',
+                '',
+              ].join('\n');
+              metaObject = [
+                `type ${interfaceName}MetaType {`,
+                languages.map((lng) => `  ${lng.code}: ${interfaceName}Meta!`),
+                '}',
+                '',
+              ].join('\n');
+              mainObjectProps = [
+                '  _id: String!',
+                '  createdAt: Float!',
+                '  updatedAt: Float!',
+                '  templateId: String!',
+                '  userId: String!',
+                '  status: String',
+                `  meta: ${interfaceName}MetaType!`,
+                '  content: BCMSEntryContentType!',
+              ];
+            } else {
+              mainObjectProps = result.props.map(
+                (prop) =>
+                  `  ${prop.name}: ${prop.type}${prop.required ? '!' : ''}`,
+              );
+            }
+            output[`${target.type}/${target.name}.gql`] = [
+              // ...result.imports.flatten(),
+              metaItem,
+              metaObject,
+              `type ${interfaceName} {`,
+              ...mainObjectProps,
+              '}',
+            ].join('\n');
+
+            const importsState = result.imports.state;
+            for (const path in importsState) {
+              if (!path.startsWith('@becomes')) {
+                for (const name in importsState[path]) {
+                  const metadata = importsState[path][name].metadata;
+                  if (metadata && !parsedItems[name]) {
+                    data.push(metadata);
+                  }
                 }
               }
             }
