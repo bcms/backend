@@ -49,7 +49,10 @@ export const BCMSShimSecurityMiddleware = createMiddleware({
       let sig = '';
       const instanceSecret = BCMSShimService.getCode();
 
-      if (instanceSecret === 'local') {
+      if (
+        instanceSecret === 'local' ||
+        req.originalUrl === '/api/shim/calls/health'
+      ) {
         next();
         return;
       } else if (!instanceSecret) {
