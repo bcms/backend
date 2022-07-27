@@ -80,6 +80,8 @@ import { BCMSSearchController } from './search';
 import { BCMSChangeController, createBcmsChangeRepository } from './change';
 import { loadBcmsResponseCodes } from './response-code';
 import { BCMSBackupController, BCMSBackupMediaFileMiddleware } from './backup';
+import { RouteTracker, RouteTrackerController } from './route-tracker';
+import type { SocketConnection } from '@becomes/purple-cheetah-mod-socket/types';
 
 const backend: BCMSBackend = {
   app: undefined as never,
@@ -122,12 +124,16 @@ async function initialize() {
         } else {
           id = socket.handshake.query.key as string;
         }
-        return {
+        const connection: SocketConnection<unknown> = {
           id: `${id}_${socket.id}`,
           createdAt: Date.now(),
           scope: socket.handshake.query.at ? 'global' : 'client',
           socket,
         };
+        connection.socket.on('disconnect', () => {
+          delete RouteTracker[connection.id];
+        });
+        return connection;
       },
       async verifyConnection(socket) {
         const query = socket.handshake.query as {
@@ -228,6 +234,7 @@ async function initialize() {
     BCMSChangeController,
     BCMSSearchController,
     BCMSBackupController,
+    RouteTrackerController,
   ];
   if (BCMSConfig.database.fs) {
     modules.push(
