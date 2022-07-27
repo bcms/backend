@@ -20,7 +20,7 @@ import { createJwt, useJwt } from '@becomes/purple-cheetah-mod-jwt';
 import { createFSDB } from '@becomes/purple-cheetah-mod-fsdb';
 import { createMongoDB } from '@becomes/purple-cheetah-mod-mongodb';
 
-import type { BCMSBackend, BCMSUserCustomPool } from './types';
+import { BCMSBackend, BCMSSocketController, BCMSUserCustomPool } from './types';
 import { BCMSConfig, loadBcmsConfig } from './config';
 import { BCMSCypressController } from './cypress';
 import {
@@ -67,7 +67,11 @@ import {
   BCMSTemplateOrganizerController,
   createBcmsTemplateOrganizerRepository,
 } from './template-organizer';
-import { createBcmsSocketManager } from './socket';
+import {
+  bcmsCreateSocketEventHandlers,
+  BCMSSocketEntrySyncManager,
+  createBcmsSocketManager,
+} from './socket';
 import { BCMSUiAssetMiddleware } from './ui-middleware';
 import { createBcmsIdCounterRepository } from './id-counter';
 import { createBcmsFactories } from './factory';
@@ -80,6 +84,7 @@ import { BCMSSearchController } from './search';
 import { BCMSChangeController, createBcmsChangeRepository } from './change';
 import { loadBcmsResponseCodes } from './response-code';
 import { BCMSBackupController, BCMSBackupMediaFileMiddleware } from './backup';
+import type { SocketConnection } from '@becomes/purple-cheetah-mod-socket/types';
 
 const backend: BCMSBackend = {
   app: undefined as never,
@@ -122,12 +127,16 @@ async function initialize() {
         } else {
           id = socket.handshake.query.key as string;
         }
-        return {
+        const conn: SocketConnection<unknown> = {
           id: `${id}_${socket.id}`,
           createdAt: Date.now(),
           scope: socket.handshake.query.at ? 'global' : 'client',
           socket,
         };
+        socket.on('disconnect', () => {
+          BCMSSocketEntrySyncManager.unsync(conn);
+        });
+        return conn;
       },
       async verifyConnection(socket) {
         const query = socket.handshake.query as {
@@ -174,6 +183,7 @@ async function initialize() {
         }
         return true;
       },
+      eventHandlers: bcmsCreateSocketEventHandlers(),
       // eventHandlers: [createEntryChangeSocketHandler()],
     }),
     createBcmsSocketManager(),
@@ -228,6 +238,7 @@ async function initialize() {
     BCMSChangeController,
     BCMSSearchController,
     BCMSBackupController,
+    BCMSSocketController,
   ];
   if (BCMSConfig.database.fs) {
     modules.push(

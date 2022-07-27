@@ -171,6 +171,7 @@ export const BCMSEntryController = createController<Setup>({
           };
         },
       }),
+
       getById: createControllerMethod({
         path: '/:tid/:eid',
         type: 'get',
