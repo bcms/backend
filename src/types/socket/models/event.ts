@@ -78,8 +78,21 @@ export interface BCMSSocketSyncChangeDataProp {
    */
   sd?: BCMSSocketSyncChangeStringDelta[];
   /**
-   * String delta cursor position
+   * Replace value.
    */
+  rep?: unknown;
+  /**
+   * Add item to an array.
+   */
+  addI?: boolean;
+  /**
+   * Remove item from an array.
+   */
+  remI?: boolean;
+  /**
+   * Move item in an array.
+   */
+  movI?: unknown;
 }
 
 export interface BCMSSocketBackupEvent {
