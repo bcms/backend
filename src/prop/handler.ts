@@ -521,7 +521,7 @@ export const BCMSPropHandler: BCMSPropHandlerType = {
         const propToRemoveIndex = props.findIndex(
           (e) => e.id === change.remove,
         );
-        if (props[0].name === 'title') {
+        if (inTemplate && props[0].name === 'title') {
           if (propToRemoveIndex > 1) {
             props.splice(propToRemoveIndex, 1);
           }
