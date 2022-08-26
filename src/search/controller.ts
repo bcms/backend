@@ -87,7 +87,10 @@ export const BCMSSearchController = createController({
                       set: items.map((item) => {
                         return {
                           id: `${searchItem}_${item._id}`,
-                          data: [item.name + ' ' + item._id, item.label.toLowerCase()],
+                          data: [
+                            item.name + ' ' + item._id,
+                            item.label.toLowerCase(),
+                          ],
                         };
                       }),
                       searchTerm: term,
@@ -140,7 +143,10 @@ export const BCMSSearchController = createController({
                       set: items.map((item) => {
                         return {
                           id: `${searchItem}_${item._id}`,
-                          data: [item.username.toLocaleLowerCase() + ' ' + item._id, item.email],
+                          data: [
+                            item.username.toLocaleLowerCase() + ' ' + item._id,
+                            item.email,
+                          ],
                         };
                       }),
                       searchTerm: term,
@@ -220,15 +226,29 @@ export const BCMSSearchController = createController({
                       id: `${searchItem}_${item._id}_${item.templateId}`,
                       data: [
                         item.meta
-                          .map((e) => (e.props[0].data as string[])[0])
+                          .map(
+                            (e) =>
+                              (e.props[0].data as string[])[0] +
+                              (e.props[1].data as string[])[0],
+                          )
                           .join(' ')
-                          .toLowerCase() + ' ' + item._id,
+                          .toLowerCase() +
+                          ' ' +
+                          item._id,
                         item.meta
-                          .map((e) => (e.props[1].data as string[])[0])
-                          .join(' '),
+                          .map((meta) =>
+                            meta.props
+                              .slice(2)
+                              .map((prop) => {
+                                return JSON.stringify(prop.data);
+                              })
+                              .join(' '),
+                          )
+                          .join(' ')
+                          .toLowerCase(),
                         item.content
                           .map((content) => {
-                            return content.plainText;
+                            return JSON.stringify(content.nodes);
                           })
                           .join('\n\n')
                           .toLowerCase(),
