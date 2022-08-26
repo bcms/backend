@@ -171,6 +171,41 @@ export const BCMSEntryController = createController<Setup>({
           };
         },
       }),
+
+      whereIsItUsed: createControllerMethod<
+        unknown,
+        {
+          entries: Array<{
+            eid: string;
+            tid: string;
+          }>;
+        }
+      >({
+        path: '/:tid/:eid/where-is-it-used',
+        type: 'get',
+        preRequestHandler: BCMSRouteProtection.createJwtPreRequestHandler(
+          [JWTRoleName.ADMIN, JWTRoleName.USER],
+          JWTPermissionName.READ,
+        ),
+        async handler({ request, errorHandler }) {
+          const tid = request.params.tid;
+          const eid = request.params.eid;
+          const entry = await BCMSRepo.entry.methods.findByTemplateIdAndId(
+            tid,
+            eid,
+          );
+          if (!entry) {
+            throw errorHandler.occurred(
+              HTTPStatus.NOT_FOUNT,
+              bcmsResCode('etr001', { id: eid }),
+            );
+          }
+          return {
+            entries: await BCMSPropHandler.findEntryPointer({ entry }),
+          };
+        },
+      }),
+
       getById: createControllerMethod({
         path: '/:tid/:eid',
         type: 'get',

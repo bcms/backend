@@ -1,3 +1,4 @@
+import type { BCMSEntry } from '../entry';
 import type {
   BCMSProp,
   BCMSPropChange,
@@ -43,6 +44,9 @@ export interface BCMSPropHandler {
     maxDepth: number;
     onlyLng?: string;
   }): Promise<BCMSPropParsed>;
+  findEntryPointer(data: {
+    entry: BCMSEntry;
+  }): Promise<Array<{ eid: string; tid: string }>>;
   /**
    * Have in mind that this method has side effects.
    * All props pointing to specified group will be removed from

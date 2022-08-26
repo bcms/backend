@@ -1413,6 +1413,24 @@ export const BCMSPropHandler: BCMSPropHandlerType = {
     }
     return parsed;
   },
+  async findEntryPointer(data) {
+    const target = data.entry;
+    const output: Array<{ eid: string; tid: string }> = [];
+    const entries = await BCMSRepo.entry.findAll();
+    for (let e = 0; e < entries.length; e++) {
+      const entry = entries[e];
+      if (entry._id !== target._id) {
+        const entryString = JSON.stringify(entry);
+        if (entryString.includes(target._id)) {
+          output.push({
+            eid: entry._id,
+            tid: entry.templateId,
+          });
+        }
+      }
+    }
+    return output;
+  },
   async removeGroupPointer({ groupId }) {
     function filterGroupPointer(data: { props: BCMSProp[] }) {
       return data.props.filter(
