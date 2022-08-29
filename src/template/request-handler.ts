@@ -171,41 +171,41 @@ export class BCMSTemplateRequestHandler {
       typeof body.propChanges !== 'undefined' &&
       body.propChanges.length > 0
     ) {
-      for (let i = 0; i < body.propChanges.length; i++) {
-        const change = body.propChanges[i];
-        if (change.add) {
-          const name = StringUtility.toSlugUnderscore(change.add.label);
-          if (name === 'title' || name === 'slug') {
-            throw errorHandler.occurred(
-              HTTPStatus.FORBIDDEN,
-              bcmsResCode('tmp009', {
-                name,
-              }),
-            );
-          }
-        } else if (change.update) {
-          if (
-            change.update.label === 'Title' ||
-            change.update.label === 'Slug'
-          ) {
-            throw errorHandler.occurred(
-              HTTPStatus.FORBIDDEN,
-              bcmsResCode('tmp009', {
-                name: change.update.label,
-              }),
-            );
-          }
-        } else if (change.remove) {
-          if (change.remove === 'title' || change.remove === 'slug') {
-            throw errorHandler.occurred(
-              HTTPStatus.FORBIDDEN,
-              bcmsResCode('tmp009', {
-                name: change.remove,
-              }),
-            );
-          }
-        }
-      }
+      // for (let i = 0; i < body.propChanges.length; i++) {
+      //   const change = body.propChanges[i];
+      //   if (change.add) {
+      //     const name = StringUtility.toSlugUnderscore(change.add.label);
+      //     if (name === 'title' || name === 'slug') {
+      //       throw errorHandler.occurred(
+      //         HTTPStatus.FORBIDDEN,
+      //         bcmsResCode('tmp009', {
+      //           name,
+      //         }),
+      //       );
+      //     }
+      //   } else if (change.update) {
+      //     if (
+      //       change.update.label === 'Title' ||
+      //       change.update.label === 'Slug'
+      //     ) {
+      //       throw errorHandler.occurred(
+      //         HTTPStatus.FORBIDDEN,
+      //         bcmsResCode('tmp009', {
+      //           name: change.update.label,
+      //         }),
+      //       );
+      //     }
+      //   } else if (change.remove) {
+      //     if (change.remove === 'title' || change.remove === 'slug') {
+      //       throw errorHandler.occurred(
+      //         HTTPStatus.FORBIDDEN,
+      //         bcmsResCode('tmp009', {
+      //           name: change.remove,
+      //         }),
+      //       );
+      //     }
+      //   }
+      // }
       changeDetected = true;
       const result = await BCMSPropHandler.applyPropChanges(
         template.props,
