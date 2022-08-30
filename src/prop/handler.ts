@@ -1189,13 +1189,15 @@ export const BCMSPropHandler: BCMSPropHandlerType = {
                 );
               }
             } else {
-              parsed[prop.name] = await BCMSPropHandler.parse({
-                maxDepth,
-                meta: group.props,
-                values: valueData.items[0].props,
-                depth,
-                level: `${level}.${prop.name}`,
-              });
+              if (valueData.items[0] && valueData.items[0].props) {
+                parsed[prop.name] = await BCMSPropHandler.parse({
+                  maxDepth,
+                  meta: group.props,
+                  values: valueData.items[0].props,
+                  depth,
+                  level: `${level}.${prop.name}`,
+                });
+              }
             }
           }
         } else if (prop.type === BCMSPropType.ENTRY_POINTER) {
