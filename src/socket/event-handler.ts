@@ -39,6 +39,19 @@ export function bcmsCreateSocketEventHandlers(): Handler[] {
 
   return [
     {
+      name: BCMSSocketEventName.SYNC_CHANNEL,
+      handler: async (data, conn) => {
+        await BCMSSocketEntrySyncManager.triggerSub({
+          connId: conn.id,
+          channel: data.channel,
+          payload: data.payload,
+        });
+      },
+    } as Handler<{
+      channel: string;
+      payload: unknown;
+    }>,
+    {
       name: BCMSSocketEventName.SYNC_TSERV,
       handler: async (data, conn) => {
         BCMSSocketEntrySyncManager.sync(conn, data);
@@ -49,7 +62,7 @@ export function bcmsCreateSocketEventHandlers(): Handler[] {
     {
       name: BCMSSocketEventName.UNSYNC_TSERV,
       handler: async (data, conn) => {
-        console.log('WTF')
+        console.log('WTF');
         BCMSSocketEntrySyncManager.unsync(conn, data);
       },
     } as Handler<BCMSSocketUnsyncEvent>,

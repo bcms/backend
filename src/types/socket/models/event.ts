@@ -16,6 +16,7 @@ export enum BCMSSocketEventName {
   REFRESH = 'REFRESH',
   SIGN_OUT = 'SIGN_OUT',
   BACKUP = 'BACKUP',
+  SYNC_CHANNEL = 'SC',
   SYNC_TSERV = 'ST',
   UNSYNC_TSERV = 'UST',
   SYNC_CHANGE_TSERV = 'SCT',

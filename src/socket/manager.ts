@@ -279,6 +279,18 @@ export const BCMSSocketManager: BCMSSocketManagerType = {
         excludeUserId: data.excludeUserId,
       });
     },
+    sync: {
+      async entry(data) {
+        soc.emit({
+          eventName: 'SC',
+          eventData: {
+            type: 'entry-sync',
+            channel: data.channel,
+          },
+          connectionId: data.connId,
+        });
+      },
+    },
   },
 };
 

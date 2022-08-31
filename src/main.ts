@@ -20,7 +20,7 @@ import { createJwt, useJwt } from '@becomes/purple-cheetah-mod-jwt';
 import { createFSDB } from '@becomes/purple-cheetah-mod-fsdb';
 import { createMongoDB } from '@becomes/purple-cheetah-mod-mongodb';
 
-import { BCMSBackend, BCMSSocketController, BCMSUserCustomPool } from './types';
+import type { BCMSBackend, BCMSUserCustomPool } from './types';
 import { BCMSConfig, loadBcmsConfig } from './config';
 import { BCMSCypressController } from './cypress';
 import {
@@ -69,6 +69,7 @@ import {
 } from './template-organizer';
 import {
   bcmsCreateSocketEventHandlers,
+  BCMSSocketController,
   BCMSSocketEntrySyncManager,
   createBcmsSocketManager,
 } from './socket';
@@ -240,8 +241,8 @@ async function initialize() {
     BCMSChangeController,
     BCMSSearchController,
     BCMSBackupController,
-    BCMSSocketController,
     RouteTrackerController,
+    BCMSSocketController,
   ];
   if (BCMSConfig.database.fs) {
     modules.push(

@@ -1,4 +1,6 @@
+import { v4 as uuidv4 } from 'uuid';
 import {
+  BCMSSocketEntrySyncManagerConnInfo,
   BCMSSocketEventName,
   BCMSSocketSyncEvent,
   BCMSSocketUnsyncEvent,
@@ -7,15 +9,16 @@ import type { SocketConnection } from '@becomes/purple-cheetah-mod-socket/types'
 
 interface Groups {
   [path: string]: {
-    [connId: string]: {
-      sid: string;
-      uid: string;
-      conn: SocketConnection<unknown>;
-    };
+    [connId: string]: BCMSSocketEntrySyncManagerConnInfo;
   };
 }
 
 export class BCMSSocketEntrySyncManager {
+  private static subs: {
+    [connId: string]: {
+      [channel: string]: (data: unknown) => Promise<void>;
+    };
+  } = {};
   static groups: Groups = {};
 
   static sync(
@@ -28,6 +31,7 @@ export class BCMSSocketEntrySyncManager {
     const uid = conn.id.split('_')[0];
     BCMSSocketEntrySyncManager.groups[data.p][conn.id] = {
       sid: conn.socket.id,
+      age: Date.now(),
       uid,
       conn,
     };
@@ -37,7 +41,6 @@ export class BCMSSocketEntrySyncManager {
     conn: SocketConnection<unknown>,
     data?: BCMSSocketUnsyncEvent,
   ): void {
-    console.log({ data });
     if (data) {
       if (
         BCMSSocketEntrySyncManager.groups[data.p] &&
@@ -69,6 +72,35 @@ export class BCMSSocketEntrySyncManager {
           delete BCMSSocketEntrySyncManager.groups[path][conn.id];
         }
       }
+    }
+  }
+
+  static subscribe<HandlerData = unknown>(data: {
+    connId: string;
+    handler: (eventData: HandlerData) => Promise<void>;
+  }): { channel: string; unsub: () => void } {
+    const channel = uuidv4();
+    if (!this.subs[data.connId]) {
+      this.subs[data.connId] = {};
+    }
+    this.subs[data.connId][channel] = data.handler as (
+      eventData: unknown,
+    ) => Promise<void>;
+    return {
+      channel,
+      unsub: () => {
+        delete this.subs[data.connId][channel];
+      },
+    };
+  }
+
+  static async triggerSub(data: {
+    connId: string;
+    channel: string;
+    payload: unknown;
+  }): Promise<void> {
+    if (this.subs[data.connId][data.channel]) {
+      await this.subs[data.connId][data.channel](data.payload);
     }
   }
 }
