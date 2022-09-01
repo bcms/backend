@@ -254,12 +254,12 @@ export class BCMSTypeConverter {
                 '  status?: string;',
                 '  meta: {',
                 ...languages.map(
-                  (lng) => `    ${lng.code}: ${interfaceName}Meta;`,
+                  (lng) => `    ${lng.code}?: ${interfaceName}Meta;`,
                 ),
                 '  }',
                 '  content: {',
                 ...languages.map(
-                  (lng) => `    ${lng.code}: BCMSEntryContentParsedItem[];`,
+                  (lng) => `    ${lng.code}?: BCMSEntryContentParsedItem[];`,
                 ),
                 '  }',
               ];
