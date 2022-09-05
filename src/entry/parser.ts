@@ -40,6 +40,7 @@ export function createBcmsEntryParser(): Module {
             createdAt: entry.createdAt,
             updatedAt: entry.updatedAt,
             templateId: entry.templateId,
+            templateName: '',
             userId: entry.userId,
             status: status ? status.name : '',
             meta: {},
@@ -50,6 +51,7 @@ export function createBcmsEntryParser(): Module {
           if (!temp) {
             return null;
           }
+          entryParsed.templateName = temp.name;
           for (let i = 0; i < langs.length; i++) {
             const lang = langs[i];
 
