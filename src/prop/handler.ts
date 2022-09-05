@@ -366,23 +366,16 @@ export const BCMSPropHandler: BCMSPropHandlerType = {
             const propData = prop.defaultData as BCMSPropColorPickerData;
             const valueData = value.data as BCMSPropValueColorPickerData;
             for (let j = 0; j < valueData.length; j++) {
-              const colorId = valueData[j];
-              if (colorId) {
-                if (propData.allowCustom) {
-                  const color = await BCMSRepo.color.findById(colorId);
-                  if (!color) {
-                    return Error(
-                      `[${level}.${prop.name}.${j}] -> ` +
-                        `Color with ID ${colorId} does not exist.`,
-                    );
-                  }
-                } else {
-                  if (!propData.options.includes(colorId)) {
-                    return Error(
-                      `[${level}.${prop.name}.${j}] -> ` +
-                        `Color with ID ${colorId} does not exist in "options".`,
-                    );
-                  }
+              const colorIdOrHex = valueData[j];
+              if (colorIdOrHex) {
+                if (
+                  !propData.allowCustom &&
+                  !(await BCMSRepo.color.findById(colorIdOrHex))
+                ) {
+                  return Error(
+                    `[${level}.${prop.name}.${j}] -> ` +
+                      `Color with ID ${colorIdOrHex} does not exist in "options".`,
+                  );
                 }
               } else {
                 return Error(
@@ -695,55 +688,41 @@ export const BCMSPropHandler: BCMSPropHandlerType = {
           }
         } else if (prop.type === BCMSPropType.COLOR_PICKER) {
           const changeData = change.add.defaultData as BCMSPropColorPickerData;
-          if (!changeData.options.length) {
-            return Error(
-              `[${level}.change.${i}.add.defaultData] ->` +
-                ` Missing prop "options".`,
-            );
-          }
-          if (!changeData.selected.length) {
+          if (!changeData.selected) {
             return Error(
               `[${level}.change.${i}.add.defaultData] ->` +
                 ` Missing prop "selected".`,
             );
           }
-          for (let b = 0; b < changeData.options.length; b++) {
-            if (!(await BCMSRepo.color.findById(changeData.options[b]))) {
-              return Error(
-                `[${level}.change.${i}.add.defaultData.options.${b}] ->` +
-                  ` Color with ID "${changeData.options[b]}" does not exist.`,
-              );
-            }
-          }
-          const selectedColors: string[] = [];
-          if (changeData.allowCustom) {
-            for (let b = 0; b < changeData.selected.length; b++) {
-              const color = await BCMSRepo.color.findById(
-                changeData.selected[b],
-              );
-              if (!color) {
-                return Error(
-                  `[${level}.change.${i}.add.defaultData.selected.${b}] ->` +
-                    ` Color with ID "${changeData.selected[b]}" does not exist.`,
-                );
-              }
-              selectedColors.push(changeData.selected[b]);
-            }
-          } else {
-            for (let b = 0; b < changeData.selected.length; b++) {
-              if (!changeData.options.includes(changeData.selected[b])) {
-                return Error(
-                  `[${level}.change.${i}.add.defaultData.selected.${b}] ->` +
-                    ` Color with ID "${changeData.selected[b]}" does not exist in "options".`,
-                );
-              } else {
-                selectedColors.push(changeData.selected[b]);
-              }
-            }
-          }
+          const selectedColors: string[] = changeData.selected;
+          // if (changeData.allowCustom) {
+          //   for (let b = 0; b < changeData.selected.length; b++) {
+          //     const color = await BCMSRepo.color.findById(
+          //       changeData.selected[b],
+          //     );
+          //     if (!color) {
+          //       return Error(
+          //         `[${level}.change.${i}.add.defaultData.selected.${b}] ->` +
+          //           ` Color with ID "${changeData.selected[b]}" does not exist.`,
+          //       );
+          //     }
+          //     selectedColors.push(changeData.selected[b]);
+          //   }
+          // } else {
+          //   for (let b = 0; b < changeData.selected.length; b++) {
+          //     if (!changeData.options.includes(changeData.selected[b])) {
+          //       return Error(
+          //         `[${level}.change.${i}.add.defaultData.selected.${b}] ->` +
+          //           ` Color with ID "${changeData.selected[b]}" does not exist in "options".`,
+          //       );
+          //     } else {
+          //       selectedColors.push(changeData.selected[b]);
+          //     }
+          //   }
+          // }
           (prop.defaultData as BCMSPropColorPickerData) = {
+            allowGlobal: changeData.allowGlobal,
             allowCustom: changeData.allowCustom,
-            options: changeData.options,
             selected: selectedColors,
           };
         } else if (prop.type === BCMSPropType.RICH_TEXT) {
@@ -784,49 +763,13 @@ export const BCMSPropHandler: BCMSPropHandlerType = {
               update.enumItems;
           }
           if (update.colorData) {
-            const optionColors = update.colorData.options;
-            const selectColors = update.colorData.selected;
-            if (!optionColors.length) {
-              return Error(`[${level}] ->` + ` Missing prop "options".`);
-            }
-            if (!selectColors.length) {
+            const selectedColors = update.colorData.selected;
+            if (!selectedColors) {
               return Error(`[${level}] ->` + ` Missing prop "selected".`);
-            }
-            for (let b = 0; b < optionColors.length; b++) {
-              if (!(await BCMSRepo.color.findById(optionColors[b]))) {
-                return Error(
-                  `[${level}.change.${i}.update.defaultData.options.${b}] ->` +
-                    ` Color with ID "${optionColors[b]}" does not exist.`,
-                );
-              }
-            }
-            const selectedColors: string[] = [];
-            if (update.colorData.allowCustom) {
-              for (let b = 0; b < selectColors.length; b++) {
-                const color = await BCMSRepo.color.findById(selectColors[b]);
-                if (!color) {
-                  return Error(
-                    `[${level}.change.${i}.update.defaultData.selected.${b}] ->` +
-                      ` Color with ID "${selectColors[b]}" does not exist.`,
-                  );
-                }
-                selectedColors.push(selectColors[b]);
-              }
-            } else {
-              for (let b = 0; b < selectColors.length; b++) {
-                if (!optionColors.includes(selectColors[b])) {
-                  return Error(
-                    `[${level}.change.${i}.update.defaultData.selected.${b}] ->` +
-                      ` Color with ID "${selectColors[b]}" does not exist in "options".`,
-                  );
-                } else {
-                  selectedColors.push(selectColors[b]);
-                }
-              }
             }
             (propBuffer.defaultData as BCMSPropColorPickerData) = {
               allowCustom: update.colorData.allowCustom,
-              options: optionColors,
+              allowGlobal: update.colorData.allowGlobal,
               selected: selectedColors,
             };
           }

@@ -1,4 +1,4 @@
-import type { BCMSColor, BCMSColorSource } from './models';
+import type { BCMSColor } from './models';
 
 export interface BCMSColorFactory {
   create(data: {
@@ -7,6 +7,6 @@ export interface BCMSColorFactory {
     name?: string;
     value?: string;
     userId?: string;
-    source?: BCMSColorSource;
+    global?: boolean;
   }): BCMSColor;
 }

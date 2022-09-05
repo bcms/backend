@@ -5,11 +5,6 @@ import {
 import { MongoDBEntitySchemaString } from '@becomes/purple-cheetah-mod-mongodb/types';
 import type { ObjectSchema } from '@becomes/purple-cheetah/types';
 import { Schema } from 'mongoose';
-import {
-  BCMSColorSource,
-  BCMSColorSourceMongoDBSchema,
-  BCMSColorSourceSchema,
-} from './color-source';
 
 export interface BCMSColor extends FSDBEntity {
   cid: string;
@@ -17,7 +12,7 @@ export interface BCMSColor extends FSDBEntity {
   name: string;
   value: string;
   userId: string;
-  source: BCMSColorSource;
+  global: boolean;
 }
 
 export const BCMSColorFSDBSchema: ObjectSchema = {
@@ -42,10 +37,9 @@ export const BCMSColorFSDBSchema: ObjectSchema = {
     __type: 'string',
     __required: true,
   },
-  source: {
-    __type: 'object',
+  global: {
+    __type: 'boolean',
     __required: true,
-    __child: BCMSColorSourceSchema,
   },
 };
 
@@ -71,8 +65,8 @@ export const BCMSColorMongoDBSchema = new Schema({
     type: String,
     required: true,
   },
-  source: {
-    type: BCMSColorSourceMongoDBSchema,
+  global: {
+    type: Boolean,
     required: true,
   },
 });

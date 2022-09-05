@@ -1,13 +1,9 @@
-import type { BCMSColorSourceType } from '@bcms/types';
 import type { ObjectSchema } from '@becomes/purple-cheetah/types';
 
 export interface BCMSColorCreateData {
   label: string;
   value: string;
-  source: {
-    id: string;
-    type: BCMSColorSourceType;
-  };
+  global: boolean;
 }
 
 export const BCMSColorCreateDataSchema: ObjectSchema = {
@@ -19,18 +15,8 @@ export const BCMSColorCreateDataSchema: ObjectSchema = {
     __type: 'string',
     __required: true,
   },
-  source: {
-    __type: 'object',
+  global: {
+    __type: 'boolean',
     __required: true,
-    __child: {
-      id: {
-        __type: 'string',
-        __required: true,
-      },
-      type: {
-        __type: 'string',
-        __required: true,
-      },
-    },
   },
 };
