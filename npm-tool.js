@@ -5,6 +5,7 @@ const util = require('util');
 const fs = require('fs');
 const fsp = require('fs/promises');
 const fse = require('fs-extra');
+const { createFS } = require('@banez/fs');
 
 /**
  * @typedef {{
@@ -234,6 +235,22 @@ module.exports = createConfig({
     },
     '--create-image': async () => {
       await createImage();
+    },
+    '--fix-db': async () => {
+      const bfs = createFS({
+        base: path.join(process.cwd(), 'db', 'bcms'),
+      });
+      const files = await bfs.readdir('');
+      for (let i = 0; i < files.length; i++) {
+        const fileName = files[i];
+        const data = JSON.parse(await bfs.readString(fileName));
+        const output = {};
+        for (let j = 0; j < data.length; j++) {
+          const item = data[j];
+          output[item._id] = item;
+        }
+        await bfs.save(fileName, JSON.stringify(output, null, '  '));
+      }
     },
   },
 });

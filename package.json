@@ -21,7 +21,8 @@
     "create:image": "npm-tool --create-image",
     "generate-doc": "typedoc",
     "lint": "eslint . --ext .ts",
-    "build:plugins": "tsc -p tsconfig.plugins.json"
+    "build:plugins": "tsc -p tsconfig.plugins.json",
+    "fix:db": "npm-tool --fix-db"
   },
   "dependencies": {
     "@banez/child_process": "^1.0.3",
