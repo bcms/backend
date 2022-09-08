@@ -1099,6 +1099,7 @@ export const BCMSPropHandler: BCMSPropHandlerType = {
                     values: [valueDataItem],
                     depth,
                     level: `${level}.${prop.name}.${j}`,
+                    onlyLng,
                   }),
                 );
               }
@@ -1109,6 +1110,7 @@ export const BCMSPropHandler: BCMSPropHandlerType = {
                 values: [valueData.props[0]],
                 depth,
                 level: `${level}.${prop.name}`,
+                onlyLng,
               });
             }
           }
@@ -1128,6 +1130,7 @@ export const BCMSPropHandler: BCMSPropHandlerType = {
                     values: valueDataItem.props,
                     depth,
                     level: `${level}.${prop.name}.${j}`,
+                    onlyLng,
                   }),
                 );
               }
@@ -1139,6 +1142,7 @@ export const BCMSPropHandler: BCMSPropHandlerType = {
                   values: valueData.items[0].props,
                   depth,
                   level: `${level}.${prop.name}`,
+                  onlyLng,
                 });
               }
             }
@@ -1203,6 +1207,7 @@ export const BCMSPropHandler: BCMSPropHandlerType = {
                             values: entryMeta.props,
                             depth: depth + 1,
                             level: `${level}.${prop.name}.${k}`,
+                            onlyLng,
                           },
                         );
                         parsedProp._id = entry._id;
@@ -1234,7 +1239,7 @@ export const BCMSPropHandler: BCMSPropHandlerType = {
                               nodes: entryContent.nodes,
                               maxDepth,
                               depth: depth + 1,
-                              justLng: lng.code,
+                              justLng: onlyLng,
                               level: `${level}.content`,
                             });
                         }
@@ -1262,7 +1267,7 @@ export const BCMSPropHandler: BCMSPropHandlerType = {
                       const lng = await BCMSRepo.language.methods.findByCode(
                         entryMeta.lng,
                       );
-                      if (lng) {
+                      if (lng && (!onlyLng || lng.code === onlyLng)) {
                         parsedProp.meta[lng.code] = await BCMSPropHandler.parse(
                           {
                             maxDepth,
@@ -1270,6 +1275,7 @@ export const BCMSPropHandler: BCMSPropHandlerType = {
                             values: entryMeta.props,
                             depth: depth + 1,
                             level: `${level}.${prop.name}`,
+                            onlyLng,
                           },
                         );
                         parsedProp.cid = entry.cid;

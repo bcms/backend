@@ -54,39 +54,40 @@ export function createBcmsEntryParser(): Module {
           entryParsed.templateName = temp.name;
           for (let i = 0; i < langs.length; i++) {
             const lang = langs[i];
+            if (!justLng || lang.code === justLng) {
+              const meta = entry.meta.find((e) => e.lng === lang.code);
+              if (meta) {
+                entryParsed.meta[lang.code] = await BCMSPropHandler.parse({
+                  meta: temp.props,
+                  values: meta.props,
+                  maxDepth,
+                  depth: 0,
+                  level: entry._id,
+                  onlyLng: lang.code,
+                });
+              } else {
+                entryParsed.meta[lang.code] = await BCMSPropHandler.parse({
+                  meta: temp.props,
+                  values: [],
+                  maxDepth,
+                  depth: 0,
+                  level: entry._id,
+                  onlyLng: lang.code,
+                });
+              }
 
-            const meta = entry.meta.find((e) => e.lng === lang.code);
-            if (meta) {
-              entryParsed.meta[lang.code] = await BCMSPropHandler.parse({
-                meta: temp.props,
-                values: meta.props,
-                maxDepth,
-                depth: 0,
-                level: entry._id,
-                onlyLng: lang.code,
-              });
-            } else {
-              entryParsed.meta[lang.code] = await BCMSPropHandler.parse({
-                meta: temp.props,
-                values: [],
-                maxDepth,
-                depth: 0,
-                level: entry._id,
-                onlyLng: lang.code,
-              });
-            }
-
-            const content = entry.content.find((e) => e.lng === lang.code);
-            if (content) {
-              entryParsed.content[lang.code] = await parser.parseContent({
-                nodes: content.nodes,
-                maxDepth,
-                depth,
-                justLng,
-                level,
-              });
-            } else {
-              entryParsed.content[lang.code] = [];
+              const content = entry.content.find((e) => e.lng === lang.code);
+              if (content) {
+                entryParsed.content[lang.code] = await parser.parseContent({
+                  nodes: content.nodes,
+                  maxDepth,
+                  depth,
+                  justLng,
+                  level,
+                });
+              } else {
+                entryParsed.content[lang.code] = [];
+              }
             }
           }
           return entryParsed;
