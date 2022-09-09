@@ -170,7 +170,7 @@ export class BCMSTypeConverter {
     return {
       type: prop.array
         ? cType === 'gql'
-          ? `[${output}!]${prop.required || prop.array ? '!' : ''}`
+          ? `[${output}!]`
           : `Array<${output}>`
         : output,
       additional,
@@ -469,14 +469,16 @@ export class BCMSTypeConverter {
                 `type ${interfaceName}Meta {`,
                 ...result.props.map(
                   (prop) =>
-                    `  ${prop.name}: ${prop.type}${prop.required ? '!' : ''}`,
+                    `  ${prop.name}: ${prop.type}${prop.required || prop.array ? '!' : ''}`,
                 ),
                 '}',
                 '',
               ].join('\n');
               metaObject = [
                 `type ${interfaceName}MetaType {`,
-                languages.map((lng) => `  ${lng.code}: ${interfaceName}Meta!`),
+                ...languages.map(
+                  (lng) => `  ${lng.code}: ${interfaceName}Meta`,
+                ),
                 '}',
                 '',
               ].join('\n');
