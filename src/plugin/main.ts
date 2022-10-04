@@ -236,7 +236,7 @@ export function createBcmsPluginModule(bcmsConfig: BCMSConfig): Module {
       const files = await fs.readdir(path.join(process.cwd(), 'plugins'));
       for (let i = 0; i < files.length; i++) {
         const file = files[i];
-        if (file.endsWith('.tgz')) { 
+        if (file.endsWith('.tgz')) {
           logger.info('installing', `    ---- ${file}`);
           await ChildProcess.spawn('npm', ['i', '--save', `./plugins/${file}`]);
           logger.info('installed', `    ---- ${file}`);
@@ -266,11 +266,14 @@ export function createBcmsPluginModule(bcmsConfig: BCMSConfig): Module {
       }
       for (let j = 0; j < plugins.length; j++) {
         const plugin = plugins[j];
-        if (user.customPool.policy.plugins) {
+        if (
+          user.customPool.policy.plugins &&
+          user.customPool.policy.plugins.length > 0
+        ) {
           const userPlugin = user.customPool.policy.plugins.find(
             (e) => e.name === plugin.name,
           );
-          if (userPlugin) {
+          if (!userPlugin) {
             modified = true;
             user.customPool.policy.plugins.push({
               allowed: false,
