@@ -82,6 +82,7 @@ export enum BCMSEntryContentNodeMarkerType {
   underline = 'underline',
   strike = 'strike',
   link = 'link',
+  inlineCode = 'inlineCode',
 }
 
 export interface BCMSEntryContentParsedItem {
