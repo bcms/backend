@@ -16,12 +16,28 @@ export enum BCMSSocketEventName {
   REFRESH = 'REFRESH',
   SIGN_OUT = 'SIGN_OUT',
   BACKUP = 'BACKUP',
+  MESSAGE = 'MESSAGE',
 }
 
 // eslint-disable-next-line no-shadow
 export enum BCMSSocketEventType {
   UPDATE = 'UPDATE',
   REMOVE = 'REMOVE',
+}
+
+export interface BCMSSocketMessageEvent {
+  /**
+   * Event type.
+   */
+  t: BCMSSocketEventType;
+  /**
+   * Type of the message.
+   */
+  mt: 'info' | 'error' | 'warn' | 'success';
+  /**
+   * Message content.
+   */
+  m: string;
 }
 
 export interface BCMSSocketBackupEvent {

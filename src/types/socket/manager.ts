@@ -10,6 +10,11 @@ export interface BCMSSocketManager {
       fileName: string;
       size: number;
     }): Promise<void>;
+    message(data: {
+      userIds: string[] | 'all';
+      message: string;
+      messageType: 'info' | 'success' | 'error' | 'warn';
+    }): Promise<void>;
     apiKey(data: {
       type: BCMSSocketEventType;
       apiKeyId: string;

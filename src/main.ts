@@ -80,8 +80,9 @@ import { BCMSSearchController } from './search';
 import { BCMSChangeController, createBcmsChangeRepository } from './change';
 import { loadBcmsResponseCodes } from './response-code';
 import { BCMSBackupController, BCMSBackupMediaFileMiddleware } from './backup';
-import { RouteTracker, RouteTrackerController } from './route-tracker';
+import { RouteTrackerController } from './route-tracker';
 import type { SocketConnection } from '@becomes/purple-cheetah-mod-socket/types';
+import { BCMSRouteTracker } from './route-tracker/service';
 
 const backend: BCMSBackend = {
   app: undefined as never,
@@ -131,7 +132,7 @@ async function initialize() {
           socket,
         };
         connection.socket.on('disconnect', () => {
-          delete RouteTracker[connection.id];
+          delete BCMSRouteTracker.connections[connection.id];
         });
         return connection;
       },
