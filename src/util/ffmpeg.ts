@@ -1,11 +1,13 @@
 import * as systemPath from 'path';
-import type { FS, Module } from '@becomes/purple-cheetah/types';
+import type { FS, Logger, Module } from '@becomes/purple-cheetah/types';
 import { BCMSFfmpeg as BCMSFfmpegType, BCMSMediaType } from '../types';
-import { useFS } from '@becomes/purple-cheetah';
+import { useFS, useLogger } from '@becomes/purple-cheetah';
 import { BCMSMediaService } from '@bcms/media';
 import { ChildProcess } from '@banez/child_process';
+import type { ChildProcessOnChunkHelperOutput } from '@banez/child_process/types';
 
 let fs: FS;
+let logger: Logger;
 
 export const BCMSFfmpeg: BCMSFfmpegType = {
   async createVideoThumbnail({ media }) {
@@ -104,6 +106,51 @@ export const BCMSFfmpeg: BCMSFfmpegType = {
       systemPath.join(process.cwd(), 'uploads', pathOnly, `300-${media.name}`),
     ]);
   },
+  async getVideoInfo({ media }) {
+    const output: {
+      width: number;
+      height: number;
+    } = {
+      width: -1,
+      height: -1,
+    };
+    const pathParts = (await BCMSMediaService.getPath(media)).split('/');
+    const path =
+      process.cwd() +
+      '/uploads' +
+      pathParts.slice(0, pathParts.length - 1).join('/');
+    const exo: ChildProcessOnChunkHelperOutput = {
+      err: '',
+      out: '',
+    };
+    await ChildProcess.advancedExec(
+      [
+        'ffprobe',
+        '-v',
+        'error',
+        '-select_streams',
+        'v',
+        '-show_entries',
+        'stream=width,height',
+        '-of',
+        'json',
+        `${path}/${media.name}`,
+      ],
+      {
+        cwd: process.cwd(),
+        doNotThrowError: true,
+        onChunk: ChildProcess.onChunkHelper(exo),
+      },
+    ).awaiter;
+    try {
+      const info = JSON.parse(exo.out);
+      output.width = info.streams[0].width;
+      output.height = info.streams[0].height;
+    } catch (error) {
+      logger.warn('getVideoInfo', { exo, error });
+    }
+    return output;
+  },
 };
 
 export function createBcmsFfmpeg(): Module {
@@ -111,6 +158,9 @@ export function createBcmsFfmpeg(): Module {
     name: 'FFMPEG',
     initialize(moduleConfig) {
       fs = useFS();
+      logger = useLogger({
+        name: 'FFMPEG',
+      });
       moduleConfig.next();
     },
   };
