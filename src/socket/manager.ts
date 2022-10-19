@@ -80,7 +80,7 @@ async function emit<Data>({
         socket.emit<Data>({
           eventName: name,
           eventData: data,
-          connectionId: userId,
+          connectionId: connection.id,
         });
       }
     }
