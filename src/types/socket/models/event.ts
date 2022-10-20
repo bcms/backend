@@ -17,12 +17,84 @@ export enum BCMSSocketEventName {
   SIGN_OUT = 'SIGN_OUT',
   BACKUP = 'BACKUP',
   MESSAGE = 'MESSAGE',
+  SYNC_CHANNEL = 'SC',
+  SYNC_TSERV = 'ST',
+  UNSYNC_TSERV = 'UST',
+  SYNC_CHANGE_TSERV = 'SCT',
+  SYNC_FSERV = 'SF',
+  UNSYNC_FSERV = 'USF',
+  SYNC_CHANGE_FSERV = 'SCF',
 }
 
 // eslint-disable-next-line no-shadow
 export enum BCMSSocketEventType {
   UPDATE = 'UPDATE',
   REMOVE = 'REMOVE',
+}
+
+// eslint-disable-next-line no-shadow
+export enum BCMSSocketSyncChangeType {
+  MOUSE = 'M',
+  PROP = 'P',
+}
+
+export interface BCMSSocketSyncChangeDataMouse {
+  x: number;
+  y: number;
+}
+
+export interface BCMSSocketSyncChangeStringDelta {
+  /**
+   * Add [char_index, char_value].
+   */
+  a?: [number, string];
+  /**
+   * Remove char at index.
+   */
+  r?: number;
+}
+
+export interface BCMSSocketSyncChangeDataProp {
+  /**
+   * Prop index.
+   */
+  i: number;
+  /**
+   * Prop value index.
+   */
+  vi: number;
+  /**
+   * Prop ID.
+   */
+  id: string;
+  /**
+   * Language.
+   */
+  l: string;
+  /**
+   * Language index.
+   */
+  li: number;
+  /**
+   * String deltas.
+   */
+  sd?: BCMSSocketSyncChangeStringDelta[];
+  /**
+   * Replace value.
+   */
+  rep?: unknown;
+  /**
+   * Add item to an array.
+   */
+  addI?: boolean;
+  /**
+   * Remove item from an array.
+   */
+  remI?: boolean;
+  /**
+   * Move item in an array.
+   */
+  movI?: unknown;
 }
 
 export interface BCMSSocketMessageEvent {
@@ -168,6 +240,7 @@ export interface BCMSSocketWidgetEvent {
    */
   t: BCMSSocketEventType;
 }
+
 export interface BCMSSocketColorEvent {
   /**
    * Color ID.
@@ -178,6 +251,7 @@ export interface BCMSSocketColorEvent {
    */
   t: BCMSSocketEventType;
 }
+
 export interface BCMSSocketTagEvent {
   /**
    * Tag ID.
@@ -188,6 +262,7 @@ export interface BCMSSocketTagEvent {
    */
   t: BCMSSocketEventType;
 }
+
 export interface BCMSSocketRefreshEvent {
   /**
    * User ID.
@@ -198,6 +273,7 @@ export interface BCMSSocketRefreshEvent {
    */
   t: BCMSSocketEventType;
 }
+
 export interface BCMSSocketSignOutEvent {
   /**
    * User ID.
@@ -207,4 +283,33 @@ export interface BCMSSocketSignOutEvent {
    * Event type.
    */
   t: BCMSSocketEventType;
+}
+
+export interface BCMSSocketSyncEvent {
+  /**
+   * URI path.
+   */
+  p: string;
+  connId?: string;
+}
+
+export interface BCMSSocketUnsyncEvent {
+  /**
+   * URI path.
+   */
+  p: string;
+  connId?: string;
+}
+
+export interface BCMSSocketSyncChangeEvent {
+  /**
+   * URI path.
+   */
+  p: string;
+  /**
+   * Sync change type.
+   */
+  sct: BCMSSocketSyncChangeType;
+  data: BCMSSocketSyncChangeDataMouse | BCMSSocketSyncChangeDataProp;
+  connId?: string;
 }

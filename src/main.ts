@@ -67,7 +67,12 @@ import {
   BCMSTemplateOrganizerController,
   createBcmsTemplateOrganizerRepository,
 } from './template-organizer';
-import { createBcmsSocketManager } from './socket';
+import {
+  bcmsCreateSocketEventHandlers,
+  BCMSSocketController,
+  BCMSSocketEntrySyncManager,
+  createBcmsSocketManager,
+} from './socket';
 import { BCMSUiAssetMiddleware } from './ui-middleware';
 import { createBcmsIdCounterRepository } from './id-counter';
 import { createBcmsFactories } from './factory';
@@ -125,16 +130,17 @@ async function initialize() {
         } else {
           id = socket.handshake.query.key as string;
         }
-        const connection: SocketConnection<unknown> = {
+        const conn: SocketConnection<unknown> = {
           id: `${id}_${socket.id}`,
           createdAt: Date.now(),
           scope: socket.handshake.query.at ? 'global' : 'client',
           socket,
         };
-        connection.socket.on('disconnect', () => {
-          delete BCMSRouteTracker.connections[connection.id];
+        socket.on('disconnect', () => {
+          BCMSSocketEntrySyncManager.unsync(conn);
+          delete BCMSRouteTracker.connections[conn.id];
         });
-        return connection;
+        return conn;
       },
       async verifyConnection(socket) {
         const query = socket.handshake.query as {
@@ -181,6 +187,7 @@ async function initialize() {
         }
         return true;
       },
+      eventHandlers: bcmsCreateSocketEventHandlers(),
       // eventHandlers: [createEntryChangeSocketHandler()],
     }),
     createBcmsSocketManager(),
@@ -236,6 +243,7 @@ async function initialize() {
     BCMSSearchController,
     BCMSBackupController,
     RouteTrackerController,
+    BCMSSocketController,
   ];
   if (BCMSConfig.database.fs) {
     modules.push(

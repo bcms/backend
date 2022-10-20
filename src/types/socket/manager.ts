@@ -138,5 +138,8 @@ export interface BCMSSocketManager {
     }): Promise<void>;
     refresh(data: { userId: string }): Promise<void>;
     signOut(data: { userId: string }): Promise<void>;
+    sync: {
+      entry(data: { channel: string, connId: string }): Promise<void>;
+    };
   };
 }
