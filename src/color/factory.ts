@@ -1,5 +1,4 @@
 import type { BCMSColorFactory } from '@bcms/types';
-import { v4 as uuidv4 } from 'uuid';
 import { Types } from 'mongoose';
 
 export function createBcmsColorFactory(): BCMSColorFactory {
@@ -14,12 +13,7 @@ export function createBcmsColorFactory(): BCMSColorFactory {
         name: data.name ? data.name : '',
         value: data.value ? data.value : '',
         userId: data.userId ? data.userId : '',
-        source: data.source
-          ?  {id: data.source.id, type: data.source.type}
-          : {
-              id: uuidv4(),
-              type: 'template',
-            },
+        global: data.global || true,
       };
     },
   };

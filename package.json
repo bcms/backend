@@ -1,6 +1,6 @@
 {
   "name": "@becomes/cms-backend",
-  "version": "3.1.1",
+  "version": "3.1.4",
   "description": "Backend for the BCMS",
   "author": "becomes.co",
   "license": "MIT",
@@ -21,7 +21,8 @@
     "create:image": "npm-tool --create-image",
     "generate-doc": "typedoc",
     "lint": "eslint . --ext .ts",
-    "build:plugins": "tsc -p tsconfig.plugins.json"
+    "build:plugins": "tsc -p tsconfig.plugins.json",
+    "fix:db": "npm-tool --fix-db"
   },
   "dependencies": {
     "@banez/child_process": "^1.0.3",
@@ -46,8 +47,8 @@
   },
   "devDependencies": {
     "@banez/npm-tool": "^1.0.1",
-    "@becomes/cms-sdk": "^3.2.0",
-    "@becomes/cms-ui": "^3.1.1",
+    "@becomes/cms-sdk": "^3.3.2",
+    "@becomes/cms-ui": "^3.2.6",
     "@types/bcrypt": "^5.0.0",
     "@types/cron": "^2.0.0",
     "@types/express": "^4.17.9",

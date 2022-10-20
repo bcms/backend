@@ -8,10 +8,7 @@ import {
   JWTRoleName,
 } from '@becomes/purple-cheetah-mod-jwt/types';
 import { HTTPStatus } from '@becomes/purple-cheetah/types';
-
-export const RouteTracker: {
-  [userId: string]: string;
-} = {};
+import { BCMSRouteTracker } from './service';
 
 export const RouteTrackerController = createController({
   name: 'Route tracker controller',
@@ -31,7 +28,8 @@ export const RouteTrackerController = createController({
             throw errorHandler.occurred(HTTPStatus.BAD_REQUEST, 'Missing SID');
           }
           const path = Buffer.from(request.query.path + '', 'hex').toString();
-          RouteTracker[`${accessToken.payload.userId}_${sid}`] = path;
+          BCMSRouteTracker.connections[`${accessToken.payload.userId}_${sid}`] =
+            path;
           return {
             ok: true,
           };
@@ -50,8 +48,11 @@ export const RouteTrackerController = createController({
           const path = Buffer.from(request.query.path + '', 'hex').toString();
           const items: string[] = [];
           const myConnId = `${accessToken.payload.userId}_${sid}`;
-          for (const connId in RouteTracker) {
-            if (connId !== myConnId && RouteTracker[connId] === path) {
+          for (const connId in BCMSRouteTracker.connections) {
+            if (
+              connId !== myConnId &&
+              BCMSRouteTracker.connections[connId] === path
+            ) {
               items.push(connId);
             }
           }

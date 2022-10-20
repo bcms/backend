@@ -3,6 +3,7 @@ import { BCMSFactory } from '@bcms/factory';
 import { BCMSPropHandler } from '@bcms/prop';
 import { BCMSRepo } from '@bcms/repo';
 import { bcmsResCode } from '@bcms/response-code';
+import { BCMSRouteTracker } from '@bcms/route-tracker';
 import { BCMSSocketManager } from '@bcms/socket';
 import {
   createController,
@@ -533,6 +534,16 @@ export const BCMSEntryController = createController<Setup>({
             excludeUserId: token
               ? [token.payload.userId + '_' + sid]
               : undefined,
+          });
+          const usersAtPath = BCMSRouteTracker.findByPath(
+            `/dashboard/t/${template.cid}/e/${
+              template.singleEntry ? 'single' : entry.cid
+            }`,
+          ).filter((e) => e.sid !== sid);
+          BCMSSocketManager.emit.message({
+            messageType: 'warn',
+            message: 'm1',
+            userIds: usersAtPath.map((e) => `${e.userId}_${e.sid}`),
           });
           await BCMSRepo.change.methods.updateAndIncByName('entry');
           return {

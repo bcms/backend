@@ -77,42 +77,6 @@ export class BCMSColorRequestHandler {
       }
       idc = 1;
     }
-    if (!body.source.id) {
-      throw errorHandler.occurred(
-        HTTPStatus.BAD_REQUEST,
-        'The value of the color origin is not entered',
-      );
-    }
-    if (body.source.type === 'group') {
-      const group = await BCMSRepo.group.findById(body.source.id);
-      if (!group) {
-        throw errorHandler.occurred(
-          HTTPStatus.BAD_REQUEST,
-          bcmsResCode('grp001', { id: body.source.id }),
-        );
-      }
-    } else if (body.source.type === 'widget') {
-      const widget = await BCMSRepo.widget.findById(body.source.id);
-      if (!widget) {
-        throw errorHandler.occurred(
-          HTTPStatus.BAD_REQUEST,
-          bcmsResCode('wid001', { id: body.source.id }),
-        );
-      }
-    } else if (body.source.type === 'template') {
-      const template = await BCMSRepo.template.findById(body.source.id);
-      if (!template) {
-        throw errorHandler.occurred(
-          HTTPStatus.BAD_REQUEST,
-          bcmsResCode('tmp001', { id: body.source.id }),
-        );
-      }
-    } else {
-      throw errorHandler.occurred(
-        HTTPStatus.BAD_REQUEST,
-        'The value of the color origin is not entered',
-      );
-    }
 
     if (!(await BCMSColorService.check(body.value))) {
       throw errorHandler.occurred(
@@ -126,10 +90,7 @@ export class BCMSColorRequestHandler {
       name: StringUtility.toSlugUnderscore(body.label),
       value: body.value,
       userId: accessToken.payload.userId,
-      source: {
-        id: body.source.id,
-        type: body.source.type,
-      },
+      global: body.global,
     });
     const addedColor = await BCMSRepo.color.add(color);
     if (!addedColor) {

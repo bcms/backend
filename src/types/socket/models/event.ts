@@ -16,6 +16,7 @@ export enum BCMSSocketEventName {
   REFRESH = 'REFRESH',
   SIGN_OUT = 'SIGN_OUT',
   BACKUP = 'BACKUP',
+  MESSAGE = 'MESSAGE',
   SYNC_CHANNEL = 'SC',
   SYNC_TSERV = 'ST',
   UNSYNC_TSERV = 'UST',
@@ -94,6 +95,21 @@ export interface BCMSSocketSyncChangeDataProp {
    * Move item in an array.
    */
   movI?: unknown;
+}
+
+export interface BCMSSocketMessageEvent {
+  /**
+   * Event type.
+   */
+  t: BCMSSocketEventType;
+  /**
+   * Type of the message.
+   */
+  mt: 'info' | 'error' | 'warn' | 'success';
+  /**
+   * Message content.
+   */
+  m: string;
 }
 
 export interface BCMSSocketBackupEvent {

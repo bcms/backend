@@ -24,6 +24,7 @@ import { BCMSMediaService } from './service';
 import { BCMSSocketManager } from '@bcms/socket';
 import { BCMSPropHandler } from '@bcms/prop';
 import { BCMSEventManager } from '@bcms/event';
+import { BCMSFfmpeg } from '@bcms/util';
 export class BCMSMediaRequestHandler {
   private static uploadTokens: {
     [token: string]: JWT<BCMSUserCustomPool>;
@@ -211,6 +212,13 @@ export class BCMSMediaRequestHandler {
       } catch (error) {
         logger.error(name, error);
       }
+    } else if (
+      media.type === BCMSMediaType.VID ||
+      media.type === BCMSMediaType.GIF
+    ) {
+      const data = await BCMSFfmpeg.getVideoInfo({ media });
+      media.width = data.width;
+      media.height = data.height;
     }
     const addedMedia = await BCMSRepo.media.add(media);
     if (!addedMedia) {

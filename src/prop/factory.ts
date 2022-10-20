@@ -215,8 +215,8 @@ export function createBcmsPropFactory(): BCMSPropFactory {
         type: BCMSPropType.COLOR_PICKER,
         defaultData: {
           allowCustom: false,
-          options: [],
           selected: [],
+          allowGlobal: true,
         },
       };
     },

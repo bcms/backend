@@ -16,7 +16,9 @@ interface BCMSTypeConverterPropsResult {
     name: string;
     type: string;
     required: boolean;
+    array: boolean;
   }>;
+  additional: string[];
   imports: BCMSImports;
 }
 
@@ -83,10 +85,11 @@ export class BCMSTypeConverter {
   static async bcmsPropTypeToConvertType(
     prop: BCMSProp,
     conversionType?: 'js' | 'gql',
-  ): Promise<{ type: string; imports: BCMSImports }> {
+  ): Promise<{ type: string; imports: BCMSImports; additional: string[] }> {
     const cType = conversionType ? conversionType : 'js';
     let output = '';
     const imports = new BCMSImports();
+    const additional: string[] = [];
     if (
       prop.type === BCMSPropType.BOOLEAN ||
       prop.type === BCMSPropType.STRING ||
@@ -152,15 +155,25 @@ export class BCMSTypeConverter {
         }
       }
       if (outputTypes.length > 0) {
-        output = outputTypes.join(' | ');
+        if (cType === 'gql') {
+          output = `${toCamelCase(prop.name)}Union`;
+          additional.push(
+            `union ${toCamelCase(prop.name)}Union = ${outputTypes.join(
+              ' | ',
+            )}\n\n`,
+          );
+        } else {
+          output = outputTypes.join(' | ');
+        }
       }
     }
     return {
       type: prop.array
         ? cType === 'gql'
-          ? `[${output}!]!`
-          : output + '[]'
+          ? `[${output}!]`
+          : `Array<${output}>`
         : output,
+      additional,
       imports,
     };
   }
@@ -174,6 +187,7 @@ export class BCMSTypeConverter {
   }): Promise<BCMSTypeConverterPropsResult> {
     const output: BCMSTypeConverterPropsResult = {
       imports: new BCMSImports(),
+      additional: [],
       props: [],
     };
     for (let i = 0; i < props.length; i++) {
@@ -187,7 +201,9 @@ export class BCMSTypeConverter {
         name: prop.name,
         type: typeResult.type,
         required: prop.required,
+        array: prop.array,
       });
+      output.additional.push(...typeResult.additional);
     }
     return output;
   }
@@ -238,12 +254,12 @@ export class BCMSTypeConverter {
                 '  status?: string;',
                 '  meta: {',
                 ...languages.map(
-                  (lng) => `    ${lng.code}: ${interfaceName}Meta;`,
+                  (lng) => `    ${lng.code}?: ${interfaceName}Meta;`,
                 ),
                 '  }',
                 '  content: {',
                 ...languages.map(
-                  (lng) => `    ${lng.code}: BCMSEntryContentParsedItem[];`,
+                  (lng) => `    ${lng.code}?: BCMSEntryContentParsedItem[];`,
                 ),
                 '  }',
               ];
@@ -256,7 +272,9 @@ export class BCMSTypeConverter {
                 `export interface ${interfaceName}Meta {`,
                 ...result.props.map(
                   (prop) =>
-                    `  ${prop.name}${prop.required ? '' : '?'}: ${prop.type};`,
+                    `  ${prop.name}${prop.required || prop.array ? '' : '?'}: ${
+                      prop.type
+                    };`,
                 ),
                 '}',
                 '',
@@ -264,11 +282,14 @@ export class BCMSTypeConverter {
             } else {
               typescriptProps = result.props.map(
                 (prop) =>
-                  `  ${prop.name}${prop.required ? '' : '?'}: ${prop.type};`,
+                  `  ${prop.name}${prop.required || prop.array ? '' : '?'}: ${
+                    prop.type
+                  };`,
               );
             }
             output[`${target.type}/${target.name}.d.ts`] = [
               ...result.imports.flatten(),
+              ...result.additional,
               ...additional,
               `export ${
                 target.type === 'enum' ? 'type' : 'interface'
@@ -448,14 +469,16 @@ export class BCMSTypeConverter {
                 `type ${interfaceName}Meta {`,
                 ...result.props.map(
                   (prop) =>
-                    `  ${prop.name}: ${prop.type}${prop.required ? '!' : ''}`,
+                    `  ${prop.name}: ${prop.type}${prop.required || prop.array ? '!' : ''}`,
                 ),
                 '}',
                 '',
               ].join('\n');
               metaObject = [
                 `type ${interfaceName}MetaType {`,
-                languages.map((lng) => `  ${lng.code}: ${interfaceName}Meta!`),
+                ...languages.map(
+                  (lng) => `  ${lng.code}: ${interfaceName}Meta`,
+                ),
                 '}',
                 '',
               ].join('\n');
@@ -477,6 +500,7 @@ export class BCMSTypeConverter {
             }
             output[`${target.type}/${target.name}.gql`] = [
               // ...result.imports.flatten(),
+              ...result.additional,
               metaItem,
               metaObject,
               `type ${interfaceName} {`,

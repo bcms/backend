@@ -34,6 +34,9 @@ export const BCMSContentUtility: BCMSContentUtilityType = {
             if (mark.type === BCMSEntryContentNodeMarkerType.underline) {
               output = `<u>${output}</u>`;
             }
+            if (mark.type === BCMSEntryContentNodeMarkerType.inlineCode) {
+              output = `<code>${output}</code>`;
+            }
           }
         }
       } else if (

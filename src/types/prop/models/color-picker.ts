@@ -2,7 +2,7 @@ import type { ObjectSchema } from '@becomes/purple-cheetah/types';
 
 export interface BCMSPropColorPickerData {
   allowCustom: boolean;
-  options: string[];
+  allowGlobal: boolean;
   selected: string[];
 }
 
@@ -13,12 +13,9 @@ export const BCMSPropColorPickerDataSchema: ObjectSchema = {
     __type: 'boolean',
     __required: true,
   },
-  options: {
-    __type: 'array',
+  allowGlobal: {
+    __type: 'boolean',
     __required: true,
-    __child: {
-      __type: 'string',
-    },
   },
   selected: {
     __type: 'array',

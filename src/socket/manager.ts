@@ -13,6 +13,7 @@ import {
   BCMSSocketManager as BCMSSocketManagerType,
   BCMSSocketManagerScope,
   BCMSSocketMediaEvent,
+  BCMSSocketMessageEvent,
   BCMSSocketRefreshEvent,
   BCMSSocketSignOutEvent,
   BCMSSocketStatusEvent,
@@ -79,7 +80,7 @@ async function emit<Data>({
         socket.emit<Data>({
           eventName: name,
           eventData: data,
-          connectionId: userId,
+          connectionId: connection.id,
         });
       }
     }
@@ -88,6 +89,18 @@ async function emit<Data>({
 
 export const BCMSSocketManager: BCMSSocketManagerType = {
   emit: {
+    async message(data) {
+      await emit<BCMSSocketMessageEvent>({
+        socket: soc,
+        name: BCMSSocketEventName.MESSAGE,
+        data: {
+          t: BCMSSocketEventType.UPDATE,
+          mt: data.messageType,
+          m: data.message,
+        },
+        userIds: data.userIds,
+      });
+    },
     async backup(data) {
       await emit<BCMSSocketBackupEvent>({
         socket: soc,
