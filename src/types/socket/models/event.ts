@@ -24,6 +24,10 @@ export enum BCMSSocketEventName {
   SYNC_FSERV = 'SF',
   UNSYNC_FSERV = 'USF',
   SYNC_CHANGE_FSERV = 'SCF',
+  SYNC_META_REQ = 'SMQ',
+  SYNC_META_RES = 'SMS',
+  Y_SYNC_REQ = 'YSQ',
+  Y_SYNC_RES = 'YSS',
 }
 
 // eslint-disable-next-line no-shadow
@@ -312,4 +316,38 @@ export interface BCMSSocketSyncChangeEvent {
   sct: BCMSSocketSyncChangeType;
   data: BCMSSocketSyncChangeDataMouse | BCMSSocketSyncChangeDataProp;
   connId?: string;
+}
+
+export interface BCMSSocketTypeYRequest {
+  /**
+   * URI path.
+   */
+  p: string;
+  channel: string;
+}
+
+export interface BCMSSocketTypeYResponse {
+  /**
+   * URI path.
+   */
+  p: string;
+  channel: string;
+  connId: string;
+  data: Buffer;
+}
+
+export interface BCMSSocketTypeSyncMetaRequest {
+  /**
+   * URI path.
+   */
+  p: string;
+}
+
+export interface BCMSSocketTypeSyncMetaResponse {
+  /**
+   * URI path.
+   */
+  p: string;
+  connId: string;
+  data: any;
 }

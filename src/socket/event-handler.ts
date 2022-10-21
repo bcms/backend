@@ -1,7 +1,12 @@
 import {
+  BCMSSocketEntrySyncManagerConnInfo,
   BCMSSocketEventName,
   BCMSSocketSyncChangeEvent,
   BCMSSocketSyncEvent,
+  BCMSSocketTypeSyncMetaRequest,
+  BCMSSocketTypeSyncMetaResponse,
+  BCMSSocketTypeYRequest,
+  BCMSSocketTypeYResponse,
   BCMSSocketUnsyncEvent,
 } from '@bcms/types';
 import type {
@@ -41,6 +46,7 @@ export function bcmsCreateSocketEventHandlers(): Handler[] {
     {
       name: BCMSSocketEventName.SYNC_CHANNEL,
       handler: async (data, conn) => {
+        console.log({ data, conn });
         await BCMSSocketEntrySyncManager.triggerSub({
           connId: conn.id,
           channel: data.channel,
@@ -62,7 +68,6 @@ export function bcmsCreateSocketEventHandlers(): Handler[] {
     {
       name: BCMSSocketEventName.UNSYNC_TSERV,
       handler: async (data, conn) => {
-        console.log('WTF');
         BCMSSocketEntrySyncManager.unsync(conn, data);
       },
     } as Handler<BCMSSocketUnsyncEvent>,
@@ -84,5 +89,85 @@ export function bcmsCreateSocketEventHandlers(): Handler[] {
         // }
       },
     } as Handler<BCMSSocketSyncChangeEvent>,
+    {
+      name: BCMSSocketEventName.Y_SYNC_REQ,
+      handler: async (data, conn) => {
+        const conns = BCMSSocketEntrySyncManager.groups[data.p];
+        if (conns) {
+          let oldestConn: BCMSSocketEntrySyncManagerConnInfo | undefined =
+            undefined;
+          for (const id in conns) {
+            if (
+              conns[id].conn.id !== conn.id &&
+              (!oldestConn || oldestConn.age < conns[id].age)
+            ) {
+              oldestConn = conns[id];
+            }
+          }
+          if (oldestConn) {
+            oldestConn.conn.socket.emit(BCMSSocketEventName.Y_SYNC_REQ, {
+              p: data.p,
+              channel: data.channel,
+              connId: conn.id,
+            });
+          }
+        }
+      },
+    } as Handler<BCMSSocketTypeYRequest>,
+    {
+      name: BCMSSocketEventName.Y_SYNC_RES,
+      handler: async (data) => {
+        if (
+          BCMSSocketEntrySyncManager.groups[data.p] &&
+          BCMSSocketEntrySyncManager.groups[data.p][data.connId]
+        ) {
+          const conn = BCMSSocketEntrySyncManager.groups[data.p][data.connId];
+          conn.conn.socket.emit(BCMSSocketEventName.Y_SYNC_RES, {
+            p: data.p,
+            channel: data.channel,
+            data: data.data,
+          });
+        }
+      },
+    } as Handler<BCMSSocketTypeYResponse>,
+    {
+      name: BCMSSocketEventName.SYNC_META_REQ,
+      handler: async (data, conn) => {
+        const conns = BCMSSocketEntrySyncManager.groups[data.p];
+        if (conns) {
+          let oldestConn: BCMSSocketEntrySyncManagerConnInfo | undefined =
+            undefined;
+          for (const id in conns) {
+            if (
+              conns[id].conn.id !== conn.id &&
+              (!oldestConn || oldestConn.age < conns[id].age)
+            ) {
+              oldestConn = conns[id];
+            }
+          }
+          if (oldestConn) {
+            oldestConn.conn.socket.emit(BCMSSocketEventName.SYNC_META_REQ, {
+              p: data.p,
+              connId: conn.id,
+            });
+          }
+        }
+      },
+    } as Handler<BCMSSocketTypeSyncMetaRequest>,
+    {
+      name: BCMSSocketEventName.SYNC_META_RES,
+      handler: async (data) => {
+        if (
+          BCMSSocketEntrySyncManager.groups[data.p] &&
+          BCMSSocketEntrySyncManager.groups[data.p][data.connId]
+        ) {
+          const conn = BCMSSocketEntrySyncManager.groups[data.p][data.connId];
+          conn.conn.socket.emit(BCMSSocketEventName.SYNC_META_RES, {
+            p: data.p,
+            data: data.data,
+          });
+        }
+      },
+    } as Handler<BCMSSocketTypeSyncMetaResponse>,
   ];
 }
