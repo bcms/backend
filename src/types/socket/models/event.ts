@@ -26,6 +26,7 @@ export enum BCMSSocketEventName {
   SYNC_CHANGE_FSERV = 'SCF',
   SYNC_META_REQ = 'SMQ',
   SYNC_META_RES = 'SMS',
+  SYNC_HEALTH = 'SH',
   Y_SYNC_REQ = 'YSQ',
   Y_SYNC_RES = 'YSS',
 }

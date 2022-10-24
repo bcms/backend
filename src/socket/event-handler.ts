@@ -46,7 +46,6 @@ export function bcmsCreateSocketEventHandlers(): Handler[] {
     {
       name: BCMSSocketEventName.SYNC_CHANNEL,
       handler: async (data, conn) => {
-        console.log({ data, conn });
         await BCMSSocketEntrySyncManager.triggerSub({
           connId: conn.id,
           channel: data.channel,
@@ -169,5 +168,14 @@ export function bcmsCreateSocketEventHandlers(): Handler[] {
         }
       },
     } as Handler<BCMSSocketTypeSyncMetaResponse>,
+    {
+      name: BCMSSocketEventName.SYNC_HEALTH,
+      handler: async (data, conn) => {
+        if (BCMSSocketEntrySyncManager.groups[data.p][conn.id]) {
+          BCMSSocketEntrySyncManager.groups[data.p][conn.id].lastCheck =
+            Date.now();
+        }
+      },
+    } as Handler<any>,
   ];
 }

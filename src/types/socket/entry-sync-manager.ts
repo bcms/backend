@@ -5,4 +5,5 @@ export interface BCMSSocketEntrySyncManagerConnInfo {
   uid: string;
   age: number;
   conn: SocketConnection<unknown>;
+  lastCheck: number;
 }

@@ -34,6 +34,7 @@ export class BCMSSocketEntrySyncManager {
       age: Date.now(),
       uid,
       conn,
+      lastCheck: Date.now(),
     };
   }
 
