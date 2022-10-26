@@ -214,8 +214,13 @@ export const BCMSMediaController = createController<Setup>({
         path: '/:id/bin/act',
         type: 'get',
         async handler({ request, errorHandler }) {
+          const atCookie = request.headers.cookie
+            ? request.headers.cookie
+                .split('; ')
+                .find((e) => e.startsWith('bcmsat')) + ''
+            : '';
           const accessToken = jwt.get({
-            jwtString: request.query.act + '',
+            jwtString: atCookie.split('=')[1] || '',
             roleNames: [JWTRoleName.ADMIN, JWTRoleName.USER],
             permissionName: JWTPermissionName.READ,
           });
