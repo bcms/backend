@@ -217,6 +217,7 @@ export const BCMSBackupController = createController({
                 JSON.stringify(await BCMSRepo[key].findAll()),
               );
             }
+            await fs.copy(['..', 'logs'], [outputDir, 'logs']);
             {
               const pout: ChildProcessOnChunkHelperOutput = {
                 err: '',
