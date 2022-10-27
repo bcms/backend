@@ -13,7 +13,7 @@ import {
   JWTPreRequestHandlerResult,
   JWTRoleName,
 } from '@becomes/purple-cheetah-mod-jwt/types';
-import { FS, HTTPStatus } from '@becomes/purple-cheetah/types';
+import { FS, HTTPError, HTTPStatus } from '@becomes/purple-cheetah/types';
 import {
   BCMSRouteProtectionJwtAndBodyCheckResult,
   BCMSMedia,
@@ -35,6 +35,7 @@ import { bcmsResCode } from '@bcms/response-code';
 import { BCMSMediaService } from './service';
 import { BCMSMediaRequestHandler } from './request-handler';
 import { BCMSImageProcessor } from './image-processor';
+import type { Request } from 'express';
 
 interface Setup {
   jwt: JWTManager;
@@ -53,6 +54,104 @@ export const BCMSMediaController = createController<Setup>({
   },
   methods({ jwt, fs }) {
     const imageProcessQueue = createQueue();
+    async function getBinFile(
+      request: Request,
+      errorHandler: HTTPError,
+    ): Promise<{
+      __file: string;
+    }> {
+      const apiKey = await BCMSRepo.apiKey.findById(request.params.keyId);
+      if (!apiKey) {
+        throw errorHandler.occurred(
+          HTTPStatus.NOT_FOUNT,
+          bcmsResCode('mda001', { id: request.params.id }),
+        );
+      }
+      const media = await BCMSRepo.media.findById(request.params.id);
+      if (!media) {
+        throw errorHandler.occurred(
+          HTTPStatus.NOT_FOUNT,
+          bcmsResCode('mda001', { id: request.params.id }),
+        );
+      }
+      if (media.type === BCMSMediaType.DIR) {
+        throw errorHandler.occurred(
+          HTTPStatus.FORBIDDEN,
+          bcmsResCode('mda007', { id: request.params.id }),
+        );
+      }
+      const queryParts = Buffer.from(request.params.fileOptions, 'hex')
+        .toString()
+        .split('&');
+      const query: {
+        [name: string]: string;
+      } = {};
+      for (let i = 0; i < queryParts.length; i++) {
+        const part = queryParts[i];
+        const keyValue = part.split('=');
+        if (keyValue.length === 2) {
+          query[keyValue[0]] = keyValue[1];
+        }
+      }
+
+      if (
+        query.ops &&
+        (media.mimetype === 'image/jpeg' ||
+          media.mimetype === 'image/jpg' ||
+          media.mimetype === 'image/png')
+      ) {
+        let idx = parseInt(query.idx as string, 10);
+        if (isNaN(idx) || idx < 0) {
+          idx = 0;
+        }
+        const filePath = path.join(
+          process.cwd(),
+          'uploads',
+          media._id,
+          query.ops,
+          media.name,
+        );
+        const filePathParts = filePath.split('.');
+        const firstPart = filePathParts
+          .slice(0, filePathParts.length - 1)
+          .join('.');
+        const lastPart = filePathParts[filePathParts.length - 1];
+        const outputFilePath = `${firstPart}_${idx}.${
+          query.webp ? 'webp' : lastPart
+        }`;
+        if (!(await fs.exist(outputFilePath, true))) {
+          const options = BCMSImageProcessor.stringToOptions(query.ops + '');
+          const mediaPath = path.join(
+            process.cwd(),
+            'uploads',
+            await BCMSMediaService.getPath(media),
+          );
+          await imageProcessQueue({
+            name: request.originalUrl,
+            handler: async () => {
+              await BCMSImageProcessor.process({
+                media,
+                pathToSrc: mediaPath,
+                options,
+              });
+            },
+          }).wait;
+        }
+        return {
+          __file: outputFilePath,
+        };
+      }
+      if (!(await BCMSMediaService.storage.exist(media))) {
+        throw errorHandler.occurred(
+          HTTPStatus.INTERNAL_SERVER_ERROR,
+          bcmsResCode('mda008', { id: request.params.id }),
+        );
+      }
+      return {
+        __file: await BCMSMediaService.storage.getPath({ media }),
+      };
+    }
+
     return {
       getAll: createControllerMethod<unknown, { items: BCMSMedia[] }>({
         path: '/all',
@@ -255,102 +354,19 @@ export const BCMSMediaController = createController<Setup>({
         },
       }),
 
+      getBinaryApiKeyV2: createControllerMethod<unknown, { __file: string }>({
+        path: '/pip/:id/bin/:keyId/:fileOptions/:fileName',
+        type: 'get',
+        async handler({ request, errorHandler }) {
+          return await getBinFile(request, errorHandler);
+        },
+      }),
+
       getBinaryApiKey: createControllerMethod<unknown, { __file: string }>({
         path: '/pip/:id/bin/:keyId/:fileOptions',
         type: 'get',
         async handler({ request, errorHandler }) {
-          const apiKey = await BCMSRepo.apiKey.findById(request.params.keyId);
-          if (!apiKey) {
-            throw errorHandler.occurred(
-              HTTPStatus.NOT_FOUNT,
-              bcmsResCode('mda001', { id: request.params.id }),
-            );
-          }
-          const media = await BCMSRepo.media.findById(request.params.id);
-          if (!media) {
-            throw errorHandler.occurred(
-              HTTPStatus.NOT_FOUNT,
-              bcmsResCode('mda001', { id: request.params.id }),
-            );
-          }
-          if (media.type === BCMSMediaType.DIR) {
-            throw errorHandler.occurred(
-              HTTPStatus.FORBIDDEN,
-              bcmsResCode('mda007', { id: request.params.id }),
-            );
-          }
-          const queryParts = Buffer.from(request.params.fileOptions, 'hex')
-            .toString()
-            .split('&');
-          const query: {
-            [name: string]: string;
-          } = {};
-          for (let i = 0; i < queryParts.length; i++) {
-            const part = queryParts[i];
-            const keyValue = part.split('=');
-            if (keyValue.length === 2) {
-              query[keyValue[0]] = keyValue[1];
-            }
-          }
-
-          if (
-            query.ops &&
-            (media.mimetype === 'image/jpeg' ||
-              media.mimetype === 'image/jpg' ||
-              media.mimetype === 'image/png')
-          ) {
-            let idx = parseInt(query.idx as string, 10);
-            if (isNaN(idx) || idx < 0) {
-              idx = 0;
-            }
-            const filePath = path.join(
-              process.cwd(),
-              'uploads',
-              media._id,
-              query.ops,
-              media.name,
-            );
-            const filePathParts = filePath.split('.');
-            const firstPart = filePathParts
-              .slice(0, filePathParts.length - 1)
-              .join('.');
-            const lastPart = filePathParts[filePathParts.length - 1];
-            const outputFilePath = `${firstPart}_${idx}.${
-              query.webp ? 'webp' : lastPart
-            }`;
-            if (!(await fs.exist(outputFilePath, true))) {
-              const options = BCMSImageProcessor.stringToOptions(
-                query.ops + '',
-              );
-              const mediaPath = path.join(
-                process.cwd(),
-                'uploads',
-                await BCMSMediaService.getPath(media),
-              );
-              await imageProcessQueue({
-                name: request.originalUrl,
-                handler: async () => {
-                  await BCMSImageProcessor.process({
-                    media,
-                    pathToSrc: mediaPath,
-                    options,
-                  });
-                },
-              }).wait;
-            }
-            return {
-              __file: outputFilePath,
-            };
-          }
-          if (!(await BCMSMediaService.storage.exist(media))) {
-            throw errorHandler.occurred(
-              HTTPStatus.INTERNAL_SERVER_ERROR,
-              bcmsResCode('mda008', { id: request.params.id }),
-            );
-          }
-          return {
-            __file: await BCMSMediaService.storage.getPath({ media }),
-          };
+          return getBinFile(request, errorHandler);
         },
       }),
 
