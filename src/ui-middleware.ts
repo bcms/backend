@@ -1,5 +1,9 @@
 import * as path from 'path';
-import { createMiddleware, useFS } from '@becomes/purple-cheetah';
+import {
+  createMiddleware,
+  StringUtility,
+  useFS,
+} from '@becomes/purple-cheetah';
 import type { NextFunction, Request, Response } from 'express';
 import { useBcmsPluginManager } from './plugin';
 
@@ -22,7 +26,7 @@ export const BCMSUiAssetMiddleware = createMiddleware({
             .map((e) => e.replace(/\.\./g, ''));
           const pluginInfo = pluginManager
             .getListInfo()
-            .find((e) => e.name === pathParams[1]);
+            .find((e) => StringUtility.toSlug(e.name) === pathParams[1]);
           if (pluginInfo) {
             filePath = path.join(
               pluginInfo.dirPath,
