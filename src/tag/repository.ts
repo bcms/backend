@@ -7,7 +7,7 @@ import {
   BCMSTagRepositoryMethods,
 } from '@bcms/types';
 import { createFSDBRepository } from '@becomes/purple-cheetah-mod-fsdb';
-import { createMongoDBCachedRepository } from '@becomes/purple-cheetah-mod-mongodb';
+import { createMongoDBCachedRepository } from '@becomes/purple-cheetah-mod-mongodb-mem-cache';
 import type { Module } from '@becomes/purple-cheetah/types';
 
 export function createBcmsTagRepository(): Module {

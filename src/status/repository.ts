@@ -3,7 +3,7 @@ import { BCMSFactory } from '@bcms/factory';
 import { BCMSRepo } from '@bcms/repo';
 import { useStringUtility } from '@becomes/purple-cheetah';
 import { createFSDBRepository } from '@becomes/purple-cheetah-mod-fsdb';
-import { createMongoDBCachedRepository } from '@becomes/purple-cheetah-mod-mongodb';
+import { createMongoDBCachedRepository } from '@becomes/purple-cheetah-mod-mongodb-mem-cache';
 import type { Module } from '@becomes/purple-cheetah/types';
 import {
   BCMSStatus,

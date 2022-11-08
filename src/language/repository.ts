@@ -2,7 +2,7 @@ import { BCMSConfig } from '@bcms/config';
 import { BCMSFactory } from '@bcms/factory';
 import { BCMSRepo } from '@bcms/repo';
 import { createFSDBRepository } from '@becomes/purple-cheetah-mod-fsdb';
-import { createMongoDBCachedRepository } from '@becomes/purple-cheetah-mod-mongodb';
+import { createMongoDBCachedRepository } from '@becomes/purple-cheetah-mod-mongodb-mem-cache';
 import type { Module } from '@becomes/purple-cheetah/types';
 import {
   BCMSLanguage,
