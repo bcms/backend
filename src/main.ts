@@ -301,11 +301,11 @@ async function initialize() {
   modules.push(createBcmsApiKeySecurity());
   modules.push(createBcmsPropHandler());
   modules.push(createBcmsEntryParser());
+  modules.push(createBcmsPluginModule(BCMSConfig));
   modules.push(createBcmsFunctionModule());
   modules.push(createBcmsEventModule());
   modules.push(createBcmsJobModule());
 
-  modules.push(createBcmsPluginModule(BCMSConfig));
 
   // modules.push(
   //   createGraphql({
