@@ -250,6 +250,7 @@ export class BCMSTypeConverter {
                 '  createdAt: number;',
                 '  updatedAt: number;',
                 '  templateId: string;',
+                '  templateName: string;',
                 '  userId: string;',
                 '  status?: string;',
                 '  meta: {',
@@ -360,6 +361,7 @@ export class BCMSTypeConverter {
                 ' *  @property { number } updatedAt',
                 ' *  @property { string } cid',
                 ' *  @property { string } templateId',
+                ' *  @property { string } templateName',
                 ' *  @property { string } userId',
                 ' *  @property { string } status',
                 ' *  @property {{  ',
@@ -469,7 +471,9 @@ export class BCMSTypeConverter {
                 `type ${interfaceName}Meta {`,
                 ...result.props.map(
                   (prop) =>
-                    `  ${prop.name}: ${prop.type}${prop.required || prop.array ? '!' : ''}`,
+                    `  ${prop.name}: ${prop.type}${
+                      prop.required || prop.array ? '!' : ''
+                    }`,
                 ),
                 '}',
                 '',
@@ -487,6 +491,7 @@ export class BCMSTypeConverter {
                 '  createdAt: Float!',
                 '  updatedAt: Float!',
                 '  templateId: String!',
+                '  templateName: String!',
                 '  userId: String!',
                 '  status: String',
                 `  meta: ${interfaceName}MetaType!`,
