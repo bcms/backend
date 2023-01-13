@@ -131,7 +131,7 @@ async function initialize() {
           id = socket.handshake.query.key as string;
         }
         const conn: SocketConnection<unknown> = {
-          id: `${id}_${socket.id}`,
+          id: `${id}_${Buffer.from(socket.id).toString('hex')}`,
           createdAt: Date.now(),
           scope: socket.handshake.query.at ? 'global' : 'client',
           socket,
@@ -305,7 +305,6 @@ async function initialize() {
   modules.push(createBcmsFunctionModule());
   modules.push(createBcmsEventModule());
   modules.push(createBcmsJobModule());
-
 
   // modules.push(
   //   createGraphql({
