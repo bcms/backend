@@ -33,12 +33,13 @@ export const BCMSSearchController = createController({
           JWTPermissionName.READ,
         ),
         async handler({ request, accessToken }) {
-          const term = request.query.term as string;
+          let term = request.query.term as string;
           if (!term || term.length < 3) {
             return {
               items: [],
             };
           }
+          term = term.replace(/"/g, '\\"');
           const searchFor: BCMSSearchResultType[] = [
             'entry',
             'media',
@@ -69,8 +70,8 @@ export const BCMSSearchController = createController({
                         return {
                           id: `${searchItem}_${item._id}`,
                           data: [
-                            item.name + ' ' + item._id,
                             item.desc.toLowerCase(),
+                            item.name + ' ' + item._id,
                           ],
                         };
                       }),
@@ -88,8 +89,8 @@ export const BCMSSearchController = createController({
                         return {
                           id: `${searchItem}_${item._id}`,
                           data: [
-                            item.name + ' ' + item._id,
                             item.label.toLowerCase(),
+                            item.name + ' ' + item._id,
                           ],
                         };
                       }),
@@ -107,10 +108,10 @@ export const BCMSSearchController = createController({
                         return {
                           id: `${searchItem}_${item._id}`,
                           data: [
-                            item.label.toLocaleLowerCase() + ' ' + item._id,
-                            item.name,
-                            item.desc.toLocaleLowerCase(),
                             JSON.stringify(item.props),
+                            item.desc.toLocaleLowerCase(),
+                            item.name,
+                            item.label.toLocaleLowerCase() + ' ' + item._id,
                           ],
                         };
                       }),
@@ -126,8 +127,8 @@ export const BCMSSearchController = createController({
                     ...search({
                       set: items.map((item) => {
                         return {
-                          id: `${searchItem}_${item._id}`,
                           data: [item.value.toLowerCase() + ' ' + item._id],
+                          id: `${searchItem}_${item._id}`,
                         };
                       }),
                       searchTerm: term,
@@ -144,8 +145,8 @@ export const BCMSSearchController = createController({
                         return {
                           id: `${searchItem}_${item._id}`,
                           data: [
-                            item.username.toLocaleLowerCase() + ' ' + item._id,
                             item.email,
+                            item.username.toLocaleLowerCase() + ' ' + item._id,
                           ],
                         };
                       }),
@@ -163,9 +164,9 @@ export const BCMSSearchController = createController({
                         return {
                           id: `${searchItem}_${item._id}`,
                           data: [
-                            item.name + ' ' + item._id,
-                            item.altText.toLowerCase(),
                             item.caption.toLowerCase(),
+                            item.altText.toLowerCase(),
+                            item.name + ' ' + item._id,
                           ],
                         };
                       }),
@@ -183,10 +184,10 @@ export const BCMSSearchController = createController({
                         return {
                           id: `${searchItem}_${item._id}`,
                           data: [
-                            item.label.toLocaleLowerCase() + ' ' + item._id,
-                            item.name,
-                            item.desc.toLocaleLowerCase(),
                             JSON.stringify(item.props),
+                            item.desc.toLocaleLowerCase(),
+                            item.name,
+                            item.label.toLocaleLowerCase() + ' ' + item._id,
                           ],
                         };
                       }),
@@ -204,10 +205,10 @@ export const BCMSSearchController = createController({
                         return {
                           id: `${searchItem}_${item._id}`,
                           data: [
-                            item.label.toLocaleLowerCase() + ' ' + item._id,
-                            item.name,
-                            item.desc.toLocaleLowerCase(),
                             JSON.stringify(item.props),
+                            item.desc.toLocaleLowerCase(),
+                            item.name,
+                            item.label.toLocaleLowerCase() + ' ' + item._id,
                           ],
                         };
                       }),
