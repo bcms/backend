@@ -303,6 +303,29 @@ export function createBcmsPluginModule(bcmsConfig: BCMSConfig): Module {
         await BCMSRepo.user.update(user);
       }
     }
+    const apiKeys = await BCMSRepo.apiKey.findAll();
+    for (let i = 0; i < apiKeys.length; i++) {
+      const apiKey = apiKeys[i];
+      let modified = false;
+      const pluginsToRemove: string[] = [];
+      if (apiKey.access.plugins) {
+        for (let j = 0; j < apiKey.access.plugins.length; j++) {
+          const apiKeyPlugin = apiKey.access.plugins[j];
+          if (!plugins.find((e) => e.name === apiKeyPlugin.name)) {
+            pluginsToRemove.push(apiKeyPlugin.name);
+          }
+        }
+        if (pluginsToRemove.length > 0) {
+          modified = true;
+          apiKey.access.plugins = apiKey.access.plugins.filter(
+            (e) => !pluginsToRemove.includes(e.name),
+          );
+        }
+      }
+      if (modified) {
+        await BCMSRepo.apiKey.update(apiKey);
+      }
+    }
   }
 
   return {

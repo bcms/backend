@@ -13,6 +13,7 @@ export interface BCMSApiKeyAccess {
   functions: Array<{
     name: string;
   }>;
+  plugins?: Array<{ name: string }>;
 }
 export const BCMSApiKeyAccessFSDBSchema: ObjectSchema = {
   templates: {
@@ -46,6 +47,19 @@ export const BCMSApiKeyAccessFSDBSchema: ObjectSchema = {
       },
     },
   },
+  plugins: {
+    __type: 'array',
+    __required: false,
+    __child: {
+      __type: 'object',
+      __content: {
+        name: {
+          __type: 'string',
+          __required: true,
+        },
+      },
+    },
+  },
 };
 export const BCMSApiKeyAccessMongoDBSchema = new Schema({
   templates: {
@@ -54,5 +68,9 @@ export const BCMSApiKeyAccessMongoDBSchema = new Schema({
   functions: {
     type: [{ name: { type: String, required: true } }],
     required: true,
+  },
+  plugins: {
+    type: [{ name: { type: String, required: true } }],
+    required: false,
   },
 });

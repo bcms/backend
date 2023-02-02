@@ -229,6 +229,14 @@ export function createBcmsApiKeySecurity(): Module {
                 break;
             }
           }
+        } else if (path.startsWith('/api/plugin/')) {
+          const p = path.replace('/api/plugin/', '').split('/');
+          if (
+            key.access.plugins &&
+            key.access.plugins.find((e) => e.name === p[0])
+          ) {
+            return true;
+          }
         }
         return false;
       };
