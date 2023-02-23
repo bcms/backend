@@ -31,8 +31,8 @@
     "@becomes/purple-cheetah-mod-fsdb": "^1.4.0",
     "@becomes/purple-cheetah-mod-graphql": "^1.1.2",
     "@becomes/purple-cheetah-mod-jwt": "^1.1.0",
-    "@becomes/purple-cheetah-mod-mongodb": "^2.0.2",
     "@becomes/purple-cheetah-mod-mem-cache": "^1.1.1",
+    "@becomes/purple-cheetah-mod-mongodb": "^2.0.2",
     "@becomes/purple-cheetah-mod-mongodb-mem-cache": "^1.0.0",
     "@becomes/purple-cheetah-mod-socket": "^1.1.0",
     "@types/multer": "^1.4.5",
@@ -49,7 +49,7 @@
   "devDependencies": {
     "@banez/npm-tool": "^1.0.1",
     "@becomes/cms-sdk": "^3.4.0",
-    "@becomes/cms-ui": "^3.2.15",
+    "@becomes/cms-ui": "^3.2.16",
     "@types/bcrypt": "^5.0.0",
     "@types/cron": "^2.0.0",
     "@types/express": "^4.17.9",
