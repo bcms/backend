@@ -103,8 +103,18 @@ export function createBcmsPluginModule(bcmsConfig: BCMSConfig): Module {
       'backend',
     );
     let pluginPath = '';
+    let pluginDirPath = path.join(
+      process.cwd(),
+      'node_modules',
+      bcmsConfig.plugins[data.index],
+    );
     if (await data.fs.exist(localPluginPath)) {
       pluginPath = localPluginPath;
+      pluginDirPath = path.join(
+        process.cwd(),
+        'plugins',
+        bcmsConfig.plugins[data.index],
+      );
     } else if (await data.fs.exist(nodeModulePluginPath)) {
       pluginPath = nodeModulePluginPath;
     } else {
@@ -118,11 +128,6 @@ export function createBcmsPluginModule(bcmsConfig: BCMSConfig): Module {
       };
     }
     await injectPaths(data.fs, pluginPath);
-    const pluginDirPath = path.join(
-      process.cwd(),
-      'node_modules',
-      bcmsConfig.plugins[data.index],
-    );
     if (await data.fs.exist(path.join(pluginPath, 'main.ts'), true)) {
       pluginPath = path.join(pluginPath, 'main.ts');
     } else if (await data.fs.exist(path.join(pluginPath, 'main.js'), true)) {
