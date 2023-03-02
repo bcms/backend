@@ -1466,15 +1466,34 @@ export const BCMSPropHandler: BCMSPropHandlerType = {
   },
   async removeEntryPointer({ templateId }) {
     function filterGroupPointer(data: { props: BCMSProp[] }) {
-      return data.props.filter(
-        (prop) =>
-          !(
-            prop.type === BCMSPropType.ENTRY_POINTER &&
-            (prop.defaultData as BCMSPropEntryPointerData[]).find(
-              (e) => e.templateId === templateId,
-            )
-          ),
-      );
+      const removeProps: string[] = [];
+      for (let i = 0; i < data.props.length; i++) {
+        const prop = data.props[i];
+        if (
+          prop.type === BCMSPropType.ENTRY_POINTER &&
+          (prop.defaultData as BCMSPropEntryPointerData[]).find(
+            (e) => e.templateId === templateId,
+          )
+        ) {
+          if (prop.array) {
+            prop.defaultData = (
+              prop.defaultData as BCMSPropEntryPointerData[]
+            ).filter((e) => e.templateId !== templateId);
+          } else {
+            removeProps.push(prop.id);
+          }
+        }
+      }
+      return data.props.filter((e) => !removeProps.includes(e.id));
+      // return data.props.filter(
+      //   (prop) =>
+      //     !(
+      //       prop.type === BCMSPropType.ENTRY_POINTER &&
+      //       (prop.defaultData as BCMSPropEntryPointerData[]).find(
+      //         (e) => e.templateId === templateId,
+      //       )
+      //     ),
+      // );
     }
     const errors: Error[] = [];
     const groups = await BCMSRepo.group.methods.findAllByPropEntryPointer(
