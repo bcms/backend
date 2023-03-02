@@ -1475,11 +1475,10 @@ export const BCMSPropHandler: BCMSPropHandlerType = {
             (e) => e.templateId === templateId,
           )
         ) {
-          if (prop.array) {
-            prop.defaultData = (
-              prop.defaultData as BCMSPropEntryPointerData[]
-            ).filter((e) => e.templateId !== templateId);
-          } else {
+          prop.defaultData = (
+            prop.defaultData as BCMSPropEntryPointerData[]
+          ).filter((e) => e.templateId !== templateId);
+          if (prop.defaultData.length === 0) {
             removeProps.push(prop.id);
           }
         }
