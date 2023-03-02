@@ -22,6 +22,7 @@ export const BCMSUiAssetMiddleware = createMiddleware({
         if (req.originalUrl.startsWith('/plugin')) {
           const pathParams = req.originalUrl
             .substring(1)
+            .split('?')[0]
             .split('/')
             .map((e) => e.replace(/\.\./g, ''));
           const pluginInfo = pluginManager
