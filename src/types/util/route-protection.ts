@@ -32,6 +32,10 @@ export interface BCMSRouteProtectionApiConfig {
   errorHandler: HTTPError;
 }
 
+export interface BCMSRouteProtectionJwtResult {
+  accessToken: JWT<BCMSUserCustomPool>;
+}
+
 export interface BCMSRouteProtectionJwtAndBodyCheckResult<Body> {
   accessToken: JWT<BCMSUserCustomPool>;
   body: Body;

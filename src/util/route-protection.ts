@@ -23,6 +23,7 @@ import type {
   BCMSRouteProtectionJWTAndBodyCheckConfig,
   BCMSRouteProtectionJwtAndBodyCheckResult,
   BCMSRouteProtectionJWTConfig,
+  BCMSRouteProtectionJwtResult,
   BCMSRouteProtectionRestRequest,
   BCMSUserCustomPool,
   BCMSUserPolicy,
@@ -168,9 +169,7 @@ export class BCMSRouteProtection {
   static createJwtPreRequestHandler(
     roleNames: JWTRoleName[],
     permissionName: JWTPermissionName,
-  ): ControllerMethodPreRequestHandler<{
-    accessToken: JWT<BCMSUserCustomPool>;
-  }> {
+  ): ControllerMethodPreRequestHandler<BCMSRouteProtectionJwtResult> {
     return async ({ request, errorHandler }) => {
       const accessToken = await BCMSRouteProtection.jwt({
         errorHandler,
