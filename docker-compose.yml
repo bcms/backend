@@ -6,11 +6,13 @@ networks:
 services:
   proxy:
     hostname: 'bcms-proxy'
-    image: 'becomes/cms-proxy-local:1.0.6'
+    build:
+      context: ./proxy
+      dockerfile: Dockerfile
     ports:
       - '8080:8080'
-    logging:
-      driver: none
+    # logging:
+    #   driver: none
   shim:
     hostname: 'bcms-shim'
     depends_on:
@@ -48,3 +50,6 @@ services:
       - type: bind
         source: ./plugins
         target: /app/plugins
+      - type: bind
+        source: ./node_modules/@becomes/cms-ui/public
+        target: /app/public
