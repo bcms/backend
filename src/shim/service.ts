@@ -84,7 +84,10 @@ export async function createBcmsShimService(): Promise<void> {
   logger = useLogger({ name: 'Shim service' });
   http = createHttpClient({
     name: 'shimClient',
-    host: { name: 'bcms-shim', port: BCMSConfig.local ? '1279' : '3000' },
+    host: {
+      name: BCMSConfig.local ? 'bcms-shim' : '172.17.0.1',
+      port: BCMSConfig.local ? '1279' : '3000',
+    },
     basePath: '/shim',
   });
   const fs = useFS();
