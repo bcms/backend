@@ -27,7 +27,7 @@
   "dependencies": {
     "@banez/child_process": "^1.0.3",
     "@banez/search": "^1.0.1",
-    "@becomes/purple-cheetah": "^3.5.4",
+    "@becomes/purple-cheetah": "^3.7.4",
     "@becomes/purple-cheetah-mod-fsdb": "^1.4.0",
     "@becomes/purple-cheetah-mod-graphql": "^1.1.2",
     "@becomes/purple-cheetah-mod-jwt": "^1.1.0",

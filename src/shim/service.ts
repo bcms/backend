@@ -52,7 +52,7 @@ export const BCMSShimService: BCMSShimServiceType = {
     // }
     const nonce = crypto.randomBytes(8).toString('hex');
     const timestamp = Date.now();
-    const response = await http.send<Return, Payload, unknown>({
+    const response = await http.send<Return, Payload>({
       path: data.uri,
       method: 'post',
       data: data.payload,

@@ -335,6 +335,12 @@ async function initialize() {
     middleware,
     controllers,
     modules,
+    logger: {
+      saveToFile: {
+        interval: 2000,
+        output: 'logs',
+      },
+    },
   });
 }
 initialize().catch((error) => {
