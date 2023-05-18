@@ -1,4 +1,4 @@
-FROM becomes/cms-backend-base-image:1.0.0
+FROM becomes/cms-backend-base-image:2.0.0
 
 WORKDIR /app
 
