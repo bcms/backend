@@ -21,6 +21,7 @@ export interface BCMSEntryRepositoryMethods {
   clearAllStatuses(currentStatus: string): Promise<void>;
   deleteAllByTemplateId(templateId: string): Promise<void>;
   countByTemplateId(templateId: string): Promise<number>;
+  countByUserId(userId: string): Promise<number>;
   add(entry: BCMSEntry): Promise<BCMSEntry>;
 }
 

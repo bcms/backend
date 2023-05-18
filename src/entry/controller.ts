@@ -30,6 +30,7 @@ import {
   BCMSEntryUpdateDataSchema,
   BCMSEventConfigMethod,
   BCMSEventConfigScope,
+  BCMSRouteProtectionJwtResult,
   BCMSSocketEventType,
   BCMSTemplate,
 } from '../types';
@@ -155,6 +156,25 @@ export const BCMSEntryController = createController<Setup>({
           }
           return {
             items,
+          };
+        },
+      }),
+
+      countByUserId: createControllerMethod<
+        BCMSRouteProtectionJwtResult,
+        { count: number }
+      >({
+        path: '/count/by-user',
+        type: 'get',
+        preRequestHandler: BCMSRouteProtection.createJwtPreRequestHandler(
+          [JWTRoleName.ADMIN, JWTRoleName.USER],
+          JWTPermissionName.READ,
+        ),
+        async handler({ accessToken }) {
+          return {
+            count: await BCMSRepo.entry.methods.countByUserId(
+              accessToken.payload.userId,
+            ),
           };
         },
       }),

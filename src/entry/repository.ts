@@ -112,6 +112,11 @@ export function createBcmsEntryRepository(): Module {
                     await repo.findAllBy((e) => e.templateId === templateId)
                   ).length;
                 },
+
+                async countByUserId(userId) {
+                  return (await repo.findAllBy((e) => e.userId === userId))
+                    .length;
+                },
               };
             },
           })
@@ -296,6 +301,12 @@ export function createBcmsEntryRepository(): Module {
                   }
                   return await mongoDBInterface
                     .find({ templateId })
+                    .countDocuments();
+                },
+
+                async countByUserId(userId) {
+                  return await mongoDBInterface
+                    .find({ userId })
                     .countDocuments();
                 },
               };
