@@ -19,6 +19,14 @@ export const BCMSUiAssetMiddleware = createMiddleware({
         next();
       } else {
         let filePath = '';
+        const pathParts = req.originalUrl.split('/');
+        for (let i = 0; i < pathParts.length; i++) {
+          const part = pathParts[i];
+          if (part.includes('.') && i < pathParts.length - 1) {
+            res.sendFile(path.join(process.cwd(), 'public', 'index.html'));
+            return;
+          }
+        }
         if (req.originalUrl.startsWith('/plugin')) {
           const pathParams = req.originalUrl
             .substring(1)

@@ -214,6 +214,7 @@ async function initialize() {
     createBodyParserMiddleware({
       limit: BCMSConfig.bodySizeLimit ? BCMSConfig.bodySizeLimit : 1024000000,
     }),
+    createRequestLoggerMiddleware(),
     BCMSShimSecurityMiddleware,
     BCMSShimConnectionAccess,
     BCMSMediaMiddleware,
@@ -295,7 +296,6 @@ async function initialize() {
     throw Error('No database configuration detected.');
   }
   if (ShimConfig.local) {
-    middleware.push(createRequestLoggerMiddleware());
     controllers.push(BCMSCypressController);
   }
   modules.push(createBcmsApiKeySecurity());
