@@ -88,6 +88,7 @@ import { BCMSBackupController, BCMSBackupMediaFileMiddleware } from './backup';
 import { RouteTrackerController } from './route-tracker';
 import type { SocketConnection } from '@becomes/purple-cheetah-mod-socket/types';
 import { BCMSRouteTracker } from './route-tracker/service';
+import { RequestLogger } from './request-logger';
 
 const backend: BCMSBackend = {
   app: undefined as never,
@@ -214,7 +215,8 @@ async function initialize() {
     createBodyParserMiddleware({
       limit: BCMSConfig.bodySizeLimit ? BCMSConfig.bodySizeLimit : 1024000000,
     }),
-    createRequestLoggerMiddleware(),
+    // createRequestLoggerMiddleware(),
+    RequestLogger,
     BCMSShimSecurityMiddleware,
     BCMSShimConnectionAccess,
     BCMSMediaMiddleware,
