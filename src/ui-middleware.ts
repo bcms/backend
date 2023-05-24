@@ -22,7 +22,10 @@ export const BCMSUiAssetMiddleware = createMiddleware({
         const pathParts = req.originalUrl.split('/');
         for (let i = 0; i < pathParts.length; i++) {
           const part = pathParts[i];
-          if (part.includes('.') && i < pathParts.length - 1) {
+          if (
+            (part.includes('.') && i < pathParts.length - 1) ||
+            part.length > 255
+          ) {
             res.sendFile(path.join(process.cwd(), 'public', 'index.html'));
             return;
           }
