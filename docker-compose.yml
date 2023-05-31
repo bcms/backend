@@ -45,11 +45,8 @@ services:
         source: ./uploads
         target: /app/uploads
       - type: bind
-        source: ./functions
-        target: /app/functions
-      - type: bind
-        source: ./plugins
-        target: /app/plugins
-      - type: bind
         source: ./node_modules/@becomes/cms-ui/public
         target: /app/public
+      - type: bind
+        source: ./api-docs
+        target: /app/api-docs

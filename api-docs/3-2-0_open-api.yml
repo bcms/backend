@@ -1,0 +1,1988 @@
+openapi: '3.0.2'
+info:
+  version: '3.2.0'
+  title: BCMS API
+  description: '$ref:/description.md'
+  contact:
+    name: 'BCMS'
+    email: 'contact@thebcms.com'
+    url: https://thebcms.com/contact    
+servers:
+  - url: 'http://localhost:8080'
+    description: 'Local development' 
+components:
+  schemas:
+    BCMSProtectedUser:
+        type: object
+        properties:
+          _id:
+            type: string
+          createdAt:
+            type: number
+          updatedAt:
+            type: number
+          username:
+            type: string
+          email:
+            type: string
+          roles:
+            type: array
+            items:
+              type: object
+              properties:
+                name:
+                  type: string
+                permissions:
+                  type: array
+                  items:
+                    type: object
+                    properties:
+                      name:
+                        type: string
+                    required:
+                      - name
+              required:
+                - name
+                - permissions
+          customPool:
+            type: object
+            properties:
+              personal:
+                type: object
+                properties:
+                  firstName:
+                    type: string
+                  lastName:
+                    type: string
+                  avatarUri:
+                    type: string
+                required:
+                  - firstName
+                  - lastName
+                  - avatarUri
+              address:
+                type: object
+                properties:
+                  country:
+                    type: string
+                  city:
+                    type: string
+                  state:
+                    type: string
+                  zip:
+                    type: string
+                  street:
+                    type: object
+                    properties:
+                      name:
+                        type: string
+                      number:
+                        type: string
+                    required:
+                      - name
+                      - number
+
+              policy:
+                type: object
+                properties:
+                  media:
+                    type: object
+                    properties:
+                      get:
+                        type: boolean
+                      post:
+                        type: boolean
+                      put:
+                        type: boolean
+                      delete:
+                        type: boolean
+                    required:
+                      - get
+                      - post
+                      - put
+                      - delete
+                  templates:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        get:
+                          type: boolean
+                        post:
+                          type: boolean
+                        put:
+                          type: boolean
+                        delete:
+                          type: boolean
+                        _id:
+                          type: string
+                      required:
+                        - get
+                        - post
+                        - put
+                        - delete
+                        - _id
+                  plugins:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        name:
+                          type: string
+                        allowed:
+                          type: boolean
+                        fullAccess:
+                          type: boolean
+                        options:
+                          type: array
+                          items:
+                            type: object
+                            properties:
+                              name:
+                                type: string
+                              value:
+                                type: array
+                                items:
+                                  type: string
+                            required:
+                              - name
+                              - value
+                      required:
+                        - name
+                        - allowed
+                        - fullAccess
+                        - options
+                required:
+                  - media
+                  - templates
+            required:
+              - personal
+              - address
+              - policy
+        required:
+          - _id
+          - createdAt
+          - updatedAt
+          - username
+          - email
+          - roles
+          - customPool
+    BCMSApiKeyAccess:
+        type: object
+        properties:
+          templates:
+            type: array
+            items:
+              type: object
+              properties:
+                _id:
+                  type: string
+                name:
+                  type: string
+              required:
+                - _id
+          functions:
+            type: array
+            items:
+              type: object
+              properties:
+                name:
+                  type: string
+              required:
+                - name
+          plugins:
+            type: array
+            items:
+              type: object
+              properties:
+                name:
+                  type: string
+              required:
+                - name
+        required:
+          - templates
+          - functions
+    BCMSApiKey:
+        type: object
+        properties:
+          _id:
+            type: string
+          createdAt:
+            type: number
+          updatedAt:
+            type: number
+          userId:
+            type: string
+          name:
+            type: string
+          desc:
+            type: string
+          blocked:
+            type: boolean
+          secret:
+            type: string
+          access:
+            type: object
+            properties:
+              templates:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    _id:
+                      type: string
+                    name:
+                      type: string
+                  required:
+                    - _id
+              functions:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                  required:
+                    - name
+              plugins:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                  required:
+                    - name
+            required:
+              - templates
+              - functions
+        required:
+          - _id
+          - createdAt
+          - updatedAt
+          - userId
+          - name
+          - desc
+          - blocked
+          - secret
+          - access
+  securitySchemes:
+    AccessToken:
+      type: http
+      scheme: bearer
+      inputs: 'accessToken'
+      handler: 'async (inputs, res) => {
+            console.log({ inputs, res });
+        }'
+    RefreshToken:
+      type: http
+      scheme: bearer
+      inputs: 'refreshToken'
+      handler: 'async (inputs, res) => {
+            console.log({ inputs, res });
+        }'
+    ApiKey:
+      type: http
+      scheme: bearer
+      inputs: 'id,secret'
+      handler: 'async (inputs, res) => {
+            console.log({ inputs, res });
+        }'
+paths:
+  /api/auth/token/refresh/:userId:
+    post:
+      tags:
+        - Auth controller
+      summary: ''
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                  type: object
+                  properties:
+                    unknown:
+                      type: string
+
+  /api/auth/logout/:userId:
+    post:
+      tags:
+        - Auth controller
+      summary: ''
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                  type: object
+                  properties:
+                    unknown:
+                      type: string
+
+  /api/user/count:
+    get:
+      tags:
+        - User controller
+      summary: ''
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                  type: object
+                  properties:
+                    unknown:
+                      type: string
+
+  /api/user/all:
+    get:
+      tags:
+        - User controller
+      summary: ''
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                  type: object
+                  properties:
+                    unknown:
+                      type: string
+
+  /api/user/:
+    put:
+      tags:
+        - User controller
+      summary: ''
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                  type: object
+                  properties:
+                    unknown:
+                      type: string
+
+  /api/user/:id:
+    get:
+      tags:
+        - User controller
+      summary: ''
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                  type: object
+                  properties:
+                    unknown:
+                      type: string
+
+  /api/shim/calls/health:
+    post:
+      tags:
+        - Shim calls controller
+      summary: ''
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                  type: object
+                  properties:
+                    unknown:
+                      type: string
+
+  /api/shim/calls/user/update:
+    post:
+      tags:
+        - Shim calls controller
+      summary: ''
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                  type: object
+                  properties:
+                    unknown:
+                      type: string
+
+  /api/shim/user/all:
+    get:
+      tags:
+        - Shim user controller
+      summary: ''
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                  type: object
+                  properties:
+                    unknown:
+                      type: string
+
+  /api/shim/user/verify/otp:
+    post:
+      tags:
+        - Shim user controller
+      summary: ''
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                  type: object
+                  properties:
+                    unknown:
+                      type: string
+
+  /api/key/access/list:
+    get:
+      tags:
+        - API Key
+      security:
+        - ApiKey: []
+      summary: 'Get access list for specified API Key.'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BCMSApiKeyAccess'
+  /api/key/count:
+    get:
+      tags:
+        - API Key
+      security:
+        - AccessToken: []
+      summary: 'Get number of API keys'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                  type: object
+                  properties:
+                    count:
+                      type: number
+                  required:
+                    - count
+  /api/key/all:
+    get:
+      tags:
+        - API Key
+      summary: ''
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                  type: object
+                  properties:
+                    unknown:
+                      type: string
+
+  /api/key/:id:
+    delete:
+      tags:
+        - API Key
+      summary: ''
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                  type: object
+                  properties:
+                    unknown:
+                      type: string
+
+  /api/key/:
+    put:
+      tags:
+        - API Key
+      summary: ''
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                  type: object
+                  properties:
+                    unknown:
+                      type: string
+
+  /api/plugin/list:
+    get:
+      tags:
+        - Plugin controller
+      summary: ''
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                  type: object
+                  properties:
+                    unknown:
+                      type: string
+
+  /api/plugin/list/policy:
+    get:
+      tags:
+        - Plugin controller
+      summary: ''
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                  type: object
+                  properties:
+                    unknown:
+                      type: string
+
+  /api/language/all:
+    get:
+      tags:
+        - Language controller
+      summary: ''
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                  type: object
+                  properties:
+                    unknown:
+                      type: string
+
+  /api/language/count:
+    get:
+      tags:
+        - Language controller
+      summary: ''
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                  type: object
+                  properties:
+                    unknown:
+                      type: string
+
+  /api/language/:id:
+    delete:
+      tags:
+        - Language controller
+      summary: ''
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                  type: object
+                  properties:
+                    unknown:
+                      type: string
+
+  /api/language/:
+    post:
+      tags:
+        - Language controller
+      summary: ''
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                  type: object
+                  properties:
+                    unknown:
+                      type: string
+
+  /api/group/:id/where-is-it-used:
+    get:
+      tags:
+        - Group controller
+      summary: ''
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                  type: object
+                  properties:
+                    unknown:
+                      type: string
+
+  /api/group/all:
+    get:
+      tags:
+        - Group controller
+      summary: ''
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                  type: object
+                  properties:
+                    unknown:
+                      type: string
+
+  /api/group/all/lite:
+    get:
+      tags:
+        - Group controller
+      summary: ''
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                  type: object
+                  properties:
+                    unknown:
+                      type: string
+
+  /api/group/many:
+    get:
+      tags:
+        - Group controller
+      summary: ''
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                  type: object
+                  properties:
+                    unknown:
+                      type: string
+
+  /api/group/count:
+    get:
+      tags:
+        - Group controller
+      summary: ''
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                  type: object
+                  properties:
+                    unknown:
+                      type: string
+
+  /api/group/:id:
+    delete:
+      tags:
+        - Group controller
+      summary: ''
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                  type: object
+                  properties:
+                    unknown:
+                      type: string
+
+  /api/group/:
+    put:
+      tags:
+        - Group controller
+      summary: ''
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                  type: object
+                  properties:
+                    unknown:
+                      type: string
+
+  /api/media/all:
+    get:
+      tags:
+        - Media controller
+      summary: ''
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                  type: object
+                  properties:
+                    unknown:
+                      type: string
+
+  /api/media/all/aggregate:
+    get:
+      tags:
+        - Media controller
+      summary: ''
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                  type: object
+                  properties:
+                    unknown:
+                      type: string
+
+  /api/media/all/parent/:id:
+    get:
+      tags:
+        - Media controller
+      summary: ''
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                  type: object
+                  properties:
+                    unknown:
+                      type: string
+
+  /api/media/many:
+    get:
+      tags:
+        - Media controller
+      summary: ''
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                  type: object
+                  properties:
+                    unknown:
+                      type: string
+
+  /api/media/count:
+    get:
+      tags:
+        - Media controller
+      summary: ''
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                  type: object
+                  properties:
+                    unknown:
+                      type: string
+
+  /api/media/:id:
+    delete:
+      tags:
+        - Media controller
+      summary: ''
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                  type: object
+                  properties:
+                    unknown:
+                      type: string
+
+  /api/media/:id/aggregate:
+    get:
+      tags:
+        - Media controller
+      summary: ''
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                  type: object
+                  properties:
+                    unknown:
+                      type: string
+
+  /api/media/:id/bin:
+    get:
+      tags:
+        - Media controller
+      summary: ''
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                  type: object
+                  properties:
+                    unknown:
+                      type: string
+
+  /api/media/:id/bin/act:
+    get:
+      tags:
+        - Media controller
+      summary: ''
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                  type: object
+                  properties:
+                    unknown:
+                      type: string
+
+  /api/media/pip/:id/bin/:keyId/:fileOptions/:fileName:
+    get:
+      tags:
+        - Media controller
+      summary: ''
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                  type: object
+                  properties:
+                    unknown:
+                      type: string
+
+  /api/media/pip/:id/bin/:keyId/:fileOptions:
+    get:
+      tags:
+        - Media controller
+      summary: ''
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                  type: object
+                  properties:
+                    unknown:
+                      type: string
+
+  /api/media/:id/bin/:size:
+    get:
+      tags:
+        - Media controller
+      summary: ''
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                  type: object
+                  properties:
+                    unknown:
+                      type: string
+
+  /api/media/:id/bin/:size/act:
+    get:
+      tags:
+        - Media controller
+      summary: ''
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                  type: object
+                  properties:
+                    unknown:
+                      type: string
+
+  /api/media/:id/vid/bin/thumbnail:
+    get:
+      tags:
+        - Media controller
+      summary: ''
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                  type: object
+                  properties:
+                    unknown:
+                      type: string
+
+  /api/media/request-upload-token:
+    post:
+      tags:
+        - Media controller
+      summary: ''
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                  type: object
+                  properties:
+                    unknown:
+                      type: string
+
+  /api/media/file:
+    put:
+      tags:
+        - Media controller
+      summary: ''
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                  type: object
+                  properties:
+                    unknown:
+                      type: string
+
+  /api/media/dir:
+    post:
+      tags:
+        - Media controller
+      summary: ''
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                  type: object
+                  properties:
+                    unknown:
+                      type: string
+
+  /api/media/duplicate:
+    post:
+      tags:
+        - Media controller
+      summary: ''
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                  type: object
+                  properties:
+                    unknown:
+                      type: string
+
+  /api/media/move:
+    put:
+      tags:
+        - Media controller
+      summary: ''
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                  type: object
+                  properties:
+                    unknown:
+                      type: string
+
+  /api/status/all:
+    get:
+      tags:
+        - Status controller
+      summary: ''
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                  type: object
+                  properties:
+                    unknown:
+                      type: string
+
+  /api/status/count:
+    get:
+      tags:
+        - Status controller
+      summary: ''
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                  type: object
+                  properties:
+                    unknown:
+                      type: string
+
+  /api/status/:id:
+    delete:
+      tags:
+        - Status controller
+      summary: ''
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                  type: object
+                  properties:
+                    unknown:
+                      type: string
+
+  /api/status/:
+    put:
+      tags:
+        - Status controller
+      summary: ''
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                  type: object
+                  properties:
+                    unknown:
+                      type: string
+
+  /api/function/available:
+    get:
+      tags:
+        - Function controller
+      summary: ''
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                  type: object
+                  properties:
+                    unknown:
+                      type: string
+
+  /api/function/all:
+    get:
+      tags:
+        - Function controller
+      summary: ''
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                  type: object
+                  properties:
+                    unknown:
+                      type: string
+
+  /api/function/:name:
+    post:
+      tags:
+        - Function controller
+      summary: ''
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                  type: object
+                  properties:
+                    unknown:
+                      type: string
+
+  /api/template/all:
+    get:
+      tags:
+        - Template controller
+      summary: ''
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                  type: object
+                  properties:
+                    unknown:
+                      type: string
+
+  /api/template/many:
+    get:
+      tags:
+        - Template controller
+      summary: ''
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                  type: object
+                  properties:
+                    unknown:
+                      type: string
+
+  /api/template/count:
+    get:
+      tags:
+        - Template controller
+      summary: ''
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                  type: object
+                  properties:
+                    unknown:
+                      type: string
+
+  /api/template/:id:
+    delete:
+      tags:
+        - Template controller
+      summary: ''
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                  type: object
+                  properties:
+                    unknown:
+                      type: string
+
+  /api/template/:
+    put:
+      tags:
+        - Template controller
+      summary: ''
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                  type: object
+                  properties:
+                    unknown:
+                      type: string
+
+  /api/widget/:id/where-is-it-used:
+    get:
+      tags:
+        - Widget controller
+      summary: ''
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                  type: object
+                  properties:
+                    unknown:
+                      type: string
+
+  /api/widget/all:
+    get:
+      tags:
+        - Widget controller
+      summary: ''
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                  type: object
+                  properties:
+                    unknown:
+                      type: string
+
+  /api/widget/many:
+    get:
+      tags:
+        - Widget controller
+      summary: ''
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                  type: object
+                  properties:
+                    unknown:
+                      type: string
+
+  /api/widget/count:
+    get:
+      tags:
+        - Widget controller
+      summary: ''
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                  type: object
+                  properties:
+                    unknown:
+                      type: string
+
+  /api/widget/:id:
+    delete:
+      tags:
+        - Widget controller
+      summary: ''
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                  type: object
+                  properties:
+                    unknown:
+                      type: string
+
+  /api/widget/:
+    put:
+      tags:
+        - Widget controller
+      summary: ''
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                  type: object
+                  properties:
+                    unknown:
+                      type: string
+
+  /api/entry/many/lite:
+    get:
+      tags:
+        - Entry controller
+      summary: ''
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                  type: object
+                  properties:
+                    unknown:
+                      type: string
+
+  /api/entry/all/:tid:
+    get:
+      tags:
+        - Entry controller
+      summary: ''
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                  type: object
+                  properties:
+                    unknown:
+                      type: string
+
+  /api/entry/all/:tid/parse/:maxDepth:
+    get:
+      tags:
+        - Entry controller
+      summary: ''
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                  type: object
+                  properties:
+                    unknown:
+                      type: string
+
+  /api/entry/all/:tid/lite:
+    get:
+      tags:
+        - Entry controller
+      summary: ''
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                  type: object
+                  properties:
+                    unknown:
+                      type: string
+
+  /api/entry/count/by-user:
+    get:
+      tags:
+        - Entry controller
+      summary: ''
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                  type: object
+                  properties:
+                    unknown:
+                      type: string
+
+  /api/entry/count/:tid:
+    get:
+      tags:
+        - Entry controller
+      summary: ''
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                  type: object
+                  properties:
+                    unknown:
+                      type: string
+
+  /api/entry/:tid/:eid/where-is-it-used:
+    get:
+      tags:
+        - Entry controller
+      summary: ''
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                  type: object
+                  properties:
+                    unknown:
+                      type: string
+
+  /api/entry/:tid/:eid:
+    delete:
+      tags:
+        - Entry controller
+      summary: ''
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                  type: object
+                  properties:
+                    unknown:
+                      type: string
+
+  /api/entry/:tid/:eid/parse/:maxDepth:
+    get:
+      tags:
+        - Entry controller
+      summary: ''
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                  type: object
+                  properties:
+                    unknown:
+                      type: string
+
+  /api/entry/:tid/:eid/lite:
+    get:
+      tags:
+        - Entry controller
+      summary: ''
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                  type: object
+                  properties:
+                    unknown:
+                      type: string
+
+  /api/entry/:tid:
+    put:
+      tags:
+        - Entry controller
+      summary: ''
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                  type: object
+                  properties:
+                    unknown:
+                      type: string
+
+  /api/template/organizer/all:
+    get:
+      tags:
+        - Template organizer controller
+      summary: ''
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                  type: object
+                  properties:
+                    unknown:
+                      type: string
+
+  /api/template/organizer/many:
+    get:
+      tags:
+        - Template organizer controller
+      summary: ''
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                  type: object
+                  properties:
+                    unknown:
+                      type: string
+
+  /api/template/organizer/:id:
+    delete:
+      tags:
+        - Template organizer controller
+      summary: ''
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                  type: object
+                  properties:
+                    unknown:
+                      type: string
+
+  /api/template/organizer/:
+    put:
+      tags:
+        - Template organizer controller
+      summary: ''
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                  type: object
+                  properties:
+                    unknown:
+                      type: string
+
+  /api/color/all:
+    get:
+      tags:
+        - Color controller
+      summary: ''
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                  type: object
+                  properties:
+                    unknown:
+                      type: string
+
+  /api/color/many:
+    get:
+      tags:
+        - Color controller
+      summary: ''
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                  type: object
+                  properties:
+                    unknown:
+                      type: string
+
+  /api/color/count:
+    get:
+      tags:
+        - Color controller
+      summary: ''
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                  type: object
+                  properties:
+                    unknown:
+                      type: string
+
+  /api/color/:id:
+    delete:
+      tags:
+        - Color controller
+      summary: ''
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                  type: object
+                  properties:
+                    unknown:
+                      type: string
+
+  /api/color/:
+    put:
+      tags:
+        - Color controller
+      summary: ''
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                  type: object
+                  properties:
+                    unknown:
+                      type: string
+
+  /api/tag/all:
+    get:
+      tags:
+        - Tag controller
+      summary: ''
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                  type: object
+                  properties:
+                    unknown:
+                      type: string
+
+  /api/tag/many:
+    get:
+      tags:
+        - Tag controller
+      summary: ''
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                  type: object
+                  properties:
+                    unknown:
+                      type: string
+
+  /api/tag/:id:
+    delete:
+      tags:
+        - Tag controller
+      summary: ''
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                  type: object
+                  properties:
+                    unknown:
+                      type: string
+
+  /api/tag/value/:value:
+    get:
+      tags:
+        - Tag controller
+      summary: ''
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                  type: object
+                  properties:
+                    unknown:
+                      type: string
+
+  /api/tag/:
+    put:
+      tags:
+        - Tag controller
+      summary: ''
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                  type: object
+                  properties:
+                    unknown:
+                      type: string
+
+  /api/type-converter/:languageType/all:
+    get:
+      tags:
+        - Type converter controller
+      summary: ''
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                  type: object
+                  properties:
+                    unknown:
+                      type: string
+
+  /api/type-converter/:itemId/:itemType/:languageType:
+    get:
+      tags:
+        - Type converter controller
+      summary: ''
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                  type: object
+                  properties:
+                    unknown:
+                      type: string
+
+  /api/changes/info:
+    get:
+      tags:
+        - Change Controller
+      summary: ''
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                  type: object
+                  properties:
+                    unknown:
+                      type: string
+
+  /api/search/all:
+    get:
+      tags:
+        - Search controller
+      summary: ''
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                  type: object
+                  properties:
+                    unknown:
+                      type: string
+
+  /api/backup/list:
+    get:
+      tags:
+        - Backup controller
+      summary: ''
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                  type: object
+                  properties:
+                    unknown:
+                      type: string
+
+  /api/backup/:fileName/hash:
+    get:
+      tags:
+        - Backup controller
+      summary: ''
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                  type: object
+                  properties:
+                    unknown:
+                      type: string
+
+  /api/backup/:hash:
+    get:
+      tags:
+        - Backup controller
+      summary: ''
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                  type: object
+                  properties:
+                    unknown:
+                      type: string
+
+  /api/backup/create:
+    post:
+      tags:
+        - Backup controller
+      summary: ''
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                  type: object
+                  properties:
+                    unknown:
+                      type: string
+
+  /api/backup/delete:
+    delete:
+      tags:
+        - Backup controller
+      summary: ''
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                  type: object
+                  properties:
+                    unknown:
+                      type: string
+
+  /api/backup/restore-entities:
+    post:
+      tags:
+        - Backup controller
+      summary: ''
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                  type: object
+                  properties:
+                    unknown:
+                      type: string
+
+  /api/backup/restore-media-file/:id:
+    post:
+      tags:
+        - Backup controller
+      summary: ''
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                  type: object
+                  properties:
+                    unknown:
+                      type: string
+
+  /api/route-tracker/register:
+    post:
+      tags:
+        - Route tracker controller
+      summary: ''
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                  type: object
+                  properties:
+                    unknown:
+                      type: string
+
+  /api/route-tracker/get-users:
+    get:
+      tags:
+        - Route tracker controller
+      summary: ''
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                  type: object
+                  properties:
+                    unknown:
+                      type: string
+
+  /api/socket/sync/connections:
+    get:
+      tags:
+        - SocketController
+      summary: ''
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                  type: object
+                  properties:
+                    unknown:
+                      type: string
+
+  /api/socket/sync/entry/:tid/:eid:
+    get:
+      tags:
+        - SocketController
+      summary: ''
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                  type: object
+                  properties:
+                    unknown:
+                      type: string
+
+  /api/cy/reset:
+    post:
+      tags:
+        - Cypress controller
+      summary: ''
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                  type: object
+                  properties:
+                    unknown:
+                      type: string
+

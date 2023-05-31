@@ -24,12 +24,7 @@ export interface BCMSUser extends FSDBEntity {
   customPool: BCMSUserCustomPool;
 }
 
-export interface BCMSProtectedUser extends FSDBEntity {
-  username: string;
-  email: string;
-  roles: JWTRole[];
-  customPool: BCMSUserCustomPool;
-}
+export type BCMSProtectedUser = Omit<BCMSUser, 'password'>;
 
 export interface JWTProtectionType {
   accessToken: JWT<BCMSUserCustomPool>;
@@ -75,3 +70,9 @@ export const BCMSUserFSDBSchema: ObjectSchema = {
     __child: BCMSUserCustomPoolFSDBSchema,
   },
 };
+
+const bcmsProtectedUserSchema: ObjectSchema = JSON.parse(
+  JSON.stringify(BCMSUserFSDBSchema),
+);
+delete bcmsProtectedUserSchema.password;
+export const BCMSProtectedUserSchema = bcmsProtectedUserSchema;

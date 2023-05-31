@@ -2,7 +2,6 @@ import {
   createBodyParserMiddleware,
   createCorsMiddleware,
   createPurpleCheetah,
-  createRequestLoggerMiddleware,
 } from '@becomes/purple-cheetah';
 import type {
   Controller,
@@ -89,6 +88,7 @@ import { RouteTrackerController } from './route-tracker';
 import type { SocketConnection } from '@becomes/purple-cheetah-mod-socket/types';
 import { BCMSRouteTracker } from './route-tracker/service';
 import { RequestLogger } from './request-logger';
+import { BCMSDocComponentSchemas, BCMSDocSecuritySchemas } from './doc';
 
 const backend: BCMSBackend = {
   app: undefined as never,
@@ -307,29 +307,6 @@ async function initialize() {
   modules.push(createBcmsFunctionModule());
   modules.push(createBcmsEventModule());
   modules.push(createBcmsJobModule());
-
-  // modules.push(
-  //   createGraphql({
-  //     uri: '/api/gql',
-  //     // TODO: Disable in production
-  //     graphiql: true,
-  //     rootName: 'BCMS',
-  //     collections: [
-  //       BCMSApiKeyCollection,
-  //       BCMSPropCollection,
-  //       BCMSGroupCollection,
-  //       BCMSLanguageCollection,
-  //       BCMSMediaCollection,
-  //       BCMSColorCollection,
-  //       BCMSStatusCollection,
-  //       BCMSTagCollection,
-  //       BCMSTemplateCollection,
-  //       BCMSTemplateOrganizerCollection,
-  //       BCMSWidgetCollection,
-  //     ],
-  //   }),
-  // );
-
   modules.push(bcmsPostSetup());
 
   backend.app = createPurpleCheetah({
@@ -337,6 +314,20 @@ async function initialize() {
     middleware,
     controllers,
     modules,
+    doc: ShimConfig.local
+      ? {
+          name: 'BCMS API',
+          description: '$ref:/description.md',
+          contact: {
+            email: 'contact@thebcms.com',
+            name: 'BCMS',
+            url: 'https://thebcms.com/contact',
+          },
+          type: 'open-api-3',
+          components: BCMSDocComponentSchemas,
+          security: BCMSDocSecuritySchemas,
+        }
+      : undefined,
     logger: {
       saveToFile: {
         interval: 2000,

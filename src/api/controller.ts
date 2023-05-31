@@ -1,6 +1,7 @@
 import {
   createController,
   createControllerMethod,
+  createDocObject,
   useObjectUtility,
 } from '@becomes/purple-cheetah';
 import { createBcmsApiKeySecurityPreRequestHandler } from '../security';
@@ -19,11 +20,18 @@ import {
   BCMSApiKey,
   BCMSFunctionManager,
   BCMSRouteProtectionJwtAndBodyCheckResult,
+  BCMSApiKeyAccess,
+  BCMSRouteProtectionJwtResult,
 } from '../types';
 import { BCMSRepo } from '@bcms/repo';
 import { useBcmsFunctionManger } from '@bcms/function';
 import { BCMSRouteProtection } from '@bcms/util';
 import { BCMSApiKeyRequestHandler } from './request-handler';
+import {
+  BCMSDocComponents,
+  BCMSDocSecurity,
+  bcmsCreateDocObject,
+} from '@bcms/doc';
 
 interface Setup {
   objectUtil: ObjectUtility;
@@ -31,7 +39,7 @@ interface Setup {
 }
 
 export const BCMSApiKeyController = createController<Setup>({
-  name: 'Api key controller',
+  name: 'API Key',
   path: '/api/key',
   setup() {
     return {
@@ -41,9 +49,19 @@ export const BCMSApiKeyController = createController<Setup>({
   },
   methods({ functionManager }) {
     return {
-      getAccessList: createControllerMethod({
+      getAccessList: createControllerMethod<
+        { apiKey: BCMSApiKey },
+        BCMSApiKeyAccess
+      >({
         path: '/access/list',
         type: 'get',
+        doc: createDocObject<BCMSDocComponents, BCMSDocSecurity>({
+          summary: 'Get access list for specified API Key.',
+          security: ['ApiKey'],
+          response: {
+            json: 'BCMSApiKeyAccess',
+          },
+        }),
         preRequestHandler: createBcmsApiKeySecurityPreRequestHandler(),
         async handler({ apiKey }) {
           const fns = functionManager.getAll();
@@ -77,11 +95,23 @@ export const BCMSApiKeyController = createController<Setup>({
       }),
 
       count: createControllerMethod<
-        JWTPreRequestHandlerResult<BCMSUserCustomPool>,
+        BCMSRouteProtectionJwtResult,
         { count: number }
       >({
         path: '/count',
         type: 'get',
+        doc: createDocObject<BCMSDocComponents, BCMSDocSecurity>({
+          summary: 'Get number of API keys',
+          security: ['AccessToken'],
+          response: {
+            jsonSchema: {
+              count: {
+                __type: 'number',
+                __required: true,
+              },
+            },
+          },
+        }),
         preRequestHandler: BCMSRouteProtection.createJwtPreRequestHandler(
           [JWTRoleName.ADMIN],
           JWTPermissionName.READ,
@@ -94,11 +124,18 @@ export const BCMSApiKeyController = createController<Setup>({
       }),
 
       getAll: createControllerMethod<
-        JWTPreRequestHandlerResult<BCMSUserCustomPool>,
+        BCMSRouteProtectionJwtResult,
         { items: BCMSApiKey[] }
       >({
         path: '/all',
         type: 'get',
+        doc: bcmsCreateDocObject({
+          summary: 'Get all API keys',
+          security: ['AccessToken'],
+          response: {
+            json: 'BCMSApiKey',
+          },
+        }),
         preRequestHandler: BCMSRouteProtection.createJwtPreRequestHandler(
           [JWTRoleName.ADMIN],
           JWTPermissionName.READ,
