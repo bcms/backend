@@ -36,17 +36,19 @@ export const BCMSUiAssetMiddleware = createMiddleware({
     }, 10000);
 
     function markIp(ip: string) {
-      if (!ipRequests[ip]) {
-        ipRequests[ip] = {
-          blocked: false,
-          count: 0,
-          rmAt: Date.now() + 60000,
-        };
-      }
-      ipRequests[ip].count++;
-      ipRequests[ip].rmAt = Date.now() + 60000;
-      if (ipRequests[ip].count > 5) {
-        ipRequests[ip].blocked = true;
+      if (ip !== 'undefined') {
+        if (!ipRequests[ip]) {
+          ipRequests[ip] = {
+            blocked: false,
+            count: 0,
+            rmAt: Date.now() + 60000,
+          };
+        }
+        ipRequests[ip].count++;
+        ipRequests[ip].rmAt = Date.now() + 60000;
+        if (ipRequests[ip].count > 5) {
+          ipRequests[ip].blocked = true;
+        }
       }
     }
 
