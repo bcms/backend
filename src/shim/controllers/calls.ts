@@ -9,6 +9,7 @@ import {
 } from '@becomes/purple-cheetah';
 import { HTTPStatus, ObjectUtilityError } from '@becomes/purple-cheetah/types';
 import { BCMSShimService } from '../service';
+import { bcmsCreateDocObject } from '@bcms/doc';
 
 export const BCMSShimCallsController = createController({
   name: 'Shim calls controller',
@@ -18,6 +19,31 @@ export const BCMSShimCallsController = createController({
       health: createControllerMethod<unknown, { ok: boolean }>({
         path: '/health',
         type: 'post',
+        doc: bcmsCreateDocObject({
+          summary: '',
+          ignore: true,
+          response: {
+            jsonSchema: {},
+          },
+        }),
+        async handler() {
+          BCMSShimService.refreshAvailable();
+          return {
+            ok: true,
+          };
+        },
+      }),
+
+      healthGet: createControllerMethod<unknown, { ok: boolean }>({
+        path: '/health',
+        type: 'get',
+        doc: bcmsCreateDocObject({
+          summary: '',
+          ignore: true,
+          response: {
+            jsonSchema: {},
+          },
+        }),
         async handler() {
           BCMSShimService.refreshAvailable();
           return {
@@ -29,6 +55,13 @@ export const BCMSShimCallsController = createController({
       userUpdate: createControllerMethod<void, { ok: boolean }>({
         path: '/user/update',
         type: 'post',
+        doc: bcmsCreateDocObject({
+          summary: '',
+          ignore: true,
+          response: {
+            jsonSchema: {},
+          },
+        }),
         async handler({ request, errorHandler }) {
           const body: {
             _id: string;

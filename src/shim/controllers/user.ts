@@ -11,10 +11,7 @@ import {
   JWTPermissionName,
   JWTRoleName,
 } from '@becomes/purple-cheetah-mod-jwt/types';
-import {
-  useJwt,
-  useJwtEncoding,
-} from '@becomes/purple-cheetah-mod-jwt';
+import { useJwt, useJwtEncoding } from '@becomes/purple-cheetah-mod-jwt';
 import { BCMSConfig } from '@bcms/config';
 import { BCMSShimService } from '..';
 import { bcmsResCode } from '@bcms/response-code';
@@ -24,13 +21,14 @@ import type { BCMSCloudUser } from '@bcms/types/shim';
 import { BCMSSocketManager } from '@bcms/socket';
 import { BCMSSocketEventType } from '@bcms/types';
 import { BCMSRouteProtection } from '@bcms/util';
+import { bcmsCreateDocObject } from '@bcms/doc';
 
 export const BCMSShimUserController = createController<{
   refreshTokenService: RefreshTokenService;
   jwtManager: JWTManager;
   jwtEncoder: JWTEncoding;
 }>({
-  name: 'Shim user controller',
+  name: 'Shim user',
   path: '/api/shim/user',
   setup() {
     return {
@@ -44,6 +42,11 @@ export const BCMSShimUserController = createController<{
       getAll: createControllerMethod({
         path: '/all',
         type: 'get',
+        doc: bcmsCreateDocObject({
+          summary: 'Get Shim users.',
+          ignore: true,
+          response: {},
+        }),
         preRequestHandler: BCMSRouteProtection.createJwtPreRequestHandler(
           [JWTRoleName.ADMIN, JWTRoleName.USER],
           JWTPermissionName.READ,
@@ -63,6 +66,29 @@ export const BCMSShimUserController = createController<{
       >({
         path: '/verify/otp',
         type: 'post',
+        doc: bcmsCreateDocObject({
+          summary: 'Login user with OTP',
+          body: {
+            jsonSchema: {
+              otp: {
+                __type: 'string',
+                __required: true,
+              },
+            },
+          },
+          response: {
+            jsonSchema: {
+              accessToken: {
+                __type: 'string',
+                __required: true,
+              },
+              refreshToken: {
+                __type: 'string',
+                __required: true,
+              },
+            },
+          },
+        }),
         async handler({ request, errorHandler }) {
           const result: {
             ok: boolean;
