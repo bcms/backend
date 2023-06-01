@@ -133,7 +133,7 @@ export const BCMSApiKeyController = createController<Setup>({
           summary: 'Get all API keys',
           security: ['AccessToken'],
           response: {
-            json: 'BCMSApiKey',
+            json: 'BCMSApiKeyItems',
           },
         }),
         preRequestHandler: BCMSRouteProtection.createJwtPreRequestHandler(
@@ -153,6 +153,21 @@ export const BCMSApiKeyController = createController<Setup>({
       >({
         path: '/:id',
         type: 'get',
+        doc: bcmsCreateDocObject({
+          summary: 'Get a single API Key',
+          security: ['AccessToken'],
+          params: [
+            {
+              name: 'id',
+              type: 'path',
+              description: 'API Key ID',
+              required: true,
+            },
+          ],
+          response: {
+            json: 'BCMSApiKeyItem',
+          },
+        }),
         preRequestHandler: BCMSRouteProtection.createJwtPreRequestHandler(
           [JWTRoleName.ADMIN],
           JWTPermissionName.READ,
@@ -172,6 +187,16 @@ export const BCMSApiKeyController = createController<Setup>({
         { item: BCMSApiKey }
       >({
         type: 'post',
+        doc: bcmsCreateDocObject({
+          summary: 'Add new API Key',
+          security: ['AccessToken'],
+          response: {
+            json: 'BCMSApiKeyItem',
+          },
+          body: {
+            json: 'BCMSApiKeyAddData',
+          },
+        }),
         preRequestHandler:
           BCMSRouteProtection.createJwtAndBodyCheckPreRequestHandler({
             roleNames: [JWTRoleName.ADMIN],
@@ -197,6 +222,16 @@ export const BCMSApiKeyController = createController<Setup>({
         { item: BCMSApiKey }
       >({
         type: 'put',
+        doc: bcmsCreateDocObject({
+          summary: 'Update existing API Key',
+          security: ['AccessToken'],
+          response: {
+            json: 'BCMSApiKeyItem',
+          },
+          body: {
+            json: 'BCMSApiKeyUpdateData',
+          },
+        }),
         preRequestHandler:
           BCMSRouteProtection.createJwtAndBodyCheckPreRequestHandler({
             roleNames: [JWTRoleName.ADMIN],
@@ -221,6 +256,26 @@ export const BCMSApiKeyController = createController<Setup>({
       >({
         path: '/:id',
         type: 'delete',
+        doc: bcmsCreateDocObject({
+          summary: 'Delete an API Key',
+          security: ['AccessToken'],
+          params: [
+            {
+              name: 'id',
+              type: 'path',
+              description: 'API Key ID',
+              required: true,
+            },
+          ],
+          response: {
+            jsonSchema: {
+              message: {
+                __type: 'string',
+                __required: true,
+              },
+            },
+          },
+        }),
         preRequestHandler: BCMSRouteProtection.createJwtPreRequestHandler(
           [JWTRoleName.ADMIN],
           JWTPermissionName.DELETE,

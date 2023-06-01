@@ -3,7 +3,6 @@ export * from './change';
 export * from './entry';
 export * from './event';
 export * from './function';
-export * from './graphql';
 export * from './group';
 export * from './id-counter';
 export * from './job';

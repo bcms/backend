@@ -266,6 +266,243 @@ components:
           - blocked
           - secret
           - access
+    BCMSApiKeyItem:
+        type: object
+        properties:
+          item:
+            type: object
+            properties:
+              _id:
+                type: string
+              createdAt:
+                type: number
+              updatedAt:
+                type: number
+              userId:
+                type: string
+              name:
+                type: string
+              desc:
+                type: string
+              blocked:
+                type: boolean
+              secret:
+                type: string
+              access:
+                type: object
+                properties:
+                  templates:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        _id:
+                          type: string
+                        name:
+                          type: string
+                      required:
+                        - _id
+                  functions:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        name:
+                          type: string
+                      required:
+                        - name
+                  plugins:
+                    type: array
+                    items:
+                      type: object
+                      properties:
+                        name:
+                          type: string
+                      required:
+                        - name
+                required:
+                  - templates
+                  - functions
+            required:
+              - _id
+              - createdAt
+              - updatedAt
+              - userId
+              - name
+              - desc
+              - blocked
+              - secret
+              - access
+        required:
+          - item
+    BCMSApiKeyItems:
+        type: object
+        properties:
+          items:
+            type: array
+            items:
+              type: object
+              properties:
+                _id:
+                  type: string
+                createdAt:
+                  type: number
+                updatedAt:
+                  type: number
+                userId:
+                  type: string
+                name:
+                  type: string
+                desc:
+                  type: string
+                blocked:
+                  type: boolean
+                secret:
+                  type: string
+                access:
+                  type: object
+                  properties:
+                    templates:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          _id:
+                            type: string
+                          name:
+                            type: string
+                        required:
+                          - _id
+                    functions:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          name:
+                            type: string
+                        required:
+                          - name
+                    plugins:
+                      type: array
+                      items:
+                        type: object
+                        properties:
+                          name:
+                            type: string
+                        required:
+                          - name
+                  required:
+                    - templates
+                    - functions
+              required:
+                - _id
+                - createdAt
+                - updatedAt
+                - userId
+                - name
+                - desc
+                - blocked
+                - secret
+                - access
+        required:
+          - items
+    BCMSApiKeyAddData:
+        type: object
+        properties:
+          name:
+            type: string
+          desc:
+            type: string
+          blocked:
+            type: boolean
+          access:
+            type: object
+            properties:
+              templates:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    _id:
+                      type: string
+                    name:
+                      type: string
+                  required:
+                    - _id
+              functions:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                  required:
+                    - name
+              plugins:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                  required:
+                    - name
+            required:
+              - templates
+              - functions
+        required:
+          - name
+          - desc
+          - blocked
+          - access
+    BCMSApiKeyUpdateData:
+        type: object
+        properties:
+          _id:
+            type: string
+          name:
+            type: string
+          desc:
+            type: string
+          blocked:
+            type: boolean
+          access:
+            type: object
+            properties:
+              templates:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    _id:
+                      type: string
+                    name:
+                      type: string
+                  required:
+                    - _id
+              functions:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                  required:
+                    - name
+              plugins:
+                type: array
+                items:
+                  type: object
+                  properties:
+                    name:
+                      type: string
+                  required:
+                    - name
+            required:
+              - templates
+              - functions
+        required:
+          - _id
   securitySchemes:
     AccessToken:
       type: http
@@ -289,7 +526,7 @@ components:
             console.log({ inputs, res });
         }'
 paths:
-  /api/auth/token/refresh/:userId:
+  /api/auth/token/refresh/{userId}:
     post:
       tags:
         - Auth controller
@@ -305,7 +542,7 @@ paths:
                     unknown:
                       type: string
 
-  /api/auth/logout/:userId:
+  /api/auth/logout/{userId}:
     post:
       tags:
         - Auth controller
@@ -354,6 +591,21 @@ paths:
                       type: string
 
   /api/user/:
+    get:
+      tags:
+        - User controller
+      summary: ''
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                  type: object
+                  properties:
+                    unknown:
+                      type: string
+
     put:
       tags:
         - User controller
@@ -369,7 +621,7 @@ paths:
                     unknown:
                       type: string
 
-  /api/user/:id:
+  /api/user/{id}:
     get:
       tags:
         - User controller
@@ -486,23 +738,50 @@ paths:
     get:
       tags:
         - API Key
-      summary: ''
+      security:
+        - AccessToken: []
+      summary: 'Get all API keys'
       responses:
         '200':
           description: OK
           content:
             application/json:
               schema:
-                  type: object
-                  properties:
-                    unknown:
-                      type: string
-
-  /api/key/:id:
+                $ref: '#/components/schemas/BCMSApiKeyItems'
+  /api/key/{id}:
+    get:
+      tags:
+        - API Key
+      security:
+        - AccessToken: []
+      summary: 'Get a single API Key'
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: 'API Key ID'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BCMSApiKeyItem'
     delete:
       tags:
         - API Key
-      summary: ''
+      security:
+        - AccessToken: []
+      summary: 'Delete an API Key'
+      parameters:
+        - in: path
+          name: id
+          schema:
+            type: string
+          required: true
+          description: 'API Key ID'
       responses:
         '200':
           description: OK
@@ -511,25 +790,49 @@ paths:
               schema:
                   type: object
                   properties:
-                    unknown:
+                    message:
                       type: string
-
+                  required:
+                    - message
   /api/key/:
+    post:
+      tags:
+        - API Key
+      security:
+        - AccessToken: []
+      summary: 'Add new API Key'
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/BCMSApiKeyItem'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BCMSApiKeyAddData'
     put:
       tags:
         - API Key
-      summary: ''
+      security:
+        - AccessToken: []
+      summary: 'Update existing API Key'
       responses:
         '200':
           description: OK
           content:
             application/json:
               schema:
-                  type: object
-                  properties:
-                    unknown:
-                      type: string
-
+                $ref: '#/components/schemas/BCMSApiKeyItem'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/BCMSApiKeyUpdateData'
   /api/plugin/list:
     get:
       tags:
@@ -594,7 +897,22 @@ paths:
                     unknown:
                       type: string
 
-  /api/language/:id:
+  /api/language/{id}:
+    get:
+      tags:
+        - Language controller
+      summary: ''
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                  type: object
+                  properties:
+                    unknown:
+                      type: string
+
     delete:
       tags:
         - Language controller
@@ -626,7 +944,7 @@ paths:
                     unknown:
                       type: string
 
-  /api/group/:id/where-is-it-used:
+  /api/group/{id}/where-is-it-used:
     get:
       tags:
         - Group controller
@@ -706,7 +1024,22 @@ paths:
                     unknown:
                       type: string
 
-  /api/group/:id:
+  /api/group/{id}:
+    get:
+      tags:
+        - Group controller
+      summary: ''
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                  type: object
+                  properties:
+                    unknown:
+                      type: string
+
     delete:
       tags:
         - Group controller
@@ -723,6 +1056,21 @@ paths:
                       type: string
 
   /api/group/:
+    post:
+      tags:
+        - Group controller
+      summary: ''
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                  type: object
+                  properties:
+                    unknown:
+                      type: string
+
     put:
       tags:
         - Group controller
@@ -770,7 +1118,7 @@ paths:
                     unknown:
                       type: string
 
-  /api/media/all/parent/:id:
+  /api/media/all/parent/{id}:
     get:
       tags:
         - Media controller
@@ -818,7 +1166,22 @@ paths:
                     unknown:
                       type: string
 
-  /api/media/:id:
+  /api/media/{id}:
+    get:
+      tags:
+        - Media controller
+      summary: ''
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                  type: object
+                  properties:
+                    unknown:
+                      type: string
+
     delete:
       tags:
         - Media controller
@@ -834,7 +1197,7 @@ paths:
                     unknown:
                       type: string
 
-  /api/media/:id/aggregate:
+  /api/media/{id}/aggregate:
     get:
       tags:
         - Media controller
@@ -850,7 +1213,7 @@ paths:
                     unknown:
                       type: string
 
-  /api/media/:id/bin:
+  /api/media/{id}/bin:
     get:
       tags:
         - Media controller
@@ -866,7 +1229,7 @@ paths:
                     unknown:
                       type: string
 
-  /api/media/:id/bin/act:
+  /api/media/{id}/bin/act:
     get:
       tags:
         - Media controller
@@ -882,7 +1245,7 @@ paths:
                     unknown:
                       type: string
 
-  /api/media/pip/:id/bin/:keyId/:fileOptions/:fileName:
+  /api/media/pip/{id}/bin/{keyId}/{fileOptions}/{fileName}:
     get:
       tags:
         - Media controller
@@ -898,7 +1261,7 @@ paths:
                     unknown:
                       type: string
 
-  /api/media/pip/:id/bin/:keyId/:fileOptions:
+  /api/media/pip/{id}/bin/{keyId}/{fileOptions}:
     get:
       tags:
         - Media controller
@@ -914,7 +1277,7 @@ paths:
                     unknown:
                       type: string
 
-  /api/media/:id/bin/:size:
+  /api/media/{id}/bin/{size}:
     get:
       tags:
         - Media controller
@@ -930,7 +1293,7 @@ paths:
                     unknown:
                       type: string
 
-  /api/media/:id/bin/:size/act:
+  /api/media/{id}/bin/{size}/act:
     get:
       tags:
         - Media controller
@@ -946,7 +1309,7 @@ paths:
                     unknown:
                       type: string
 
-  /api/media/:id/vid/bin/thumbnail:
+  /api/media/{id}/vid/bin/thumbnail:
     get:
       tags:
         - Media controller
@@ -979,6 +1342,21 @@ paths:
                       type: string
 
   /api/media/file:
+    post:
+      tags:
+        - Media controller
+      summary: ''
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                  type: object
+                  properties:
+                    unknown:
+                      type: string
+
     put:
       tags:
         - Media controller
@@ -1074,7 +1452,22 @@ paths:
                     unknown:
                       type: string
 
-  /api/status/:id:
+  /api/status/{id}:
+    get:
+      tags:
+        - Status controller
+      summary: ''
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                  type: object
+                  properties:
+                    unknown:
+                      type: string
+
     delete:
       tags:
         - Status controller
@@ -1091,6 +1484,21 @@ paths:
                       type: string
 
   /api/status/:
+    post:
+      tags:
+        - Status controller
+      summary: ''
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                  type: object
+                  properties:
+                    unknown:
+                      type: string
+
     put:
       tags:
         - Status controller
@@ -1138,7 +1546,7 @@ paths:
                     unknown:
                       type: string
 
-  /api/function/:name:
+  /api/function/{name}:
     post:
       tags:
         - Function controller
@@ -1202,7 +1610,22 @@ paths:
                     unknown:
                       type: string
 
-  /api/template/:id:
+  /api/template/{id}:
+    get:
+      tags:
+        - Template controller
+      summary: ''
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                  type: object
+                  properties:
+                    unknown:
+                      type: string
+
     delete:
       tags:
         - Template controller
@@ -1219,6 +1642,21 @@ paths:
                       type: string
 
   /api/template/:
+    post:
+      tags:
+        - Template controller
+      summary: ''
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                  type: object
+                  properties:
+                    unknown:
+                      type: string
+
     put:
       tags:
         - Template controller
@@ -1234,7 +1672,7 @@ paths:
                     unknown:
                       type: string
 
-  /api/widget/:id/where-is-it-used:
+  /api/widget/{id}/where-is-it-used:
     get:
       tags:
         - Widget controller
@@ -1298,7 +1736,22 @@ paths:
                     unknown:
                       type: string
 
-  /api/widget/:id:
+  /api/widget/{id}:
+    get:
+      tags:
+        - Widget controller
+      summary: ''
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                  type: object
+                  properties:
+                    unknown:
+                      type: string
+
     delete:
       tags:
         - Widget controller
@@ -1315,6 +1768,21 @@ paths:
                       type: string
 
   /api/widget/:
+    post:
+      tags:
+        - Widget controller
+      summary: ''
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                  type: object
+                  properties:
+                    unknown:
+                      type: string
+
     put:
       tags:
         - Widget controller
@@ -1346,7 +1814,7 @@ paths:
                     unknown:
                       type: string
 
-  /api/entry/all/:tid:
+  /api/entry/all/{tid}:
     get:
       tags:
         - Entry controller
@@ -1362,7 +1830,7 @@ paths:
                     unknown:
                       type: string
 
-  /api/entry/all/:tid/parse/:maxDepth:
+  /api/entry/all/{tid}/parse/{maxDepth}:
     get:
       tags:
         - Entry controller
@@ -1378,7 +1846,7 @@ paths:
                     unknown:
                       type: string
 
-  /api/entry/all/:tid/lite:
+  /api/entry/all/{tid}/lite:
     get:
       tags:
         - Entry controller
@@ -1410,7 +1878,7 @@ paths:
                     unknown:
                       type: string
 
-  /api/entry/count/:tid:
+  /api/entry/count/{tid}:
     get:
       tags:
         - Entry controller
@@ -1426,7 +1894,7 @@ paths:
                     unknown:
                       type: string
 
-  /api/entry/:tid/:eid/where-is-it-used:
+  /api/entry/{tid}/{eid}/where-is-it-used:
     get:
       tags:
         - Entry controller
@@ -1442,7 +1910,22 @@ paths:
                     unknown:
                       type: string
 
-  /api/entry/:tid/:eid:
+  /api/entry/{tid}/{eid}:
+    get:
+      tags:
+        - Entry controller
+      summary: ''
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                  type: object
+                  properties:
+                    unknown:
+                      type: string
+
     delete:
       tags:
         - Entry controller
@@ -1458,7 +1941,7 @@ paths:
                     unknown:
                       type: string
 
-  /api/entry/:tid/:eid/parse/:maxDepth:
+  /api/entry/{tid}/{eid}/parse/{maxDepth}:
     get:
       tags:
         - Entry controller
@@ -1474,7 +1957,7 @@ paths:
                     unknown:
                       type: string
 
-  /api/entry/:tid/:eid/lite:
+  /api/entry/{tid}/{eid}/lite:
     get:
       tags:
         - Entry controller
@@ -1490,7 +1973,22 @@ paths:
                     unknown:
                       type: string
 
-  /api/entry/:tid:
+  /api/entry/{tid}:
+    post:
+      tags:
+        - Entry controller
+      summary: ''
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                  type: object
+                  properties:
+                    unknown:
+                      type: string
+
     put:
       tags:
         - Entry controller
@@ -1538,7 +2036,22 @@ paths:
                     unknown:
                       type: string
 
-  /api/template/organizer/:id:
+  /api/template/organizer/{id}:
+    get:
+      tags:
+        - Template organizer controller
+      summary: ''
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                  type: object
+                  properties:
+                    unknown:
+                      type: string
+
     delete:
       tags:
         - Template organizer controller
@@ -1555,6 +2068,21 @@ paths:
                       type: string
 
   /api/template/organizer/:
+    post:
+      tags:
+        - Template organizer controller
+      summary: ''
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                  type: object
+                  properties:
+                    unknown:
+                      type: string
+
     put:
       tags:
         - Template organizer controller
@@ -1618,7 +2146,22 @@ paths:
                     unknown:
                       type: string
 
-  /api/color/:id:
+  /api/color/{id}:
+    get:
+      tags:
+        - Color controller
+      summary: ''
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                  type: object
+                  properties:
+                    unknown:
+                      type: string
+
     delete:
       tags:
         - Color controller
@@ -1635,6 +2178,21 @@ paths:
                       type: string
 
   /api/color/:
+    post:
+      tags:
+        - Color controller
+      summary: ''
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                  type: object
+                  properties:
+                    unknown:
+                      type: string
+
     put:
       tags:
         - Color controller
@@ -1682,7 +2240,22 @@ paths:
                     unknown:
                       type: string
 
-  /api/tag/:id:
+  /api/tag/{id}:
+    get:
+      tags:
+        - Tag controller
+      summary: ''
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                  type: object
+                  properties:
+                    unknown:
+                      type: string
+
     delete:
       tags:
         - Tag controller
@@ -1698,7 +2271,7 @@ paths:
                     unknown:
                       type: string
 
-  /api/tag/value/:value:
+  /api/tag/value/{value}:
     get:
       tags:
         - Tag controller
@@ -1715,6 +2288,21 @@ paths:
                       type: string
 
   /api/tag/:
+    post:
+      tags:
+        - Tag controller
+      summary: ''
+      responses:
+        '200':
+          description: OK
+          content:
+            application/json:
+              schema:
+                  type: object
+                  properties:
+                    unknown:
+                      type: string
+
     put:
       tags:
         - Tag controller
@@ -1730,7 +2318,7 @@ paths:
                     unknown:
                       type: string
 
-  /api/type-converter/:languageType/all:
+  /api/type-converter/{languageType}/all:
     get:
       tags:
         - Type converter controller
@@ -1746,7 +2334,7 @@ paths:
                     unknown:
                       type: string
 
-  /api/type-converter/:itemId/:itemType/:languageType:
+  /api/type-converter/{itemId}/{itemType}/{languageType}:
     get:
       tags:
         - Type converter controller
@@ -1810,7 +2398,7 @@ paths:
                     unknown:
                       type: string
 
-  /api/backup/:fileName/hash:
+  /api/backup/{fileName}/hash:
     get:
       tags:
         - Backup controller
@@ -1826,7 +2414,7 @@ paths:
                     unknown:
                       type: string
 
-  /api/backup/:hash:
+  /api/backup/{hash}:
     get:
       tags:
         - Backup controller
@@ -1890,7 +2478,7 @@ paths:
                     unknown:
                       type: string
 
-  /api/backup/restore-media-file/:id:
+  /api/backup/restore-media-file/{id}:
     post:
       tags:
         - Backup controller
@@ -1954,7 +2542,7 @@ paths:
                     unknown:
                       type: string
 
-  /api/socket/sync/entry/:tid/:eid:
+  /api/socket/sync/entry/{tid}/{eid}:
     get:
       tags:
         - SocketController
