@@ -8,6 +8,7 @@ import {
   BCMSRouteProtectionJwtAndBodyCheckResult,
   BCMSRepo as BCMSRepoType,
   BCMSSocketEventType,
+  BCMSRouteProtectionJwtResult,
 } from '@bcms/types';
 import { BCMSRouteProtection } from '@bcms/util';
 import {
@@ -24,21 +25,22 @@ import { BCMSRepo } from '../repo';
 import type { FSDBEntity } from '@becomes/purple-cheetah-mod-fsdb/types';
 import { BCMSMediaRequestHandler, BCMSMediaService } from '@bcms/media';
 import { BCMSSocketManager } from '@bcms/socket';
+import { bcmsCreateDocObject } from '@bcms/doc';
 
-interface CreateBackupBody {
+export interface BCMSBackupCreateBody {
   media?: boolean;
 }
-const CreateBackupBodySchema: ObjectSchema = {
+export const BCMSBackupCreateBodySchema: ObjectSchema = {
   media: {
     __type: 'boolean',
     __required: false,
   },
 };
 
-interface DeleteBackupBody {
+export interface BCMSBackupDeleteBody {
   fileNames: string[];
 }
-const DeleteBackupBodySchema: ObjectSchema = {
+export const BCMSBackupDeleteBodySchema: ObjectSchema = {
   fileNames: {
     __type: 'array',
     __required: true,
@@ -48,25 +50,39 @@ const DeleteBackupBodySchema: ObjectSchema = {
   },
 };
 
-interface RestoreEntitiesBody {
+export interface BCMSBackupRestoreEntitiesBody {
   type: keyof BCMSRepoType;
   items: FSDBEntity[];
 }
-const RestoreEntitiesBodySchema: ObjectSchema = {
+export const BCMSBackupRestoreEntitiesBodySchema: ObjectSchema = {
   type: {
     __type: 'string',
     __required: true,
   },
 };
 
-interface ListItem {
+export interface BCMSBackupListItem {
   _id: string;
   size: number;
   available: boolean;
 }
+export const BCMSBackupListItemSchema: ObjectSchema = {
+  _id: {
+    __type: 'string',
+    __required: true,
+  },
+  size: {
+    __type: 'number',
+    __required: true,
+  },
+  available: {
+    __type: 'boolean',
+    __required: true,
+  },
+};
 
 export const BCMSBackupController = createController({
-  name: 'Backup controller',
+  name: 'Backup',
   path: '/api/backup',
   methods() {
     const outputFsName = '____backup';
@@ -81,9 +97,19 @@ export const BCMSBackupController = createController({
     } = {};
 
     return {
-      list: createControllerMethod<unknown, { items: ListItem[] }>({
+      list: createControllerMethod<
+        BCMSRouteProtectionJwtResult,
+        { items: BCMSBackupListItem[] }
+      >({
         path: '/list',
         type: 'get',
+        doc: bcmsCreateDocObject({
+          summary: 'Get list of available backups',
+          security: ['AccessToken'],
+          response: {
+            json: 'BCMSBackupListItemItems',
+          },
+        }),
         preRequestHandler: BCMSRouteProtection.createJwtPreRequestHandler(
           [JWTRoleName.ADMIN],
           JWTPermissionName.READ,
@@ -93,7 +119,7 @@ export const BCMSBackupController = createController({
             const files = (await fs.readdir('')).filter((e) =>
               e.endsWith('.zip'),
             );
-            const output: ListItem[] = [];
+            const output: BCMSBackupListItem[] = [];
             for (let i = 0; i < files.length; i++) {
               const file = files[i];
               const fileStats = await nodeFs.lstat(
@@ -120,9 +146,32 @@ export const BCMSBackupController = createController({
         },
       }),
 
-      getDownloadHash: createControllerMethod<unknown, { hash: string }>({
+      getDownloadHash: createControllerMethod<
+        BCMSRouteProtectionJwtResult,
+        { hash: string }
+      >({
         path: '/:fileName/hash',
         type: 'get',
+        doc: bcmsCreateDocObject({
+          summary: 'Generate a download hash for specified backup file',
+          security: ['AccessToken'],
+          params: [
+            {
+              name: 'fileName',
+              type: 'path',
+              required: true,
+              description: 'Name of the backup file',
+            },
+          ],
+          response: {
+            jsonSchema: {
+              hash: {
+                __type: 'string',
+                __required: true,
+              },
+            },
+          },
+        }),
         preRequestHandler: BCMSRouteProtection.createJwtPreRequestHandler(
           [JWTRoleName.ADMIN],
           JWTPermissionName.READ,
@@ -144,9 +193,26 @@ export const BCMSBackupController = createController({
         },
       }),
 
-      get: createControllerMethod<unknown, { __file: string }>({
+      get: createControllerMethod<
+        BCMSRouteProtectionJwtResult,
+        { __file: string }
+      >({
         path: '/:hash',
         type: 'get',
+        doc: bcmsCreateDocObject({
+          summary: 'Get a backup file using generated hash',
+          security: ['AccessToken'],
+          params: [
+            {
+              name: 'hash',
+              type: 'path',
+              required: true,
+            },
+          ],
+          response: {
+            file: true,
+          },
+        }),
         async handler({ request, errorHandler, response }) {
           const hash = request.params.hash as string;
           if (!downloadHashes[hash]) {
@@ -169,18 +235,28 @@ export const BCMSBackupController = createController({
       }),
 
       create: createControllerMethod<
-        BCMSRouteProtectionJwtAndBodyCheckResult<CreateBackupBody>,
+        BCMSRouteProtectionJwtAndBodyCheckResult<BCMSBackupCreateBody>,
         {
-          item: ListItem;
+          item: BCMSBackupListItem;
         }
       >({
         path: '/create',
         type: 'post',
+        doc: bcmsCreateDocObject({
+          summary: 'Create a new backup',
+          security: ['AccessToken'],
+          body: {
+            json: 'BCMSBackupCreateBody',
+          },
+          response: {
+            json: 'BCMSBackupListItemItem',
+          },
+        }),
         preRequestHandler:
           BCMSRouteProtection.createJwtAndBodyCheckPreRequestHandler({
             roleNames: [JWTRoleName.ADMIN],
             permissionName: JWTPermissionName.READ,
-            bodySchema: CreateBackupBodySchema,
+            bodySchema: BCMSBackupCreateBodySchema,
           }),
         async handler({ name, body, errorHandler, logger }) {
           if (!(await fs.exist(''))) {
@@ -287,16 +363,31 @@ export const BCMSBackupController = createController({
       }),
 
       delete: createControllerMethod<
-        BCMSRouteProtectionJwtAndBodyCheckResult<DeleteBackupBody>,
+        BCMSRouteProtectionJwtAndBodyCheckResult<BCMSBackupDeleteBody>,
         { ok: boolean }
       >({
         path: '/delete',
         type: 'delete',
+        doc: bcmsCreateDocObject({
+          summary: 'Delete a backup',
+          security: ['AccessToken'],
+          body: {
+            json: 'BCMSBackupDeleteBody',
+          },
+          response: {
+            jsonSchema: {
+              ok: {
+                __type: 'boolean',
+                __required: true,
+              },
+            },
+          },
+        }),
         preRequestHandler:
           BCMSRouteProtection.createJwtAndBodyCheckPreRequestHandler({
             roleNames: [JWTRoleName.ADMIN],
             permissionName: JWTPermissionName.DELETE,
-            bodySchema: DeleteBackupBodySchema,
+            bodySchema: BCMSBackupDeleteBodySchema,
           }),
         async handler({ body }) {
           for (let i = 0; i < body.fileNames.length; i++) {
@@ -312,16 +403,31 @@ export const BCMSBackupController = createController({
       }),
 
       restoreEntities: createControllerMethod<
-        BCMSRouteProtectionJwtAndBodyCheckResult<RestoreEntitiesBody>,
+        BCMSRouteProtectionJwtAndBodyCheckResult<BCMSBackupRestoreEntitiesBody>,
         { ok: boolean }
       >({
         path: '/restore-entities',
         type: 'post',
+        doc: bcmsCreateDocObject({
+          summary: 'Restore entries from the backup',
+          security: ['AccessToken'],
+          body: {
+            json: 'BCMSBackupRestoreEntitiesBody',
+          },
+          response: {
+            jsonSchema: {
+              ok: {
+                __type: 'boolean',
+                __required: true,
+              },
+            },
+          },
+        }),
         preRequestHandler:
           BCMSRouteProtection.createJwtAndBodyCheckPreRequestHandler({
             roleNames: [JWTRoleName.ADMIN],
             permissionName: JWTPermissionName.WRITE,
-            bodySchema: RestoreEntitiesBodySchema,
+            bodySchema: BCMSBackupRestoreEntitiesBodySchema,
           }),
         async handler({ body }) {
           const itemsToDelete: string[] = [];
@@ -345,6 +451,25 @@ export const BCMSBackupController = createController({
       restoreMediaFile: createControllerMethod<void, { ok: boolean }>({
         path: '/restore-media-file/:id',
         type: 'post',
+        doc: bcmsCreateDocObject({
+          summary: 'Restore media file',
+          params: [
+            {
+              name: 'X-Bcms-Upload-Token',
+              type: 'header',
+              description: 'Upload token',
+              required: true,
+            },
+          ],
+          response: {
+            jsonSchema: {
+              ok: {
+                __type: 'boolean',
+                __required: true,
+              },
+            },
+          },
+        }),
         async preRequestHandler({ errorHandler, request }) {
           if (
             !BCMSMediaRequestHandler.validateUploadToken(
