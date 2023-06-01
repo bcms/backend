@@ -10,16 +10,15 @@ import {
 } from '@becomes/purple-cheetah/types';
 import {
   BCMSProtectedUser,
-  BCMSUserCustomPool,
   BCMSUserUpdateDataSchema,
   BCMSUserUpdateData,
   BCMSUser,
   BCMSSocketEventType,
   BCMSEventConfigScope,
   BCMSEventConfigMethod,
+  BCMSRouteProtectionJwtResult,
 } from '../types';
 import {
-  JWT,
   JWTPermissionName,
   JWTRoleName,
 } from '@becomes/purple-cheetah-mod-jwt/types';
@@ -29,13 +28,14 @@ import { bcmsResCode } from '@bcms/response-code';
 import { BCMSSocketManager } from '@bcms/socket';
 import { BCMSRouteProtection } from '@bcms/util';
 import { BCMSEventManager } from '@bcms/event';
+import { bcmsCreateDocObject } from '@bcms/doc';
 
 interface Setup {
   objectUtil: ObjectUtility;
 }
 
 export const BCMSUserController = createController<Setup>({
-  name: 'User controller',
+  name: 'User',
   path: '/api/user',
   setup() {
     return {
@@ -44,9 +44,24 @@ export const BCMSUserController = createController<Setup>({
   },
   methods({ objectUtil }) {
     return {
-      count: createControllerMethod<unknown, { count: number }>({
+      count: createControllerMethod<
+        BCMSRouteProtectionJwtResult,
+        { count: number }
+      >({
         path: '/count',
         type: 'get',
+        doc: bcmsCreateDocObject({
+          summary: 'Get number of users',
+          security: ['AccessToken'],
+          response: {
+            jsonSchema: {
+              count: {
+                __type: 'number',
+                __required: true,
+              },
+            },
+          },
+        }),
         preRequestHandler: BCMSRouteProtection.createJwtPreRequestHandler(
           [JWTRoleName.ADMIN, JWTRoleName.USER],
           JWTPermissionName.READ,
@@ -57,9 +72,20 @@ export const BCMSUserController = createController<Setup>({
           };
         },
       }),
-      getAll: createControllerMethod<unknown, { items: BCMSProtectedUser[] }>({
+
+      getAll: createControllerMethod<
+        BCMSRouteProtectionJwtResult,
+        { items: BCMSProtectedUser[] }
+      >({
         path: '/all',
         type: 'get',
+        doc: bcmsCreateDocObject({
+          summary: 'Get all users',
+          security: ['AccessToken'],
+          response: {
+            json: 'BCMSProtectedUserItems',
+          },
+        }),
         preRequestHandler: BCMSRouteProtection.createJwtPreRequestHandler(
           [JWTRoleName.ADMIN, JWTRoleName.USER],
           JWTPermissionName.READ,
@@ -72,12 +98,20 @@ export const BCMSUserController = createController<Setup>({
           };
         },
       }),
+
       get: createControllerMethod<
-        { accessToken: JWT<BCMSUserCustomPool> },
+        BCMSRouteProtectionJwtResult,
         { item: BCMSProtectedUser }
       >({
         path: '',
         type: 'get',
+        doc: bcmsCreateDocObject({
+          summary: 'Get a user by provided access token.',
+          security: ['AccessToken'],
+          response: {
+            json: 'BCMSProtectedUserItem',
+          },
+        }),
         preRequestHandler: BCMSRouteProtection.createJwtPreRequestHandler(
           [JWTRoleName.ADMIN, JWTRoleName.USER],
           JWTPermissionName.READ,
@@ -95,9 +129,28 @@ export const BCMSUserController = createController<Setup>({
           };
         },
       }),
-      getById: createControllerMethod<unknown, { item: BCMSProtectedUser }>({
+
+      getById: createControllerMethod<
+        BCMSRouteProtectionJwtResult,
+        { item: BCMSProtectedUser }
+      >({
         path: '/:id',
         type: 'get',
+        doc: bcmsCreateDocObject({
+          summary: 'Get a user by ID.',
+          security: ['AccessToken'],
+          params: [
+            {
+              name: 'id',
+              required: true,
+              type: 'path',
+              description: 'User ID',
+            },
+          ],
+          response: {
+            json: 'BCMSProtectedUserItem',
+          },
+        }),
         preRequestHandler: BCMSRouteProtection.createJwtPreRequestHandler(
           [JWTRoleName.ADMIN, JWTRoleName.USER],
           JWTPermissionName.READ,
@@ -115,12 +168,23 @@ export const BCMSUserController = createController<Setup>({
           };
         },
       }),
+
       update: createControllerMethod<
-        { accessToken: JWT<BCMSUserCustomPool> },
+        BCMSRouteProtectionJwtResult,
         { item: BCMSProtectedUser }
       >({
         path: '',
         type: 'put',
+        doc: bcmsCreateDocObject({
+          summary: 'Update users information',
+          security: ['AccessToken'],
+          body: {
+            json: 'BCMSUserUpdateData',
+          },
+          response: {
+            json: 'BCMSProtectedUserItem',
+          },
+        }),
         preRequestHandler: BCMSRouteProtection.createJwtPreRequestHandler(
           [JWTRoleName.ADMIN, JWTRoleName.USER],
           JWTPermissionName.READ,
