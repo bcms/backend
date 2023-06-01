@@ -20,6 +20,7 @@ import {
   ObjectUtilityError,
 } from '@becomes/purple-cheetah/types';
 import {
+  BCMSEntry,
   BCMSEntryCreateData,
   BCMSEntryCreateDataSchema,
   BCMSEntryLite,
@@ -30,12 +31,14 @@ import {
   BCMSEntryUpdateDataSchema,
   BCMSEventConfigMethod,
   BCMSEventConfigScope,
+  BCMSRouteProtectionJwtApiResult,
   BCMSRouteProtectionJwtResult,
   BCMSSocketEventType,
   BCMSTemplate,
 } from '../types';
 import { BCMSRouteProtection } from '../util';
 import { useBcmsEntryParser } from './parser';
+import { bcmsCreateDocObject } from '@bcms/doc';
 
 interface Setup {
   entryParser: BCMSEntryParser;
@@ -43,7 +46,7 @@ interface Setup {
 }
 
 export const BCMSEntryController = createController<Setup>({
-  name: 'Entry controller',
+  name: 'Entry',
   path: '/api/entry',
   setup() {
     return {
@@ -53,9 +56,26 @@ export const BCMSEntryController = createController<Setup>({
   },
   methods({ entryParser, objectUtil }) {
     return {
-      getManyLiteById: createControllerMethod({
+      getManyLiteById: createControllerMethod<
+        BCMSRouteProtectionJwtResult,
+        { items: BCMSEntryLite[] }
+      >({
         path: '/many/lite',
         type: 'get',
+        doc: bcmsCreateDocObject({
+          summary: 'Get many lite entries',
+          security: ['AccessToken'],
+          params: [
+            {
+              name: 'X-Bcms-Ids',
+              type: 'header',
+              required: true,
+            },
+          ],
+          response: {
+            json: 'BCMSEntryLiteItems',
+          },
+        }),
         preRequestHandler: BCMSRouteProtection.createJwtPreRequestHandler(
           [JWTRoleName.ADMIN, JWTRoleName.USER],
           JWTPermissionName.READ,
@@ -68,9 +88,27 @@ export const BCMSEntryController = createController<Setup>({
         },
       }),
 
-      getAllByTemplateId: createControllerMethod({
+      getAllByTemplateId: createControllerMethod<
+        BCMSRouteProtectionJwtApiResult,
+        { items: BCMSEntry[] }
+      >({
         path: '/all/:tid',
         type: 'get',
+        doc: bcmsCreateDocObject({
+          summary: 'Get all entries by template ID',
+          security: ['AccessToken', 'ApiKey'],
+          params: [
+            {
+              name: 'tid',
+              type: 'path',
+              description: 'Template ID',
+              required: true,
+            },
+          ],
+          response: {
+            json: 'BCMSEntryItems',
+          },
+        }),
         preRequestHandler: BCMSRouteProtection.createJwtApiPreRequestHandler({
           roleNames: [JWTRoleName.ADMIN, JWTRoleName.USER],
           permissionName: JWTPermissionName.READ,
@@ -84,9 +122,48 @@ export const BCMSEntryController = createController<Setup>({
         },
       }),
 
-      getAllByTemplateIdParsed: createControllerMethod({
+      getAllByTemplateIdParsed: createControllerMethod<
+        BCMSRouteProtectionJwtApiResult,
+        { items: BCMSEntryParsed[] }
+      >({
         path: '/all/:tid/parse/:maxDepth',
         type: 'get',
+        doc: bcmsCreateDocObject({
+          summary: 'Get all entries parsed for template ID',
+          security: ['AccessToken', 'ApiKey'],
+          params: [
+            {
+              name: 'tid',
+              type: 'path',
+              required: true,
+              description: 'Template ID',
+            },
+            {
+              name: 'maxDepth',
+              type: 'path',
+              required: true,
+              description:
+                'To which depth should object be resolved. Defaults to 2, max value is 10',
+            },
+          ],
+          response: {
+            jsonSchema: {
+              items: {
+                __type: 'array',
+                __required: true,
+                __child: {
+                  __type: 'object',
+                  __content: {
+                    any: {
+                      __type: 'string',
+                      __required: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
+        }),
         preRequestHandler: BCMSRouteProtection.createJwtApiPreRequestHandler({
           roleNames: [JWTRoleName.ADMIN, JWTRoleName.USER],
           permissionName: JWTPermissionName.READ,
@@ -133,9 +210,27 @@ export const BCMSEntryController = createController<Setup>({
         },
       }),
 
-      getAllByTemplateIdLite: createControllerMethod({
+      getAllByTemplateIdLite: createControllerMethod<
+        BCMSRouteProtectionJwtApiResult,
+        { items: BCMSEntryLite[] }
+      >({
         path: '/all/:tid/lite',
         type: 'get',
+        doc: bcmsCreateDocObject({
+          summary: 'Get all entries lite for template ID',
+          security: ['AccessToken', 'ApiKey'],
+          params: [
+            {
+              name: 'tid',
+              type: 'path',
+              required: true,
+              description: 'Template ID',
+            },
+          ],
+          response: {
+            json: 'BCMSEntryItems',
+          },
+        }),
         preRequestHandler: BCMSRouteProtection.createJwtApiPreRequestHandler({
           roleNames: [JWTRoleName.ADMIN, JWTRoleName.USER],
           permissionName: JWTPermissionName.READ,
@@ -166,6 +261,18 @@ export const BCMSEntryController = createController<Setup>({
       >({
         path: '/count/by-user',
         type: 'get',
+        doc: bcmsCreateDocObject({
+          summary: 'Get entry count',
+          security: ['AccessToken'],
+          response: {
+            jsonSchema: {
+              count: {
+                __type: 'number',
+                __required: true,
+              },
+            },
+          },
+        }),
         preRequestHandler: BCMSRouteProtection.createJwtPreRequestHandler(
           [JWTRoleName.ADMIN, JWTRoleName.USER],
           JWTPermissionName.READ,
@@ -179,22 +286,47 @@ export const BCMSEntryController = createController<Setup>({
         },
       }),
 
-      countByTemplateId: createControllerMethod({
+      countByTemplateId: createControllerMethod<
+        BCMSRouteProtectionJwtApiResult,
+        { count: number }
+      >({
         path: '/count/:tid',
         type: 'get',
+        doc: bcmsCreateDocObject({
+          summary: 'Get entry count for template ID',
+          security: ['AccessToken', 'ApiKey'],
+          params: [
+            {
+              name: 'tid',
+              type: 'path',
+              required: true,
+              description: 'Template ID',
+            },
+          ],
+          response: {
+            jsonSchema: {
+              count: {
+                __type: 'number',
+                __required: true,
+              },
+            },
+          },
+        }),
         preRequestHandler: BCMSRouteProtection.createJwtApiPreRequestHandler({
           roleNames: [JWTRoleName.ADMIN, JWTRoleName.USER],
           permissionName: JWTPermissionName.READ,
         }),
         async handler({ request }) {
           return {
-            count: BCMSRepo.entry.methods.countByTemplateId(request.params.tid),
+            count: await BCMSRepo.entry.methods.countByTemplateId(
+              request.params.tid,
+            ),
           };
         },
       }),
 
       whereIsItUsed: createControllerMethod<
-        unknown,
+        BCMSRouteProtectionJwtResult,
         {
           entries: Array<{
             eid: string;
@@ -204,6 +336,45 @@ export const BCMSEntryController = createController<Setup>({
       >({
         path: '/:tid/:eid/where-is-it-used',
         type: 'get',
+        doc: bcmsCreateDocObject({
+          summary: 'Get information where specified entry is used',
+          security: ['AccessToken'],
+          params: [
+            {
+              name: 'tid',
+              type: 'path',
+              required: true,
+              description: 'Template ID',
+            },
+            {
+              name: 'eid',
+              type: 'path',
+              required: true,
+              description: 'Entry ID',
+            },
+          ],
+          response: {
+            jsonSchema: {
+              entries: {
+                __type: 'array',
+                __required: true,
+                __child: {
+                  __type: 'object',
+                  __content: {
+                    eid: {
+                      __type: 'string',
+                      __required: true,
+                    },
+                    tid: {
+                      __type: 'string',
+                      __required: true,
+                    },
+                  },
+                },
+              },
+            },
+          },
+        }),
         preRequestHandler: BCMSRouteProtection.createJwtPreRequestHandler(
           [JWTRoleName.ADMIN, JWTRoleName.USER],
           JWTPermissionName.READ,
@@ -227,9 +398,33 @@ export const BCMSEntryController = createController<Setup>({
         },
       }),
 
-      getById: createControllerMethod({
+      getById: createControllerMethod<
+        BCMSRouteProtectionJwtApiResult,
+        { item: BCMSEntry }
+      >({
         path: '/:tid/:eid',
         type: 'get',
+        doc: bcmsCreateDocObject({
+          summary: 'Get entry by ID',
+          security: ['AccessToken', 'ApiKey'],
+          params: [
+            {
+              name: 'tid',
+              type: 'path',
+              required: true,
+              description: 'Template ID',
+            },
+            {
+              name: 'eid',
+              type: 'path',
+              required: true,
+              description: 'Entry ID',
+            },
+          ],
+          response: {
+            json: 'BCMSEntryItem',
+          },
+        }),
         preRequestHandler: BCMSRouteProtection.createJwtApiPreRequestHandler({
           roleNames: [JWTRoleName.ADMIN, JWTRoleName.USER],
           permissionName: JWTPermissionName.READ,
@@ -260,9 +455,50 @@ export const BCMSEntryController = createController<Setup>({
         },
       }),
 
-      getByIdParsed: createControllerMethod({
+      getByIdParsed: createControllerMethod<
+        BCMSRouteProtectionJwtApiResult,
+        { item: BCMSEntryParsed }
+      >({
         path: '/:tid/:eid/parse/:maxDepth',
         type: 'get',
+        doc: bcmsCreateDocObject({
+          summary: 'Get entry parsed by ID',
+          security: ['AccessToken', 'ApiKey'],
+          params: [
+            {
+              name: 'tid',
+              type: 'path',
+              required: true,
+              description: 'Template ID',
+            },
+            {
+              name: 'eid',
+              type: 'path',
+              required: true,
+              description: 'Entry ID',
+            },
+            {
+              name: 'maxDepth',
+              type: 'path',
+              required: true,
+              description: 'Max depth to which to resolve objects.',
+            },
+          ],
+          response: {
+            jsonSchema: {
+              item: {
+                __type: 'object',
+                __required: true,
+                __child: {
+                  any: {
+                    __type: 'string',
+                    __required: true,
+                  },
+                },
+              },
+            },
+          },
+        }),
         preRequestHandler: BCMSRouteProtection.createJwtApiPreRequestHandler({
           roleNames: [JWTRoleName.ADMIN, JWTRoleName.USER],
           permissionName: JWTPermissionName.READ,
@@ -299,18 +535,42 @@ export const BCMSEntryController = createController<Setup>({
             }
           }
           return {
-            item: await entryParser.parse({
+            item: (await entryParser.parse({
               entry,
               maxDepth,
               depth: 0,
-            }),
+            })) as BCMSEntryParsed,
           };
         },
       }),
 
-      getByIdLite: createControllerMethod({
+      getByIdLite: createControllerMethod<
+        BCMSRouteProtectionJwtApiResult,
+        { item: BCMSEntryLite }
+      >({
         path: '/:tid/:eid/lite',
         type: 'get',
+        doc: bcmsCreateDocObject({
+          summary: 'Get entry lite by ID',
+          security: ['AccessToken', 'ApiKey'],
+          params: [
+            {
+              name: 'tid',
+              type: 'path',
+              required: true,
+              description: 'Template ID',
+            },
+            {
+              name: 'eid',
+              type: 'path',
+              required: true,
+              description: 'Entry ID',
+            },
+          ],
+          response: {
+            json: 'BCMSEntryLiteItem',
+          },
+        }),
         preRequestHandler: BCMSRouteProtection.createJwtApiPreRequestHandler({
           roleNames: [JWTRoleName.ADMIN, JWTRoleName.USER],
           permissionName: JWTPermissionName.READ,
@@ -334,9 +594,36 @@ export const BCMSEntryController = createController<Setup>({
         },
       }),
 
-      create: createControllerMethod({
+      create: createControllerMethod<
+        BCMSRouteProtectionJwtApiResult,
+        { item: BCMSEntry }
+      >({
         path: '/:tid',
         type: 'post',
+        doc: bcmsCreateDocObject({
+          summary: 'Create new entry',
+          security: ['AccessToken', 'ApiKey'],
+          params: [
+            {
+              name: 'tid',
+              type: 'path',
+              required: true,
+              description: 'Template ID',
+            },
+            {
+              name: 'X-Bcms-Sid',
+              type: 'header',
+              required: true,
+              description: 'Connection socket ID',
+            },
+          ],
+          body: {
+            json: 'BCMSEntryCreateData',
+          },
+          response: {
+            json: 'BCMSEntryItem',
+          },
+        }),
         preRequestHandler: BCMSRouteProtection.createJwtApiPreRequestHandler({
           roleNames: [JWTRoleName.ADMIN, JWTRoleName.USER],
           permissionName: JWTPermissionName.WRITE,
@@ -366,7 +653,6 @@ export const BCMSEntryController = createController<Setup>({
               }),
             );
           }
-
           const meta: BCMSEntryMeta[] = [];
           const langs = await BCMSRepo.language.findAll();
           const status = body.status
@@ -457,9 +743,36 @@ export const BCMSEntryController = createController<Setup>({
         },
       }),
 
-      update: createControllerMethod({
+      update: createControllerMethod<
+        BCMSRouteProtectionJwtApiResult,
+        { item: BCMSEntry }
+      >({
         path: '/:tid',
         type: 'put',
+        doc: bcmsCreateDocObject({
+          summary: 'Update existing entry',
+          security: ['AccessToken', 'ApiKey'],
+          params: [
+            {
+              name: 'tid',
+              type: 'path',
+              required: true,
+              description: 'Template ID',
+            },
+            {
+              name: 'X-Bcms-Sid',
+              type: 'header',
+              required: true,
+              description: 'Connection socket ID',
+            },
+          ],
+          body: {
+            json: 'BCMSEntryUpdateData',
+          },
+          response: {
+            json: 'BCMSEntryItem',
+          },
+        }),
         preRequestHandler: BCMSRouteProtection.createJwtApiPreRequestHandler({
           roleNames: [JWTRoleName.ADMIN, JWTRoleName.USER],
           permissionName: JWTPermissionName.WRITE,
@@ -572,9 +885,44 @@ export const BCMSEntryController = createController<Setup>({
         },
       }),
 
-      deleteById: createControllerMethod({
+      deleteById: createControllerMethod<
+        BCMSRouteProtectionJwtApiResult,
+        { message: string }
+      >({
         path: '/:tid/:eid',
         type: 'delete',
+        doc: bcmsCreateDocObject({
+          summary: 'Delete entry by ID',
+          security: ['AccessToken', 'ApiKey'],
+          params: [
+            {
+              name: 'tid',
+              type: 'path',
+              required: true,
+              description: 'Template ID',
+            },
+            {
+              name: 'eid',
+              type: 'path',
+              required: true,
+              description: 'Entry ID',
+            },
+            {
+              name: 'X-Bcms-Sid',
+              type: 'header',
+              required: true,
+              description: 'Connection socket ID',
+            },
+          ],
+          response: {
+            jsonSchema: {
+              message: {
+                __type: 'string',
+                __required: true,
+              },
+            },
+          },
+        }),
         preRequestHandler: BCMSRouteProtection.createJwtApiPreRequestHandler({
           roleNames: [JWTRoleName.ADMIN, JWTRoleName.USER],
           permissionName: JWTPermissionName.DELETE,

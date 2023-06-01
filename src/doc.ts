@@ -8,6 +8,13 @@ import {
   BCMSApiKeyAddDataSchema,
   BCMSApiKeyFSDBSchema,
   BCMSApiKeyUpdateDataSchema,
+  BCMSColorCreateDataSchema,
+  BCMSColorFSDBSchema,
+  BCMSColorUpdateDataSchema,
+  BCMSEntryCreateDataSchema,
+  BCMSEntryFSDBSchema,
+  BCMSEntryLiteSchema,
+  BCMSEntryUpdateDataSchema,
   BCMSProtectedUserSchema,
   BCMSUserUpdateDataSchema,
 } from './types';
@@ -24,6 +31,66 @@ import {
 } from './change';
 
 export const BCMSDocComponentSchemas = {
+  // Entry
+  BCMSEntryLite: BCMSEntryLiteSchema,
+  BCMSEntryLiteItem: {
+    item: {
+      __type: 'object',
+      __required: true,
+      __child: BCMSEntryLiteSchema,
+    },
+  } as ObjectSchema,
+  BCMSEntryLiteItems: {
+    item: {
+      __type: 'array',
+      __required: true,
+      __child: {
+        __type: 'object',
+        __content: BCMSEntryLiteSchema,
+      },
+    },
+  } as ObjectSchema,
+  BCMSEntry: BCMSEntryFSDBSchema,
+  BCMSEntryItem: {
+    item: {
+      __type: 'object',
+      __required: true,
+      __child: BCMSEntryFSDBSchema,
+    },
+  } as ObjectSchema,
+  BCMSEntryItems: {
+    item: {
+      __type: 'array',
+      __required: true,
+      __child: {
+        __type: 'object',
+        __content: BCMSEntryFSDBSchema,
+      },
+    },
+  } as ObjectSchema,
+  BCMSEntryCreateData: BCMSEntryCreateDataSchema,
+  BCMSEntryUpdateData: BCMSEntryUpdateDataSchema,
+  // Color
+  BCMSColor: BCMSColorFSDBSchema,
+  BCMSColorItem: {
+    item: {
+      __type: 'object',
+      __required: true,
+      __child: BCMSColorFSDBSchema,
+    },
+  } as ObjectSchema,
+  BCMSColorItems: {
+    item: {
+      __type: 'array',
+      __required: true,
+      __child: {
+        __type: 'object',
+        __content: BCMSColorFSDBSchema,
+      },
+    },
+  } as ObjectSchema,
+  BCMSColorCreateData: BCMSColorCreateDataSchema,
+  BCMSColorUpdateData: BCMSColorUpdateDataSchema,
   // Change
   BCMSChangeGetInfoDataProp: BCMSChangeGetInfoDataPropSchema,
   BCMSChangeGetInfoData: BCMSChangeGetInfoDataSchema,
