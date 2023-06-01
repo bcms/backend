@@ -9,11 +9,66 @@ import {
   BCMSApiKeyFSDBSchema,
   BCMSApiKeyUpdateDataSchema,
   BCMSProtectedUserSchema,
+  BCMSUserUpdateDataSchema,
 } from './types';
 import { createDocObject } from '@becomes/purple-cheetah';
+import {
+  BCMSBackupCreateBodySchema,
+  BCMSBackupDeleteBodySchema,
+  BCMSBackupListItemSchema,
+  BCMSBackupRestoreEntitiesBodySchema,
+} from './backup';
+import {
+  BCMSChangeGetInfoDataPropSchema,
+  BCMSChangeGetInfoDataSchema,
+} from './change';
 
 export const BCMSDocComponentSchemas = {
+  // Change
+  BCMSChangeGetInfoDataProp: BCMSChangeGetInfoDataPropSchema,
+  BCMSChangeGetInfoData: BCMSChangeGetInfoDataSchema,
+  // Backup
+  BCMSBackupCreateBody: BCMSBackupCreateBodySchema,
+  BCMSBackupDeleteBody: BCMSBackupDeleteBodySchema,
+  BCMSBackupRestoreEntitiesBody: BCMSBackupRestoreEntitiesBodySchema,
+  BCMSBackupListItem: BCMSBackupListItemSchema,
+  BCMSBackupListItemItem: {
+    item: {
+      __type: 'object',
+      __required: true,
+      __child: BCMSBackupListItemSchema,
+    },
+  } as ObjectSchema,
+  BCMSBackupListItemItems: {
+    items: {
+      __type: 'array',
+      __required: true,
+      __child: {
+        __type: 'object',
+        __content: BCMSBackupListItemSchema,
+      },
+    },
+  } as ObjectSchema,
+  // User
   BCMSProtectedUser: BCMSProtectedUserSchema,
+  BCMSProtectedUserItem: {
+    item: {
+      __type: 'object',
+      __required: true,
+      __child: BCMSProtectedUserSchema,
+    },
+  } as ObjectSchema,
+  BCMSProtectedUserItems: {
+    items: {
+      __type: 'array',
+      __required: true,
+      __child: {
+        __type: 'object',
+        __content: BCMSProtectedUserSchema,
+      },
+    },
+  } as ObjectSchema,
+  BCMSUserUpdateData: BCMSUserUpdateDataSchema,
   // API Key
   BCMSApiKeyAccess: BCMSApiKeyAccessFSDBSchema,
   BCMSApiKey: BCMSApiKeyFSDBSchema,

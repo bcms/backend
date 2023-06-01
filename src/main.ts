@@ -224,10 +224,10 @@ async function initialize() {
     BCMSBackupMediaFileMiddleware,
   ];
   const controllers: Controller[] = [
+    BCMSShimUserController,
     BCMSAuthController,
     BCMSUserController,
     BCMSShimCallsController,
-    BCMSShimUserController,
     BCMSApiKeyController,
     BCMSPluginController,
     BCMSLanguageController,
