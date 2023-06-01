@@ -1,4 +1,5 @@
 import { BCMSConfig } from '@bcms/config';
+import { bcmsCreateDocObject } from '@bcms/doc';
 import { BCMSRepo } from '@bcms/repo';
 import { bcmsResCode } from '@bcms/response-code';
 import {
@@ -21,7 +22,7 @@ interface Setup {
 }
 
 export const BCMSAuthController = createController<Setup>({
-  name: 'Auth controller',
+  name: 'Auth',
   path: '/api/auth',
   setup() {
     return {
@@ -35,6 +36,26 @@ export const BCMSAuthController = createController<Setup>({
       refreshAccess: createControllerMethod<void, { accessToken: string }>({
         path: '/token/refresh/:userId',
         type: 'post',
+        doc: bcmsCreateDocObject({
+          summary: 'Refresh access token',
+          params: [
+            {
+              name: 'userId',
+              type: 'path',
+              required: true,
+              description: 'ID of a user to which refresh token belongs.',
+            },
+          ],
+          security: ['RefreshToken'],
+          response: {
+            jsonSchema: {
+              accessToken: {
+                __type: 'string',
+                __required: true,
+              },
+            },
+          },
+        }),
         async handler({ request, errorHandler }) {
           if (typeof request.headers.authorization !== 'string') {
             throw errorHandler.occurred(
@@ -80,6 +101,26 @@ export const BCMSAuthController = createController<Setup>({
       logout: createControllerMethod<void, { ok: boolean }>({
         path: '/logout/:userId',
         type: 'post',
+        doc: bcmsCreateDocObject({
+          summary: 'Logout user',
+          security: ['RefreshToken'],
+          params: [
+            {
+              name: 'userId',
+              type: 'path',
+              required: true,
+              description: 'ID of a user to which refresh token belongs.',
+            },
+          ],
+          response: {
+            jsonSchema: {
+              ok: {
+                __type: 'boolean',
+                __required: true,
+              },
+            },
+          },
+        }),
         async handler({ request, errorHandler }) {
           if (typeof request.headers.authorization !== 'string') {
             throw errorHandler.occurred(
