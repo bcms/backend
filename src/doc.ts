@@ -15,6 +15,8 @@ import {
   BCMSEntryFSDBSchema,
   BCMSEntryLiteSchema,
   BCMSEntryUpdateDataSchema,
+  BCMSGroupFSDBSchema,
+  BCMSGroupLiteSchema,
   BCMSProtectedUserSchema,
   BCMSUserUpdateDataSchema,
 } from './types';
@@ -29,8 +31,47 @@ import {
   BCMSChangeGetInfoDataPropSchema,
   BCMSChangeGetInfoDataSchema,
 } from './change';
+import { BCMSGroupWhereIsItUsedResponseSchema } from './group';
 
 export const BCMSDocComponentSchemas = {
+  // Group
+  BCMSGroupWhereIsItUsedResponse: BCMSGroupWhereIsItUsedResponseSchema,
+  BCMSGroup: BCMSGroupFSDBSchema,
+  BCMSGroupItem: {
+    item: {
+      __type: 'object',
+      __required: true,
+      __child: BCMSGroupFSDBSchema,
+    },
+  } as ObjectSchema,
+  BCMSGroupItems: {
+    item: {
+      __type: 'array',
+      __required: true,
+      __child: {
+        __type: 'object',
+        __content: BCMSGroupFSDBSchema,
+      },
+    },
+  } as ObjectSchema,
+  BCMSGroupLite: BCMSGroupLiteSchema,
+  BCMSGroupLiteItem: {
+    item: {
+      __type: 'object',
+      __required: true,
+      __child: BCMSGroupLiteSchema,
+    },
+  } as ObjectSchema,
+  BCMSGroupLiteItems: {
+    item: {
+      __type: 'array',
+      __required: true,
+      __child: {
+        __type: 'object',
+        __content: BCMSGroupLiteSchema,
+      },
+    },
+  } as ObjectSchema,
   // Entry
   BCMSEntryLite: BCMSEntryLiteSchema,
   BCMSEntryLiteItem: {
