@@ -17,6 +17,7 @@ import {
   BCMSEntryUpdateDataSchema,
   BCMSGroupFSDBSchema,
   BCMSGroupLiteSchema,
+  BCMSLanguageFSDBSchema,
   BCMSProtectedUserSchema,
   BCMSUserUpdateDataSchema,
 } from './types';
@@ -34,6 +35,26 @@ import {
 import { BCMSGroupWhereIsItUsedResponseSchema } from './group';
 
 export const BCMSDocComponentSchemas = {
+  // Language
+  BCMSLanguage: BCMSLanguageFSDBSchema,
+  BCMSLanguageItem: {
+    item: {
+      __type: 'object',
+      __required: true,
+      __child: BCMSLanguageFSDBSchema,
+    },
+  } as ObjectSchema,
+  BCMSLanguageItems: {
+    item: {
+      __type: 'array',
+      __required: true,
+      __child: {
+        __type: 'object',
+        __content: BCMSLanguageFSDBSchema,
+      },
+    },
+  } as ObjectSchema,
+
   // Group
   BCMSGroupWhereIsItUsedResponse: BCMSGroupWhereIsItUsedResponseSchema,
   BCMSGroup: BCMSGroupFSDBSchema,
@@ -72,6 +93,7 @@ export const BCMSDocComponentSchemas = {
       },
     },
   } as ObjectSchema,
+
   // Entry
   BCMSEntryLite: BCMSEntryLiteSchema,
   BCMSEntryLiteItem: {
@@ -111,6 +133,7 @@ export const BCMSDocComponentSchemas = {
   } as ObjectSchema,
   BCMSEntryCreateData: BCMSEntryCreateDataSchema,
   BCMSEntryUpdateData: BCMSEntryUpdateDataSchema,
+
   // Color
   BCMSColor: BCMSColorFSDBSchema,
   BCMSColorItem: {
@@ -132,9 +155,11 @@ export const BCMSDocComponentSchemas = {
   } as ObjectSchema,
   BCMSColorCreateData: BCMSColorCreateDataSchema,
   BCMSColorUpdateData: BCMSColorUpdateDataSchema,
+
   // Change
   BCMSChangeGetInfoDataProp: BCMSChangeGetInfoDataPropSchema,
   BCMSChangeGetInfoData: BCMSChangeGetInfoDataSchema,
+
   // Backup
   BCMSBackupCreateBody: BCMSBackupCreateBodySchema,
   BCMSBackupDeleteBody: BCMSBackupDeleteBodySchema,
@@ -177,6 +202,7 @@ export const BCMSDocComponentSchemas = {
     },
   } as ObjectSchema,
   BCMSUserUpdateData: BCMSUserUpdateDataSchema,
+
   // API Key
   BCMSApiKeyAccess: BCMSApiKeyAccessFSDBSchema,
   BCMSApiKey: BCMSApiKeyFSDBSchema,

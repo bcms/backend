@@ -4,7 +4,6 @@ import {
 } from '@becomes/purple-cheetah';
 import {
   JWTPermissionName,
-  JWTPreRequestHandlerResult,
   JWTRoleName,
 } from '@becomes/purple-cheetah-mod-jwt/types';
 import { BCMSRouteProtection } from '../util';
@@ -13,9 +12,10 @@ import {
   BCMSLanguage,
   BCMSLanguageAddData,
   BCMSLanguageAddDataSchema,
-  BCMSUserCustomPool,
+  BCMSRouteProtectionJwtResult,
 } from '../types';
 import { BCMSLanguageRequestHandler } from './request-handler';
+import { bcmsCreateDocObject } from '@bcms/doc';
 
 export const BCMSLanguageController = createController({
   path: '/api/language',
@@ -23,11 +23,18 @@ export const BCMSLanguageController = createController({
   methods() {
     return {
       getAll: createControllerMethod<
-        JWTPreRequestHandlerResult<BCMSUserCustomPool>,
+        BCMSRouteProtectionJwtResult,
         { items: BCMSLanguage[] }
       >({
         path: '/all',
         type: 'get',
+        doc: bcmsCreateDocObject({
+          summary: 'Get all languages',
+          security: ['AccessToken'],
+          response: {
+            json: 'BCMSLanguageItems',
+          },
+        }),
         preRequestHandler: BCMSRouteProtection.createJwtPreRequestHandler(
           [JWTRoleName.ADMIN, JWTRoleName.USER],
           JWTPermissionName.READ,
@@ -40,11 +47,23 @@ export const BCMSLanguageController = createController({
       }),
 
       count: createControllerMethod<
-        JWTPreRequestHandlerResult<BCMSUserCustomPool>,
+        BCMSRouteProtectionJwtResult,
         { count: number }
       >({
         path: '/count',
         type: 'get',
+        doc: bcmsCreateDocObject({
+          summary: 'Get number of languages',
+          security: ['AccessToken'],
+          response: {
+            jsonSchema: {
+              count: {
+                __type: 'number',
+                __required: true,
+              },
+            },
+          },
+        }),
         preRequestHandler: BCMSRouteProtection.createJwtPreRequestHandler(
           [JWTRoleName.ADMIN, JWTRoleName.USER],
           JWTPermissionName.READ,
@@ -57,11 +76,26 @@ export const BCMSLanguageController = createController({
       }),
 
       getById: createControllerMethod<
-        JWTPreRequestHandlerResult<BCMSUserCustomPool>,
+        BCMSRouteProtectionJwtResult,
         { item: BCMSLanguage }
       >({
         path: '/:id',
         type: 'get',
+        doc: bcmsCreateDocObject({
+          summary: 'Get language by ID',
+          security: ['AccessToken'],
+          params: [
+            {
+              name: 'id',
+              required: true,
+              type: 'path',
+              description: 'Language ID',
+            },
+          ],
+          response: {
+            json: 'BCMSLanguageItem',
+          },
+        }),
         preRequestHandler: BCMSRouteProtection.createJwtPreRequestHandler(
           [JWTRoleName.ADMIN, JWTRoleName.USER],
           JWTPermissionName.READ,
@@ -81,6 +115,21 @@ export const BCMSLanguageController = createController({
         { item: BCMSLanguage }
       >({
         type: 'post',
+        doc: bcmsCreateDocObject({
+          summary: 'Create a new language',
+          security: ['AccessToken'],
+          params: [
+            {
+              name: 'X-Bcms-Sid',
+              required: true,
+              type: 'header',
+              description: 'Connection socket ID',
+            },
+          ],
+          response: {
+            json: 'BCMSLanguageItem',
+          },
+        }),
         preRequestHandler:
           BCMSRouteProtection.createJwtAndBodyCheckPreRequestHandler({
             roleNames: [JWTRoleName.ADMIN, JWTRoleName.USER],
@@ -100,11 +149,37 @@ export const BCMSLanguageController = createController({
       }),
 
       deleteById: createControllerMethod<
-        JWTPreRequestHandlerResult<BCMSUserCustomPool>,
+        BCMSRouteProtectionJwtResult,
         { message: 'Success.' }
       >({
         path: '/:id',
         type: 'delete',
+        doc: bcmsCreateDocObject({
+          summary: 'Delete existing language',
+          security: ['AccessToken'],
+          params: [
+            {
+              name: 'id',
+              required: true,
+              type: 'path',
+              description: 'Language ID',
+            },
+            {
+              name: 'X-Bcms-Sid',
+              required: true,
+              type: 'header',
+              description: 'Connection socket ID',
+            },
+          ],
+          response: {
+            jsonSchema: {
+              message: {
+                __type: 'string',
+                __required: true,
+              },
+            },
+          },
+        }),
         preRequestHandler: BCMSRouteProtection.createJwtPreRequestHandler(
           [JWTRoleName.ADMIN, JWTRoleName.USER],
           JWTPermissionName.DELETE,

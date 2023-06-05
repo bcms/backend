@@ -10,7 +10,6 @@ import {
 } from '@becomes/purple-cheetah-mod-jwt/types';
 import { HTTPStatus, ObjectSchema } from '@becomes/purple-cheetah/types';
 import {
-  BCMSUserCustomPool,
   BCMSGroupAddData,
   BCMSGroupAddDataSchema,
   BCMSGroupUpdateData,
