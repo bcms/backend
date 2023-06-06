@@ -18,6 +18,7 @@ import {
   BCMSGroupFSDBSchema,
   BCMSGroupLiteSchema,
   BCMSLanguageFSDBSchema,
+  BCMSMediaFSDBSchema,
   BCMSProtectedUserSchema,
   BCMSUserUpdateDataSchema,
 } from './types';
@@ -35,6 +36,26 @@ import {
 import { BCMSGroupWhereIsItUsedResponseSchema } from './group';
 
 export const BCMSDocComponentSchemas = {
+  // Media
+  BCMSMedia: BCMSMediaFSDBSchema,
+  BCMSMediaItem: {
+    item: {
+      __type: 'object',
+      __required: true,
+      __child: BCMSMediaFSDBSchema,
+    },
+  } as ObjectSchema,
+  BCMSMediaItems: {
+    items: {
+      __type: 'array',
+      __required: true,
+      __child: {
+        __type: 'object',
+        __content: BCMSLanguageFSDBSchema,
+      },
+    },
+  } as ObjectSchema,
+
   // Language
   BCMSLanguage: BCMSLanguageFSDBSchema,
   BCMSLanguageItem: {
@@ -45,7 +66,7 @@ export const BCMSDocComponentSchemas = {
     },
   } as ObjectSchema,
   BCMSLanguageItems: {
-    item: {
+    items: {
       __type: 'array',
       __required: true,
       __child: {
