@@ -304,6 +304,21 @@ export const BCMSMediaController = createController<Setup>({
       >({
         path: '/:id',
         type: 'get',
+        doc: bcmsCreateDocObject({
+          summary: 'Get media by ID',
+          security: ['AccessToken', 'ApiKey'],
+          params: [
+            {
+              name: 'id',
+              type: 'path',
+              description: 'Media ID',
+              required: true,
+            },
+          ],
+          response: {
+            json: 'BCMSMediaItem',
+          },
+        }),
         preRequestHandler: BCMSRouteProtection.createJwtApiPreRequestHandler({
           roleNames: [JWTRoleName.ADMIN, JWTRoleName.USER],
           permissionName: JWTPermissionName.READ,
@@ -318,9 +333,26 @@ export const BCMSMediaController = createController<Setup>({
         },
       }),
 
-      getByIdAggregated: createControllerMethod({
+      getByIdAggregated: createControllerMethod<
+        BCMSRouteProtectionJwtResult,
+        { item: BCMSMediaAggregate }
+      >({
         path: '/:id/aggregate',
         type: 'get',
+        doc: bcmsCreateDocObject({
+          summary: 'Get media aggregated by ID',
+          security: ['AccessToken'],
+          ignore: true,
+          params: [
+            {
+              name: 'id',
+              type: 'path',
+              description: 'Media ID',
+              required: true,
+            },
+          ],
+          response: {},
+        }),
         preRequestHandler: BCMSRouteProtection.createJwtPreRequestHandler(
           [JWTRoleName.ADMIN, JWTRoleName.USER],
           JWTPermissionName.READ,
@@ -335,9 +367,27 @@ export const BCMSMediaController = createController<Setup>({
         },
       }),
 
-      getBinary: createControllerMethod<unknown, { __file: string }>({
+      getBinary: createControllerMethod<
+        BCMSRouteProtectionJwtApiResult,
+        { __file: string }
+      >({
         path: '/:id/bin',
         type: 'get',
+        doc: bcmsCreateDocObject({
+          summary: 'Get media ID binary data',
+          security: ['AccessToken', 'ApiKey'],
+          params: [
+            {
+              name: 'id',
+              type: 'path',
+              description: 'Media ID',
+              required: true,
+            },
+          ],
+          response: {
+            file: true,
+          },
+        }),
         preRequestHandler: BCMSRouteProtection.createJwtApiPreRequestHandler({
           roleNames: [JWTRoleName.ADMIN, JWTRoleName.USER],
           permissionName: JWTPermissionName.READ,
@@ -374,6 +424,22 @@ export const BCMSMediaController = createController<Setup>({
       >({
         path: '/:id/bin/act',
         type: 'get',
+        doc: bcmsCreateDocObject({
+          summary: 'Get media ID binary data by access token in cookie',
+          security: ['AccessToken'],
+          ignore: true,
+          params: [
+            {
+              name: 'id',
+              type: 'path',
+              description: 'Media ID',
+              required: true,
+            },
+          ],
+          response: {
+            file: true,
+          },
+        }),
         async handler({ request, errorHandler }) {
           const atCookie = request.headers.cookie
             ? request.headers.cookie
@@ -419,6 +485,39 @@ export const BCMSMediaController = createController<Setup>({
       getBinaryApiKeyV2: createControllerMethod<unknown, { __file: string }>({
         path: '/pip/:id/bin/:keyId/:fileOptions/:fileName',
         type: 'get',
+        doc: bcmsCreateDocObject({
+          summary: 'Get optimized media file by API key',
+          ignore: true,
+          params: [
+            {
+              name: 'id',
+              type: 'path',
+              description: 'Media ID',
+              required: true,
+            },
+            {
+              name: 'keyId',
+              type: 'path',
+              description: 'API Key ID',
+              required: true,
+            },
+            {
+              name: 'fileOptions',
+              type: 'path',
+              description: 'Options for file optimization',
+              required: true,
+            },
+            {
+              name: 'fileName',
+              type: 'path',
+              description: 'Name of the media file',
+              required: true,
+            },
+          ],
+          response: {
+            file: true,
+          },
+        }),
         async handler({ request, errorHandler }) {
           return await getBinFile(request, errorHandler);
         },
@@ -427,17 +526,65 @@ export const BCMSMediaController = createController<Setup>({
       getBinaryApiKey: createControllerMethod<unknown, { __file: string }>({
         path: '/pip/:id/bin/:keyId/:fileOptions',
         type: 'get',
+        doc: bcmsCreateDocObject({
+          summary: '**DEPRECATED**: Get optimized media file by API key',
+          ignore: true,
+          params: [
+            {
+              name: 'id',
+              type: 'path',
+              description: 'Media ID',
+              required: true,
+            },
+            {
+              name: 'keyId',
+              type: 'path',
+              description: 'API Key ID',
+              required: true,
+            },
+            {
+              name: 'fileOptions',
+              type: 'path',
+              description: 'Options for file optimization',
+              required: true,
+            },
+          ],
+          response: {
+            file: true,
+          },
+        }),
         async handler({ request, errorHandler }) {
           return getBinFile(request, errorHandler);
         },
       }),
 
       getBinaryForSize: createControllerMethod<
-        JWTPreRequestHandlerResult<BCMSUserCustomPool>,
+        BCMSRouteProtectionJwtResult,
         { __file: string }
       >({
         path: '/:id/bin/:size',
         type: 'get',
+        doc: bcmsCreateDocObject({
+          summary: 'Get thumbnail for media',
+          security: ['AccessToken'],
+          params: [
+            {
+              name: 'id',
+              type: 'path',
+              description: 'Media ID',
+              required: true,
+            },
+            {
+              name: 'size',
+              type: 'path',
+              description: 'Can be on of: `small`',
+              required: true,
+            },
+          ],
+          response: {
+            file: true,
+          },
+        }),
         preRequestHandler: BCMSRouteProtection.createJwtPreRequestHandler(
           [JWTRoleName.ADMIN, JWTRoleName.USER],
           JWTPermissionName.READ,
@@ -477,6 +624,28 @@ export const BCMSMediaController = createController<Setup>({
       >({
         path: '/:id/bin/:size/act',
         type: 'get',
+        doc: bcmsCreateDocObject({
+          summary: 'Get thumbnail for media',
+          security: ['AccessToken'],
+          ignore: true,
+          params: [
+            {
+              name: 'id',
+              type: 'path',
+              description: 'Media ID',
+              required: true,
+            },
+            {
+              name: 'size',
+              type: 'path',
+              description: 'Can be on of: `small`',
+              required: true,
+            },
+          ],
+          response: {
+            file: true,
+          },
+        }),
         async handler({ request, errorHandler }) {
           const accessToken = jwt.get({
             jwtString: request.query.act + '',
@@ -561,11 +730,23 @@ export const BCMSMediaController = createController<Setup>({
       }),
 
       requestUploadToken: createControllerMethod<
-        JWTPreRequestHandlerResult<BCMSUserCustomPool>,
+        BCMSRouteProtectionJwtResult,
         { token: string }
       >({
         path: '/request-upload-token',
         type: 'post',
+        doc: bcmsCreateDocObject({
+          summary: 'Generate an upload token for media file uploading',
+          security: ['AccessToken'],
+          response: {
+            jsonSchema: {
+              token: {
+                __type: 'string',
+                __required: true,
+              },
+            },
+          },
+        }),
         preRequestHandler: BCMSRouteProtection.createJwtPreRequestHandler(
           [JWTRoleName.ADMIN, JWTRoleName.USER],
           JWTPermissionName.WRITE,
@@ -575,17 +756,38 @@ export const BCMSMediaController = createController<Setup>({
         },
       }),
 
-      createFile: createControllerMethod<
-        // JWTPreRequestHandlerResult<BCMSUserCustomPool>,
-        void,
-        { item: BCMSMedia }
-      >({
+      createFile: createControllerMethod<void, { item: BCMSMedia }>({
         path: '/file',
         type: 'post',
-        // preRequestHandler: BCMSRouteProtection.createJwtPreRequestHandler(
-        //   [JWTRoleName.ADMIN, JWTRoleName.USER],
-        //   JWTPermissionName.WRITE,
-        // ),
+        doc: bcmsCreateDocObject({
+          summary: 'Upload a media file using upload token',
+          params: [
+            {
+              name: 'X-Bcms-Sid',
+              required: true,
+              type: 'header',
+              description: 'Socket connection ID',
+            },
+            {
+              name: 'X-Bcms-Upload-Token',
+              required: true,
+              type: 'header',
+              description: 'File upload token',
+            },
+            {
+              name: 'parentId',
+              required: false,
+              description: 'Parent media ID',
+              type: 'query',
+            },
+          ],
+          body: {
+            file: 'media',
+          },
+          response: {
+            json: 'BCMSMediaItem',
+          },
+        }),
         async handler({ request, errorHandler, logger, name }) {
           return {
             item: await BCMSMediaRequestHandler.createFile({
@@ -607,6 +809,26 @@ export const BCMSMediaController = createController<Setup>({
       >({
         path: '/dir',
         type: 'post',
+        doc: bcmsCreateDocObject({
+          summary: 'Create media of type directory',
+          description:
+            'Media of type directory can be a parent for other media',
+          security: ['AccessToken'],
+          params: [
+            {
+              name: 'X-Bcms-Sid',
+              required: true,
+              type: 'header',
+              description: 'Socket connection ID',
+            },
+          ],
+          body: {
+            json: 'BCMSMediaAddDirData',
+          },
+          response: {
+            json: 'BCMSMediaItem',
+          },
+        }),
         preRequestHandler:
           BCMSRouteProtection.createJwtAndBodyCheckPreRequestHandler({
             roleNames: [JWTRoleName.ADMIN, JWTRoleName.USER],
@@ -631,6 +853,24 @@ export const BCMSMediaController = createController<Setup>({
       >({
         path: '/file',
         type: 'put',
+        doc: bcmsCreateDocObject({
+          summary: 'Update existing media',
+          security: ['AccessToken'],
+          params: [
+            {
+              name: 'X-Bcms-Sid',
+              required: true,
+              type: 'header',
+              description: 'Socket connection ID',
+            },
+          ],
+          body: {
+            json: 'BCMSMediaUpdateData',
+          },
+          response: {
+            json: 'BCMSMediaItem',
+          },
+        }),
         preRequestHandler:
           BCMSRouteProtection.createJwtAndBodyCheckPreRequestHandler({
             roleNames: [JWTRoleName.ADMIN, JWTRoleName.USER],
@@ -655,6 +895,24 @@ export const BCMSMediaController = createController<Setup>({
       >({
         path: '/duplicate',
         type: 'post',
+        doc: bcmsCreateDocObject({
+          summary: 'Duplicate existing media',
+          security: ['AccessToken'],
+          params: [
+            {
+              name: 'X-Bcms-Sid',
+              required: true,
+              type: 'header',
+              description: 'Socket connection ID',
+            },
+          ],
+          body: {
+            json: 'BCMSMediaDuplicateDate',
+          },
+          response: {
+            json: 'BCMSMediaItem',
+          },
+        }),
         preRequestHandler:
           BCMSRouteProtection.createJwtAndBodyCheckPreRequestHandler({
             roleNames: [JWTRoleName.ADMIN, JWTRoleName.USER],
@@ -679,6 +937,24 @@ export const BCMSMediaController = createController<Setup>({
       >({
         path: '/move',
         type: 'put',
+        doc: bcmsCreateDocObject({
+          summary: 'Move media file to another location',
+          security: ['AccessToken'],
+          params: [
+            {
+              name: 'X-Bcms-Sid',
+              required: true,
+              type: 'header',
+              description: 'Socket connection ID',
+            },
+          ],
+          body: {
+            json: 'BCMSMediaMoveData',
+          },
+          response: {
+            json: 'BCMSMediaItem',
+          },
+        }),
         preRequestHandler:
           BCMSRouteProtection.createJwtAndBodyCheckPreRequestHandler({
             roleNames: [JWTRoleName.ADMIN, JWTRoleName.USER],
@@ -698,11 +974,37 @@ export const BCMSMediaController = createController<Setup>({
       }),
 
       deleteById: createControllerMethod<
-        JWTPreRequestHandlerResult<BCMSUserCustomPool>,
+        BCMSRouteProtectionJwtResult,
         { message: 'Success.' }
       >({
         path: '/:id',
         type: 'delete',
+        doc: bcmsCreateDocObject({
+          summary: 'Delete media by ID',
+          security: ['AccessToken'],
+          params: [
+            {
+              name: 'id',
+              required: true,
+              type: 'path',
+              description: 'Media ID',
+            },
+            {
+              name: 'X-Bcms-Sid',
+              required: true,
+              type: 'header',
+              description: 'Socket connection ID',
+            },
+          ],
+          response: {
+            jsonSchema: {
+              message: {
+                __type: 'string',
+                __required: true,
+              },
+            },
+          },
+        }),
         preRequestHandler: BCMSRouteProtection.createJwtPreRequestHandler(
           [JWTRoleName.ADMIN, JWTRoleName.USER],
           JWTPermissionName.DELETE,

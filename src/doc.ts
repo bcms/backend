@@ -18,7 +18,11 @@ import {
   BCMSGroupFSDBSchema,
   BCMSGroupLiteSchema,
   BCMSLanguageFSDBSchema,
+  BCMSMediaAddDirDataSchema,
+  BCMSMediaDuplicateDataSchema,
   BCMSMediaFSDBSchema,
+  BCMSMediaMoveDataSchema,
+  BCMSMediaUpdateDataSchema,
   BCMSProtectedUserSchema,
   BCMSUserUpdateDataSchema,
 } from './types';
@@ -55,6 +59,10 @@ export const BCMSDocComponentSchemas = {
       },
     },
   } as ObjectSchema,
+  BCMSMediaAddDirData: BCMSMediaAddDirDataSchema,
+  BCMSMediaUpdateData: BCMSMediaUpdateDataSchema,
+  BCMSMediaDuplicateDate: BCMSMediaDuplicateDataSchema,
+  BCMSMediaMoveData: BCMSMediaMoveDataSchema,
 
   // Language
   BCMSLanguage: BCMSLanguageFSDBSchema,
