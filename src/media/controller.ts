@@ -10,7 +10,6 @@ import {
   JWTError,
   JWTManager,
   JWTPermissionName,
-  JWTPreRequestHandlerResult,
   JWTRoleName,
 } from '@becomes/purple-cheetah-mod-jwt/types';
 import { FS, HTTPError, HTTPStatus } from '@becomes/purple-cheetah/types';
@@ -27,7 +26,8 @@ import {
   BCMSMediaType,
   BCMSMediaUpdateData,
   BCMSMediaUpdateDataSchema,
-  BCMSUserCustomPool,
+  BCMSRouteProtectionJwtApiResult,
+  BCMSRouteProtectionJwtResult,
 } from '../types';
 import { BCMSRouteProtection } from '../util';
 import { BCMSRepo } from '@bcms/repo';
@@ -36,6 +36,7 @@ import { BCMSMediaService } from './service';
 import { BCMSMediaRequestHandler } from './request-handler';
 import { BCMSImageProcessor } from './image-processor';
 import type { Request } from 'express';
+import { bcmsCreateDocObject } from '@bcms/doc';
 
 interface Setup {
   jwt: JWTManager;
@@ -153,9 +154,19 @@ export const BCMSMediaController = createController<Setup>({
     }
 
     return {
-      getAll: createControllerMethod<unknown, { items: BCMSMedia[] }>({
+      getAll: createControllerMethod<
+        BCMSRouteProtectionJwtApiResult,
+        { items: BCMSMedia[] }
+      >({
         path: '/all',
         type: 'get',
+        doc: bcmsCreateDocObject({
+          summary: 'Get all media',
+          security: ['AccessToken', 'ApiKey'],
+          response: {
+            json: 'BCMSMediaItems',
+          },
+        }),
         preRequestHandler: BCMSRouteProtection.createJwtApiPreRequestHandler({
           roleNames: [JWTRoleName.ADMIN, JWTRoleName.USER],
           permissionName: JWTPermissionName.READ,
@@ -168,11 +179,17 @@ export const BCMSMediaController = createController<Setup>({
       }),
 
       getAllAggregated: createControllerMethod<
-        JWTPreRequestHandlerResult<BCMSUserCustomPool>,
+        BCMSRouteProtectionJwtResult,
         { items: BCMSMediaAggregate[] }
       >({
         path: '/all/aggregate',
         type: 'get',
+        doc: bcmsCreateDocObject({
+          summary: 'Get media aggregated',
+          security: ['AccessToken'],
+          ignore: true,
+          response: {},
+        }),
         preRequestHandler: BCMSRouteProtection.createJwtPreRequestHandler(
           [JWTRoleName.ADMIN, JWTRoleName.USER],
           JWTPermissionName.READ,
@@ -185,11 +202,26 @@ export const BCMSMediaController = createController<Setup>({
       }),
 
       getAllByParentId: createControllerMethod<
-        JWTPreRequestHandlerResult<BCMSUserCustomPool>,
+        BCMSRouteProtectionJwtResult,
         { items: BCMSMedia[] }
       >({
         path: '/all/parent/:id',
         type: 'get',
+        doc: bcmsCreateDocObject({
+          summary: 'Get all media for specified partner',
+          security: ['AccessToken'],
+          params: [
+            {
+              name: 'id',
+              type: 'path',
+              description: 'Parent media ID',
+              required: true,
+            },
+          ],
+          response: {
+            json: 'BCMSMediaItems',
+          },
+        }),
         preRequestHandler: BCMSRouteProtection.createJwtPreRequestHandler(
           [JWTRoleName.ADMIN, JWTRoleName.USER],
           JWTPermissionName.READ,
@@ -205,11 +237,26 @@ export const BCMSMediaController = createController<Setup>({
       }),
 
       getMany: createControllerMethod<
-        JWTPreRequestHandlerResult<BCMSUserCustomPool>,
+        BCMSRouteProtectionJwtResult,
         { items: BCMSMedia[] }
       >({
         path: '/many',
         type: 'get',
+        doc: bcmsCreateDocObject({
+          summary: 'Get many media by IDs',
+          security: ['AccessToken'],
+          params: [
+            {
+              name: 'X-Bcms-Ids',
+              required: true,
+              type: 'header',
+              description: 'Media IDs split by `-` sign',
+            },
+          ],
+          response: {
+            json: 'BCMSMediaItems',
+          },
+        }),
         preRequestHandler: BCMSRouteProtection.createJwtPreRequestHandler(
           [JWTRoleName.ADMIN, JWTRoleName.USER],
           JWTPermissionName.READ,
@@ -223,11 +270,23 @@ export const BCMSMediaController = createController<Setup>({
       }),
 
       count: createControllerMethod<
-        JWTPreRequestHandlerResult<BCMSUserCustomPool>,
+        BCMSRouteProtectionJwtResult,
         { count: number }
       >({
         path: '/count',
         type: 'get',
+        doc: bcmsCreateDocObject({
+          summary: 'Get number of available media',
+          security: ['AccessToken'],
+          response: {
+            jsonSchema: {
+              count: {
+                __type: 'number',
+                __required: true,
+              },
+            },
+          },
+        }),
         preRequestHandler: BCMSRouteProtection.createJwtPreRequestHandler(
           [JWTRoleName.ADMIN, JWTRoleName.USER],
           JWTPermissionName.READ,
@@ -239,7 +298,10 @@ export const BCMSMediaController = createController<Setup>({
         },
       }),
 
-      getById: createControllerMethod<unknown, { item: BCMSMedia }>({
+      getById: createControllerMethod<
+        BCMSRouteProtectionJwtApiResult,
+        { item: BCMSMedia }
+      >({
         path: '/:id',
         type: 'get',
         preRequestHandler: BCMSRouteProtection.createJwtApiPreRequestHandler({
