@@ -45,18 +45,30 @@ export const RouteTrackerController = createController({
         ),
         async handler({ request, accessToken }) {
           const sid = request.headers['x-bcms-sid'] as string;
-          const path = Buffer.from(request.query.path + '', 'hex').toString();
-          const items: string[] = [];
-          const myConnId = `${accessToken.payload.userId}_${sid}`;
-          for (const connId in BCMSRouteTracker.connections) {
-            if (
-              connId !== myConnId &&
-              BCMSRouteTracker.connections[connId] === path
-            ) {
-              items.push(connId);
+          if (request.query.path) {
+            const path = Buffer.from(request.query.path + '', 'hex').toString();
+            const items: string[] = [];
+            const myConnId = `${accessToken.payload.userId}_${sid}`;
+            for (const connId in BCMSRouteTracker.connections) {
+              if (
+                connId !== myConnId &&
+                BCMSRouteTracker.connections[connId] === path
+              ) {
+                items.push(connId);
+              }
             }
+            return { items };
+          } else {
+            const items: Array<{ id: string; path: string }> = [];
+            const myConnId = `${accessToken.payload.userId}_${sid}`;
+            for (const connId in BCMSRouteTracker.connections) {
+              const conn = BCMSRouteTracker.connections[connId];
+              if (connId !== myConnId) {
+                items.push({ id: connId.split('_')[0], path: conn });
+              }
+            }
+            return { items };
           }
-          return { items };
         },
       }),
     };
